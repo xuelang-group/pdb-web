@@ -18,5 +18,6 @@ const { Sider, Content } = Layout
 .pdb-layout {
   height: 100%;
   width: 100%;
+  flex-direction: row;
 }
 </style>

@@ -11,15 +11,14 @@ import { buildTree } from '../../utils/common';
 const editorStore = useEditorStore();
 const data = editorStore.data;
 const { edges, nodes } = buildTree(data);
-console.log(nodes, edges)
 let graph;
 
 onMounted(() => {
+  initG6();
   initLayout();
-  init();
 })
 
-function initLayout() {
+function initG6() {
   /**
    * 注册布局的方法
    * @param {string} type 布局类型，外部引用指定必须，不要与已有布局类型重名
@@ -53,7 +52,7 @@ function initLayout() {
       const nodeHeight = self.nodeHeightSep;
       const nodeXMap = new Map();
       let currentY = 0;
-      self.nodes.forEach((item: any) => {
+      self.nodes.forEach((item: any, index: number) => {
         if (item.parent) {
           const itemParentX = nodeXMap.get(item.parent);
           if (!itemParentX) {
@@ -62,10 +61,14 @@ function initLayout() {
           }
           item.x = itemParentX.x + nodeLeft;
           item.y = currentY + nodeHeight;
+          currentY = item.y;
         } else {
+          currentY = self.nodes[0].y;
+          if (index > 0) {
+            item.y = currentY;
+          }
           item.size = [200, 20];
         }
-        currentY = item.y;
         nodeXMap.set(item.id, { ...item });
       });
     },
@@ -158,7 +161,7 @@ function initLayout() {
   })
 }
 
-function init() {
+function initLayout() {
   const container = document.getElementById("pdb-graph");
   if (!container) return;
   const width = container.scrollWidth;
@@ -200,6 +203,7 @@ function init() {
 #pdb-graph {
   flex: 1;
   height: 100%;
+  width: 0;
 }
 </style>
   
