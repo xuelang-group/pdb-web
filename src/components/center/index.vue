@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import Graph from './Graph.vue'
-  import Sider from './Sider.vue'
+  import Sider from '../right/index.vue'
 </script>
 <template>
   <div class="pdb-content">

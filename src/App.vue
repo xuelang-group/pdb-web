@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Layout } from "ant-design-vue"
 import Center from './components/center/index.vue'
-const { Sider, Content } = Layout
+import Left from './components/left/index.vue'
+
+const { Content } = Layout
 </script>
 
 <template>
   <Layout class="pdb-layout">
-    <Sider theme="light">组件列表</Sider>
+    <Left />
     <Content>
       <Center />
     </Content>

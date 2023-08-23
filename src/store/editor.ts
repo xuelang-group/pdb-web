@@ -6,7 +6,7 @@ export interface ItemData {
   parent?: string
   children?: Array<string>
   fans?: Array<string>
-  params?: Array<any>
+  params?: any
 }
 interface EditorData {
   [key: string]: Array<ItemData>
@@ -14,6 +14,7 @@ interface EditorData {
 
 interface EditorState {
   data: EditorData
+  currentEditModel: ItemData | null
 }
 
 export const useEditorStore = defineStore('editor', {
@@ -25,13 +26,16 @@ export const useEditorStore = defineStore('editor', {
             "uid": "PM1",
             "name": "PM1",
             "children": ["PG1", "PG2"],
-            "params": [{
-              "test": "123"
-            }]
+            "params": {
+              "PM1": "123"
+            }
           },
           {
             "uid": "PM2",
-            "name": "PM2"
+            "name": "PM2",
+            "params": {
+              "PM2": "123"
+            }
           },
           {
             "uid": "PM3",
@@ -125,6 +129,12 @@ export const useEditorStore = defineStore('editor', {
           },
         ]
       },
+      currentEditModel: null
+    }
+  },
+  actions: {
+    setCurrentEditModel(item: any) {
+      this.currentEditModel = item;
     }
   }
 })

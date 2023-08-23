@@ -5,18 +5,20 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import G6, { Util } from '@antv/g6';
+import { storeToRefs } from 'pinia';
 
 import { useEditorStore } from '../../store/editor';
 import { buildTree } from '../../utils/common';
+
 const editorStore = useEditorStore();
-const data = editorStore.data;
-const { edges, nodes } = buildTree(data);
-let graph;
+const { data } = storeToRefs(editorStore);
+let graph: any;
 
 onMounted(() => {
   initG6();
   initLayout();
-})
+  initEvent();
+});
 
 function initG6() {
   /**
@@ -191,11 +193,18 @@ function initLayout() {
       type: 'step-line',
     }
   });
-  graph.data({
-    nodes,
-    edges
-  });
+  graph.data(buildTree(data.value));
   graph.render();
+}
+
+function initEvent() {
+  if (!graph) return
+  graph.on('node:click', (event: { item: any; target: any; }) => {
+    const node = event.item; // 被点击的节点元素
+    const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
+    console.log(node, shape)
+    editorStore.setCurrentEditModel(node._cfg.model)
+  });
 }
 
 </script>
