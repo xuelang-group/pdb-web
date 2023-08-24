@@ -59,9 +59,9 @@ function initG6() {
     execute() {
       const self = this;
       const nodeLeft = self.nodeLeftSep,
-            nodeHeightSep = self.nodeHeightSep,
-            nodeWidth = self.nodeWidth,
-            nodeHeight = self.nodeHeight;
+        nodeHeightSep = self.nodeHeightSep,
+        nodeWidth = self.nodeWidth,
+        nodeHeight = self.nodeHeight;
       const nodeXMap = new Map();
       let currentY = 0;
       self.nodes.forEach((item: any, index: number) => {
@@ -128,7 +128,8 @@ function initG6() {
           height: NODE_HEIGHT,
           fill: 'rgb(187,246,250)',
           stroke: '#02c3ff',
-          radius: 2
+          radius: 2,
+          cursor: 'pointer',
         }
       });
       // text
@@ -140,11 +141,7 @@ function initG6() {
           height: NODE_HEIGHT,
           x: width / 2,
           y: 22,
-          fontFamily:
-            typeof window !== 'undefined'
-              ? window.getComputedStyle(document.body, null).getPropertyValue('font-family') ||
-              'Arial, sans-serif'
-              : 'Arial, sans-serif',
+          cursor: 'pointer',
         },
         name: 'text-shape',
       });
@@ -156,7 +153,7 @@ function initG6() {
   G6.registerEdge('step-line', {
     draw(cfg, group) {
       const startPoint = cfg.startPoint,
-          endPoint = cfg.endPoint;
+        endPoint = cfg.endPoint;
 
       // 同层，直线
       if (_.get(cfg.targetNode, '_cfg.model.onlyChild')) {
@@ -178,7 +175,7 @@ function initG6() {
       if (_.get(cfg.sourceNode, '_cfg.model.parent') === _.get(cfg.targetNode, '_cfg.model.parent')) {
         startPoinX = Number(startPoint?.x) - 10;
       }
-      
+
       const shape = group.addShape('path', {
         attrs: {
           stroke: '#333',
@@ -206,16 +203,27 @@ function initLayout() {
     width,
     height,
     modes: {
-      default: ['drag-canvas', 'zoom-canvas'],
+      default: [
+        'drag-canvas', // 画布拖拽
+        'zoom-canvas', // 画布缩放
+        // 'activate-relations' // 高亮相邻节点
+      ],
     },
     defaultNode: {
-      size: [40, 20] ,
+      size: [40, 20],
       type: 'plmNodeCustom',
       style: {
         lineWidth: 2,
         stroke: '#5B8FF9',
         fill: '#C6E5FF',
       },
+    },
+    nodeStateStyles: {
+      // 自定义选中节点样式
+      selectedNode: {
+        stroke: '#0C69D9',
+        fill: '#FFFFFF',
+      }
     },
     layout: {
       type: 'plmLayoutCustom',
@@ -225,8 +233,6 @@ function initLayout() {
     }
   });
   graph.data(buildTree(data.value));
-  console.log(buildTree(data.value))
-
   graph.render();
 }
 
@@ -235,8 +241,29 @@ function initEvent() {
   graph.on('node:click', (event: { item: any; target: any; }) => {
     const node = event.item; // 被点击的节点元素
     const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
-    console.log(node, shape)
-    editorStore.setCurrentEditModel(node._cfg.model)
+
+    editorStore.setCurrentEditModel(node._cfg.model);
+    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+      graph.setItemState(node, 'selectedNode', false);
+    });
+    /* 不同状态下节点和边的样式，G6 提供以下状态名的默认样式：active, inactive, selected, highlight, disable。可以通过如下方式修改或者扩展全局状态样式*/
+    graph.setItemState(node, 'selectedNode', true);
+  });
+
+  graph.on('canvas:click', () => {
+    // 取消选中高亮
+    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+      graph.setItemState(node, 'selectedNode', false);
+    });
+  });
+
+  graph.on('node:mouseenter', (event: { item: any; }) => {
+    // hover 高亮
+    graph.setItemState(event.item, 'active', true);
+  });
+
+  graph.on('node:mouseleave', (event: { item: any; }) => {
+    graph.setItemState(event.item, 'active', false);
   });
 }
 

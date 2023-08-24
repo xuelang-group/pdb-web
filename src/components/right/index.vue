@@ -1,6 +1,6 @@
 <template>
   <Sider theme="light" class="pdb-content-sider" width="250">
-    <div class="sider-header">属性</div>
+    <div class="sider-header">{{currentEditModel?.label}} 属性</div>
     <div class="sider-content">
       <div v-for="item in params" class="edit-item">
         <Input v-model:value="item.key" />：

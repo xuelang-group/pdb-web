@@ -12,9 +12,17 @@ interface EditorData {
   [key: string]: Array<ItemData>
 }
 
+interface NodeItemData {
+  id: string
+  label: string
+  params?: any
+  parent?: string
+  children?: Array<string>
+  fans?: Array<string>
+}
 interface EditorState {
   data: EditorData
-  currentEditModel: ItemData | null
+  currentEditModel: NodeItemData | null
 }
 
 export const useEditorStore = defineStore('editor', {
