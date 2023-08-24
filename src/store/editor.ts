@@ -212,6 +212,169 @@ export const useEditorStore = defineStore('editor', {
             "parent": "MW1",
             "nodeType": 'type8'
           },
+        ],
+        "ERP": [
+          {
+            "uid": "CK1",
+            "name": "CK1",
+            "nodeType": "type1",
+            "children": ["SP1"]
+          }, {
+            "uid": "SP1",
+            "name": "SP1",
+            "nodeType": "type5",
+            "parent": "CK1",
+            "children": ["RV1", "RV2"]
+          }, {
+            "uid": "RV1",
+            "name": "RV1",
+            "nodeType": "type8",
+            "parent": "SP1",
+            "children": ["AF1", "AS1"]
+          }, {
+            "uid": "RV2",
+            "name": "RV2",
+            "nodeType": "type8",
+            "parent": "SP1",
+            "children": ["AF2", "OP3-ERP"]
+          }, {
+            "uid": "AF1",
+            "name": "AF1",
+            "nodeType": "type2",
+            "parent": "RV1",
+          }, {
+            "uid": "AS1",
+            "name": "AS1",
+            "nodeType": "type5",
+            "parent": "RV1",
+            "children": ["OP1-ERP", "OP2-ERP"]
+          }, {
+            "uid": "AF2",
+            "name": "AF2",
+            "nodeType": "type2",
+            "parent": "RV2",
+            "children": ["UR3"]
+          }, {
+            "uid": "OP1-ERP",
+            "name": "OP1",
+            "nodeType": "type4",
+            "parent": "AS1",
+          }, {
+            "uid": "OP2-ERP",
+            "name": "OP2",
+            "nodeType": "type4",
+            "parent": "AS1",
+          }, {
+            "uid": "OP3-ERP",
+            "name": "OP3",
+            "nodeType": "type4",
+            "parent": "RV2",
+            "children": ["HW1-ERP"]
+          }, {
+            "uid": "UR3",
+            "name": "UR3",
+            "nodeType": "type5",
+            "parent": "AF2",
+            "children": ["UR3"]
+          }, {
+            "uid": "HW1-ERP",
+            "name": "HW1",
+            "nodeType": "type7",
+            "parent": "OP3-ERP",
+            "children": ["TD1-ERP", "TD2-ERP"]
+          }, {
+            "uid": "TD1-ERP",
+            "name": "TD1",
+            "nodeType": "type10",
+            "parent": "HW1-ERP",
+          }, {
+            "uid": "TD2-ERP",
+            "name": "TD2",
+            "nodeType": "type10",
+            "parent": "HW1-ERP",
+          }, {
+            "uid": "CK2",
+            "name": "CK2",
+            "nodeType": "type1",
+            "children": ["SP2"]
+          }, {
+            "uid": "SP2",
+            "name": "SP2",
+            "nodeType": "type5",
+            "parent": "CK2"
+          }, {
+            "uid": "CK3",
+            "name": "CK3",
+            "nodeType": "type1"
+          }, 
+        ], 
+        "QMES": [
+          {
+            "uid": "LQ1",
+            "name": "LQ1",
+            "nodeType": 'type5',
+            "children": ["QK1", "QK2"]
+          }, {
+            "uid": "QK1",
+            "name": "QK1",
+            "nodeType": 'type1',
+            "parent": "LQ1",
+            "children": ["AF1-QMES", "AF2-QMES"]
+          }, {
+            "uid": "QK2",
+            "name": "QK2",
+            "nodeType": 'type1',
+            "parent": "LQ1"
+          }, {
+            "uid": "AF1-QMES",
+            "name": "AF1",
+            "nodeType": 'type2',
+            "parent": "QK1",
+            "children": ["ED1", "ED2"]
+          }, {
+            "uid": "AF2-QMES",
+            "name": "AF2",
+            "nodeType": 'type2',
+            "parent": "QK1",
+            "children": ["ED3", "ED4", "ED5"]
+          }, {
+            "uid": "ED1",
+            "name": "ED1",
+            "nodeType": 'type3',
+            "parent": "AF1-QMES"
+          }, {
+            "uid": "ED2",
+            "name": "ED2",
+            "nodeType": 'type3',
+            "parent": "AF1-QMES"
+          }, {
+            "uid": "ED3",
+            "name": "ED3",
+            "nodeType": 'type3',
+            "parent": "AF2-QMES",
+            "children": ["LP1"]
+          }, {
+            "uid": "ED4",
+            "name": "ED4",
+            "nodeType": 'type3',
+            "parent": "AF2-QMES"
+          }, {
+            "uid": "ED5",
+            "name": "ED5",
+            "nodeType": 'type3',
+            "parent": "AF2-QMES"
+          }, {
+            "uid": "LP1",
+            "name": "LP1",
+            "nodeType": 'type7',
+            "parent": "ED3",
+            "children": ["LP-C"]
+          }, {
+            "uid": "LP-C",
+            "name": "LP-C",
+            "nodeType": 'type4',
+            "parent": "LP1",
+          },
         ]
       },
       currentEditModel: null

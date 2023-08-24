@@ -18,7 +18,7 @@ const TYPE_MAP = {
   EBOM: 'type3',
   BOP: 'type6',
   ERP: 'type1',
-  QMES: 'type4'
+  QMES: 'type5'
 };
 let graph: any;
 onMounted(() => {
