@@ -6,14 +6,20 @@
 import { onMounted } from 'vue';
 import G6, { Util } from '@antv/g6';
 import { storeToRefs } from 'pinia';
+import _ from 'lodash'
 
 import { useEditorStore } from '../../store/editor';
 import { buildTree } from '../../utils/common';
 
+
+const ROOT_NODE_WIDTH = 120, // 主节点宽度
+      NODE_WIDTH = 50, // 一般节点宽度
+      NODE_HEIGHT = 30, // 节点高度
+      NODE_LEFT_SEP = 25, // 节点左右间距
+      NODE_HEIGHT_SEP = 10; // 节点上下间距
 const editorStore = useEditorStore();
 const { data } = storeToRefs(editorStore);
 let graph: any;
-
 onMounted(() => {
   initG6();
   initLayout();
@@ -32,8 +38,10 @@ function initG6() {
      */
     getDefaultCfg() {
       return {
-        nodeLeftSep: 25, // 同一部分的节点间距
-        nodeHeightSep: 40, // 节点大小
+        nodeLeftSep: NODE_LEFT_SEP, // 节点左右间距
+        nodeHeightSep: NODE_HEIGHT_SEP, // 节点上下间距
+        nodeWidth: NODE_WIDTH,
+        nodeHeight: NODE_HEIGHT
       };
     },
     /**
@@ -50,8 +58,10 @@ function initG6() {
      */
     execute() {
       const self = this;
-      const nodeLeft = self.nodeLeftSep;
-      const nodeHeight = self.nodeHeightSep;
+      const nodeLeft = self.nodeLeftSep,
+            nodeHeightSep = self.nodeHeightSep,
+            nodeWidth = self.nodeWidth,
+            nodeHeight = self.nodeHeight;
       const nodeXMap = new Map();
       let currentY = 0;
       self.nodes.forEach((item: any, index: number) => {
@@ -61,15 +71,20 @@ function initG6() {
             nodeXMap.set(item.id, { ...item });
             return
           }
-          item.x = itemParentX.x + nodeLeft;
-          item.y = currentY + nodeHeight;
+          if (item.onlyChild) {
+            item.x = itemParentX.x + nodeWidth + nodeLeft / 2;
+            item.y = currentY;
+          } else {
+            item.x = itemParentX.x + nodeLeft;
+            item.y = currentY + nodeHeightSep + nodeHeight;
+          }
           currentY = item.y;
         } else {
+          // 顶层主节点
           currentY = self.nodes[0].y;
           if (index > 0) {
             item.y = currentY;
           }
-          item.size = [200, 20];
         }
         nodeXMap.set(item.id, { ...item });
       });
@@ -105,12 +120,12 @@ function initG6() {
 
   G6.registerNode('plmNodeCustom', {
     draw: function draw(cfg, group) {
-      let width = 120;
-      if (cfg.parent) width = 50;
+      let width = ROOT_NODE_WIDTH;
+      if (cfg.parent) width = NODE_WIDTH;
       const keyShape = group.addShape('rect', {
         attrs: {
           width,
-          height: 30,
+          height: NODE_HEIGHT,
           fill: 'rgb(187,246,250)',
           stroke: '#02c3ff',
           radius: 2
@@ -122,7 +137,7 @@ function initG6() {
           text: cfg.label,
           fill: '#333',
           textAlign: 'center',
-          height: 30,
+          height: NODE_HEIGHT,
           x: width / 2,
           y: 22,
           fontFamily:
@@ -142,8 +157,25 @@ function initG6() {
     draw(cfg, group) {
       const startPoint = cfg.startPoint,
           endPoint = cfg.endPoint;
+
+      // 同层，直线
+      if (_.get(cfg.targetNode, '_cfg.model.onlyChild')) {
+        const shape = group.addShape('path', {
+          attrs: {
+            stroke: '#333',
+            path: [
+              ['M', startPoint?.x, startPoint?.y],
+              ['L', endPoint?.x, endPoint?.y],
+            ],
+          },
+          name: 'path-shape',
+        });
+        return shape;
+      }
+
+      // 折线
       let startPoinX = Number(startPoint?.x) + 15;
-      if (cfg.sourceNode._cfg.model.parent === cfg.targetNode._cfg.model.parent) {
+      if (_.get(cfg.sourceNode, '_cfg.model.parent') === _.get(cfg.targetNode, '_cfg.model.parent')) {
         startPoinX = Number(startPoint?.x) - 10;
       }
       
@@ -187,13 +219,14 @@ function initLayout() {
     },
     layout: {
       type: 'plmLayoutCustom',
-      indent: 0
     },
     defaultEdge: {
       type: 'step-line',
     }
   });
   graph.data(buildTree(data.value));
+  console.log(buildTree(data.value))
+
   graph.render();
 }
 

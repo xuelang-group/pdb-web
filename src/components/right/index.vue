@@ -23,7 +23,7 @@ const params = ref<any[]>([]);
 
 watch(currentEditModel, function (newVal, oldVal) {
   let _params = new Array();
-  if (JSON.stringify(newVal?.params) !== JSON.stringify(oldVal?.params)) {
+  if (newVal?.params && JSON.stringify(newVal?.params) !== JSON.stringify(oldVal?.params)) {
     Object.keys(newVal?.params).forEach(function (key) {
       _params.push({ key, value: newVal?.params[key] });
     });

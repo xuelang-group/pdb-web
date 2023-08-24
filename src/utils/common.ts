@@ -7,20 +7,26 @@ interface nodeItemConfig {
   parent?: string
   children?: nodeItemConfig[]
 }
+
 function findChildren(data: Array<ItemData>, parent: string, edges: any, nodes: any) {
-  const children: { id: string; label: string }[] = [];
+  const children: any[] = [];
   for (const item of data) {
+    const { uid, name, ...other } = item;
     if (item.parent === parent) {
       const node = {
-        id: item.uid,
-        label: item.name,
+        ...other,
+        id: uid,
+        label: name,
         parent
       };
       nodes.push(node);
-      const nestedChildren = findChildren(data, item.uid, edges, nodes);
+      const nestedChildren = findChildren(data, uid, edges, nodes);
       if (nestedChildren.length > 0) {
+        if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
+          Object.assign(nestedChildren[0], { onlyChild: true });
+        }
         Object.assign(node, { children: nestedChildren});
-        edges.push({ source: node.id, target: nestedChildren[0].id})
+        edges.push({ source: node.id, target: nestedChildren[0].id});
       }
 
       children.push(node);
@@ -29,7 +35,7 @@ function findChildren(data: Array<ItemData>, parent: string, edges: any, nodes: 
 
   children.forEach(function(value, index) {
     if (index > 0) {
-      edges.push({ source: children[index - 1].id, target: value.id})
+      edges.push({ source: children[index - 1].id, target: value.id});
     }
   });
 
@@ -44,9 +50,9 @@ export function buildTree(data: {[key: string]: Array<ItemData>}) {
     const parentNode = {
       id: key,
       label: key,
-    }
-    nodes.push(parentNode)
-    rootNodes.push(parentNode)
+    };
+    nodes.push(parentNode);
+    rootNodes.push(parentNode);
     for (const item of allData) {
       const { uid, name, parent, children, ...other } = item;
       const node = {
@@ -55,14 +61,15 @@ export function buildTree(data: {[key: string]: Array<ItemData>}) {
         parent: key,
         ...other
       };
-      if (parent) {
-        Object.assign(node, { parent: parent })
-      } else {
+      if (!parent) {
         nodes.push(node);
         const nestedChildren = findChildren(allData, uid, edges, nodes);
         if (nestedChildren.length > 0) {
+          if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
+            Object.assign(nestedChildren[0], { onlyChild: true });
+          }
           Object.assign(node, { children: nestedChildren});
-          edges.push({ source: node.id, target: nestedChildren[0].id})
+          edges.push({ source: node.id, target: nestedChildren[0].id});
         }
         rootNodes.push(node);
       }
@@ -70,7 +77,7 @@ export function buildTree(data: {[key: string]: Array<ItemData>}) {
 
     rootNodes.forEach(function(value, index) {
       if (index > 0) {
-        edges.push({ source: rootNodes[index - 1].id, target: value.id})
+        edges.push({ source: rootNodes[index - 1].id, target: value.id});
       }
     });
   })
