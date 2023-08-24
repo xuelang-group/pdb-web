@@ -9,16 +9,17 @@ import { storeToRefs } from 'pinia';
 import _ from 'lodash'
 
 import { useEditorStore } from '../../store/editor';
-import { buildTree } from '../../utils/common';
+import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from '../../utils/graph';
 
-
-const ROOT_NODE_WIDTH = 120, // 主节点宽度
-      NODE_WIDTH = 50, // 一般节点宽度
-      NODE_HEIGHT = 30, // 节点高度
-      NODE_LEFT_SEP = 25, // 节点左右间距
-      NODE_HEIGHT_SEP = 10; // 节点上下间距
 const editorStore = useEditorStore();
 const { data } = storeToRefs(editorStore);
+
+const TYPE_MAP = {
+  EBOM: 'type3',
+  BOP: 'type6',
+  ERP: 'type1',
+  QMES: 'type4'
+};
 let graph: any;
 onMounted(() => {
   initG6();
@@ -63,7 +64,7 @@ function initG6() {
         nodeWidth = self.nodeWidth,
         nodeHeight = self.nodeHeight;
       const nodeXMap = new Map();
-      let currentY = 0;
+      let currentY = 0, prevMaxX = 0;
       self.nodes.forEach((item: any, index: number) => {
         if (item.parent) {
           const itemParentX = nodeXMap.get(item.parent);
@@ -83,9 +84,11 @@ function initG6() {
           // 顶层主节点
           currentY = self.nodes[0].y;
           if (index > 0) {
+            item.x = (prevMaxX > ROOT_NODE_WIDTH ? prevMaxX : ROOT_NODE_WIDTH) + ROOT_NODE_WIDTH / 2 + nodeLeft;
             item.y = currentY;
           }
         }
+        if (item.x > prevMaxX) prevMaxX = item.x;
         nodeXMap.set(item.id, { ...item });
       });
     },
@@ -121,14 +124,22 @@ function initG6() {
   G6.registerNode('plmNodeCustom', {
     draw: function draw(cfg, group) {
       let width = ROOT_NODE_WIDTH;
-      if (cfg.parent) width = NODE_WIDTH;
+      let type = _.get(cfg, 'nodeType', 'default');
+
+      if (cfg.parent) {
+        width = NODE_WIDTH;
+      } else if (TYPE_MAP[cfg.id]) {
+        type = TYPE_MAP[cfg.id];
+      }
+      const { fill, stroke, color, radius } = NODE_STYLE[type] || NODE_STYLE['default'];
+
       const keyShape = group.addShape('rect', {
         attrs: {
           width,
           height: NODE_HEIGHT,
-          fill: 'rgb(187,246,250)',
-          stroke: '#02c3ff',
-          radius: 2,
+          fill,
+          stroke,
+          radius: radius || 2,
           cursor: 'pointer',
         }
       });
@@ -136,7 +147,7 @@ function initG6() {
       group.addShape('text', {
         attrs: {
           text: cfg.label,
-          fill: '#333',
+          fill: color,
           textAlign: 'center',
           height: NODE_HEIGHT,
           x: width / 2,
@@ -153,13 +164,14 @@ function initG6() {
   G6.registerEdge('step-line', {
     draw(cfg, group) {
       const startPoint = cfg.startPoint,
-        endPoint = cfg.endPoint;
+            endPoint = cfg.endPoint;
+      const { stroke } = LINE_SYTLE['default'];
 
       // 同层，直线
       if (_.get(cfg.targetNode, '_cfg.model.onlyChild')) {
         const shape = group.addShape('path', {
           attrs: {
-            stroke: '#333',
+            stroke,
             path: [
               ['M', startPoint?.x, startPoint?.y],
               ['L', endPoint?.x, endPoint?.y],
@@ -178,7 +190,7 @@ function initG6() {
 
       const shape = group.addShape('path', {
         attrs: {
-          stroke: '#333',
+          stroke,
           path: [
             ['M', startPoinX, startPoint?.y],
             ['L', startPoinX, endPoint?.y], // 三分之一处
@@ -197,7 +209,9 @@ function initLayout() {
   if (!container) return;
   const width = container.scrollWidth;
   const height = container.scrollHeight || 500;
-
+  const minimap = new G6.Minimap({
+    size: [150, 100],
+  }); // 小地图
   graph = new G6.Graph({
     container,
     width,
@@ -230,9 +244,11 @@ function initLayout() {
     },
     defaultEdge: {
       type: 'step-line',
-    }
+    },
+    plugins: [minimap],
   });
   graph.data(buildTree(data.value));
+  graph.fitCenter(true, { duration: 200, easing: 'easeCubic' });
   graph.render();
 }
 
@@ -275,4 +291,4 @@ function initEvent() {
   width: 0;
 }
 </style>
-  
+  ../../utils/graph

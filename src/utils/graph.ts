@@ -1,14 +1,79 @@
-import { Item } from 'ant-design-vue/es/menu';
-import { ItemData } from '../store/editor'
+import { ItemData, NodeItemData } from '../store/editor'
 
-interface nodeItemConfig {
-  id: string
-  label: string
-  parent?: string
-  children?: nodeItemConfig[]
+export const ROOT_NODE_WIDTH = 250, // 主节点宽度
+             NODE_WIDTH = 50, // 一般节点宽度
+             NODE_HEIGHT = 30, // 节点高度
+             NODE_LEFT_SEP = 25, // 节点左右间距
+             NODE_HEIGHT_SEP = 10; // 节点上下间距
+
+export const NODE_STYLE = {
+  "default": {
+    fill: 'rgb(187,246,250)',
+    stroke: '#02c3ff',
+    color: '#333',
+  },
+  "type1": {
+    fill: '#e9e7f5',
+    stroke: '#cebee5',
+    color: '#a598df',
+  },
+  "type2": {
+    fill: '#cbf8ef',
+    stroke: '#c3ebe5',
+    color: '#67aaa6',
+  },
+  "type3": {
+    fill: '#dceaff',
+    stroke: '#d5dff2',
+    color: '#8295cb',
+  },
+  "type4": {
+    fill: '#defacf',
+    stroke: '#d7e8cc',
+    color: '#9bb585',
+  },
+  "type5": {
+    fill: '#c5e9fc',
+    stroke: '#c9daf2',
+    color: '#93bbe5',
+  },
+  "type6": {
+    fill: '#ffe3c8',
+    stroke: '#e5c2a2',
+    color: '#dc8e70',
+  },
+  "type7": {
+    fill: '#fedcd9',
+    stroke: '#efcfce',
+    color: '#df7a7e',
+    radius: NODE_HEIGHT / 2
+  },
+  "type8": {
+    fill: '#fce2f1',
+    stroke: '#ebcad7',
+    color: '#e19fbb',
+    radius: NODE_HEIGHT / 2
+  },
+  "type9": {
+    fill: '#f5e3ff',
+    stroke: '#dfd6ea',
+    color: '#8e72b4',
+    radius: NODE_HEIGHT / 2
+  },
+  "type10": {
+    fill: '#faf1c6',
+    stroke: '#f7ebd9',
+    color: '#e4a272',
+  },
 }
 
-function findChildren(data: Array<ItemData>, parent: string, edges: any, nodes: any) {
+export const LINE_SYTLE = {
+  "default": {
+    stroke: '#c8ced5'
+  }
+}
+
+function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[]) {
   const children: any[] = [];
   for (const item of data) {
     const { uid, name, ...other } = item;
@@ -42,11 +107,12 @@ function findChildren(data: Array<ItemData>, parent: string, edges: any, nodes: 
   return children;
 }
 
-export function buildTree(data: {[key: string]: Array<ItemData>}) {
-  const edges:any[] = [], nodes:any[] = [];
+// 转换数据
+export function buildTree(data: {[key: string]: ItemData[]}) {
+  const edges:any[] = [], nodes: NodeItemData[] = [];
   Object.keys(data).forEach(function(key) {
     const allData = data[key];
-    const rootNodes: any[] = [];
+    const rootNodes: NodeItemData[] = [];
     const parentNode = {
       id: key,
       label: key,
@@ -88,7 +154,7 @@ export function buildTree(data: {[key: string]: Array<ItemData>}) {
 }
 
 
-// export function buildTree(data: {[key: string]: Array<ItemData>}) {
+// export function buildTree(data: {[key: string]: ItemData[]}) {
 //   const rootNodes: any[] = [], edges:any[] = [], nodes:any[] = [];
 //   Object.keys(data).forEach(function(key) {
 //     const children = data[key]
