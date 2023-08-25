@@ -53,10 +53,10 @@ G6.registerLayout('pbdLayout', {
           nodeXMap.set(item.id, { ...item });
           return;
         }
-        // if (itemParentX.collapsed) {
-        //   nodeXMap.set(item.id, { ...item, collapsed: true });
-        //   return;
-        // }
+        if (itemParentX.collapsed) {
+          nodeXMap.set(item.id, { ...item, collapsed: true });
+          return;
+        }
         if (item.onlyChild) {
           item.x = itemParentX.x + nodeWidth + nodeLeft / 2;
           item.y = currentY;
@@ -152,11 +152,6 @@ G6.registerNode('pbdNode', {
   'rect',
 );
 
-G6.registerNode('pbdNode-hidden', {
-  options: {
-    size: [0, 0],
-  },
-}, 'rect');
 
 /**
  * 注册连线的方法
@@ -164,16 +159,19 @@ G6.registerNode('pbdNode-hidden', {
  * @param {object} node 连线方法
  */
 G6.registerEdge('step-line', {
-  draw(cfg, group) {
+  draw(cfg: ModelConfig, group) {
     const startPoint = cfg.startPoint,
       endPoint = cfg.endPoint;
     const { stroke } = LINE_SYTLE['default'];
-
+    const targetModel = cfg.targetNode.get('model'),
+          sourceModel = cfg.sourceNode.get('model');
+    const lineWidth = cfg.isComboEdge ? 0 : 1;
     // 同层，直线
-    if (_.get(cfg.targetNode, '_cfg.model.onlyChild')) {
+    if (targetModel.onlyChild) {
       const shape = group.addShape('path', {
         attrs: {
           stroke,
+          lineWidth,
           path: [
             ['M', startPoint?.x, startPoint?.y],
             ['L', endPoint?.x, endPoint?.y],
@@ -186,13 +184,14 @@ G6.registerEdge('step-line', {
 
     // 折线
     let startPoinX = Number(startPoint?.x) + 15;
-    if (_.get(cfg.sourceNode, '_cfg.model.parent') === _.get(cfg.targetNode, '_cfg.model.parent')) {
+    if (sourceModel.parent === targetModel.parent) {
       startPoinX = Number(startPoint?.x) - 10;
     }
 
     const shape = group.addShape('path', {
       attrs: {
         stroke,
+        lineWidth,
         path: [
           ['M', startPoinX, startPoint?.y],
           ['L', startPoinX, endPoint?.y], // 三分之一处
@@ -202,44 +201,51 @@ G6.registerEdge('step-line', {
       name: 'path-shape',
     });
     return shape;
-  },
+  }
 });
 
+G6.registerBehavior('collapse-expand', {
+  getEvents: function getEvents() {
+    return {
+      'node:dblclick': 'onNodeClick'
+    }
+  },
+  onNodeClick: function onNodeClick(event: IG6GraphEvent) {
+    const { item } = event;
+    if (!item) return;
 
-// G6.registerBehavior('collapse-expand', {
-//   getEvents: function getEvents() {
-//     return {
-//       'node:dblclick': 'onNodeClick'
-//     }
-//   },
-//   onNodeClick: function onNodeClick(event: IG6GraphEvent) {
-//     const { item } = event;
-//     if (!item) return;
+    const id = item.get('id');
+    const sourceData = (this as any).graph.findById(id);
+    if (!sourceData) return;
 
-//     const sourceData = (this as any).graph.findById(item.get('id'));
-//     if (!sourceData) return;
+    const model = sourceData.get('model');
+    if (!model) return;
 
-//     const model = sourceData.get('model');
-//     if (!model) return;
+    const children = model.children;
+    if (!children || children.length === 0) return;
 
-//     const children = model.children;
-//     if (!children || children.length === 0) return;
+    const collapsed = !sourceData.collapsed;
+    if (!(this as any).shouldBegin(event, collapsed, this)) {
+      return;
+    }
 
-//     const collapsed = !sourceData.collapsed;
-//     if (!(this as any).shouldBegin(event, collapsed, this)) {
-//       return;
-//     }
+    sourceData.collapsed = collapsed;
+    item.getModel().collapsed = collapsed;
+    (this as any).graph.emit('itemcollapsed', { item, collapsed });
+    if (!(this as any).shouldUpdate(event, collapsed, this)) {
+      return;
+    }
 
-//     sourceData.collapsed = collapsed;
-//     item.getModel().collapsed = collapsed;
-//     (this as any).graph.emit('itemcollapsed', { item, collapsed });
-//     if (!(this as any).shouldUpdate(event, collapsed, this)) {
-//       return;
-//     }
-//     // (this as any).onChange(item, collapsed, this);
-//     (this as any).graph.layout();
-//   }
-// });
+    const comboId = `${id}-combo`;
+    if (collapsed) {
+      (this as any).graph.collapseCombo(comboId);
+    } else {
+      (this as any).graph.expandCombo(comboId);
+    }
+    // // (this as any).onChange(item, collapsed, this);
+    (this as any).graph.layout();
+  }
+});
 
 // G6.registerBehavior('drag-branch', {
 //   getEvents: function getEvents() {

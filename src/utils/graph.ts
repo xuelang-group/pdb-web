@@ -1,4 +1,4 @@
-import G6 from '@antv/g6'
+import G6, { ComboConfig } from '@antv/g6'
 import { ItemData, NodeItemData } from '../store/editor'
 
 const globalFontSize = 12;
@@ -72,10 +72,13 @@ export const NODE_STYLE: { [k: string]: any } = {
 export const LINE_SYTLE: {[k:string]: any} = {
   "default": {
     stroke: '#c8ced5'
+  },
+  "hidden": {
+    
   }
 }
 
-function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[]) {
+function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[], combos: ComboConfig[] ) {
   const children: any[] = [];
   for (const item of data) {
     const { uid, name, ...other } = item;
@@ -85,11 +88,16 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
         id: uid,
         name,
         label: fittingString(name, NODE_WIDTH, globalFontSize),
-        parent
+        parent,
+        comboId: `${parent}-combo`
       };
       nodes.push(node);
-      const nestedChildren = findChildren(data, uid, edges, nodes);
+      const nestedChildren = findChildren(data, uid, edges, nodes, combos);
       if (nestedChildren.length > 0) {
+        combos.push({
+          id: `${uid}-combo`,
+          parentId: `${parent}-combo`,
+        });
         if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
           Object.assign(nestedChildren[0], { onlyChild: true });
         }
@@ -135,7 +143,7 @@ const fittingString = (str: string, maxWidth: number, fontSize: number) => {
 
 // 转换数据
 export function buildTree(data: { [key: string]: ItemData[] }) {
-  const edges: any[] = [], nodes: NodeItemData[] = [], otherEdges = [];
+  const edges: any[] = [], nodes: NodeItemData[] = [], combos: ComboConfig[] = [];
   Object.keys(data).forEach(function (key) {
     const allData = data[key];
     const rootNodes: NodeItemData[] = [];
@@ -144,6 +152,9 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
       name: key,
       label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
     };
+    combos.push({
+      id: `${key}-combo`
+    });
     nodes.push(parentNode);
     rootNodes.push(parentNode);
     for (const item of allData) {
@@ -157,8 +168,12 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
       };
       if (!parent) {
         nodes.push(node);
-        const nestedChildren = findChildren(allData, uid, edges, nodes);
+        const nestedChildren = findChildren(allData, uid, edges, nodes, combos);
         if (nestedChildren.length > 0) {
+          combos.push({
+            id: `${uid}-combo`,
+            parentId: `${key}-combo`,
+          });
           if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
             Object.assign(nestedChildren[0], { onlyChild: true });
           }
@@ -195,7 +210,8 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
   })
   return {
     nodes,
-    edges
+    edges,
+    combos
   };
 }
 

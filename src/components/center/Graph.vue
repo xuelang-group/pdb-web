@@ -41,9 +41,16 @@ function initLayout() {
         'drag-canvas', // 画布拖拽
         'zoom-canvas', // 画布缩放
         'collapse-expand',
+        // 'collapse-expand-combo'
         // 'drag-branch',
         // 'activate-relations' // 高亮相邻节点
       ],
+    },
+    defaultCombo: {
+      type: 'rect',
+      style: {
+        lineWidth: 0
+      }
     },
     defaultNode: {
       type: 'pbdNode',
