@@ -1,12 +1,14 @@
+import G6 from '@antv/g6'
 import { ItemData, NodeItemData } from '../store/editor'
 
+const globalFontSize = 12;
 export const ROOT_NODE_WIDTH = 250, // 主节点宽度
-             NODE_WIDTH = 50, // 一般节点宽度
-             NODE_HEIGHT = 30, // 节点高度
-             NODE_LEFT_SEP = 25, // 节点左右间距
-             NODE_HEIGHT_SEP = 10; // 节点上下间距
+  NODE_WIDTH = 50, // 一般节点宽度
+  NODE_HEIGHT = 30, // 节点高度
+  NODE_LEFT_SEP = 25, // 节点左右间距
+  NODE_HEIGHT_SEP = 10; // 节点上下间距
 
-export const NODE_STYLE = {
+export const NODE_STYLE: { [k: string]: any } = {
   "default": {
     fill: 'rgb(187,246,250)',
     stroke: '#02c3ff',
@@ -67,7 +69,7 @@ export const NODE_STYLE = {
   },
 }
 
-export const LINE_SYTLE = {
+export const LINE_SYTLE: {[k:string]: any} = {
   "default": {
     stroke: '#c8ced5'
   }
@@ -81,7 +83,8 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
       const node = {
         ...other,
         id: uid,
-        label: name,
+        name,
+        label: fittingString(name, NODE_WIDTH, globalFontSize),
         parent
       };
       nodes.push(node);
@@ -90,32 +93,56 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
         if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
           Object.assign(nestedChildren[0], { onlyChild: true });
         }
-        Object.assign(node, { children: nestedChildren});
-        edges.push({ source: node.id, target: nestedChildren[0].id});
+        Object.assign(node, { children: nestedChildren });
+        edges.push({ source: node.id, target: nestedChildren[0].id });
       }
 
       children.push(node);
     }
   }
 
-  children.forEach(function(value, index) {
+  children.forEach(function (value, index) {
     if (index > 0) {
-      edges.push({ source: children[index - 1].id, target: value.id});
+      edges.push({ source: children[index - 1].id, target: value.id });
     }
   });
 
   return children;
 }
 
+// 文本超长，省略号显示
+const fittingString = (str: string, maxWidth: number, fontSize: number) => {
+  const ellipsis = '...';
+  const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)[0];
+  let currentWidth = 0;
+  let res = str;
+  const pattern = new RegExp('[\u4E00-\u9FA5]+'); // distinguish the Chinese charactors and letters
+  str.split('').forEach((letter, i) => {
+    if (currentWidth > (maxWidth - 8 - ellipsisLength)) return;
+    if (pattern.test(letter)) {
+      // Chinese charactors
+      currentWidth += fontSize;
+    } else {
+      // get the width of single letter according to the fontSize
+      currentWidth += G6.Util.getLetterWidth(letter, fontSize);
+    }
+    if (currentWidth > (maxWidth - 8 - ellipsisLength)) {
+      res = `${str.substr(0, i)}${ellipsis}`;
+    }
+  });
+  return res;
+};
+
 // 转换数据
-export function buildTree(data: {[key: string]: ItemData[]}) {
-  const edges:any[] = [], nodes: NodeItemData[] = [];
-  Object.keys(data).forEach(function(key) {
+export function buildTree(data: { [key: string]: ItemData[] }) {
+  const edges: any[] = [], nodes: NodeItemData[] = [], otherEdges = [];
+  Object.keys(data).forEach(function (key) {
     const allData = data[key];
     const rootNodes: NodeItemData[] = [];
     const parentNode = {
       id: key,
-      label: key,
+      name: key,
+      label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
     };
     nodes.push(parentNode);
     rootNodes.push(parentNode);
@@ -123,8 +150,9 @@ export function buildTree(data: {[key: string]: ItemData[]}) {
       const { uid, name, parent, children, ...other } = item;
       const node = {
         id: uid,
-        label: name,
+        label: fittingString(name, NODE_WIDTH, globalFontSize),
         parent: key,
+        name,
         ...other
       };
       if (!parent) {
@@ -134,16 +162,34 @@ export function buildTree(data: {[key: string]: ItemData[]}) {
           if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
             Object.assign(nestedChildren[0], { onlyChild: true });
           }
-          Object.assign(node, { children: nestedChildren});
-          edges.push({ source: node.id, target: nestedChildren[0].id});
+          Object.assign(node, { children: nestedChildren });
+          edges.push({ source: node.id, target: nestedChildren[0].id });
         }
         rootNodes.push(node);
       }
+      if (node.fans && node.fans.length > 0) {
+        node.fans.forEach(function (id) {
+          edges.push({
+            source: node.id,
+            target: id,
+            type: 'cubic',
+            style: {
+              stroke: '#F6BD16',
+              lineWidth: 2,
+              endArrow: {
+                path: G6.Arrow.triangle(),
+                fill: '#F6BD16',
+                stroke: '#F6BD16',
+              },
+            },
+          });
+        });
+      }
     }
 
-    rootNodes.forEach(function(value, index) {
+    rootNodes.forEach(function (value, index) {
       if (index > 0) {
-        edges.push({ source: rootNodes[index - 1].id, target: value.id});
+        edges.push({ source: rootNodes[index - 1].id, target: value.id });
       }
     });
   })

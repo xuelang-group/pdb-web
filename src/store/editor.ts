@@ -16,6 +16,7 @@ interface EditorData {
 export interface NodeItemData {
   id: string
   label: string
+  name: string
   nodeType?: string
   params?: any
   parent?: string
@@ -34,7 +35,7 @@ export const useEditorStore = defineStore('editor', {
         "EBOM": [
           {
             "uid": "PM1",
-            "name": "PM1",
+            "name": "PM111111111111111111111111111111",
             "children": ["PG1", "PG2"],
             "params": {
               "PM1": "123"
@@ -74,7 +75,7 @@ export const useEditorStore = defineStore('editor', {
             "parent": "PG1",
             "nodeType": 'type3',
             "children": ["CN1"]
-          },{
+          }, {
             "uid": "CZ2",
             "name": "CZ2",
             "parent": "PG1",
@@ -101,12 +102,14 @@ export const useEditorStore = defineStore('editor', {
             "name": "PW1",
             "parent": "CZ3",
             "nodeType": 'type7',
-            "children": ["DN1", "DN2"]
+            "children": ["DN1", "DN2"],
+            "fans": ["PW1-BOP"]
           }, {
             "uid": "PW2",
             "name": "PW2",
             "parent": "CZ3",
-            "nodeType": 'type8'
+            "nodeType": 'type8',
+            "fans": ["PW2-BOP"]
           }, {
             "uid": "DN1",
             "name": "DN1",
@@ -128,11 +131,13 @@ export const useEditorStore = defineStore('editor', {
             "name": "TD1",
             "parent": "GR1",
             "nodeType": 'type10',
+            "fans": ["TD1-ERP"]
           }, {
             "uid": "TD2",
             "name": "TD2",
             "parent": "GR1",
             "nodeType": 'type10',
+            "fans": ["TD2-ERP"]
           }
         ],
         "BOP": [
@@ -140,7 +145,7 @@ export const useEditorStore = defineStore('editor', {
             "uid": "BE1",
             "name": "BE1",
             "children": ["NG1", "NG2"],
-            "nodeType": 'type1'
+            "nodeType": 'type1',
           },
           {
             "uid": "BE2",
@@ -165,21 +170,24 @@ export const useEditorStore = defineStore('editor', {
             "uid": "OP1",
             "name": "OP1",
             "parent": "NG1",
-            "nodeType": 'type4'
+            "nodeType": 'type4',
+            "fans": ["OP1-ERP"]
           },
           {
             "uid": "OP2",
             "name": "OP2",
             "parent": "NG1",
             "children": ["OG1"],
-            "nodeType": 'type4'
+            "nodeType": 'type4',
+            "fans": ["OP2-ERP"]
           },
           {
             "uid": "OP3",
             "name": "OP3",
             "parent": "NG2",
             "children": ["MW1"],
-            "nodeType": 'type4'
+            "nodeType": 'type4',
+            "fans": ["OP3-ERP"]
           },
           {
             "uid": "OP4",
@@ -197,20 +205,20 @@ export const useEditorStore = defineStore('editor', {
             "uid": "MW1",
             "name": "MW1",
             "parent": "OP3",
-            "children": ["PV1", "PV2"],
-            "nodeType": 'type6'
+            "children": ["PW1-BOP", "PW2-BOP"],
+            "nodeType": 'type6',
+            "fans": ["MW1-ERP"]
           },
           {
-            "uid": "PV1",
-            "name": "PV1",
-            "parent": "MW1",
-            "nodeType": 'type7'
-          },
-          {
-            "uid": "PV2",
-            "name": "PV2",
+            "uid": "PW2-BOP",
+            "name": "PW2",
             "parent": "MW1",
             "nodeType": 'type8'
+          }, {
+            "uid": "PW1-BOP",
+            "name": "PW1",
+            "parent": "MW1",
+            "nodeType": 'type7'
           },
         ],
         "ERP": [
@@ -269,7 +277,7 @@ export const useEditorStore = defineStore('editor', {
             "name": "OP3",
             "nodeType": "type4",
             "parent": "RV2",
-            "children": ["HW1-ERP"]
+            "children": ["MW1-ERP"]
           }, {
             "uid": "UR3",
             "name": "UR3",
@@ -277,8 +285,8 @@ export const useEditorStore = defineStore('editor', {
             "parent": "AF2",
             "children": ["UR3"]
           }, {
-            "uid": "HW1-ERP",
-            "name": "HW1",
+            "uid": "MW1-ERP",
+            "name": "MW1",
             "nodeType": "type7",
             "parent": "OP3-ERP",
             "children": ["TD1-ERP", "TD2-ERP"]
@@ -286,12 +294,12 @@ export const useEditorStore = defineStore('editor', {
             "uid": "TD1-ERP",
             "name": "TD1",
             "nodeType": "type10",
-            "parent": "HW1-ERP",
+            "parent": "MW1-ERP",
           }, {
             "uid": "TD2-ERP",
             "name": "TD2",
             "nodeType": "type10",
-            "parent": "HW1-ERP",
+            "parent": "MW1-ERP",
           }, {
             "uid": "CK2",
             "name": "CK2",
@@ -306,8 +314,8 @@ export const useEditorStore = defineStore('editor', {
             "uid": "CK3",
             "name": "CK3",
             "nodeType": "type1"
-          }, 
-        ], 
+          },
+        ],
         "QMES": [
           {
             "uid": "LQ1",
@@ -330,13 +338,15 @@ export const useEditorStore = defineStore('editor', {
             "name": "AF1",
             "nodeType": 'type2',
             "parent": "QK1",
-            "children": ["ED1", "ED2"]
+            "children": ["ED1", "ED2"],
+            "fans": ["AF1"]
           }, {
             "uid": "AF2-QMES",
             "name": "AF2",
             "nodeType": 'type2',
             "parent": "QK1",
-            "children": ["ED3", "ED4", "ED5"]
+            "children": ["ED3", "ED4", "ED5"],
+            "fans": ["AF2"]
           }, {
             "uid": "ED1",
             "name": "ED1",
