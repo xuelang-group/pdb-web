@@ -17,11 +17,12 @@ export interface NodeItemData {
   id: string
   label: string
   name: string
-  nodeType?: string
-  params?: any
-  parent?: string
-  children?: Array<string>
-  fans?: Array<string>
+  rootKey?: string // 最顶层id，即data数据第一层key
+  nodeType?: string // 节点类型，区分节点样式
+  params?: any // 属性，用于右侧面板显示
+  parent?: string // 当前数据上级id
+  children?: Array<string> // 当前数据的子数据
+  fans?: Array<string> // 当前数据与其他数据ids，用于连线
 }
 interface EditorState {
   data: EditorData
@@ -391,6 +392,9 @@ export const useEditorStore = defineStore('editor', {
     }
   },
   actions: {
+    setData(data: any) {
+      this.data = JSON.parse(JSON.stringify(data));
+    },
     setCurrentEditModel(item: any) {
       this.currentEditModel = item;
     }

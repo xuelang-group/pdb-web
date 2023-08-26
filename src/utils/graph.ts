@@ -69,30 +69,33 @@ export const NODE_STYLE: { [k: string]: any } = {
   },
 }
 
-export const LINE_SYTLE: {[k:string]: any} = {
+export const LINE_SYTLE: { [k: string]: any } = {
   "default": {
     stroke: '#c8ced5'
-  },
-  "hidden": {
-    
   }
 }
 
-function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[], combos: ComboConfig[] ) {
+function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[], combos: ComboConfig[], rootKey: string, level: string) {
   const children: any[] = [];
+  let index = 0;
   for (const item of data) {
     const { uid, name, ...other } = item;
     if (item.parent === parent) {
+      const _level = level + '-' + index;
+      index++;
       const node = {
         ...other,
         id: uid,
         name,
+        level: _level,
         label: fittingString(name, NODE_WIDTH, globalFontSize),
         parent,
-        comboId: `${parent}-combo`
+        rootKey,
+        comboId: `${parent}-combo`,
+        data: item
       };
       nodes.push(node);
-      const nestedChildren = findChildren(data, uid, edges, nodes, combos);
+      const nestedChildren = findChildren(data, uid, edges, nodes, combos, rootKey, _level);
       if (nestedChildren.length > 0) {
         combos.push({
           id: `${uid}-combo`,
@@ -147,28 +150,38 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
   Object.keys(data).forEach(function (key) {
     const allData = data[key];
     const rootNodes: NodeItemData[] = [];
+    let level = '0';
     const parentNode = {
       id: key,
       name: key,
+      root: true,
       label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
+      level,
     };
     combos.push({
       id: `${key}-combo`
     });
     nodes.push(parentNode);
     rootNodes.push(parentNode);
+
+    let index = 0;
     for (const item of allData) {
       const { uid, name, parent, children, ...other } = item;
       const node = {
         id: uid,
         label: fittingString(name, NODE_WIDTH, globalFontSize),
+        rootKey: key,
         parent: key,
         name,
+        data: item,
         ...other
       };
       if (!parent) {
+        const _level = level + '-' + index;
+        index++;
+        Object.assign(node, { level: _level });
         nodes.push(node);
-        const nestedChildren = findChildren(allData, uid, edges, nodes, combos);
+        const nestedChildren = findChildren(allData, uid, edges, nodes, combos, key, _level);
         if (nestedChildren.length > 0) {
           combos.push({
             id: `${uid}-combo`,
@@ -214,51 +227,3 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
     combos
   };
 }
-
-
-// export function buildTree(data: {[key: string]: ItemData[]}) {
-//   const rootNodes: any[] = [], edges:any[] = [], nodes:any[] = [];
-//   Object.keys(data).forEach(function(key) {
-//     const children = data[key]
-//     const parentNode = {
-//       id: key,
-//       label: key,
-//     }
-//     nodes.push(parentNode)
-//     rootNodes.push(parentNode)
-//     for (const item of children) {
-//       const node = {
-//         id: item.uid,
-//         label: item.name,
-//         parent: key
-//       };
-//       // if (!item.parent) {
-//       //   const nestedChildren = findChildren(children, item.uid, edges);
-//       //   if (nestedChildren.length > 0) {
-//       //     Object.assign(node, { children: nestedChildren});
-//       //     edges.push({ source: node.id, target: nestedChildren[0].id})
-//       //   }
-//       //   rootNodes.push(node);
-//       // }
-//       if (item.parent) Object.assign(node, { parent: item.parent })
-//       nodes.push(node)
-//       if (!item.parent) edges.push({ source: key, target: item.uid })
-//       if (item.children) {
-//         item.children.forEach(function(val) {
-//           edges.push({ source: item.uid, target: val })
-//         })
-//         Object.assign(node, { children: item.children })
-//       }
-//     }
-
-//     rootNodes.forEach(function(value, index) {
-//       if (index > 0) {
-//         edges.push({ source: rootNodes[index - 1].id, target: value.id})
-//       }
-//     });
-//   })
-//   return {
-//     nodes,
-//     edges
-//   };
-// }

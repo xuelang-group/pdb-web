@@ -1,8 +1,9 @@
-import G6, { Util, ModelConfig, IGroup, IG6GraphEvent } from '@antv/g6';
-import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
+import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase } from '@antv/g6';
 import _ from 'lodash';
+import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
+import { useEditorStore } from '../store/editor';
 
-const TYPE_MAP: {[k:string]: any} = {
+const TYPE_MAP: { [k: string]: any } = {
   EBOM: 'type3',
   BOP: 'type6',
   ERP: 'type1',
@@ -131,7 +132,21 @@ G6.registerNode('pbdNode', {
         stroke,
         radius: radius || 2,
         cursor: 'pointer',
-      }
+      },
+      name: 'node-rect'
+    });
+
+    // 节点上方块区域，用于响应拖拽
+    group.addShape('rect', {
+      attrs: {
+        width,
+        height: 10,
+        fill: 'transparent',
+        stroke: 'transparent',
+        radius: 2,
+        y: -10
+      },
+      name: 'top-rect'
     });
     // text
     group.addShape('text', {
@@ -145,13 +160,35 @@ G6.registerNode('pbdNode', {
         cursor: 'pointer',
       },
       name: 'text-shape',
+      draggable: true
     });
     return keyShape;
+  },
+  afterDraw(cfg: ModelConfig | undefined, group: IGroup | undefined) {
+
+    // dragenter时样式
+    const topRect = group?.find(child => child.get('name') === 'top-rect');
+    const nodeRect = group?.find(child => child.get('name') === 'node-rect');
+    if (topRect) {
+      topRect.on('dragenter', () => {
+        topRect.attr('fill', '#c8ced5');
+      });
+      topRect.on('dragleave', () => {
+        topRect.attr('fill', 'transparent');
+      });
+    }
+    if (nodeRect) {
+      nodeRect.on('dragenter', (event: IG6GraphEvent) => {
+        group?.cfg.item.setState('active', true)
+      });
+      nodeRect.on('dragleave', () => {
+        group?.cfg.item.clearStates(['active']);
+      });
+    }
   }
 },
   'rect',
 );
-
 
 /**
  * 注册连线的方法
@@ -164,7 +201,7 @@ G6.registerEdge('step-line', {
       endPoint = cfg.endPoint;
     const { stroke } = LINE_SYTLE['default'];
     const targetModel = cfg.targetNode.get('model'),
-          sourceModel = cfg.sourceNode.get('model');
+      sourceModel = cfg.sourceNode.get('model');
     const lineWidth = cfg.isComboEdge ? 0 : 1;
     // 同层，直线
     if (targetModel.onlyChild) {
@@ -242,169 +279,101 @@ G6.registerBehavior('collapse-expand', {
     } else {
       (this as any).graph.expandCombo(comboId);
     }
-    // // (this as any).onChange(item, collapsed, this);
     (this as any).graph.layout();
   }
 });
 
-// G6.registerBehavior('drag-branch', {
-//   getEvents: function getEvents() {
-//     return {
-//       'node:dragstart': 'dragstart',
-//       'node:drag': 'drag',
-//       'node:dragend': 'dragend',
-//       'node:dragenter': 'dragenter',
-//       'node:dragleave': 'dragleave',
-//     };
-//   },
-//   dragstart: function dragstart(e) {
-//     (this as any).set('foundNode', undefined)
-//     this.origin = {
-//       x: e.x,
-//       y: e.y,
-//     };
-//     this.target = e.item;
-//     // 未配置 shouldBegin 时 默认为 true
-//     if (this.shouldBegin && !this.shouldBegin(_.get(this.target, '_cfg.id'))) {
-//       this.began = false;
-//       return;
-//     }
-//     this.began = true;
-//   },
-//   dragenter: function dragenter(e) {
-//     if (!this.began) {
-//       return;
-//     }
-//   },
-//   dragleave: function dragleave(e) {
-//     if (!this.began) {
-//       return;
-//     }
-//   },
-//   drag: function drag(e) {
-//     if (!this.began) {
-//       return;
-//     }
-//     (this as any).updateDelegate(e);
-//   },
-//   dragend: function dragend(e) {
-//     const graph = (this as any).get('graph');
-//     const foundNode = (this as any).get('foundNode');
-//     if (!this.began) {
-//       return;
-//     }
-//     this.began = false;
-//     const { item } = e;
-//     const id = item.getID();
-//     const data = graph.findDataById(id);
+G6.registerBehavior('drag-enter', {
+  getEvents: function getEvents() {
+    return {
+      // 'node:dragstart': 'dragstart',
+      // 'node:drag': 'drag',
+      'node:dragend': 'dragend',
+      'node:drop': 'drop'
+      // 'node:dragenter': 'dragenter',
+      // 'node:dragleave': 'dragleave',
+    };
+  },
+  dragend: function dragend(event: IG6GraphEvent) {
+    const dragItem = event.item;
+    if (dragItem && this.dropItem && this.dropTarget) {
+      const { cfg } = (this.dropTarget as IShapeBase);
+      if (!cfg) return;
+      (this as any).changeData(dragItem, this.dropItem, cfg.name);
+    }
+  },
+  changeData(dragItem: IShapeBase, dropItem: IShapeBase, type: string) {
+    if (type !== 'top-rect' && type !== 'node-rect') return;
+    const dragItemId = dragItem.get('id'),
+      dragItemModel = dragItem.get('model'),
+      dragItemRootKey = dragItemModel.rootKey,
+      dropItemId = dropItem.get('id'),
+      dropItemModel = dropItem.get('model'),
+      dropItemRootKey = dropItemModel.rootKey;
+    // 不允许跨树移动
+    if (dragItemId === dropItemId || dragItemRootKey !== dropItemRootKey) return;
 
-//     // remove delegate
-//     if (this.delegateRect) {
-//       (this.delegateRect as any).remove();
-//       this.delegateRect = null;
-//     }
+    const dragItemLevel = dragItemModel.level,
+          dropItemLevel = dropItemModel.level;
 
-//     if (!foundNode) {
-//       graph.emit('afterdragbranch', { success: false, message: 'Failed. No node close to the dragged node.', branch: data })
-//       return;
-//     }
+    // 不允许父级投入其子级中
+    if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
+     
+    const editorStore = useEditorStore();
+    const { data, setData } = editorStore;
+    if (data[dragItemRootKey]) {
+      const _data = data[dragItemRootKey],
+        new_data = new Array();
+      const dropItemParent = dropItemModel.parent,
+        dragItemParent = dragItemModel.parent;
+      const dragItemData = dragItemModel.data;
+      if (type === 'top-rect') {
+        // 插入某个节点前面
+        dragItemData.parent = dropItemParent;
+        _data.forEach(function (value) {
+          if (value.uid === dragItemId) return;
+          if (value.uid === dropItemId) {
+            // 节点uid等于dropItemId时，先将dragItem数据推入data
+            new_data.push(dragItemData);
+          } else if (value.uid === dragItemParent) {
+            // 节点uid等于dragItem父级时，将其父级children数据里面移除dragItemId
+            value.children = value.children?.filter(val => val !== dragItemId);
+          } else if (value.uid === dropItemParent) {
+            // 节点uid等于dropItemId父级时，将其父级children数据里面插入dragItemId
+            value.children?.push(dragItemId);
+          }
+          new_data.push(value);
+        });
+      } else if (type === 'node-rect') {
+        let hasInsertDropData = false;
+        dragItemData.parent = dropItemId;
+        // 插入某个节点内，即变成节点子级
+        for (let i = _data.length - 1; i >= 0; i--) {
+          const value = _data[i];
+          if (value.uid === dragItemId) continue;
+          if (!hasInsertDropData && value.parent === dropItemId) {
+            new_data.unshift(dragItemData);
+            hasInsertDropData = true;
+          } else if (value.uid === dropItemId) {
+            value.children?.push(dragItemId);
+          } else if (value.uid === dragItemParent) {
+            value.children = value.children?.filter(val => val !== dragItemId);
+          }
+          new_data.unshift(value);
+        }
+        if (!hasInsertDropData) {
+          new_data.push(dragItemData);
+        }
+      }
 
-//     const foundNodeId = foundNode.getID();
-
-//     let oriParentData: any;
-//     Util.traverseTree(graph.get('data'), (d: any) => {
-//       if (oriParentData) return false;
-//       if (d.children?.filter((child: any) => child.id === id)?.length) {
-//         oriParentData = d;
-//       }
-//       return true;
-//     });
-
-//     // 未配置 shouldEnd，则默认为 true
-//     if (this.shouldEnd && !(this as any).shouldEnd(data, graph.findDataById(foundNodeId), oriParentData)) {
-//       return;
-//     }
-
-//     // if the foundNode is a descent of the dragged node, return
-//     let isDescent = false;
-
-//     Util.traverseTree(data, (d) => {
-//       if (d.id === foundNodeId) isDescent = true;
-//     });
-//     if (isDescent) {
-//       const newParentData = graph.findDataById(foundNodeId);
-//       graph.emit('afterdragbranch', { success: false, message: 'Failed. The target node is a descendant of the dragged node.', newParentData, branch: data })
-//       return;
-//     }
-
-//     const newParentData = graph.findDataById(foundNodeId);
-//     // 触发外部对数据的改变
-//     graph.emit('afterdragbranch', { success: true, message: 'Success.', newParentData, oriParentData, branch: data })
-//     graph.removeChild(data.id);
-//     setTimeout(() => {
-//       let newChildren = newParentData.children;
-//       if (newChildren) newChildren.push(data);
-//       else newChildren = [data];
-//       // 更新正在被操作的子树颜色
-//       Util.traverseTree(data, d => {
-//         d.branchColor = newParentData.branchColor
-//       })
-//       graph.updateChildren(newChildren, newParentData.id);
-//     }, 600);
-//   },
-//   updateDelegate(e) {
-//     const { graph } = this;
-//     if (!this.delegateRect) {
-//       // 拖动多个
-//       const parent = graph.get('group');
-//       const attrs = {
-//         fill: '#F3F9FF',
-//         fillOpacity: 0.5,
-//         stroke: '#1890FF',
-//         strokeOpacity: 0.9,
-//         lineDash: [5, 5],
-//       };
-
-//       const { x: cx, y: cy, width, height, minX, minY } = this.calculationGroupPosition(e);
-//       this.originPoint = { x: cx, y: cy, width, height, minX, minY };
-//       // model上的x, y是相对于图形中心的，delegateShape是g实例，x,y是绝对坐标
-//       this.delegateRect = parent.addShape('rect', {
-//         attrs: {
-//           width,
-//           height,
-//           x: cx,
-//           y: cy,
-//           ...attrs,
-//         },
-//         // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
-//         name: 'rect-delegate-shape',
-//       });
-//       this.delegateRect.set('capture', false);
-//     } else {
-//       const clientX = e.x - this.origin.x + this.originPoint.minX;
-//       const clientY = e.y - this.origin.y + this.originPoint.minY;
-//       this.delegateRect.attr({
-//         x: clientX,
-//         y: clientY,
-//       });
-//     }
-//   },
-//   calculationGroupPosition(evt) {
-//     let node = this.target;
-//     if (!node) {
-//       node = evt.item;
-//     }
-
-//     const bbox = node.getBBox();
-//     const { minX, minY, maxX, maxY } = bbox;
-
-//     return {
-//       x: Math.floor(minX),
-//       y: Math.floor(minY),
-//       width: Math.ceil(maxX) - Math.floor(minX),
-//       height: Math.ceil(maxY) - Math.floor(minY),
-//       minX,
-//       minY,
-//     };
-//   },
-// });
+      data[dragItemRootKey] = new_data;
+      setData(data);
+      (this as any).graph.read(buildTree(data));
+    }
+  },
+  drop: function drop(event: IG6GraphEvent) {
+    const { item, target } = event;
+    this.dropItem = item;
+    this.dropTarget = target;
+  }
+});

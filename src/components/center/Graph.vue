@@ -5,12 +5,12 @@
 </template>
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import G6, { Util } from '@antv/g6';
+import G6, { IG6GraphEvent } from '@antv/g6';
 import { storeToRefs } from 'pinia';
 import _ from 'lodash'
 
 import { useEditorStore } from '../../store/editor';
-import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from '../../utils/graph';
+import { buildTree } from '../../utils/graph';
 
 import "../../utils/g6";
 
@@ -41,6 +41,20 @@ function initLayout() {
         'drag-canvas', // 画布拖拽
         'zoom-canvas', // 画布缩放
         'collapse-expand',
+        {
+          type: 'drag-node',
+          updateEdge: false,
+          enableDelegate: true,
+          shouldBegin: function(event: IG6GraphEvent) {
+            if (!event.item) return false;
+            const model = event.item.get('model');
+            return !model.root;
+          },
+          shouldEnd: function(event: IG6GraphEvent) {
+            return false;
+          }
+        },
+        'drag-enter'
         // 'collapse-expand-combo'
         // 'drag-branch',
         // 'activate-relations' // 高亮相邻节点
