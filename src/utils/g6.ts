@@ -1,4 +1,4 @@
-import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase } from '@antv/g6';
+import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, BehaviorOption, Graph } from '@antv/g6';
 import _ from 'lodash';
 import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
 import { useEditorStore } from '../store/editor';
@@ -9,6 +9,7 @@ const TYPE_MAP: { [k: string]: any } = {
   ERP: 'type1',
   QMES: 'type5'
 };
+const editorStore = useEditorStore();
 
 /**
  * 注册布局的方法：当前画布布局
@@ -319,7 +320,6 @@ G6.registerBehavior('drag-enter', {
     // 不允许父级投入其子级中
     if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
      
-    const editorStore = useEditorStore();
     const { data, setData } = editorStore;
     if (data[dragItemRootKey]) {
       const _data = data[dragItemRootKey],
@@ -375,5 +375,54 @@ G6.registerBehavior('drag-enter', {
     const { item, target } = event;
     this.dropItem = item;
     this.dropTarget = target;
+  }
+});
+
+
+G6.registerBehavior('node-select', {
+  getEvents: function getEvents() {
+    return {
+      'node:click': 'nodeSelected',
+      'canvas:click': 'nodeUnselected'
+    };
+  },
+  nodeSelected: function(event: IG6GraphEvent) {
+    const node = event.item; // 被点击的节点元素
+    const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
+
+    if (!node) return;
+    const graph = this.graph as Graph;
+    if (!graph) return;
+    editorStore.setCurrentEditModel(node.get('model'));
+    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+      graph.setItemState(node, 'selectedNode', false);
+    });
+    /* 不同状态下节点和边的样式，G6 提供以下状态名的默认样式：active, inactive, selected, highlight, disable。可以通过如下方式修改或者扩展全局状态样式*/
+    graph.setItemState(node, 'selectedNode', true);
+  },
+  nodeUnselected: function(event: IG6GraphEvent) {
+    const graph = this.graph as Graph;
+    if (!graph) return;
+    // 取消选中高亮
+    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+      graph.setItemState(node, 'selectedNode', false);
+    });
+  }
+})
+
+G6.registerBehavior('graph-keydown', {
+  getEvents: function getEvents() {
+    return {
+      'keydown': 'keydown'
+    };
+  },
+  keydown: function keydown(event: IG6GraphEvent) {
+    console.log('KEYDOWN: ', event);
+
+    let selectedNode = null;
+    (this as any).graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+      selectedNode = node;
+    });
+    if (!selectedNode) return;
   }
 });

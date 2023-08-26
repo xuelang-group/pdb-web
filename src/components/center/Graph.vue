@@ -54,7 +54,9 @@ function initLayout() {
             return false;
           }
         },
-        'drag-enter'
+        'drag-enter',
+        'graph-keydown',
+        'node-select',
         // 'collapse-expand-combo'
         // 'drag-branch',
         // 'activate-relations' // 高亮相邻节点
@@ -96,25 +98,6 @@ function initLayout() {
 
 function initEvent() {
   if (!graph) return
-  graph.on('node:click', (event: { item: any; target: any; }) => {
-    const node = event.item; // 被点击的节点元素
-    const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
-
-    editorStore.setCurrentEditModel(node._cfg.model);
-    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
-      graph.setItemState(node, 'selectedNode', false);
-    });
-    /* 不同状态下节点和边的样式，G6 提供以下状态名的默认样式：active, inactive, selected, highlight, disable。可以通过如下方式修改或者扩展全局状态样式*/
-    graph.setItemState(node, 'selectedNode', true);
-  });
-
-  graph.on('canvas:click', () => {
-    // 取消选中高亮
-    graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
-      graph.setItemState(node, 'selectedNode', false);
-    });
-  });
-
   graph.on('node:mouseenter', (event: { item: any; }) => {
     // hover 高亮
     graph.setItemState(event.item, 'active', true);
