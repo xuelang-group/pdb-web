@@ -17,7 +17,6 @@ import "../../utils/g6";
 const editorStore = useEditorStore();
 const { data } = storeToRefs(editorStore);
 
-
 let graph: any;
 onMounted(() => {
   initLayout();

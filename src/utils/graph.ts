@@ -100,12 +100,13 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
         combos.push({
           id: `${uid}-combo`,
           parentId: `${parent}-combo`,
+          rootKey
         });
         if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
           Object.assign(nestedChildren[0], { onlyChild: true });
         }
         Object.assign(node, { children: nestedChildren });
-        edges.push({ source: node.id, target: nestedChildren[0].id });
+        edges.push({ source: node.id, target: nestedChildren[0].id, rootKey });
       }
 
       children.push(node);
@@ -145,9 +146,17 @@ const fittingString = (str: string, maxWidth: number, fontSize: number) => {
 };
 
 // 转换数据
-export function buildTree(data: { [key: string]: ItemData[] }) {
-  const edges: any[] = [], nodes: NodeItemData[] = [], combos: ComboConfig[] = [];
+export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: string, originData?: any) {
+  const edges: any[] = originData?.edges || [],
+    combos: ComboConfig[] = originData?.combos || [];
+  let nodes: NodeItemData[] = originData?.nodes || [],
+    otherNodes: NodeItemData[] = [];
+  if (changedRootKey) {
+    const changedRootKeyIndex = changedRootKey ? nodes.findIndex(val => val.id === changedRootKey) : -1;
+    otherNodes = nodes.splice(changedRootKeyIndex + 1);
+  }
   Object.keys(data).forEach(function (key) {
+    if (changedRootKey && key !== changedRootKey) return;
     const allData = data[key];
     const rootNodes: NodeItemData[] = [];
     let level = '0';
@@ -155,13 +164,15 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
       id: key,
       name: key,
       root: true,
+      rootKey: key,
       label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
       level,
     };
     combos.push({
-      id: `${key}-combo`
+      id: `${key}-combo`,
+      rootKey: key
     });
-    nodes.push(parentNode);
+    if (!changedRootKey) nodes.push(parentNode);
     rootNodes.push(parentNode);
 
     let index = 0;
@@ -186,12 +197,13 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
           combos.push({
             id: `${uid}-combo`,
             parentId: `${key}-combo`,
+            rootKey: key
           });
           if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
             Object.assign(nestedChildren[0], { onlyChild: true });
           }
           Object.assign(node, { children: nestedChildren });
-          edges.push({ source: node.id, target: nestedChildren[0].id });
+          edges.push({ source: node.id, target: nestedChildren[0].id, rootKey: key });
         }
         rootNodes.push(node);
       }
@@ -217,10 +229,13 @@ export function buildTree(data: { [key: string]: ItemData[] }) {
 
     rootNodes.forEach(function (value, index) {
       if (index > 0) {
-        edges.push({ source: rootNodes[index - 1].id, target: value.id });
+        edges.push({ source: rootNodes[index - 1].id, target: value.id, rootKey: key });
       }
     });
   })
+  if (changedRootKey && otherNodes.length > 0) {
+    nodes = nodes.concat(otherNodes);
+  }
   return {
     nodes,
     edges,

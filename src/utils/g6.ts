@@ -1,6 +1,7 @@
-import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, BehaviorOption, Graph } from '@antv/g6';
+import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, Item, Graph } from '@antv/g6';
 import _ from 'lodash';
 import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
+import { uuid } from './common';
 import { useEditorStore } from '../store/editor';
 
 const TYPE_MAP: { [k: string]: any } = {
@@ -9,7 +10,19 @@ const TYPE_MAP: { [k: string]: any } = {
   ERP: 'type1',
   QMES: 'type5'
 };
-const editorStore = useEditorStore();
+const G6OperateFunctions = {
+  addNode: function(sourceNode: Item) {
+    const editorStore = useEditorStore();
+    const { data } = editorStore;
+    const sourceNodeData = sourceNode.get('model').data;
+    const { rootKey } = sourceNodeData;
+    if (!data[rootKey]) return;
+    const _data = data[rootKey];
+    const new_data = {
+      id: uuid()
+    }
+  }
+}
 
 /**
  * 注册布局的方法：当前画布布局
@@ -305,6 +318,7 @@ G6.registerBehavior('drag-enter', {
   },
   changeData(dragItem: IShapeBase, dropItem: IShapeBase, type: string) {
     if (type !== 'top-rect' && type !== 'node-rect') return;
+    const graphData = (this as any).graph.save();
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
       dragItemRootKey = dragItemModel.rootKey,
@@ -319,7 +333,8 @@ G6.registerBehavior('drag-enter', {
 
     // 不允许父级投入其子级中
     if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
-     
+    
+    const editorStore = useEditorStore();
     const { data, setData } = editorStore;
     if (data[dragItemRootKey]) {
       const _data = data[dragItemRootKey],
@@ -368,7 +383,11 @@ G6.registerBehavior('drag-enter', {
 
       data[dragItemRootKey] = new_data;
       setData(data);
-      (this as any).graph.read(buildTree(data));
+      (this as any).graph.read(buildTree(data, dragItemRootKey, {
+        nodes: graphData.nodes.filter((val: any) => val.rootKey !== dragItemRootKey || val.root),
+        edges: graphData.edges.filter((val: any) => val.rootKey !== dragItemRootKey),
+        combos: graphData.combos.filter((val: any) => val.rootKey !== dragItemRootKey),
+      }));
     }
   },
   drop: function drop(event: IG6GraphEvent) {
@@ -393,6 +412,7 @@ G6.registerBehavior('node-select', {
     if (!node) return;
     const graph = this.graph as Graph;
     if (!graph) return;
+    const editorStore = useEditorStore();
     editorStore.setCurrentEditModel(node.get('model'));
     graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
       graph.setItemState(node, 'selectedNode', false);
@@ -420,9 +440,13 @@ G6.registerBehavior('graph-keydown', {
     console.log('KEYDOWN: ', event);
 
     let selectedNode = null;
-    (this as any).graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
+    (this as any).graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
       selectedNode = node;
     });
     if (!selectedNode) return;
+    const { keyCode } = event;
+    if (keyCode === 9) {
+      G6OperateFunctions.addNode(selectedNode);
+    }
   }
 });
