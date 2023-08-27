@@ -1,4 +1,4 @@
-import G6, { ComboConfig } from '@antv/g6'
+import G6, { ComboConfig, NodeConfig } from '@antv/g6'
 import { ItemData, NodeItemData } from '../store/editor'
 
 const globalFontSize = 12;
@@ -149,8 +149,8 @@ const fittingString = (str: string, maxWidth: number, fontSize: number) => {
 export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: string, originData?: any) {
   const edges: any[] = originData?.edges || [],
     combos: ComboConfig[] = originData?.combos || [];
-  let nodes: NodeItemData[] = originData?.nodes || [],
-    otherNodes: NodeItemData[] = [];
+  let nodes: NodeConfig[] = originData?.nodes || [],
+    otherNodes: NodeConfig[] = [];
   if (changedRootKey) {
     const changedRootKeyIndex = changedRootKey ? nodes.findIndex(val => val.id === changedRootKey) : -1;
     otherNodes = nodes.splice(changedRootKeyIndex + 1);

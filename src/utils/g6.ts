@@ -1,4 +1,4 @@
-import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, Item, Graph } from '@antv/g6';
+import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, Item, Graph, GraphData } from '@antv/g6';
 import _ from 'lodash';
 import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
 import { uuid } from './common';
@@ -11,15 +11,38 @@ const TYPE_MAP: { [k: string]: any } = {
   QMES: 'type5'
 };
 const G6OperateFunctions = {
-  addNode: function(sourceNode: Item) {
+  addNode: function(sourceNode: Item, graph: Graph) {
     const editorStore = useEditorStore();
     const { data } = editorStore;
-    const sourceNodeData = sourceNode.get('model').data;
-    const { rootKey } = sourceNodeData;
+    const { rootKey } = sourceNode.get('model');
     if (!data[rootKey]) return;
     const _data = data[rootKey];
     const new_data = {
-      id: uuid()
+      uid: uuid(),
+      name: '',
+      parent: sourceNode.get('id')
+    };
+    _data.push(new_data);
+    data[rootKey] = _data;
+    const graphData: GraphData = graph.save();
+    if (!graphData) return;
+    graph.read(buildTree(data, rootKey, {
+      nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
+      edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
+      combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
+    }));
+    graph.setMode('addNode');
+    (window as any).onAddNode = function() {
+      const input = document.getElementsByClassName('graph-add-input')[0].children[0]
+      if (!input) return;
+      _data[_data.length - 1].name = input?.value;
+      graph.setMode('default');
+      data[rootKey] = _data;
+      graph.read(buildTree(data, rootKey, {
+        nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
+        edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
+        combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
+      }));
     }
   }
 }
@@ -162,20 +185,39 @@ G6.registerNode('pbdNode', {
       },
       name: 'top-rect'
     });
-    // text
-    group.addShape('text', {
-      attrs: {
-        text: cfg.label,
-        fill: color,
-        textAlign: 'center',
-        height: NODE_HEIGHT,
-        x: width / 2,
-        y: 22,
-        cursor: 'pointer',
-      },
-      name: 'text-shape',
-      draggable: true
-    });
+    const attrs = {
+      width: NODE_WIDTH,
+      height: NODE_HEIGHT,
+    }
+    if (cfg.label) {
+      // text
+      group.addShape('text', {
+        attrs: {
+          ...attrs,
+          text: cfg.label,
+          fill: color,
+          textAlign: 'center',
+          cursor: 'pointer',
+          x: width / 2,
+          y: 22,
+        },
+        name: 'text-shape',
+        draggable: true
+      });
+    } else {
+      group.addShape('dom', {
+        attrs: {
+          ...attrs,
+          html: `
+            <div class="graph-add-input" style='width: ${attrs.width}px; height: ${attrs.height}px'>
+              <input autofocus/>
+            </div>
+          `
+        },
+        name: 'add-input-rect',
+        draggable: true
+      });
+    }
     return keyShape;
   },
   afterDraw(cfg: ModelConfig | undefined, group: IGroup | undefined) {
@@ -198,6 +240,11 @@ G6.registerNode('pbdNode', {
       nodeRect.on('dragleave', () => {
         group?.cfg.item.clearStates(['active']);
       });
+    }
+
+    const addInputRect = group?.find(child => child.get('name') === 'add-input-rect');
+    if (addInputRect) {
+      console.log(addInputRect)
     }
   }
 },
@@ -397,7 +444,6 @@ G6.registerBehavior('drag-enter', {
   }
 });
 
-
 G6.registerBehavior('node-select', {
   getEvents: function getEvents() {
     return {
@@ -438,15 +484,24 @@ G6.registerBehavior('graph-keydown', {
   },
   keydown: function keydown(event: IG6GraphEvent) {
     console.log('KEYDOWN: ', event);
-
-    let selectedNode = null;
-    (this as any).graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
-      selectedNode = node;
-    });
-    if (!selectedNode) return;
     const { keyCode } = event;
-    if (keyCode === 9) {
-      G6OperateFunctions.addNode(selectedNode);
+    const graph = (this as any).graph;
+    switch (keyCode) {
+      case 9:
+        let selectedNode = null;
+        graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
+          selectedNode = node;
+        });
+        if (!selectedNode) return;
+        G6OperateFunctions.addNode(selectedNode, graph);
+        break;
+      case 13:
+        if (graph.getCurrentMode() === 'addNode') {
+          window.onAddNode();
+        }
+        break;
+      default:
+        break;
     }
   }
 });
