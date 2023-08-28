@@ -75,14 +75,14 @@ export const LINE_SYTLE: { [k: string]: any } = {
   }
 }
 
-function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeItemData[], combos: ComboConfig[], rootKey: string, level: string) {
+function findChildren(data: ItemData[], parent: string, edges: any, nodes: any[], combos: ComboConfig[], rootKey: string, level: string) {
   const children: any[] = [];
-  let index = 0;
+  let levelIndex = 0, dataIndex = 0;
   for (const item of data) {
     const { uid, name, ...other } = item;
     if (item.parent === parent) {
-      const _level = level + '-' + index;
-      index++;
+      const _level = level + '-' + levelIndex;
+      levelIndex++;
       const node = {
         ...other,
         id: uid,
@@ -92,7 +92,8 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
         parent,
         rootKey,
         comboId: `${parent}-combo`,
-        data: item
+        data: item,
+        dataIndex
       };
       nodes.push(node);
       const nestedChildren = findChildren(data, uid, edges, nodes, combos, rootKey, _level);
@@ -111,11 +112,12 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: NodeI
 
       children.push(node);
     }
+    dataIndex ++;
   }
 
   children.forEach(function (value, index) {
     if (index > 0) {
-      edges.push({ source: children[index - 1].id, target: value.id });
+      edges.push({ source: children[index - 1].id, target: value.id, rootKey });
     }
   });
 
@@ -147,9 +149,9 @@ const fittingString = (str: string, maxWidth: number, fontSize: number) => {
 
 // 转换数据
 export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: string, originData?: any) {
-  const edges: any[] = originData?.edges || [],
-    combos: ComboConfig[] = originData?.combos || [];
-  let nodes: NodeConfig[] = originData?.nodes || [],
+  let edges: any[] = originData?.edges || [],
+    combos: ComboConfig[] = originData?.combos || [],
+    nodes: NodeConfig[] = originData?.nodes || [],
     otherNodes: NodeConfig[] = [];
   if (changedRootKey) {
     const changedRootKeyIndex = changedRootKey ? nodes.findIndex(val => val.id === changedRootKey) : -1;
@@ -175,7 +177,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
     if (!changedRootKey) nodes.push(parentNode);
     rootNodes.push(parentNode);
 
-    let index = 0;
+    let levelIndex = 0, dataIndex = 0;
     for (const item of allData) {
       const { uid, name, parent, children, ...other } = item;
       const node = {
@@ -185,11 +187,12 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
         parent: key,
         name,
         data: item,
+        dataIndex,
         ...other
       };
       if (!parent) {
-        const _level = level + '-' + index;
-        index++;
+        const _level = level + '-' + levelIndex;
+        levelIndex++;
         Object.assign(node, { level: _level });
         nodes.push(node);
         const nestedChildren = findChildren(allData, uid, edges, nodes, combos, key, _level);
@@ -225,6 +228,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
           });
         });
       }
+      dataIndex++;
     }
 
     rootNodes.forEach(function (value, index) {

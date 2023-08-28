@@ -1,5 +1,5 @@
 import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, Item, Graph, GraphData } from '@antv/g6';
-import _ from 'lodash';
+import _, { values } from 'lodash';
 import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
 import { uuid } from './common';
 import { useEditorStore } from '../store/editor';
@@ -28,7 +28,45 @@ const G6OperateFunctions = {
     const graphData: GraphData = graph.save();
     if (!graphData) return;
     setData(data);
-    graph.read(buildTree(data, rootKey, {
+    graph.changeData(buildTree(data, rootKey, {
+      nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
+      edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
+      combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
+    }));
+  },
+  removeNode: function(sourceNode: Item, graph: Graph) {
+    const nodeId = sourceNode.get("id");
+    const { rootKey } = sourceNode.get('model');
+    const editorStore = useEditorStore();
+    const { data, setData } = editorStore;
+    if (!nodeId || !data[rootKey]) return;
+    // const _data =  data[rootKey].filter(val => val.uid !== nodeId && val.parent !== nodeId);
+    // data[rootKey] = _data;
+
+    const comboId = nodeId + '-combo';
+    const removeIds = {
+      [nodeId]: nodeId
+    };
+    function getRemoveIds(comboId: string) {
+      const children = graph.getComboChildren(comboId);
+      if (!children) return;
+      const { combos, nodes } = children;
+      nodes && nodes.forEach(node => {
+        const id = node.get('id');
+        Object.assign(removeIds, { [id]: id });
+      });
+      combos && combos.forEach(function(combo) {
+        const id = combo.get('id');
+        getRemoveIds(id);
+      })
+    }
+    getRemoveIds(comboId);
+    const _data = data[rootKey].filter(val => !removeIds.hasOwnProperty(val.uid));
+    data[rootKey] = _data;
+    graph.removeItem(nodeId);
+    graph.removeItem(comboId);
+    const graphData: GraphData = graph.save();
+    graph.changeData(buildTree(data, rootKey, {
       nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
       edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
       combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
@@ -536,15 +574,20 @@ G6.registerBehavior('graph-keydown', {
     console.log('KEYDOWN: ', event);
     const { keyCode } = event;
     const graph = (this as any).graph;
+    let selectedNode = null;
+    graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
+      selectedNode = node;
+    });
     switch (keyCode) {
       case 9:
         // Tab键响应，选中节点时，会向后增加子节点
-        let selectedNode = null;
-        graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
-          selectedNode = node;
-        });
         if (!selectedNode) return;
         G6OperateFunctions.addNode(selectedNode, graph);
+        break;
+      case 8:
+        // DEL键
+        if (!selectedNode) return;
+        G6OperateFunctions.removeNode(selectedNode, graph);
         break;
       case 13:
         // 回车键
