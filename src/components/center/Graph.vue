@@ -35,10 +35,12 @@ function initLayout() {
     container,
     width,
     height,
-    renderer: 'svg',
     modes: {
       default: [
-        'drag-canvas', // 画布拖拽
+        {
+          type: 'drag-canvas',
+          allowDragOnItem: { combo: true }
+        }, // 画布拖拽
         'zoom-canvas', // 画布缩放
         'collapse-expand',
         {
