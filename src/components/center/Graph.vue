@@ -63,11 +63,11 @@ function initLayout() {
         // 'drag-branch',
         // 'activate-relations' // 高亮相邻节点
       ],
-      addNode: [
-        'drag-canvas', // 画布拖拽
-        'zoom-canvas', // 画布缩放
-        'graph-keydown',
-      ]
+      // addNode: [
+      //   'drag-canvas', // 画布拖拽
+      //   'zoom-canvas', // 画布缩放
+      //   'graph-keydown',
+      // ]
     },
     defaultCombo: {
       type: 'rect',
@@ -133,4 +133,3 @@ function initEvent() {
   }
 }
 </style>
-  ../../utils/graph

@@ -13,37 +13,26 @@ const TYPE_MAP: { [k: string]: any } = {
 const G6OperateFunctions = {
   addNode: function(sourceNode: Item, graph: Graph) {
     const editorStore = useEditorStore();
-    const { data } = editorStore;
+    const { data, setData } = editorStore;
     const { rootKey } = sourceNode.get('model');
     if (!data[rootKey]) return;
     const _data = data[rootKey];
     const new_data = {
       uid: uuid(),
       name: '',
-      parent: sourceNode.get('id')
+      parent: sourceNode.get('id'),
+      dataIndex: _data.length
     };
     _data.push(new_data);
     data[rootKey] = _data;
     const graphData: GraphData = graph.save();
     if (!graphData) return;
+    setData(data);
     graph.read(buildTree(data, rootKey, {
       nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
       edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
       combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
     }));
-    graph.setMode('addNode');
-    (window as any).onAddNode = function() {
-      const input = document.getElementsByClassName('graph-add-input')[0].children[0]
-      if (!input) return;
-      _data[_data.length - 1].name = input?.value;
-      graph.setMode('default');
-      data[rootKey] = _data;
-      graph.changeData(buildTree(data, rootKey, {
-        nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
-        edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
-        combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
-      }));
-    }
   }
 }
 
@@ -189,7 +178,7 @@ G6.registerNode('pbdNode', {
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
     }
-    if (cfg.label) {
+    // if (cfg.label) {
       // text
       group.addShape('text', {
         attrs: {
@@ -204,20 +193,20 @@ G6.registerNode('pbdNode', {
         name: 'text-shape',
         draggable: true
       });
-    } else {
-      group.addShape('dom', {
-        attrs: {
-          ...attrs,
-          html: `
-            <div class="graph-add-input" style='width: ${attrs.width}px; height: ${attrs.height}px'>
-              <input autofocus/>
-            </div>
-          `
-        },
-        name: 'add-input-rect',
-        draggable: true
-      });
-    }
+    // } else {
+    //   group.addShape('dom', {
+    //     attrs: {
+    //       ...attrs,
+    //       html: `
+    //         <div class="graph-add-input" style='width: ${attrs.width}px; height: ${attrs.height}px'>
+    //           <input autofocus/>
+    //         </div>
+    //       `
+    //     },
+    //     name: 'add-input-rect',
+    //     draggable: true
+    //   });
+    // }
     return keyShape;
   },
   afterDraw(cfg: ModelConfig | undefined, group: IGroup | undefined) {
@@ -449,7 +438,8 @@ G6.registerBehavior('node-select', {
   getEvents: function getEvents() {
     return {
       'node:click': 'nodeSelected',
-      'canvas:click': 'nodeUnselected'
+      'canvas:click': 'nodeUnselected',
+      'node:dblclick': 'editNode'
     };
   },
   nodeSelected: function(event: IG6GraphEvent) {
@@ -474,6 +464,65 @@ G6.registerBehavior('node-select', {
     graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
       graph.setItemState(node, 'selectedNode', false);
     });
+  },
+  editNode: function(event: IG6GraphEvent) {
+    const item = event.item;
+    if (!item) return;
+    const model = item.get('model');
+    const {
+      x,
+      y
+    } = item.calculateBBox();
+    const graph = event.currentTarget;
+    const realPosition = event.currentTarget.getClientByPoint(x, y);
+    const el = document.createElement('div');
+    el.style.position = 'fixed';
+    el.style.top = (realPosition.y + 1) + 'px';
+    el.style.left = (realPosition.x + 1) + 'px';
+    el.style.transformOrigin = 'top left';
+    el.style.transform = `scale(${event.currentTarget.getZoom()})`;
+    const input = document.createElement('input');
+    input.style.border = 'none';
+    input.value = model.label;
+    input.style.width = (NODE_WIDTH - 4) + 'px';
+    input.style.height = (NODE_HEIGHT - 4) + 'px';
+    input.autofocus = true;
+    input.className = 'graph-add-input';
+    el.className = 'graph-add-input';
+    el.appendChild(input);
+    document.body.appendChild(el);
+    const destroyEl = () => {
+      document.body.removeChild(el);
+    };
+    const clickEvt = (event) => {
+      if (!(event.target && event.target.className && event.target.className.includes('graph-add-input'))) {
+        window.removeEventListener('mousedown', clickEvt);
+        window.removeEventListener('scroll', clickEvt);
+        graph.updateItem(item, {
+          label: input.value,
+        });
+
+        const editorStore = useEditorStore();
+        if (input?.value) {
+          const { data, setData } = editorStore;
+          data[model.rootKey][model.dataIndex].name = input?.value;
+          setData(data);
+        }
+        graph.layout(false);
+        graph.off('wheelZoom', clickEvt);
+        destroyEl();
+      }
+    };
+    graph.on('wheelZoom', clickEvt);
+    window.addEventListener('mousedown', clickEvt);
+    window.addEventListener('scroll', clickEvt);
+    input.addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+        clickEvt({
+          target: {},
+        });
+      }
+    });
   }
 })
 
@@ -489,6 +538,7 @@ G6.registerBehavior('graph-keydown', {
     const graph = (this as any).graph;
     switch (keyCode) {
       case 9:
+        // Tab键响应，选中节点时，会向后增加子节点
         let selectedNode = null;
         graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
           selectedNode = node;
@@ -497,9 +547,7 @@ G6.registerBehavior('graph-keydown', {
         G6OperateFunctions.addNode(selectedNode, graph);
         break;
       case 13:
-        if (graph.getCurrentMode() === 'addNode') {
-          window.onAddNode();
-        }
+        // 回车键
         break;
       default:
         break;
