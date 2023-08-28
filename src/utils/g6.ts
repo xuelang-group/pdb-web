@@ -38,7 +38,7 @@ const G6OperateFunctions = {
       _data[_data.length - 1].name = input?.value;
       graph.setMode('default');
       data[rootKey] = _data;
-      graph.read(buildTree(data, rootKey, {
+      graph.changeData(buildTree(data, rootKey, {
         nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
         edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
         combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
@@ -246,7 +246,8 @@ G6.registerNode('pbdNode', {
     if (addInputRect) {
       console.log(addInputRect)
     }
-  }
+  },
+  update: undefined
 },
   'rect',
 );
@@ -430,7 +431,7 @@ G6.registerBehavior('drag-enter', {
 
       data[dragItemRootKey] = new_data;
       setData(data);
-      (this as any).graph.read(buildTree(data, dragItemRootKey, {
+      (this as any).graph.changeData(buildTree(data, dragItemRootKey, {
         nodes: graphData.nodes.filter((val: any) => val.rootKey !== dragItemRootKey || val.root),
         edges: graphData.edges.filter((val: any) => val.rootKey !== dragItemRootKey),
         combos: graphData.combos.filter((val: any) => val.rootKey !== dragItemRootKey),
