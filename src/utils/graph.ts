@@ -149,7 +149,7 @@ function findChildren(
           nestedChildren[0].onlyChild = true;
         }
 
-        // node.children = nestedChildren;
+        node.children = nestedChildren;
         edges.push({ source: node.id, target: nestedChildren[0].id, rootKey });
       }
 
@@ -240,7 +240,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
             nestedChildren[0].onlyChild = true;
           }
 
-          // Object.assign(node, { children: nestedChildren });
+          Object.assign(node, { children: nestedChildren });
           edges.push({ source: node.id, target: nestedChildren[0].id, rootKey: key });
         }
 

@@ -63,6 +63,7 @@ function initLayout() {
         // 'drag-branch',
         // 'activate-relations' // 高亮相邻节点
       ],
+      editNode: []
       // addNode: [
       //   'drag-canvas', // 画布拖拽
       //   'zoom-canvas', // 画布缩放

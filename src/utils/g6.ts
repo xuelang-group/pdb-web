@@ -15,12 +15,11 @@ const TYPE_MAP: { [k: string]: any } = {
 };
 const G6OperateFunctions = {
   addNode: function (sourceNode: Item, graph: Graph) {
-    const editorStore = useEditorStore();
-    const { data, setData } = editorStore;
+    const { data, setData } = useEditorStore();
     const sourceNodeId = sourceNode.get('id');
     const { rootKey } = sourceNode.get('model');
     if (!data[rootKey]) return;
-    const _data = data[rootKey];
+    const _data = JSON.parse(JSON.stringify(data[rootKey]));
     const new_data = {
       uid: uuid(),
       name: '',
@@ -38,11 +37,14 @@ const G6OperateFunctions = {
     }
 
     _data.push(new_data);
-    data[rootKey] = _data;
+    const savedData = {
+      ...data,
+      [rootKey]: _data
+    }
     const graphData: GraphData = graph.save();
     if (!graphData) return;
-    setData(data);
-    graph.changeData(buildTree(data, rootKey, {
+    setData(savedData);
+    graph.changeData(buildTree(savedData, rootKey, {
       nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
       edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
       combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
@@ -51,8 +53,7 @@ const G6OperateFunctions = {
   removeNode: function (sourceNode: Item, graph: Graph) {
     const nodeId = sourceNode.get("id");
     const { rootKey } = sourceNode.get('model');
-    const editorStore = useEditorStore();
-    const { data, setData } = editorStore;
+    const { data, setData } = useEditorStore();
     if (!nodeId || !data[rootKey]) return;
     // const _data =  data[rootKey].filter(val => val.uid !== nodeId && val.parent !== nodeId);
     // data[rootKey] = _data;
@@ -76,11 +77,15 @@ const G6OperateFunctions = {
     }
     getRemoveIds(comboId);
     const _data = data[rootKey].filter(val => !removeIds.hasOwnProperty(val.uid));
-    data[rootKey] = _data;
+    const savedData = {
+      ...data,
+      [rootKey]: _data
+    };
+    setData(savedData);
     graph.removeItem(nodeId);
     graph.removeItem(comboId);
     const graphData: GraphData = graph.save();
-    graph.changeData(buildTree(data, rootKey, {
+    graph.changeData(buildTree(savedData, rootKey, {
       nodes: graphData.nodes?.filter((val: any) => val.rootKey !== rootKey || val.root),
       edges: graphData.edges?.filter((val: any) => val.rootKey !== rootKey),
       combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
@@ -328,7 +333,7 @@ G6.registerEdge('step-line', {
 G6.registerBehavior('collapse-expand', {
   getEvents: function getEvents() {
     return {
-      'node:dblclick': 'onNodeClick'
+      'node:click': 'onNodeClick'
     }
   },
   onNodeClick: function onNodeClick(event: IG6GraphEvent) {
@@ -404,8 +409,7 @@ G6.registerBehavior('drag-enter', {
     // 不允许父级投入其子级中
     if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
 
-    const editorStore = useEditorStore();
-    const { data, setData } = editorStore;
+    const { data, setData } = useEditorStore();
     if (data[dragItemRootKey]) {
       const _data = data[dragItemRootKey],
         new_data = new Array();
@@ -451,9 +455,12 @@ G6.registerBehavior('drag-enter', {
         }
       }
 
-      data[dragItemRootKey] = new_data;
-      setData(data);
-      const new_graph_data = buildTree(data, dragItemRootKey, {
+      const savedData = {
+        ...data,
+        [dragItemRootKey]: new_data
+      };
+      setData(savedData);
+      const new_graph_data = buildTree(savedData, dragItemRootKey, {
         nodes: graphData.nodes.filter((val: any) => val.rootKey !== dragItemRootKey || val.root),
         edges: graphData.edges.filter((val: any) => val.rootKey !== dragItemRootKey),
         combos: graphData.combos.filter((val: any) => val.rootKey !== dragItemRootKey),
@@ -483,8 +490,8 @@ G6.registerBehavior('node-select', {
     if (!node) return;
     const graph = this.graph as Graph;
     if (!graph) return;
-    const editorStore = useEditorStore();
-    editorStore.setCurrentEditModel(node.get('model'));
+    const { setCurrentEditModel } = useEditorStore();
+    setCurrentEditModel(node.get('model'));
     graph.findAllByState('node', 'selectedNode').forEach((node: any) => {
       graph.setItemState(node, 'selectedNode', false);
     });
@@ -501,13 +508,14 @@ G6.registerBehavior('node-select', {
   },
   editNode: function (event: IG6GraphEvent) {
     const item = event.item;
-    if (!item) return;
+    const graph = event.currentTarget;
+    if (!item || !graph) return;
+    graph.setMode('editNode');
     const model = item.get('model');
     const {
       x,
       y
     } = item.calculateBBox();
-    const graph = event.currentTarget;
     const realPosition = event.currentTarget.getClientByPoint(x, y);
     const el = document.createElement('div');
     el.style.position = 'fixed';
@@ -532,20 +540,30 @@ G6.registerBehavior('node-select', {
       if (!(event.target && event.target.className && event.target.className.includes('graph-add-input'))) {
         window.removeEventListener('mousedown', clickEvt);
         window.removeEventListener('scroll', clickEvt);
+        const name = input.value,
+          label = fittingString(name, NODE_WIDTH, GLOBAL_FONT_SIZE);
         graph.updateItem(item, {
-          label: fittingString(input.value, NODE_WIDTH, GLOBAL_FONT_SIZE),
-          name: input.value
+          label,
+          name
         });
 
-        const editorStore = useEditorStore();
-        if (input?.value) {
-          const { data, setData } = editorStore;
-          data[model.rootKey][model.dataIndex].name = input?.value;
-          setData(data);
+        if (name) {
+          const { data, currentEditModel, setData, setCurrentEditModel } = useEditorStore();
+          const savedData = JSON.parse(JSON.stringify(data));
+          savedData[model.rootKey][model.dataIndex].name = name;
+          setData(savedData);
+          if (currentEditModel) {
+            setCurrentEditModel({
+              ...currentEditModel,
+              label,
+              name
+            });
+          }
         }
         graph.layout(false);
         graph.off('wheelZoom', clickEvt);
         destroyEl();
+        graph.setMode('default');
       }
     };
     graph.on('wheelZoom', clickEvt);
@@ -576,15 +594,16 @@ G6.registerBehavior('graph-keydown', {
     graph.findAllByState('node', 'selectedNode').forEach((node: Item) => {
       selectedNode = node;
     });
+    const currentMode = graph.getCurrentMode();
     switch (keyCode) {
       case 9:
         // Tab键响应，选中节点时，会向后增加子节点
-        if (!selectedNode) return;
+        if (!selectedNode || currentMode === 'editNode') return;
         G6OperateFunctions.addNode(selectedNode, graph);
         break;
       case 8:
         // DEL键
-        if (!selectedNode) return;
+        if (!selectedNode || currentMode === 'editNode') return;
         G6OperateFunctions.removeNode(selectedNode, graph);
         break;
       case 13:
