@@ -223,39 +223,20 @@ G6.registerNode('pbdNode', {
       },
       name: 'top-rect'
     });
-    const attrs = {
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-    }
-    // if (cfg.label) {
-      // text
-      group.addShape('text', {
-        attrs: {
-          ...attrs,
-          text: cfg.label,
-          fill: color,
-          textAlign: 'center',
-          cursor: 'pointer',
-          x: width / 2,
-          y: 22,
-        },
-        name: 'text-shape',
-        draggable: true
-      });
-    // } else {
-    //   group.addShape('dom', {
-    //     attrs: {
-    //       ...attrs,
-    //       html: `
-    //         <div class="graph-add-input" style='width: ${attrs.width}px; height: ${attrs.height}px'>
-    //           <input autofocus/>
-    //         </div>
-    //       `
-    //     },
-    //     name: 'add-input-rect',
-    //     draggable: true
-    //   });
-    // }
+    group.addShape('text', {
+      attrs: {
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
+        text: cfg.label,
+        fill: color,
+        textAlign: 'center',
+        cursor: 'pointer',
+        x: width / 2,
+        y: 22,
+      },
+      name: 'text-shape',
+      draggable: true
+    });
     return keyShape;
   },
   afterDraw(cfg: ModelConfig | undefined, group: IGroup | undefined) {
