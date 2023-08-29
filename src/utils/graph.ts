@@ -93,7 +93,8 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: any[]
         rootKey,
         comboId: `${parent}-combo`,
         data: item,
-        dataIndex
+        dataIndex,
+        onlyChild: false
       };
       nodes.push(node);
       const nestedChildren = findChildren(data, uid, edges, nodes, combos, rootKey, _level);
@@ -188,6 +189,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
         name,
         data: item,
         dataIndex,
+        onlyChild: false,
         ...other
       };
       if (!parent) {

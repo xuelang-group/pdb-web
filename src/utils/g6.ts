@@ -458,11 +458,12 @@ G6.registerBehavior('drag-enter', {
 
       data[dragItemRootKey] = new_data;
       setData(data);
-      (this as any).graph.changeData(buildTree(data, dragItemRootKey, {
+      const new_graph_data = buildTree(data, dragItemRootKey, {
         nodes: graphData.nodes.filter((val: any) => val.rootKey !== dragItemRootKey || val.root),
         edges: graphData.edges.filter((val: any) => val.rootKey !== dragItemRootKey),
         combos: graphData.combos.filter((val: any) => val.rootKey !== dragItemRootKey),
-      }));
+      });
+      (this as any).graph.changeData(new_graph_data);
     }
   },
   drop: function drop(event: IG6GraphEvent) {
