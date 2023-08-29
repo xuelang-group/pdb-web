@@ -14,15 +14,26 @@ const G6OperateFunctions = {
   addNode: function(sourceNode: Item, graph: Graph) {
     const editorStore = useEditorStore();
     const { data, setData } = editorStore;
+    const sourceNodeId = sourceNode.get('id');
     const { rootKey } = sourceNode.get('model');
     if (!data[rootKey]) return;
     const _data = data[rootKey];
     const new_data = {
       uid: uuid(),
       name: '',
-      parent: sourceNode.get('id'),
+      parent: sourceNodeId,
       dataIndex: _data.length
     };
+
+    // 如果当前父级被折叠，则自动将其展开
+    if (sourceNode.collapsed) {
+      Object.assign(sourceNode, { collapsed: false });   
+      sourceNode.getModel().collapsed = false;
+      graph.emit('itemcollapsed', { item: sourceNode, collapsed: false });
+      const comboId = sourceNodeId + '-combo';
+      if (graph.findById(comboId)) graph.expandCombo(comboId);
+    }
+
     _data.push(new_data);
     data[rootKey] = _data;
     const graphData: GraphData = graph.save();
@@ -533,7 +544,7 @@ G6.registerBehavior('node-select', {
     const destroyEl = () => {
       document.body.removeChild(el);
     };
-    const clickEvt = (event) => {
+    const clickEvt = (event: any) => {
       if (!(event.target && event.target.className && event.target.className.includes('graph-add-input'))) {
         window.removeEventListener('mousedown', clickEvt);
         window.removeEventListener('scroll', clickEvt);
@@ -555,6 +566,7 @@ G6.registerBehavior('node-select', {
     graph.on('wheelZoom', clickEvt);
     window.addEventListener('mousedown', clickEvt);
     window.addEventListener('scroll', clickEvt);
+    input.addEventListener('blur', clickEvt);
     input.addEventListener('keyup', (event) => {
       if (event.key === 'Enter') {
         clickEvt({
