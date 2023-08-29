@@ -1,3 +1,4 @@
+import { NodeConfig, TreeGraphData } from '@antv/g6'
 import { defineStore } from 'pinia'
 
 export interface ItemData {
@@ -13,7 +14,7 @@ interface EditorData {
   [key: string]: Array<ItemData>
 }
 
-export interface NodeItemData {
+export interface NodeItemData extends NodeConfig {
   id: string
   label: string
   name: string
@@ -25,7 +26,6 @@ export interface NodeItemData {
   nodeType?: string // 节点类型，区分节点样式
   params?: any // 属性，用于右侧面板显示
   parent?: string // 当前数据上级id
-  children?: Array<string> // 当前数据的子数据
   fans?: Array<string> // 当前数据与其他数据ids，用于连线
   onlyChild?: boolean // 子级有且只有一个，该子级也没有子级
   root?: boolean // 根节点

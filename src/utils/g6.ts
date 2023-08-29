@@ -1,6 +1,9 @@
 import G6, { Util, ModelConfig, IGroup, IG6GraphEvent, IShapeBase, Item, Graph, GraphData } from '@antv/g6';
-import _, { values } from 'lodash';
-import { buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, NODE_STYLE, LINE_SYTLE } from './graph';
+import _ from 'lodash';
+import {
+  buildTree, ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP,
+  NODE_STYLE, LINE_SYTLE, fittingString, GLOBAL_FONT_SIZE
+} from './graph';
 import { uuid } from './common';
 import { useEditorStore } from '../store/editor';
 
@@ -11,7 +14,7 @@ const TYPE_MAP: { [k: string]: any } = {
   QMES: 'type5'
 };
 const G6OperateFunctions = {
-  addNode: function(sourceNode: Item, graph: Graph) {
+  addNode: function (sourceNode: Item, graph: Graph) {
     const editorStore = useEditorStore();
     const { data, setData } = editorStore;
     const sourceNodeId = sourceNode.get('id');
@@ -27,7 +30,7 @@ const G6OperateFunctions = {
 
     // 如果当前父级被折叠，则自动将其展开
     if (sourceNode.collapsed) {
-      Object.assign(sourceNode, { collapsed: false });   
+      Object.assign(sourceNode, { collapsed: false });
       sourceNode.getModel().collapsed = false;
       graph.emit('itemcollapsed', { item: sourceNode, collapsed: false });
       const comboId = sourceNodeId + '-combo';
@@ -45,7 +48,7 @@ const G6OperateFunctions = {
       combos: graphData.combos?.filter((val: any) => val.rootKey !== rootKey),
     }));
   },
-  removeNode: function(sourceNode: Item, graph: Graph) {
+  removeNode: function (sourceNode: Item, graph: Graph) {
     const nodeId = sourceNode.get("id");
     const { rootKey } = sourceNode.get('model');
     const editorStore = useEditorStore();
@@ -66,7 +69,7 @@ const G6OperateFunctions = {
         const id = node.get('id');
         Object.assign(removeIds, { [id]: id });
       });
-      combos && combos.forEach(function(combo) {
+      combos && combos.forEach(function (combo) {
         const id = combo.get('id');
         getRemoveIds(id);
       })
@@ -396,11 +399,11 @@ G6.registerBehavior('drag-enter', {
     if (dragItemId === dropItemId || dragItemRootKey !== dropItemRootKey) return;
 
     const dragItemLevel = dragItemModel.level,
-          dropItemLevel = dropItemModel.level;
+      dropItemLevel = dropItemModel.level;
 
     // 不允许父级投入其子级中
     if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
-    
+
     const editorStore = useEditorStore();
     const { data, setData } = editorStore;
     if (data[dragItemRootKey]) {
@@ -473,7 +476,7 @@ G6.registerBehavior('node-select', {
       'node:dblclick': 'editNode'
     };
   },
-  nodeSelected: function(event: IG6GraphEvent) {
+  nodeSelected: function (event: IG6GraphEvent) {
     const node = event.item; // 被点击的节点元素
     const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
 
@@ -488,7 +491,7 @@ G6.registerBehavior('node-select', {
     /* 不同状态下节点和边的样式，G6 提供以下状态名的默认样式：active, inactive, selected, highlight, disable。可以通过如下方式修改或者扩展全局状态样式*/
     graph.setItemState(node, 'selectedNode', true);
   },
-  nodeUnselected: function(event: IG6GraphEvent) {
+  nodeUnselected: function (event: IG6GraphEvent) {
     const graph = this.graph as Graph;
     if (!graph) return;
     // 取消选中高亮
@@ -496,7 +499,7 @@ G6.registerBehavior('node-select', {
       graph.setItemState(node, 'selectedNode', false);
     });
   },
-  editNode: function(event: IG6GraphEvent) {
+  editNode: function (event: IG6GraphEvent) {
     const item = event.item;
     if (!item) return;
     const model = item.get('model');
@@ -514,7 +517,7 @@ G6.registerBehavior('node-select', {
     el.style.transform = `scale(${event.currentTarget.getZoom()})`;
     const input = document.createElement('input');
     input.style.border = 'none';
-    input.value = model.label;
+    input.value = model.name;
     input.style.width = (NODE_WIDTH - 4) + 'px';
     input.style.height = (NODE_HEIGHT - 4) + 'px';
     input.autofocus = true;
@@ -530,7 +533,8 @@ G6.registerBehavior('node-select', {
         window.removeEventListener('mousedown', clickEvt);
         window.removeEventListener('scroll', clickEvt);
         graph.updateItem(item, {
-          label: input.value,
+          label: fittingString(input.value, NODE_WIDTH, GLOBAL_FONT_SIZE),
+          name: input.value
         });
 
         const editorStore = useEditorStore();

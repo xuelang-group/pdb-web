@@ -1,7 +1,7 @@
-import G6, { ComboConfig } from '@antv/g6'
+import G6, { ComboConfig, EdgeConfig } from '@antv/g6'
 import { ItemData, NodeItemData } from '../store/editor'
 
-const globalFontSize = 12;
+export const GLOBAL_FONT_SIZE = 12;
 export const ROOT_NODE_WIDTH = 250, // 主节点宽度
   NODE_WIDTH = 50, // 一般节点宽度
   NODE_HEIGHT = 30, // 节点高度
@@ -76,7 +76,7 @@ export const LINE_SYTLE: { [k: string]: any } = {
 }
 
 // 判断节点名称是否超过节点宽度，超过显示省略号
-const fittingString = (str: string, maxWidth: number, fontSize: number) => {
+export const fittingString = (str: string, maxWidth: number, fontSize: number) => {
   const ellipsis = '...';
   const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)[0];
   let currentWidth = 0;
@@ -109,13 +109,13 @@ function findChildren(
   rootKey: string,
   level: string
 ): NodeItemData[] {
-  const children: NodeItemData[] = [];
+  const _children: NodeItemData[] = [];
   let levelIndex = 0,
     dataIndex = 0;
 
   for (const item of data) {
     if (item.parent === parent) {
-      const { uid, name, ...other } = item;
+      const { uid, name, children, ...other } = item;
       const _level = level + '-' + levelIndex;
       levelIndex++;
 
@@ -124,7 +124,7 @@ function findChildren(
         id: uid,
         name,
         level: _level,
-        label: fittingString(name, NODE_WIDTH, globalFontSize),
+        label: fittingString(name, NODE_WIDTH, GLOBAL_FONT_SIZE),
         parent,
         rootKey,
         comboId: `${parent}-combo`,
@@ -153,23 +153,23 @@ function findChildren(
         edges.push({ source: node.id, target: nestedChildren[0].id, rootKey });
       }
 
-      children.push(node);
+      _children.push(node);
     }
 
     dataIndex++;
   }
 
-  for (let index = 1; index < children.length; index++) {
-    edges.push({ source: children[index - 1].id, target: children[index].id, rootKey });
+  for (let index = 1; index < _children.length; index++) {
+    edges.push({ source: _children[index - 1].id, target: _children[index].id, rootKey });
   }
 
-  return children;
+  return _children;
 }
 
 // 原始数据转换成graph图数据，返回{ nodes, edges, combos }
 // 当changedRootKey有值时，只重新计算对应rootKey的数据
 export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: string, originData?: any) {
-  const edges: any[] = originData?.edges || [];
+  const edges: EdgeConfig[] = originData?.edges || [];
   const combos: ComboConfig[] = originData?.combos || [];
   const nodes: NodeItemData[] = originData?.nodes || [];
   let otherNodes: NodeItemData[] = [];
@@ -190,7 +190,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
       name: key,
       root: true,
       rootKey: key,
-      label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
+      label: fittingString(key, ROOT_NODE_WIDTH, GLOBAL_FONT_SIZE),
       level,
     };
 
@@ -209,7 +209,7 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
       const { uid, name, parent, children, ...other } = item;
       const node = {
         id: uid,
-        label: fittingString(name, NODE_WIDTH, globalFontSize),
+        label: fittingString(name, NODE_WIDTH, GLOBAL_FONT_SIZE),
         rootKey: key,
         parent: key,
         name,
