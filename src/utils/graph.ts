@@ -1,4 +1,4 @@
-import G6, { ComboConfig, NodeConfig } from '@antv/g6'
+import G6, { ComboConfig } from '@antv/g6'
 import { ItemData, NodeItemData } from '../store/editor'
 
 const globalFontSize = 12;
@@ -75,15 +75,51 @@ export const LINE_SYTLE: { [k: string]: any } = {
   }
 }
 
-function findChildren(data: ItemData[], parent: string, edges: any, nodes: any[], combos: ComboConfig[], rootKey: string, level: string) {
-  const children: any[] = [];
-  let levelIndex = 0, dataIndex = 0;
+// 判断节点名称是否超过节点宽度，超过显示省略号
+const fittingString = (str: string, maxWidth: number, fontSize: number) => {
+  const ellipsis = '...';
+  const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)[0];
+  let currentWidth = 0;
+  let res = str;
+  const pattern = new RegExp('[\u4E00-\u9FA5]+'); // distinguish the Chinese charactors and letters
+
+  for (let i = 0; i < str.length && currentWidth <= maxWidth - 8 - ellipsisLength; i++) {
+    const letter = str[i];
+    if (pattern.test(letter)) {
+      currentWidth += fontSize;
+    } else {
+      currentWidth += G6.Util.getLetterWidth(letter, fontSize);
+    }
+
+    if (currentWidth > maxWidth - 8 - ellipsisLength) {
+      res = `${str.substr(0, i)}${ellipsis}`;
+    }
+  }
+
+  return res;
+};
+
+
+function findChildren(
+  data: ItemData[],
+  parent: string,
+  edges: any[],
+  nodes: NodeItemData[],
+  combos: ComboConfig[],
+  rootKey: string,
+  level: string
+): NodeItemData[] {
+  const children: NodeItemData[] = [];
+  let levelIndex = 0,
+    dataIndex = 0;
+
   for (const item of data) {
-    const { uid, name, ...other } = item;
     if (item.parent === parent) {
+      const { uid, name, ...other } = item;
       const _level = level + '-' + levelIndex;
       levelIndex++;
-      const node = {
+
+      const node: NodeItemData = {
         ...other,
         id: uid,
         name,
@@ -94,76 +130,62 @@ function findChildren(data: ItemData[], parent: string, edges: any, nodes: any[]
         comboId: `${parent}-combo`,
         data: item,
         dataIndex,
-        onlyChild: false
+        onlyChild: false,
       };
+
       nodes.push(node);
+
       const nestedChildren = findChildren(data, uid, edges, nodes, combos, rootKey, _level);
+
       if (nestedChildren.length > 0) {
+        const comboId = `${uid}-combo`;
         combos.push({
-          id: `${uid}-combo`,
+          id: comboId,
           parentId: `${parent}-combo`,
-          rootKey
+          rootKey,
         });
+
         if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
-          Object.assign(nestedChildren[0], { onlyChild: true });
+          nestedChildren[0].onlyChild = true;
         }
-        Object.assign(node, { children: nestedChildren });
+
+        // node.children = nestedChildren;
         edges.push({ source: node.id, target: nestedChildren[0].id, rootKey });
       }
 
       children.push(node);
     }
-    dataIndex ++;
+
+    dataIndex++;
   }
 
-  children.forEach(function (value, index) {
-    if (index > 0) {
-      edges.push({ source: children[index - 1].id, target: value.id, rootKey });
-    }
-  });
+  for (let index = 1; index < children.length; index++) {
+    edges.push({ source: children[index - 1].id, target: children[index].id, rootKey });
+  }
 
   return children;
 }
 
-// 文本超长，省略号显示
-const fittingString = (str: string, maxWidth: number, fontSize: number) => {
-  const ellipsis = '...';
-  const ellipsisLength = G6.Util.getTextSize(ellipsis, fontSize)[0];
-  let currentWidth = 0;
-  let res = str;
-  const pattern = new RegExp('[\u4E00-\u9FA5]+'); // distinguish the Chinese charactors and letters
-  str.split('').forEach((letter, i) => {
-    if (currentWidth > (maxWidth - 8 - ellipsisLength)) return;
-    if (pattern.test(letter)) {
-      // Chinese charactors
-      currentWidth += fontSize;
-    } else {
-      // get the width of single letter according to the fontSize
-      currentWidth += G6.Util.getLetterWidth(letter, fontSize);
-    }
-    if (currentWidth > (maxWidth - 8 - ellipsisLength)) {
-      res = `${str.substr(0, i)}${ellipsis}`;
-    }
-  });
-  return res;
-};
-
-// 转换数据
+// 原始数据转换成graph图数据，返回{ nodes, edges, combos }
+// 当changedRootKey有值时，只重新计算对应rootKey的数据
 export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: string, originData?: any) {
-  let edges: any[] = originData?.edges || [],
-    combos: ComboConfig[] = originData?.combos || [],
-    nodes: NodeConfig[] = originData?.nodes || [],
-    otherNodes: NodeConfig[] = [];
+  const edges: any[] = originData?.edges || [];
+  const combos: ComboConfig[] = originData?.combos || [];
+  const nodes: NodeItemData[] = originData?.nodes || [];
+  let otherNodes: NodeItemData[] = [];
+
   if (changedRootKey) {
-    const changedRootKeyIndex = changedRootKey ? nodes.findIndex(val => val.id === changedRootKey) : -1;
+    const changedRootKeyIndex = changedRootKey ? nodes.findIndex((val) => val.id === changedRootKey) : -1;
     otherNodes = nodes.splice(changedRootKeyIndex + 1);
   }
-  Object.keys(data).forEach(function (key) {
-    if (changedRootKey && key !== changedRootKey) return;
+
+  for (const key in data) {
+    if (changedRootKey && key !== changedRootKey) continue;
+
     const allData = data[key];
     const rootNodes: NodeItemData[] = [];
-    let level = '0';
-    const parentNode = {
+    const level = '0';
+    const parentNode: NodeItemData = {
       id: key,
       name: key,
       root: true,
@@ -171,14 +193,18 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
       label: fittingString(key, ROOT_NODE_WIDTH, globalFontSize),
       level,
     };
+
     combos.push({
       id: `${key}-combo`,
-      rootKey: key
+      rootKey: key,
     });
+
     if (!changedRootKey) nodes.push(parentNode);
     rootNodes.push(parentNode);
 
-    let levelIndex = 0, dataIndex = 0;
+    let levelIndex = 0,
+      dataIndex = 0;
+
     for (const item of allData) {
       const { uid, name, parent, children, ...other } = item;
       const node = {
@@ -190,30 +216,39 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
         data: item,
         dataIndex,
         onlyChild: false,
-        ...other
+        ...other,
       };
+
       if (!parent) {
         const _level = level + '-' + levelIndex;
         levelIndex++;
+
         Object.assign(node, { level: _level });
-        nodes.push(node);
+        nodes.push(node as NodeItemData);
+
         const nestedChildren = findChildren(allData, uid, edges, nodes, combos, key, _level);
+
         if (nestedChildren.length > 0) {
+          const comboId = `${uid}-combo`;
           combos.push({
-            id: `${uid}-combo`,
+            id: comboId,
             parentId: `${key}-combo`,
-            rootKey: key
+            rootKey: key,
           });
+
           if (nestedChildren.length === 1 && (!nestedChildren[0].children || nestedChildren[0].children.length === 0)) {
-            Object.assign(nestedChildren[0], { onlyChild: true });
+            nestedChildren[0].onlyChild = true;
           }
-          Object.assign(node, { children: nestedChildren });
+
+          // Object.assign(node, { children: nestedChildren });
           edges.push({ source: node.id, target: nestedChildren[0].id, rootKey: key });
         }
-        rootNodes.push(node);
+
+        rootNodes.push(node as NodeItemData);
       }
+
       if (node.fans && node.fans.length > 0) {
-        node.fans.forEach(function (id) {
+        for (const id of node.fans) {
           edges.push({
             source: node.id,
             target: id,
@@ -228,23 +263,24 @@ export function buildTree(data: { [key: string]: ItemData[] }, changedRootKey?: 
               },
             },
           });
-        });
+        }
       }
+
       dataIndex++;
     }
 
-    rootNodes.forEach(function (value, index) {
-      if (index > 0) {
-        edges.push({ source: rootNodes[index - 1].id, target: value.id, rootKey: key });
-      }
-    });
-  })
-  if (changedRootKey && otherNodes.length > 0) {
-    nodes = nodes.concat(otherNodes);
+    for (let index = 1; index < rootNodes.length; index++) {
+      edges.push({ source: rootNodes[index - 1].id, target: rootNodes[index].id, rootKey: key });
+    }
   }
+
+  if (changedRootKey && otherNodes.length > 0) {
+    nodes.push(...otherNodes);
+  }
+
   return {
     nodes,
     edges,
-    combos
+    combos,
   };
 }

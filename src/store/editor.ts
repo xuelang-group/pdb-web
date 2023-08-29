@@ -17,13 +17,20 @@ export interface NodeItemData {
   id: string
   label: string
   name: string
-  rootKey?: string // 最顶层id，即data数据第一层key
+  level: string // 层级
+  rootKey: string // 最顶层id，即data数据第一层key
+  comboId?: string // 所属combo id
+  data?: any // 原始数据
+  dataIndex?: number // 该数据在原始数据对应rootKey中的位置
   nodeType?: string // 节点类型，区分节点样式
   params?: any // 属性，用于右侧面板显示
   parent?: string // 当前数据上级id
   children?: Array<string> // 当前数据的子数据
   fans?: Array<string> // 当前数据与其他数据ids，用于连线
+  onlyChild?: boolean // 子级有且只有一个，该子级也没有子级
+  root?: boolean // 根节点
 }
+
 interface EditorState {
   data: EditorData
   currentEditModel: NodeItemData | null
