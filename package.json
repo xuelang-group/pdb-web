@@ -1,26 +1,69 @@
 {
-  "name": "pdb-web",
+  "name": "my-app",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
   "dependencies": {
-    "@antv/g6": "^4.8.21",
-    "@antv/hierarchy": "^0.6.11",
-    "ant-design-vue": "^4.0.0",
-    "less": "^4.2.0",
+    "@antv/g6": "^4.8.23",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.46",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "@types/react-resizable": "^3.0.7",
+    "antd": "^5.12.5",
+    "axios": "^1.5.0",
+    "dayjs": "^1.11.10",
+    "immutability-helper": "^3.1.1",
     "lodash": "^4.17.21",
-    "pinia": "^2.1.6",
-    "vue": "^3.3.4"
+    "react": "^18.2.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.2.0",
+    "react-intl": "^6.6.1",
+    "react-redux": "^8.1.2",
+    "react-resizable": "^3.0.5",
+    "react-resize-detector": "^10.0.1",
+    "react-router": "^6.16.0",
+    "react-router-dom": "^6.16.0",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4",
+    "oss-js-upload": "^0.6.0",
+    "aliyun-sdk2": "^1.0.5"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "craco eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "rules": {
+      "no-unused-expressions": 0
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.197",
-    "@vitejs/plugin-vue": "^4.2.3",
-    "typescript": "^5.1.6",
-    "vite": "^4.4.5"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@craco/craco": "^7.1.0",
+    "@types/react-router-dom": "^5.3.3",
+    "craco-less": "^3.0.1"
   }
 }

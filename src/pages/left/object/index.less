@@ -1,0 +1,143 @@
+.pdb-object-left {
+  display: flex;
+  flex-direction: column;
+
+  &-panel .pdb-sider-content {
+    height: 100%;
+  }
+
+  .pdb-content-sider {
+    flex: 1;
+    height: 0;
+    border: none;
+
+    .list {
+      &-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+
+      &-header {
+        padding: 1.6rem 1.6rem 1rem;
+        display: flex;
+
+        .icon-tianjia {
+          margin-left: 1rem;
+          color: var(--text-color3);
+          font-size: 1.6rem;
+          cursor: pointer;
+          line-height: 3.2rem;
+        }
+      }
+
+      &-content {
+        flex: 1;
+        overflow: auto;
+      }
+    }
+  }
+}
+
+.pdb-object-left .pdb-content-sider.pdb-object-search-left {
+  border-top: 1px solid var(--border-color2);
+
+  .pdb-search {
+    display: flex;
+    align-items: center;
+
+    .pdb-search-input {
+      flex: 1;
+    }
+
+    .pdb-query-edit-btn {
+      font-size: 1.6rem;
+      margin-left: .8rem;
+      color: var(--text-color2);
+      cursor: pointer;
+      line-height: 3.2rem;
+    }
+  }
+}
+
+.pdb-query {
+  &-list {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &-item {
+    display: flex;
+    padding: 0 1.6rem;
+    height: 3.6rem;
+    align-items: center;
+    cursor: pointer;
+
+    .anticon,
+    .spicon, .iconfont {
+      color: var(--primary-color);
+      margin-right: .6rem;
+    }
+
+    .spicon, .iconfont {
+      font-size: 1.6rem;
+      line-height: 3.6rem;
+    }
+
+    &-name {
+      flex: 1;
+      color: var(--text-color1);
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+
+    &-disabled * {
+      color: var(--text-color4) !important;
+    }
+    
+    &-operation {
+      display: none;
+    }
+
+    &:hover {
+      background-color: var(--fill-color4);
+
+      .pdb-query-item-operation {
+        display: block;
+      }
+    }
+  }
+
+  &-search-btn {
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 0 .8rem;
+    line-height: 2.4rem;
+    border-radius: 2px;
+    font-size: 1.2rem;
+    margin-left: .6rem;
+
+    &:hover {
+      background-color: var(--primary-hover);
+    }
+  }
+
+  &-modal {
+    .pdb-ant-modal-content {
+      padding: 0;
+    }
+
+    .pdb-ant-modal-header {
+      padding: 1.6rem 2.4rem;
+      border-bottom: 1px solid var(--border-color2);
+      margin-bottom: 0;
+    }
+
+    .pdb-ant-modal-body {
+      padding: 0 !important;
+    }
+  }
+}

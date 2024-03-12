@@ -1,0 +1,231 @@
+:root {
+  --primary-color: @primary-color;
+  --primary-hover: @primary-hover;
+  --primary-active: @primary-active;
+
+  --success-color: @success-color;
+  --success-hover: @success-hover;
+  --success-active: @success-active;
+
+  --warning-color: @warning-color;
+  --warning-hover: @warning-hover;
+  --warning-active: @warning-active;
+  --warning-bg: @warning-bg;
+  
+  --danger-color: @danger-color;
+  --danger-hover: @danger-hover;
+  --danger-active: @danger-active;
+
+  --app-bg: @sp-bg;
+  --component-bg: @component-bg;
+  --primary-disabled: @primary-disabled;
+  --primary-selected-bg: @primary-selected-bg;
+
+  --text-color1: @text-color1;
+  --text-color2: @text-color2;
+  --text-color3: @text-color3;
+  --text-color4: @text-color4;
+  --icon-color1: @icon-color1;
+  --icon-color2: @icon-color2;
+  --icon-color3: @icon-color3;
+  --icon-color4: @icon-color4;
+
+  --fill-color1: @fill-color1;
+  --fill-color2: @fill-color2;
+  --fill-color3: @fill-color3;
+  --fill-color4: @fill-color4;
+  
+  --border-default: @border-default;
+  --border-color1: @border-color1;
+  --border-color2: @border-color2;
+  --border-color3: @border-color3;
+
+  --disabled-border: @disabled-border;
+  --disabled-bg: @disabled-bg;
+  --disabled-color: @disabled-color;
+
+  --button-default-border: @button-default-border;
+  --button-default-bg: @button-default-bg;
+  --button-default-color: @button-default-color;
+
+  --input-border: @input-border;
+  --input-bg: @input-bg;
+  --input-color: @text-color1;
+  --input-placeholder: @input-placeholder;
+  --input-active-border-inner: @input-active-border-inner;
+  --input-active-border-outer: @input-active-border-outer;
+  --input-error-border: @input-error-border;
+  --input-error-border-inner: @input-error-border-inner;
+  --input-error-border-outer: @input-error-border-outer;
+  
+  --header-button-start: @header-button-start;
+  --header-button-end: @header-button-end;
+  --header-button-shadow: @header-button-shadow;
+  --header-stress-bg: @header-stress-bg;
+  --header-stress-disabled-bg: @header-stress-disabled-bg;
+  --header-stress-disabled-text: @header-stress-disabled-text;
+  --header-stress-hover-bg: @header-stress-hover-bg;
+
+  --tooltip-bg: @tooltip-bg;
+  --tooltip-shadow: @tooltip-shadow;
+
+  --modal-bg: @modal-bg;
+  --mask-bg: @bg-mask;
+
+  --template-modal-btn-bg: fade(#000, 30%);
+
+  --box-shadow: @box-shadow;
+  --modal-shadow: @modal-shadow;
+  --graph-shadow: @graph-shadow;
+  --popover-shadow: @popover-shadow;
+  --shadow-color: @shadow-color;
+
+  --scroll-thumb: fade(#000, 20%);
+
+  // 告警提示-Alert
+  --alert-primary-bg: @alert-primary-bg;
+  --alert-primary-border: @alert-primary-border;
+  --alert-success-bg: @alert-success-bg;
+  --alert-success-border: @alert-success-border;
+  --alert-warning-bg: @alert-warning-bg;
+  --alert-warning-border: @alert-warning-border;
+  --alert-danger-bg: @alert-danger-bg;
+  --alert-danger-border: @alert-danger-border;
+
+  --table-head-bg: @table-head-bg;
+  --template-desc-bg: fade(#fff, 65%);
+
+  --tag-primary-border: @primary-border;
+  --tag-primary-bg: @primary-bg;
+  --tag-primary-color: @primary-color;
+
+  --linear-divider: linear-gradient(270deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0) 100%);
+
+  // 后面板节点
+  --node-bg: #F5F5F5;
+  --node-hover-bg: fade(@primary-color, 20%);
+  --node-inner-bg: #FFF;
+  --node-border: fade(#000, 12%);
+  --node-border-dark: fade(#000, 30%);
+  --node-color: fade(#000, 85%);
+  --node-shadow: fade(#000, 8%);
+  --node-icon: #999;
+}
+
+[data-theme="dark"] {
+  --primary-color: @primary-color-dark;
+  --primary-hover: @primary-hover-dark;
+  --primary-active: @primary-active-dark;
+
+  --success-color: @success-color-dark;
+  --success-hover: @success-hover-dark;
+  --success-active: @success-active-dark;
+
+  --warning-color: @warning-color-dark;
+  --warning-hover: @warning-hover-dark;
+  --warning-active: @warning-active-dark;
+  --warning-bg: @warning-bg-dark;
+
+  --danger-color: @danger-color-dark;
+  --danger-hover: @danger-hover-dark;
+  --danger-active: @danger-active-dark;
+
+  --app-bg: @sp-bg-dark;
+  --component-bg: @component-bg-dark;
+  --primary-disabled: @primary-disabled-dark;
+  --primary-selected-bg: @primary-selected-bg-dark;
+
+  --text-color1: @text-color1-dark;
+  --text-color2: @text-color2-dark;
+  --text-color3: @text-color3-dark;
+  --text-color4: @text-color4-dark;
+  --icon-color1: @icon-color1-dark;
+  --icon-color2: @icon-color2-dark;
+  --icon-color3: @icon-color3-dark;
+  --icon-color4: @icon-color4-dark;
+
+  --fill-color1: @fill-color1-dark;
+  --fill-color2: @fill-color2-dark;
+  --fill-color3: @fill-color3-dark;
+  --fill-color4: @fill-color4-dark;
+
+  --border-default: @border-default-dark;
+  --border-color1: @border-color1-dark;
+  --border-color2: @border-color2-dark;
+  --border-color3: @border-color3-dark;
+
+  --disabled-border: @disabled-border-dark;
+  --disabled-bg: @disabled-bg-dark;
+  --disabled-color: @disabled-color-dark;
+
+  --disabled-border: @disabled-border-dark;
+  --disabled-bg: @disabled-bg-dark;
+  --disabled-color: @disabled-color-dark;
+
+  --button-default-border: @button-default-border-dark;
+  --button-default-bg: @button-default-bg-dark;
+  --button-default-color: @button-default-color-dark;
+
+  --input-border: @input-border-dark;
+  --input-bg: @input-bg-dark;
+  --input-color: @text-color1-dark;
+  --input-placeholder: @input-placeholder-dark;
+  --input-active-border-inner: @input-active-border-inner-dark;
+  --input-active-border-outer: @input-active-border-outer-dark;
+  --input-error-border: @input-error-border-dark;
+  --input-error-border-inner: @input-error-border-inner-dark;
+  --input-error-border-outer: @input-error-border-outer-dark;
+
+  --header-button-start: @header-button-start-dark;
+  --header-button-end: @header-button-end-dark;
+  --header-button-shadow: @header-button-shadow-dark;
+  --header-stress-bg: @header-stress-bg-dark;
+  --header-stress-disabled-bg: @header-stress-disabled-bg-dark;
+  --header-stress-disabled-text: @header-stress-disabled-text-dark;
+  --header-stress-hover-bg: @header-stress-hover-bg-dark;
+
+  --tooltip-bg: @tooltip-bg-dark;
+  --tooltip-shadow: @tooltip-shadow-dark;
+
+  --modal-bg: @modal-bg-dark;
+  --mask-bg: @bg-mask-dark;
+
+  --template-modal-btn-bg: fade(#fff, 20%);
+
+  --box-shadow: @box-shadow-dark;
+  --modal-shadow: @modal-shadow-dark;
+  --graph-shadow: @graph-shadow-dark;
+  --popover-shadow: @popover-shadow-dark;
+  --shadow-color: @shadow-color-dark;
+
+  --scroll-thumb: fade(#fff, 20%);
+
+  // 告警提示-Alert
+  --alert-primary-bg: @alert-primary-bg-dark;
+  --alert-primary-border: @alert-primary-border-dark;
+  --alert-success-bg: @alert-success-bg-dark;
+  --alert-success-border: @alert-success-border-dark;
+  --alert-warning-bg: @alert-warning-bg-dark;
+  --alert-warning-border: @alert-warning-border-dark;
+  --alert-danger-bg: @alert-danger-bg-dark;
+  --alert-danger-border: @alert-danger-border-dark;
+
+  --table-head-bg: @table-head-bg-dark;
+  --template-desc-bg: fade(#000, 65%);
+
+  --tag-primary-border: @primary-border-dark;
+  --tag-primary-bg: @primary-bg-dark ;
+  --tag-primary-color: @primary-color-dark;
+
+  --linear-divider: linear-gradient(270deg, rgba(255, 255, 255,0) 0%, rgba(255, 255, 255,0.15) 50%, rgba(255, 255, 255,0) 100%);
+
+  // 后面板节点
+  --node-bg: #8F8F8F;
+  --node-inner-bg: #333;
+  --node-hover-bg: fade(@primary-color-dark, 40%);
+  --node-border: fade(#FFF, 20%);
+  --node-border-dark: fade(#FFF, 25%); 
+  --node-color: #FFF;
+  --node-shadow: fade(#000, 50%);
+  --node-icon: #AAA;
+}

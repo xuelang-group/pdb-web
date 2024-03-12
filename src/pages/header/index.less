@@ -1,0 +1,139 @@
+.pdb-header {
+  display: flex;
+  align-items: center;
+  height: 6.5rem;
+  padding: 0;
+  border-bottom: 1px solid var(--border-color2);
+  background-color: var(--component-bg);
+  line-height: unset;
+
+  &-left {
+    width: 27.3rem;
+    padding-left: 1.6rem;
+    display: flex;
+  }
+
+  &-right {
+    width: 27.3rem;
+  }
+
+  &-center {
+    width: calc(100% - 54.6rem);
+    height: 100%;
+  }
+
+  &-button {
+    margin-left: 1.6rem;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.7rem;
+    color: var(--icon-color3);
+    background: linear-gradient(360deg, var(--header-button-start) 0%, var(--header-button-end) 100%);
+    box-shadow: var(--header-button-shadow);
+    border-radius: 2px;
+    white-space: nowrap;
+    height: 3.2rem;
+  }
+
+  &-info {
+    flex: 1 1 auto;
+    margin-left: 2rem;
+    overflow: hidden;
+    padding-right: 0.8rem;
+  }
+
+  &-edittitle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 0.18rem;
+  }
+
+  &-title {
+    align-items: center;
+    margin-bottom: 0;
+    font-size: 1.6rem;
+    color: var(--text-color1);
+    line-height: 2.4rem;
+    text-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &-sub {
+      display: flex;
+      font-size: 1.2rem;
+      line-height: 2rem;
+      color: var(--text-color3);
+      white-space: nowrap;
+    }
+  }
+
+  &-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &-object {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+}
+
+.pdb-app {
+  &-saved {
+    display: flex;
+    align-items: center;
+    min-width: 12rem;
+    color: var(--text-color4);
+
+    &::before {
+      content: '';
+      display: inline-block;
+      margin: 0 0.8rem;
+      width: 1px;
+      height: 0.8rem;
+      background-color: var(--text-color4);
+      opacity: .65;
+    }
+  }
+
+  &-saving {
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+
+    circle,
+    polyline {
+      stroke: var(--text-color4);
+    }
+  }
+}
+
+@media (max-width: 1199px) {
+  .pdb-header-title {
+    max-width: 400px;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1319px) {
+  .pdb-header-title {
+    max-width: 350px;
+  }
+}
+
+@media (min-width: 1320px) and (max-width: 1519px) {
+  .pdb-header-title {
+    max-width: 480px;
+  }
+}
+
+@media (min-width: 1520px) {
+  .pdb-header-title {
+    max-width: 640px;
+  }
+}

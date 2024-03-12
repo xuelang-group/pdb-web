@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Landing-文件夹-展开</title>
+    <defs>
+        <path d="M15.874,9.12 L15.875,12.1875 C15.875,12.5332031 15.5957031,12.8125 15.25,12.8125 L15.25,12.8125 L0.625,12.8125 C0.589643999,12.8125 0.554982587,12.8095786 0.521243505,12.8039636 L14.7525,12.3175 L14.8649829,12.3074477 C15.156821,12.2546142 15.3775,11.9997917 15.3775,11.6925 L15.3775,11.6925 L15.874,9.12 Z M5.83984375,0 C5.87890625,0 5.91796875,0.015625 5.94726562,0.04296875 L5.94726562,0.04296875 L6.98828125,0.984375 L15.25,0.984375 C15.5957031,0.984375 15.875,1.26367188 15.875,1.609375 L15.875,1.609375 L15.874,3.286 L1.65857519,3.28625 C1.38636418,3.28625 1.14979205,3.46156979 1.06586205,3.71278931 L1.04177193,3.81036025 L0,10.18 L0,0.625 C0,0.310724432 0.230823864,0.051330062 0.532523713,0.00676476803 L0.625,0 Z" id="path-1"></path>
+        <filter x="-0.8%" y="-1.0%" width="101.6%" height="102.0%" filterUnits="objectBoundingBox" id="filter-3">
+            <feOffset dx="0" dy="0.25" in="SourceAlpha" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.749019608   0 0 0 0 0.917647059   0 0 0 0 1  0 0 0 1 0" type="matrix" in="shadowInnerInner1"></feColorMatrix>
+        </filter>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-4">
+            <stop stop-color="#99DFFF" offset="0%"></stop>
+            <stop stop-color="#38AEFF" offset="100%"></stop>
+        </linearGradient>
+        <path d="M17.6087515,4.77987183 L16.1275,12.4425 L16.1275,12.4425 C16.1275,12.7497917 15.906821,13.0046142 15.6149829,13.0574477 L15.5025,13.0675 L1.1275,13.0675 C0.820208333,13.0675 0.565385802,12.846821 0.512552298,12.5549829 L0.5025,12.4425 L1.79177193,4.56036025 C1.84120587,4.2581391 2.1023378,4.03625 2.40857519,4.03625 L16.9951117,4.03625 C17.3402897,4.03625 17.6201117,4.31607203 17.6201117,4.66125 C17.6201117,4.70106218 17.6163077,4.74078329 17.6087515,4.77987183 Z" id="path-5"></path>
+        <filter x="-0.7%" y="-1.4%" width="100.7%" height="102.8%" filterUnits="objectBoundingBox" id="filter-6">
+            <feOffset dx="0" dy="-0.25" in="SourceAlpha" result="shadowOffsetInner1"></feOffset>
+            <feComposite in="shadowOffsetInner1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.138099393   0 0 0 0 0.597744996   0 0 0 0 0.90831635  0 0 0 1 0" type="matrix" in="shadowInnerInner1" result="shadowMatrixInner1"></feColorMatrix>
+            <feOffset dx="0" dy="0.25" in="SourceAlpha" result="shadowOffsetInner2"></feOffset>
+            <feComposite in="shadowOffsetInner2" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowInnerInner2"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.747446646   0 0 0 0 0.918992321   0 0 0 0 1  0 0 0 1 0" type="matrix" in="shadowInnerInner2" result="shadowMatrixInner2"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixInner1"></feMergeNode>
+                <feMergeNode in="shadowMatrixInner2"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="07-应用开发-我的项目（列表）" transform="translate(-316.000000, -266.000000)">
+            <g id="主内容区域" transform="translate(264.000000, 88.000000)">
+                <g id="左" transform="translate(0.000000, 56.000000)">
+                    <g id="列表" transform="translate(24.000000, 72.000000)">
+                        <g id="1备份" transform="translate(0.000000, 40.000000)">
+                            <g id="Landing-文件夹-展开" transform="translate(28.000000, 10.000000)">
+                                <rect id="矩形" fill="#000000" fill-rule="nonzero" opacity="0" x="0" y="0" width="20" height="20"></rect>
+                                <g id="编组-2" transform="translate(1.937500, 3.593750)">
+                                    <g id="编组-3">
+                                        <mask id="mask-2" fill="white">
+                                            <use xlink:href="#path-1"></use>
+                                        </mask>
+                                        <g id="形状结合">
+                                            <use fill="#5BC6FF" fill-rule="evenodd" xlink:href="#path-1"></use>
+                                            <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-1"></use>
+                                        </g>
+                                    </g>
+                                    <g id="路径">
+                                        <use fill="url(#linearGradient-4)" fill-rule="evenodd" xlink:href="#path-5"></use>
+                                        <use fill="black" fill-opacity="1" filter="url(#filter-6)" xlink:href="#path-5"></use>
+                                    </g>
+                                </g>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

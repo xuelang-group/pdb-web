@@ -1,0 +1,145 @@
+.pdb-query {
+
+  &-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 12rem;
+
+    .pdb-ant-empty {
+      &-image {
+        height: 12rem;
+      }
+
+      &-description {
+        color: var(--text-color3) !important;
+        line-height: 2.2rem;
+      }
+    }
+
+    .pdb-ant-btn {
+      width: 24rem;
+      margin-top: 3.2rem;
+    }
+  }
+
+  &-list {
+    height: calc(100% - 4.4rem);
+    overflow: auto;
+  }
+
+  &-item.pdb-query-selected {
+    background-color: var(--primary-selected-bg);
+  }
+
+  &-builder {
+    height: 54.4rem;
+    overflow: hidden;
+    display: flex;
+
+    &-left {
+      width: 27rem;
+      overflow: hidden;
+      border-right: 1px solid var(--border-color2);
+      padding: 1.6rem 0;
+    }
+
+    &-add {
+      padding: 0 1.6rem;
+      margin-top: 1.2rem;
+    }
+
+    &-btn {
+      height: 3.2rem;
+      line-height: 3.2rem;
+      border: 1px solid var(--border-color1);
+      background: var(--fill-color4);
+      border-radius: 2px;
+      text-align: center;
+      color: var(--text-color2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+
+      .spicon {
+        margin-right: .4rem;
+      }
+
+      &:hover {
+        border-color: var(--primary-hover);
+        color: var(--primary-hover);
+      }
+    }
+
+    &-btns {
+      display: flex;
+      justify-content: space-between;
+
+      .pdb-ant-btn-dangerous {
+        margin: 0 !important;
+      }
+    }
+
+    &-right {
+      flex: 1;
+    }
+
+    &-form {
+      height: calc(100% - 6.4rem);
+      border-bottom: 1px solid var(--border-color1);
+      padding: 2.4rem;
+      overflow: auto;
+
+      &-between {
+        display: flex;
+        align-items: center;
+      }
+
+      .pdb-ant-form-horizontal .pdb-ant-form-item-control {
+        flex: unset;
+        width: 28rem;
+      }
+
+      .pdb-ant-form-item-label {
+        width: 8rem;
+      }
+
+      .pdb-query-form-max .pdb-ant-form-item-control {
+        width: 55rem;
+      }
+
+      .pdb-ant-empty {
+        margin: .8rem;
+      }
+
+      .pdb-ant-table-cell {
+        padding: .8rem 1.6rem;
+      }
+
+      .pdb-ant-form-item .pdb-ant-form-item-label>label.pdb-ant-form-item-required:not(.pdb-ant-form-item-required-mark-optional)::before {
+        display: none;
+      }
+    }
+
+    &-footer {
+      padding: 1.6rem 2.4rem;
+      text-align: right;
+
+      .pdb-ant-btn {
+        margin-left: 1.2rem;
+      }
+    }
+
+    &-editable-table {
+      .pdb-query-builder-btns {
+        margin-top: 1.2rem;
+        justify-content: unset;
+      }
+
+      .pdb-ant-input-number-in-form-item {
+        width: 100%;
+      }
+    }
+  }
+}

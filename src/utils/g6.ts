@@ -393,7 +393,8 @@ G6.registerBehavior('drag-enter', {
   },
   changeData(dragItem: IShapeBase, dropItem: IShapeBase, type: string) {
     if (type !== 'top-rect' && type !== 'node-rect') return;
-    const graphData = (this as any).graph.save();
+    const graph  = this.graph as Graph;
+    const graphData = graph.save();
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
       dragItemRootKey = dragItemModel.rootKey,
@@ -408,6 +409,15 @@ G6.registerBehavior('drag-enter', {
 
     // 不允许父级投入其子级中
     if (dragItemLevel.length < dropItemLevel.length && dropItemLevel.startsWith(dragItemLevel)) return;
+
+     // 如果当前父级被折叠，则自动将其展开
+     if (dropItem.collapsed) {
+      Object.assign(dropItem, { collapsed: false });
+      dropItemModel.collapsed = false;
+      graph.emit('itemcollapsed', { item: dropItem, collapsed: false });
+      const comboId = dropItemId + '-combo';
+      if (graph.findById(comboId)) graph.expandCombo(comboId);
+    }
 
     const { data, setData } = useEditorStore();
     if (data[dragItemRootKey]) {

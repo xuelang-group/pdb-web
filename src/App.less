@@ -1,0 +1,173 @@
+@ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+.pdb {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .pdb-layout {
+
+    .pdb-layout-content {
+      display: flex;
+      width: 100%;
+      flex-direction: row;
+      background: var(--component-bg);
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .pdb-sider-content .list-container .list-content .no-data-info {
+      padding: 0 1.6rem;
+    }
+
+    .pdb-content {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+
+      .pdb-graph {
+        flex: 1;
+        height: 100%;
+        width: 0;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--fill-color4);
+
+        .graph {
+          width: 100%;
+          height: 100%;
+          border-radius: .5rem;
+        }
+      }
+
+      .pdb-edit-tools {
+        top: 0;
+        bottom: 0;
+        z-index: 1;
+        background-color: var(--fill-color4);
+        box-shadow: var(--box-shadow);
+
+        .pdb-sider-header,
+        .pdb-sider-content {
+          background-color: var(--fill-color4) !important;
+        }
+      }
+    }
+
+    div {
+      user-select: none;
+    }
+
+    .graph-add-input {
+      input:focus-visible {
+        outline: none;
+      }
+    }
+
+    .operation-icon {
+      cursor: pointer;
+
+      &:hover {
+        color: var(--primary-hover);
+      }
+    }
+
+    .pdb-ant-empty {
+      .pdb-ant-empty-description {
+        color: var(--text-color3);
+      }
+    }
+
+    .btn-default {
+      background-color: var(--button-default-bg);
+      border-color: var(--button-default-border);
+      color: var(--button-default-color);
+
+      .spicon {
+        margin-right: .5rem;
+        color: var(--text-color2);
+      }
+    }
+  }
+
+  .pdb-dropdown-menu {
+    min-width: 16rem;
+    padding: 1rem 0;
+
+    .pdb-ant-dropdown-menu-item {
+      // color: var(--text-color1) !important;
+      font-size: 1.4rem;
+      line-height: 2.2rem;
+      padding: .6rem 1.6rem;
+    }
+  }
+
+  .pdb-confirm-modal {
+    .pdb-ant-modal-confirm-title {
+      display: inline-block;
+      line-height: 2.4rem;
+    }
+  }
+
+  &-alert {
+    display: flex;
+    align-items: flex-start;
+    padding: .5rem 1.6rem;
+    font-size: 1.4rem;
+    border-radius: 2px;
+    border-style: solid;
+    border-width: 1px;
+    color: var(--text-color1);
+    white-space: nowrap;
+    transition: all .3s @ease-in-out;
+    line-height: 2.4rem;
+
+    &-danger {
+      background-color: var(--alert-danger-bg);
+      border-color: var(--alert-danger-border);
+
+      >.spicon {
+        color: var(--danger-color);
+      }
+    }
+  }
+
+  .pdb-searched-value {
+    color: var(--danger-color);
+  }
+
+  .btn-aside-toggle {
+    position: absolute;
+    z-index: 9;
+    width: 2.8rem;
+    height: 2.8rem;
+    padding: 0;
+    font-size: 1.2rem;
+    border-radius: 50%;
+    text-align: center;
+    vertical-align: middle;
+    background-color: var(--button-default-bg);
+    border: 1px solid var(--button-default-border);
+    color: var(--button-default-color);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity .3s ease-in-out;
+    box-shadow: var(--box-shadow);
+    line-height: 2.6rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--button-default-bg);
+      border-color: var(--primary-hover);
+      color: var(--primary-hover);
+    }
+
+    .spicon {
+      font-size: 1.4rem;
+    }
+  }
+}

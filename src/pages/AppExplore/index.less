@@ -1,0 +1,302 @@
+.pdb-explore {
+  min-width: 40%;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+
+  >.spicon {
+    position: absolute;
+    right: 2.8rem;
+    top: 1.3rem;
+    font-size: 1.2rem;
+    color: var(--text-color4);
+    cursor: pointer;
+    display: none;
+
+    &.icon-sousuo2 {
+      right: 1rem;
+      top: 1rem;
+      font-size: 1.4rem;
+      display: block;
+    }
+
+    &:hover {
+      color: var(--text-color1);
+    }
+  }
+
+  &:hover {
+    &>.spicon {
+      display: block;
+    }
+  }
+
+  .pdb-ant-select-selector {
+    overflow: hidden;
+
+    .pdb-ant-select-selection-overflow {
+      height: 100%;
+    }
+  }
+
+  &-search {
+    display: block;
+    height: unset;
+
+    &-dropdown {
+      padding: 0;
+      inset: unset !important;
+    }
+
+    &-group {
+      height: 3.8rem;
+      border: 1px solid var(--border-color2);
+      overflow: auto;
+      border-radius: 2px;
+      padding-top: 4px;
+
+      &-focus {
+        border-color: var(--input-active-border-inner);
+        box-shadow: 0 0 0 2px var(--input-active-border-outer);
+      }
+    }
+
+    .pdb-ant-select-selector {
+      border: none !important;
+      padding-inline-end: 4.5rem;
+      box-shadow: none !important;
+
+      // .pdb-ant-select-selection-placeholder {
+      //   inset-inline-start: 34px;
+      // }
+    }
+
+    // .pdb-ant-select-arrow {
+    //   inset-inline-start: 8px;
+    //   inset-inline-end: auto;
+    // }
+  }
+
+  &-dropdown {
+
+    &-footer {
+      color: var(--text-color2);
+      padding: .8rem;
+      border-top: 1px solid var(--border-color2);
+      background: var(--button-default-bg);
+      font-size: 12px;
+    }
+
+    .pdb-ant-tabs-nav {
+      margin-bottom: .8rem;
+
+      .pdb-ant-tabs-nav-wrap {
+        padding: 0 1.2rem;
+      }
+    }
+
+    .pdb-ant-select-item-option-content {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      align-items: center;
+
+      .spicon {
+        font-size: 1.2rem;
+        color: var(--text-color3);
+        visibility: hidden;
+      }
+
+      &:hover {
+        .spicon {
+          visibility: visible;
+        }
+      }
+    }
+  }
+
+  &-tag {
+    cursor: pointer;
+
+    .spicon {
+      font-size: 1.2rem;
+      color: var(--text-color3);
+      margin-left: 5px;
+      display: none;
+    }
+
+    &>span+.anticon {
+      margin-inline-start: 3px;
+    }
+
+    &:hover {
+      .spicon {
+        display: inline-block;
+      }
+    }
+  }
+
+  &-filter {
+    width: 40rem;
+    max-height: 60rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    &-popover .pdb-ant-popover-inner {
+      padding: 0 !important;
+    }
+
+    &-header {
+      padding: .8rem 1.6rem;
+      border-bottom: 1px solid var(--border-color2);
+      display: flex;
+      align-items: center;
+
+      span {
+        flex: 1;
+      }
+
+      .spicon {
+        font-size: 1.4rem;
+        color: var(--text-color2);
+        cursor: pointer;
+
+        &:hover {
+          color: var(--primary-color);
+        }
+      }
+    }
+
+    &-content {
+      padding: 1.6rem;
+      flex: 1;
+      overflow: auto;
+    }
+
+    &-add {
+      padding: .8rem 1.6rem;
+      display: flex;
+      border-top: 1px solid var(--border-color2);
+
+      .pdb-ant-btn {
+        flex: 1;
+
+        .spicon {
+          font-size: 1.4rem;
+        }
+
+        &:last-child {
+          margin-left: 1rem;
+        }
+      }
+    }
+
+    .pdb-ant-card {
+      &-body {
+        padding: 0;
+      }
+
+      &-extra .spicon {
+        margin-left: .5rem;
+        cursor: pointer;
+
+        &:hover {
+          color: var(--primary-color);
+        }
+      }
+    }
+
+    &-config {
+      padding: 1.2rem;
+
+      &-combination {
+        .pdb-explore-filter-config {
+          &-attr {
+            width: 10rem !important;
+
+            .pdb-ant-select-selector {
+              border-right-width: 0 !important;
+              border-top-right-radius: 0;
+              border-bottom-right-radius: 0;
+
+              &:hover,
+              &:focus,
+              &:active {
+                border-right-width: 1px !important;
+              }
+            }
+          }
+
+          &-condition {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+          }
+        }
+
+        .pdb-ant-picker,
+        .pdb-ant-input-number {
+          flex: 1;
+        }
+      }
+
+      .pdb-ant-form-item {
+        margin-bottom: 1.2rem;
+
+        &:last-child {
+          margin: 0;
+        }
+      }
+    }
+
+    &-isNot {
+      .pdb-ant-form-item-row {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+
+        .pdb-ant-form-item-label {
+          padding: 0;
+        }
+
+        .pdb-ant-form-item-control {
+          flex: 1;
+        }
+      }
+    }
+
+    &-connection {
+      height: 4rem;
+      display: flex;
+      align-items: center;
+      position: relative;
+
+      &::before {
+        content: "";
+        width: 1px;
+        height: 100%;
+        background: var(--fill-color2);
+        left: 1.4rem;
+        position: absolute;
+        top: 0;
+      }
+    }
+  }
+
+  &-expand {
+    position: absolute;
+    top: 13px;
+
+    .pdb-explore-search-group {
+      height: auto;
+      min-height: 3.8rem;
+      max-height: 25rem;
+      border: none;
+      box-shadow: var(--box-shadow);
+    }
+  }
+
+  .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
+    background-color: #fff !important;
+  }
+}

@@ -47,12 +47,12 @@ function initLayout() {
           type: 'drag-node',
           updateEdge: false,
           enableDelegate: true,
-          shouldBegin: function(event: IG6GraphEvent) {
+          shouldBegin: function (event: IG6GraphEvent) {
             if (!event.item) return false;
             const model = event.item.get('model');
             return !model.root;
           },
-          shouldEnd: function(event: IG6GraphEvent) {
+          shouldEnd: function (event: IG6GraphEvent) {
             return false;
           }
         },
@@ -102,6 +102,14 @@ function initLayout() {
   graph.data(buildTree(data.value));
   graph.render();
   graph.zoom(1);
+  if (typeof window !== 'undefined') {
+    window.onresize = () => {
+      if (!graph || graph.get('destroyed')) return;
+      const container = document.getElementById("pdb-graph");
+      if (!container || !container.scrollWidth || !container.scrollHeight) return;
+      graph.changeSize(container.scrollWidth, container.scrollHeight);
+    };
+  }
 }
 
 function initEvent() {

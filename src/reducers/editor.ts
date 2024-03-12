@@ -1,0 +1,171 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { EdgeConfig, NodeConfig } from '@antv/g6';
+import { TypeConfig } from './type';
+import { ObjectConfig } from './object';
+import { RelationConfig } from './relation';
+
+export interface EdgeItemData extends EdgeConfig {
+  style?: any
+}
+export interface NodeItemData extends NodeConfig {
+  xid: string
+  id: string
+  uid: string
+  name: string
+  comboId: string // 所属combo id
+  data: any // 原始数据
+  dataIndex: number // 原始数据index
+  parent: string // 当前数据上级id
+  childLen: number
+  collapsed?: boolean // 是否折叠
+  labelCfg?: any
+  isDisabled?: boolean
+}
+
+export interface TypeItemData extends NodeConfig {
+  id: string
+  uid: string
+  label: string
+  name: string
+  data: TypeConfig
+  dataIndex: number
+}
+export interface RelationTargetConfig {
+  uid: string
+  'x.name': string
+}
+export interface ObjectRelationConig {
+  target: RelationTargetConfig
+  relation: string
+  override?: boolean
+}
+
+export interface RelationsConfig {
+  [key: string]: Array<ObjectRelationConig>
+}
+
+export interface RelationMapConfig {
+  [key: string]: RelationConfig
+}
+
+interface FilterConfig {
+  target: string
+  typeName: string
+}
+
+interface ToolbarItemConfig {
+  relationLines: RelationsConfig
+  showRelationLine: boolean
+  showRelationLabel: boolean
+  filters: Array<FilterConfig>
+}
+
+interface ToolbarConfig {
+  [key: string]: ToolbarItemConfig
+}
+
+interface EditorState {
+  currentGraphTab: string // 对象管理 - 画布当前tab
+  multiEditModel: Array<NodeItemData | EdgeItemData | TypeItemData> | null // 对象管理 - 多个选中编辑
+  rootNode: ObjectConfig | null // 对象管理 - 根节点数据
+  relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
+  toolbarConfig: ToolbarConfig // 对象管理 - 工具栏,每个tab都有对应的工具栏
+  currentEditModel: NodeItemData | EdgeItemData | TypeItemData | null // 所有 - 单个选中编辑
+  iconMap: any // 所有 - 图标Map
+  showSearch: boolean
+}
+
+// 使用该类型定义初始 state
+const initialState: EditorState = {
+  currentGraphTab: 'main',
+  multiEditModel: null,
+  rootNode: null,
+  relationMap: {},
+  toolbarConfig: {
+    'main': {
+      relationLines: {},
+      showRelationLine: false, // 显示类型连线
+      showRelationLabel: false, // 显示类型名称
+      filters: []
+    },
+    'explore': {
+      relationLines: {},
+      showRelationLine: false,
+      showRelationLabel: false,
+      filters: []
+    }
+  },
+  currentEditModel: null,
+  iconMap: {},
+  showSearch: false //显示搜索框
+}
+
+export const editorSlice = createSlice({
+  name: 'editor',
+  // `createSlice` 将从 `initialState` 参数推断 state 类型
+  initialState,
+  reducers: {
+    reset: (state) => initialState,
+    setRootNode: (state, action: PayloadAction<any>) => {
+      state.rootNode = action.payload;
+    },
+    setIconMap: (state, action: PayloadAction<any>) => {
+      state.iconMap = action.payload;
+    },
+    setCurrentGraphTab: (state, action: PayloadAction<string>) => {
+      state.currentGraphTab = action.payload;
+    },
+    setCurrentEditModel: (state, action: PayloadAction<NodeItemData | EdgeItemData | TypeItemData | null>) => {
+      state.currentEditModel = JSON.parse(JSON.stringify(action.payload));
+    },
+    setMultiEditModel: (state, action: PayloadAction<Array<NodeItemData | EdgeItemData | TypeItemData> | null>) => {
+      state.multiEditModel = JSON.parse(JSON.stringify(action.payload));
+    },
+    setRelationMap: (state, action: PayloadAction<RelationMapConfig>) => {
+      state.relationMap = JSON.parse(JSON.stringify(action.payload));
+    },
+    setToolbarConfig: (state, action: PayloadAction<{ config: any, key: string }>) => {
+      const { key, config } = action.payload;
+      const newToolbarConfig = JSON.parse(JSON.stringify(state.toolbarConfig));
+      Object.assign(newToolbarConfig[key], { ...config });
+      state.toolbarConfig = newToolbarConfig;
+    },
+    setShowSearch: (state, action: PayloadAction<boolean>) => {
+      state.showSearch = action.payload;
+    },
+    addToolbarConfig: (state, action: PayloadAction<string>) => {
+      const newToolbarConfig = JSON.parse(JSON.stringify(state.toolbarConfig));
+      Object.assign(newToolbarConfig, {
+        [action.payload.toString()]: {
+          relationLines: {},
+          showRelationLine: false,
+          showRelationLabel: false,
+          filters: [],
+          filterMap: {
+            type: {},
+            relation: {}
+          }
+        }
+      });
+      state.toolbarConfig = newToolbarConfig;
+    },
+    deleteToolbarConfig: (state, action: PayloadAction<string>) => {
+      const newToolbarConfig = JSON.parse(JSON.stringify(state.toolbarConfig));
+      delete newToolbarConfig[action.payload];
+      state.toolbarConfig = newToolbarConfig;
+    },
+    // setRelationLines: (state, action: PayloadAction<RelationsConfig>) => {
+    //   state.relationLines = JSON.parse(JSON.stringify(action.payload));
+    // },
+    // setShowRelationLine: (state, action: PayloadAction<boolean>) => {
+    //   state.showRelationLine = action.payload;
+    // },
+    // setShowRelationLable: (state, action: PayloadAction<boolean>) => {
+    //   state.showRelationLabel = action.payload;
+    // },
+  }
+});
+
+export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig,
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setIconMap, setShowSearch } = editorSlice.actions
+export default editorSlice.reducer

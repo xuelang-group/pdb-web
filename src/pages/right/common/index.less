@@ -1,0 +1,517 @@
+.pdb-right-panel {
+  position: relative;
+
+  .pdb-sider-content {
+    padding: 0;
+    overflow: auto;
+
+    .pdb-info,
+    .pdb-app-info {
+      padding: 1.6rem 1.6rem .4rem;
+
+      .copy-item {
+        position: absolute;
+        width: 100%;
+        top: 0;
+        line-height: 2.4rem;
+      }
+
+      .pdb-ant-col.pdb-ant-form-item-control {
+        min-height: unset;
+      }
+
+      .info-name {
+        position: relative;
+
+        &-hidden {
+          visibility: hidden;
+          padding: 0;
+          line-height: 2.4rem;
+          font-size: 1.6rem;
+          font-weight: 600;
+          min-height: 2.4rem;
+        }
+
+        .pdb-ant-form-item {
+          line-height: 2.4rem !important;
+        }
+
+        .pdb-ant-input {
+          line-height: 2.4rem;
+          resize: none;
+          min-height: 2.6rem;
+
+          &:not(.pdb-ant-input-status-error) {
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: var(--text-color1);
+            cursor: pointer;
+            border: none;
+            padding: .4rem .2rem;
+            text-overflow: ellipsis;
+
+            &:hover {
+              background-color: var(--fill-color1);
+            }
+
+            &:focus {
+              border: 1px solid var(--primary-color);
+              background-color: unset;
+            }
+          }
+
+          &.pdb-ant-input {
+            background-color: transparent !important;
+          }
+
+          &.pdb-ant-input-disabled {
+            color: var(--text-color1) !important;
+            cursor: unset;
+          }
+        }
+
+        .pdb-ant-input[disabled] {
+          background-color: transparent;
+        }
+
+        .pdb-ant-form-item {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+
+          .pdb-ant-form-item-label>label.pdb-ant-form-item-required:not(.pdb-ant-form-item-required-mark-optional)::before {
+            display: none !important;
+          }
+
+          .pdb-ant-row,
+          .pdb-ant-col.pdb-ant-form-item-control,
+          .pdb-ant-form-item-control-input,
+          .pdb-ant-form-item-control-input-content,
+          .pdb-ant-input {
+            height: 100%;
+          }
+        }
+      }
+
+      .info-id,
+      .template-id {
+        display: flex;
+        align-items: center;
+
+        .pdb-ant-form-item {
+          flex: 1;
+        }
+      }
+
+      .icon-fuzhi {
+        margin: 0 .5rem;
+        font-size: 1.2rem;
+        color: var(--text-color3);
+        margin-bottom: .4rem;
+        line-height: 2rem;
+        cursor: pointer;
+
+        &:hover {
+          color: var(--primary-color);
+        }
+      }
+
+      .info-description textarea {
+        padding: .5rem !important;
+      }
+
+      .pdb-ant-form-item {
+        margin-bottom: .4rem !important;
+        line-height: 2rem;
+
+        .pdb-ant-input[readOnly] {
+          background: unset !important;
+          padding: .4rem 0;
+          font-size: 1.2rem;
+          color: var(--text-color3) !important;
+          text-overflow: ellipsis;
+
+          &:focus {
+            border: none;
+            box-shadow: none !important;
+          }
+        }
+
+        .pdb-ant-form-item-label>label {
+          font-size: 1.2rem;
+          color: var(--text-color3);
+          margin: 0;
+          height: 2rem;
+          line-height: 2rem;
+        }
+
+        .pdb-ant-form-item-control-input {
+          min-height: 2rem;
+
+          .pdb-ant-input {
+            padding: 0;
+          }
+        }
+      }
+
+      .info-show-more {
+        color: var(--text-color3);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        line-height: 2rem;
+
+        &:hover {
+          color: var(--primary-hover);
+        }
+
+        .anticon {
+          margin-left: .3rem;
+          font-size: 1.2rem;
+        }
+      }
+    }
+
+    .pdb-info .info-name .pdb-ant-input:enabled {
+      &:hover {
+        background-color: var(--fill-color2) !important;
+      }
+
+      &:not(.pdb-ant-input-status-error):focus {
+        padding: 0 .4rem;
+        background-color: var(--input-bg) !important;
+      }
+    }
+
+    .pdb-app-info {
+      .info-name {
+        textarea.pdb-ant-input:not(.pdb-ant-input-status-error) {
+          border: 1px solid var(--border-color1);
+          font-weight: normal;
+          line-height: 2.2rem;
+          padding: 0.4rem 1.2rem;
+          font-size: 1.4rem;
+        }
+
+        &-hidden {
+          padding: .5rem 1.2rem;
+          min-height: 3.2rem;
+          line-height: 2.2rem;
+          font-size: 1.4rem;
+          font-weight: normal;
+        }
+      }
+
+      .pdb-app-name {
+        &>.pdb-ant-form-item-row>.pdb-ant-form-item-label {
+          overflow: visible;
+
+          &>label::before {
+            content: '*';
+            position: absolute;
+            left: -0.8rem;
+            color: var(--danger-color);
+          }
+        }
+      }
+
+      &>.pdb-ant-form-item {
+        margin-bottom: 1.2rem !important;
+      }
+
+      .pdb-ant-form-item-label {
+        padding: 0 0 .4rem;
+      }
+
+      .pdb-ant-form-item .pdb-ant-input[readOnly] {
+        color: var(--text-color1) !important;
+        font-size: 1.4rem;
+      }
+    }
+
+    .pdb-ant-form-vertical .pdb-app-info .pdb-ant-form-item-label>label::after {
+      visibility: visible;
+    }
+
+    .pdb-node-metadata {
+      display: flex;
+      align-items: center;
+      padding: .8rem 1.6rem;
+
+      &-item {
+        width: 2.4rem;
+        height: 2.4rem;
+        border-radius: 2px;
+        border: 1px solid var(--border-color1);
+        margin: 0 .4rem;
+        cursor: pointer;
+        color: var(--text-color2);
+
+        &.node-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 2.4rem;
+          text-align: center;
+
+          .no-icon {
+            color: var(--text-color4);
+          }
+        }
+
+        &.fill-color,
+        &.border-color {
+          padding: .4rem;
+        }
+
+        &.active,
+        &.pdb-ant-popover-open {
+          box-shadow: 0px 0px 0px 2px rgba(0, 132, 255, 0.15);
+          border: 1px solid var(--primary-hover);
+        }
+      }
+    }
+
+    .pdb-node-common-item {
+      display: flex;
+      margin: 1.6rem 1.6rem 0;
+
+      &-label {
+        color: var(--text-color3);
+      }
+
+      &-warning {
+        font-size: 1.2rem;
+        color: var(--text-color3);
+        padding: .5rem 1.6rem 0;
+
+        .anticon {
+          margin-right: .5rem;
+        }
+      }
+    }
+  }
+
+  .pdb-ant-input-number,
+  .pdb-ant-picker {
+    width: 100%;
+  }
+
+  .enums {
+    &-list {
+      border-top: 1px solid var(--border-color1);
+      margin: 0 1.1rem;
+    }
+
+    &-row {
+      display: flex;
+      border-bottom: 1px solid var(--border-color1);
+      align-items: center;
+
+      .pdb-ant-form-item-control {
+        padding: 0 !important;
+      }
+    }
+
+    &-item {
+      margin-bottom: 0 !important;
+
+      &:nth-child(1),
+      &:nth-child(2) {
+        flex: 1;
+      }
+
+      &:nth-child(3) {
+        width: 7rem;
+      }
+
+      &:nth-child(1),
+      &:nth-child(2),
+      &:nth-child(3) {
+        padding: .5rem;
+      }
+
+      &:last-child {
+        width: 1.5rem;
+      }
+
+      &.remove-btn {
+        color: var(--text-color2);
+      }
+
+    }
+
+    &-label {
+      margin: 0 !important;
+
+      .pdb-ant-form-item-control-input {
+        min-height: 0;
+      }
+
+      .pdb-ant-form-item-label>label::before {
+        display: inline-block;
+        margin-right: 4px;
+        color: var(--danger-color);
+        font-size: 14px;
+        font-family: SimSun, sans-serif;
+        content: '*';
+      }
+
+      .pdb-ant-form-item-label label:not(.pdb-ant-form-item-required) {
+        padding: 0 !important;
+      }
+    }
+
+    &-add {
+      .pdb-ant-form-item-control {
+        padding: 0 !important;
+      }
+
+      &-btn.pdb-ant-btn {
+        width: 100%;
+        height: 3.2rem;
+        line-height: 3.2rem;
+        margin-top: .8rem;
+      }
+    }
+  }
+
+  .type-param-input {
+    display: flex;
+
+    .param-addon-before {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 7.2rem;
+      max-width: 7.2rem;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 1px solid var(--border-color1);
+      background-color: var(--fill-color4);
+      border-right: none;
+      color: var(--text-color3) !important;
+    }
+
+    .pdb-ant-select {
+      width: 100%;
+    }
+
+    &.type-param-text {
+      .param-addon-before {
+        height: auto;
+        min-height: 3.2rem;
+        line-height: unset;
+        color: var(--text-color3) !important;
+      }
+    }
+  }
+
+  .type-item {
+
+    .pdb-ant-input-group-addon,
+    .pdb-ant-input-number-group-addon {
+      min-width: 7.2rem;
+      max-width: 7.2rem;
+      background-color: var(--fill-color4) !important;
+      font-size: 1.2rem;
+      color: var(--text-color3) !important;
+    }
+
+    &.item-active {
+      background-color: var(--primary-selected-bg);
+    }
+
+    .pdb-ant-form-item {
+      flex: 1;
+      margin-bottom: 0 !important;
+
+      &.pdb-ant-form-item-has-error {
+
+        .pdb-ant-input-number-group-addon,
+        .pdb-ant-input-group-addon {
+          border-color: #d9d9d9;
+          color: rgba(0, 0, 0, 0.85);
+        }
+
+        .type-param-text .pdb-ant-input {
+          border-color: var(--danger-color) !important;
+        }
+      }
+
+      .pdb-ant-form-item-explain-error {
+        padding-left: 8rem;
+      }
+    }
+
+    .type-param-input .pdb-ant-form-item-explain-error {
+      padding-left: 0;
+    }
+  }
+
+  .param-btn {
+    padding: 1.6rem;
+  }
+
+
+
+  .pdb-ant-form-item-label>label {
+    font-weight: normal;
+    font-size: 1.4rem;
+    color: var(--text-color3);
+  }
+
+  .pdb-ant-table-content {
+    table {
+      table-layout: fixed !important;
+
+      .pdb-ant-table-cell {
+        padding: 1rem .5rem;
+
+        .pdb-ant-form-item {
+          margin-bottom: 0 !important;
+
+          &.bind-cardinality-item {
+            margin-left: .5rem;
+          }
+        }
+
+        .pdb-ant-select {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .pdb-right-sider {
+    z-index: 2;
+  }
+}
+
+.pdb-param-editor {
+  form {
+    padding: 1.5rem .6rem;
+
+    .operations {
+      text-align: right;
+      padding-top: 0.9rem;
+
+      button:first-child {
+        margin-right: .8rem;
+      }
+    }
+
+    .pdb-ant-form-item-control {
+      padding: 0 1rem;
+    }
+
+    .pdb-ant-form-item-label {
+      label:not(.pdb-ant-form-item-required) {
+        padding: 0 1.1rem;
+      }
+    }
+  }
+}

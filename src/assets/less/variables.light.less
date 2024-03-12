@@ -1,0 +1,129 @@
+/*
+ * 浅色版
+ */
+@primary-bg:           #E8F8FF;           // 浅色/品牌色/1-主色浅色背景色
+@primary-bg-hover:     #BAE7FF;           // 浅色/品牌色/2-主色浅色背景悬浮态
+@primary-border:       #8BD3FF;           // 浅色/品牌色/3-主色描边色
+@primary-border-hover: #5DBBFF;           // 浅色/品牌色/4-主色描边色悬浮态
+@primary-hover:        #2EA1FF;           // 浅色/品牌色/5-主色悬浮态
+@primary-color:        #0084FF;           // 浅色/品牌色/6-品牌主色
+@primary-active:       #0066D2;           // 浅色/品牌色/7-主色激活态
+
+@success-bg:           #E8FFEA;           // 浅色/成功色/1-成功色的浅色背景颜色
+@success-bg-hover:     #AFF0B5;           // 浅色/成功色/2-成功色的浅色背景色悬浮态
+@success-border:       #7BE188;           // 浅色/成功色/3-成功色的描边色
+@success-border-hover: #4CD263;           // 浅色/成功色/4-成功色的描边色悬浮态
+@success-hover:        #23C343;           // 浅色/成功色/5-成功色的深色悬浮态
+@success-color:        #00B42A;           // 浅色/成功色/6-成功色
+@success-active:       #009A29;           // 浅色/成功色/7-成功色的深色激活态
+
+@warning-bg:           #FFFBE6;           // 浅色/警戒色/1-警戒色的浅色背景颜色
+@warning-bg-hover:     #FFF1B8;           // 浅色/警戒色/2-警戒色的浅色背景色悬浮态
+@warning-border:       #FFE58F;           // 浅色/警戒色/3-警戒色的描边色
+@warning-border-hover: #FFD666;           // 浅色/警戒色/4-警戒色的描边色悬浮态
+@warning-hover:        #FFC53D;           // 浅色/警戒色/5-警戒色的深色悬浮态 
+@warning-color:        #FAAD14;           // 浅色/警戒色/6-警戒色
+@warning-active:       #D48806;           // 浅色/警戒色/7-警戒色的深色激活态
+
+@danger-bg:            #FFECE8;           // 浅色/错误色/1-错误色的浅色背景颜色
+@danger-bg-hover:      #FDCDC5;           // 浅色/错误色/2-错误色的浅色背景色悬浮态
+@danger-border:        #FBACA3;           // 浅色/错误色/3-错误色的描边色
+@danger-border-hover:  #F98981;           // 浅色/错误色/4-错误色的描边色悬浮态
+@danger-hover:         #F76560;           // 浅色/错误色/5-错误色的深色悬浮态
+@danger-color:         #F53F3F;           // 浅色/错误色/6-错误色
+@danger-active:        #CB272D;           // 浅色/错误色/7-错误色的深色激活态 
+
+/* 背景色 */
+@bg-container:         #FFFFFF;           // 浅色/中性色/背景/组件容器背景色
+@bg-elevated:          #FFFFFF;           // 浅色/中性色/背景/浮层容器背景色
+@bg-layout:            #F4F6F9;           // 浅色/中性色/背景/布局背景色
+@bg-spotlight:         fade(#000, 80%);   // 浅色/中性色/背景/引起注意的背景色
+@bg-mask:              fade(#000, 40%);   // 浅色/中性色/背景/浮层的背景蒙层颜色
+
+/* 文本 */
+@text-white:           #FFFFFF;           // 浅色/中性色/文本/纯白文本色
+@text-color1:          #1C2126;           // 浅色/中性色/文本/一级文本色
+@text-color2:          #4C5A67;           // 浅色/中性色/文本/二级文本色
+@text-color3:          #828D99;           // 浅色/中性色/文本/三级文本色
+@text-color4:          #C2C7CC;           // 浅色/中性色/文本/四级文本色
+
+/* 描边 */
+@border-color1:        #DCDEE1;           // 浅色/中性色/描边/一级边框色
+@border-color2:        #EAECEF;           // 浅色/中性色/描边/二级边框色
+@border-color3:        #EAECEF;           // 浅色/中性色/描边/特殊
+ 
+/* 填充 */ 
+@fill-white:           #FFFFFF;           // 浅色/中性色/填充/纯白填充色
+@fill-color1:          #DCDEE1;           // 浅色/中性色/填充/一级填充色
+@fill-color2:          #EAECEF;           // 浅色/中性色/填充/二级填充色
+@fill-color3:          #F4F6F9;           // 浅色/中性色/填充/三级填充色
+@fill-color4:          #F9FBFC;           // 浅色/中性色/填充/四级填充色
+
+
+@sp-bg: @bg-layout;                         // 后面板大背景
+@component-bg: @bg-container;               // 模块背景
+
+@primary-disabled: @primary-bg-hover;       // 蓝色禁用
+@primary-selected-bg:  @primary-bg;         // 选中背景色
+
+@icon-color1: @fill-color1;                 // icon色1-置灰
+@icon-color2: @text-color3;                 // icon色2-浅
+@icon-color3: @text-color2;                 // icon色3-深
+@icon-color4: @text-color1;                 // icon色4-部分hover
+
+@border-default: @border-color1;            // 边框
+
+@disabled-border: @border-color2;           // 禁用-边框
+@disabled-bg: @fill-color3;                 // 禁用-背景
+@disabled-color: @text-color4;              // 禁用-文字
+
+@input-border: @border-color1;              // 线框-输入框
+@input-bg: @bg-elevated;                    // 背景-输入框
+@input-placeholder: @text-color4;           // placeholder文字颜色-输入框
+@input-color: @text-color1;                 // 文字-输入框
+@input-active-border-inner: @primary-hover;// 内边框-输入框active 
+@input-active-border-outer: fade(@primary-color, 15%);      // 外边框-输入框active 
+@input-error-border: @danger-color;
+@input-error-border-inner: @danger-hover;
+@input-error-border-outer: fade(@danger-color, 15%);
+
+@button-default-border: @border-default;    // 线框-次按钮
+@button-default-bg: @fill-color4;          // 背景-次按钮
+@button-default-color: @text-color2;        // 文字-次按钮
+
+@header-stress-bg: @primary-color;          // 头部按钮突出背景色
+@header-stress-disabled-bg: @disabled-bg;   // 头部按钮灰化背景色
+@header-stress-disabled-text: @disabled-color; // 头部按钮灰化字体
+@header-stress-hover-bg: @primary-hover;    // 头部按钮突出背景色
+@header-button-start: #F8F8F8;            // 头部按钮渐变颜色-开始
+@header-button-end: #FDFDFD;              // 头部按钮渐变颜色-结束
+@header-button-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.15);          // 头部按钮投影
+@header-user-bg: @bg-container;             // 头部用户信息弹出层背景颜色
+
+// 告警提示-Alert
+@alert-primary-bg: @primary-bg;
+@alert-primary-border: @primary-border;
+@alert-success-bg: @success-bg;
+@alert-success-border: @success-border;
+@alert-warning-bg: @warning-bg;
+@alert-warning-border: @warning-border;
+@alert-danger-bg: @danger-bg;
+@alert-danger-border: @danger-border;
+
+@tooltip-bg: @bg-spotlight;                 // 文字提示背景色
+@modal-bg: @bg-container;                   // 弹窗背景色
+
+// 投影-默认
+@box-shadow:  0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px 0px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12);
+// 投影-模态框
+@modal-shadow: 0px 12px 48px 16px rgba(0, 0, 0, 0.03), 0px 9px 28px 0px rgba(0, 0, 0, 0.05), 0px 6px 16px -8px rgba(0, 0, 0, 0.08);
+// 投影-文字提示
+@tooltip-shadow:  0px 9px 28px 8px rgba(0, 0, 0, 0.05), 0px 6px 16px 0px rgba(0, 0, 0, 0.08), 0px 3px 6px -4px rgba(0, 0, 0, 0.12);
+// 后面板画布投影
+@graph-shadow: 0px 4px 8px 0px rgba(9, 16, 28, 0.2);
+
+@popover-shadow: 0px 4px 10px 0px rgba(0, 29, 77, 0.12);
+
+@shadow-color: rgba(0, 29, 77, 0.12);
+
+@table-head-bg: @fill-color4;                // 表格头 -- 浅
