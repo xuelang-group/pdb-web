@@ -575,6 +575,12 @@ export default function Editor(props: EditorProps) {
       <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
         <GraphToolbar theme={props.theme} />
         <div ref={graphRef} className="graph" id="object-graph"></div>
+        <div
+          className='pdb-object-template'
+          onClick={event => {
+
+          }}
+        ></div>
       </div>
       {/* <Modal
         title={modalTile[modalOperate]}

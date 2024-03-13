@@ -1,5 +1,5 @@
 import store from '@/store';
-import { checkImgExists, defaultNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
+import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import { fittingString, GLOBAL_FONT_SIZE } from '@/utils/objectGraph';
 import G6, { Item, UpdateType } from '@antv/g6';
 import _ from 'lodash';
@@ -48,7 +48,6 @@ export const outerCircleStyle: any = {
 export const iconImgWidth = 20;
 export function registerNode() {
   G6.registerNode('circle-node', {
-    // draw anchor-point circles according to the anchorPoints in afterDraw
     afterDraw(cfg: any, group: any) {
       if (!group) return;
 
@@ -106,42 +105,6 @@ export function registerNode() {
           textShape.attr({ text });
         }
       }
-
-      group.addShape('circle', {
-        attrs: outerCircleStyle.default,
-        name: 'outer-circle',
-        visible: false,
-        draggable: false,
-        zIndex: -1
-      });
-
-      const bbox = group.getBBox();
-      const anchorPoints = (this as any).getAnchorPoints(cfg);
-      console.log(bbox.width, bbox.height, defaultCircleR * 2);
-      anchorPoints.forEach((anchorPos: number[], i: any) => {
-        group.addShape('circle', {
-          attrs: {
-            r: 6,
-            x: bbox.x + bbox.width * anchorPos[0],
-            y: bbox.y + bbox.height * anchorPos[1],
-            fill: '#fff',
-            stroke: '#5F95FF'
-          },
-          // must be assigned in G6 3.3 and later versions. it can be any string you want, but should be unique in a custom item type
-          name: `anchor-point`, // the name, for searching by group.find(ele => ele.get('name') === 'anchor-point')
-          anchorPointIdx: i, // flag the idx of the anchor-point circle
-          links: 0, // cache the number of edges connected to this shape
-          visible: false, // invisible by default, shows up when links > 1 or the node is in showAnchors state
-          draggable: true, // allow to catch the drag events on this shape
-          zIndex: 2
-        });
-      });
-
-      group.sort();
-    },
-    getAnchorPoints(cfg) {
-      if (!cfg) return;
-      return cfg.anchorPoints || [[0, 0.5], [0.5, 0], [1, 0.5], [0.5, 1]];
     },
     update: function (cfg: any, item: Item, updateType: UpdateType) {
       const group = item.getContainer(),
@@ -242,12 +205,9 @@ export function registerNode() {
       if (!item) return;
       const group = item.getContainer(),
         outerCircle = group.find(ele => ele.get('name') === 'outer-circle'),
-        anchorPoints = group.findAll(ele => ele.get('name') === 'anchor-point'),
         innerCircle = group.find(ele => ele.get('name') === 'circle-node-keyShape'),
         textShape = group.find(ele => ele.get('name') === 'text-shape'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
-        currentSelected = item.hasState('selected'),
-        currentSourceHightLight = item.hasState('sourceHightLight'),
         itemModelData: any = _.get(item.getModel(), 'data', {}),
         metadata = JSON.parse(itemModelData['x.type.metadata'] || '{}'),
         fill = _.get(metadata, 'color', defaultNodeColor.fill),
@@ -258,62 +218,29 @@ export function registerNode() {
           stroke
         };
 
-      let newFill = fill;
-
-      if (name === 'showAnchors') {
-        if (currentSourceHightLight) {
-          newFill = nodeStateStyle['sourceHightLight'].fill;
-        }
-        anchorPoints.forEach(point => {
-          if (value) {
-            point.show();
-            const styleState = currentSourceHightLight ? 'sourceHightLight' : (currentSelected ? 'selected' : 'default');
-            if (!currentSourceHightLight) {
-              innerCircle.attr(defaultNodeStyle);
-            }
-            outerCircle.attr(outerCircleStyle[styleState]);
-            outerCircle.show();
-          } else {
-            point.hide();
-            !currentSelected && !currentSourceHightLight && outerCircle.hide();
-          }
-        });
-      } else if (name === 'selected') {
-        if (value) {
-          outerCircle.attr(outerCircleStyle['selected']);
-          innerCircle.attr(defaultNodeStyle);
-          outerCircle.show();
-        } else {
-          outerCircle.hide();
-        }
-      } else if (name === 'sourceHightLight') {
-        if (value) {
-          newFill = nodeStateStyle['sourceHightLight'].fill;
-          outerCircle.attr(outerCircleStyle['sourceHightLight']);
-          innerCircle.attr(nodeStateStyle['sourceHightLight']);
-          outerCircle.show();
-        } else if (currentSelected) {
-          innerCircle.attr(defaultNodeStyle);
-          outerCircle.attr(outerCircleStyle['selected']);
-          outerCircle.show();
-        } else {
-          innerCircle.attr(defaultNodeStyle);
-          outerCircle.attr(outerCircleStyle['default']);
-          outerCircle.hide();
-        }
-      } else if (name === 'targetHightLight') {
-        if (value) {
-          newFill = nodeStateStyle['targetHightLight'].fill;
-          innerCircle.attr(nodeStateStyle['targetHightLight']);
-          outerCircle.hide();
-        } else {
-          innerCircle.attr(defaultNodeStyle);
-          currentSelected && outerCircle.show();
-        }
-      }
-
-      const textColor = getTextColor(newFill),
+      let newFill = fill,
+        textColor = getTextColor(newFill),
         iconColor = iconColorMap[textColor];
+
+
+      if (name === 'selected') {
+        if (value) {
+          outerCircle.attr(outerCircleStyle['selected']);
+          innerCircle.attr(defaultNodeStyle);
+          outerCircle.show();
+        } else {
+          outerCircle.hide();
+        }
+      } else if (name === 'inactive') {
+        if (value) {
+          textColor = "#C2C7CC";
+          iconColor = "#C2C7CC"
+        }
+        innerCircle.attr(value ? {
+          fill: disabledNodeColor.fill,
+          stroke: disabledNodeColor.border
+        } : defaultNodeStyle);
+      }
 
       textShape && textShape.attr({ fill: textColor });
       nodeIcon && nodeIcon.attr({ fill: nodeIcon.get('type') !== 'image' ? iconColor : 'transparent' });

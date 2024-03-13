@@ -1,5 +1,5 @@
 
-import { ConfigProvider, Layout } from 'antd';
+import { ConfigProvider, Layout, notification } from 'antd';
 import antdLocale from 'antd/es/locale/zh_CN';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,6 +34,9 @@ import { PdbConfig } from '.';
 import ObjectHeaderExtra from './pages/header/ObjectHeaderExtra';
 
 import './App.less';
+import { getRelation } from './actions/relation';
+import { getType } from './actions/type';
+import { setTypes } from '@/reducers/type';
 
 
 const { Content, Header } = Layout;
@@ -75,7 +78,7 @@ function App(props: PdbConfig) {
         dispatch(Editor.setIconMap(_iconMap));
         callback && callback(_iconMap);
       });
-    }).catch(err => { 
+    }).catch(err => {
       callback && callback({});
     });
   }
@@ -96,29 +99,29 @@ function App(props: PdbConfig) {
           <Router basename='/web/pdb'>
             <Routes>
               <Route path="/template/:id?" element={<List route="template" theme={theme} />}></Route>
-              <Route path="/object/:id?" element={<List route="object" theme={theme} />}></Route>
+              <Route path="/object/:id?/template?" element={<List route="object" theme={theme} />}></Route>
             </Routes>
             <Layout className="pdb-layout">
               <Routes>
                 <Route path="/template/:id" element={<CommonHeader route="template" headerEXtraWidth={headerEXtraWidth} />} />
-                <Route path="/object/:id" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+                <Route path="/object/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
               </Routes>
               <Content className="pdb-layout-content">
                 <Routes>
                   <Route path="/template/:id" element={<TemplateLeft />} />
-                  <Route path="/object/:id" element={<ObjectLeft />} />
+                  <Route path="/object/:id/template?" element={<ObjectLeft />} />
                   <Route path="/type" element={<TypeLeft getIconList={getIconList} />} />
                 </Routes>
                 <PdbContent>
                   <Routes>
-                    <Route path="/template/:id" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
                     <Route path="/object/:id" element={<ObjectGraph theme={theme} getIconList={getIconList} />} />
+                    <Route path="/object/:id/template" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
                     <Route path="/type" element={<TypeGraph theme={theme} />} />
                     <Route path="/edit/:id?" element={<TypeGraph theme={theme} />} />
                   </Routes>
                   <Routes>
                     <Route path="/template/:id" element={<CommonRight route="template" />} />
-                    <Route path="/object/:id" element={<CommonRight route="object" />} />
+                    <Route path="/object/:id/template?" element={<CommonRight route="object" />} />
                     <Route path="/type" element={<CommonRight route="type" />} />
                   </Routes>
                 </PdbContent>
