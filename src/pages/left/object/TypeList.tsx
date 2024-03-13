@@ -17,6 +17,7 @@ export default function TypeList(props: any) {
   const [list, setList] = useState(allTypes),
     [relationList, setRelationList] = useState(allRelations),
     [isSearched, setSearchedStatus] = useState(false),
+    [isRelSearched, setRelSearchedStatus] = useState(false),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams();
@@ -42,6 +43,16 @@ export default function TypeList(props: any) {
       types = getList(types, value);
     }
     setList(types);
+  }
+
+  const handleRelationSearch = function (value: string) {
+    let relations = JSON.parse(JSON.stringify(allRelations));
+    console.log(relations)
+    if (value) {
+      relations = getRelationList(relations, value);
+      console.log(relations)
+    }
+    setRelationList(relations);
   }
 
   const handleChangeTab = function (activeKey: string) {
@@ -73,11 +84,36 @@ export default function TypeList(props: any) {
     return arr;
   }
 
+  const getRelationList = function (relList: Array<any>, keyWord: string): Array<any> {
+    var arr = [];
+    for (var i = 0; i < relList.length; i++) {
+      const item = relList[i], idKey = 'r.type.name', labelKey = 'r.type.label';
+      if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
+        const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
+        let title = (<span className='type-item-label'>{label}</span>);
+        if (_index > -1) {
+          const beforeStr = label.substring(0, _index),
+            innerStr = label.substring(_index, _index + keyWord.length),
+            afterStr = label.slice(_index + keyWord.length);
+          title = (
+            <span className='type-item-label'>
+              {beforeStr}
+              <span className="pdb-searched-value">{innerStr}</span>
+              {afterStr}
+            </span>
+          );
+        }
+        arr.push({ ...relList[i], title });
+      }
+    }
+    return arr;
+  }
+
   const handleDragStart = function (event: any, type: TypeConfig) {
     event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
   }
 
-  const handleClickMenu = () => {}
+  const handleClickMenu = () => {navigate(`/edit/${routerParams.id}`)}
 
   const renderTypeTree = useCallback((type: string) => {
     return (
@@ -145,6 +181,60 @@ export default function TypeList(props: any) {
     );
   }, [list]);
 
+  const renderRelationTree = useCallback((type: string) => {
+    const prevLabel = type === 'type' ? 'x.' : 'r.';
+    let relList = JSON.parse(JSON.stringify(relationList));
+    console.log(relList)
+    return (
+      <div className='list-container'>
+        <div className='list-header'>
+          <div className='pdb-search'>
+            <Search
+              ref={searchRef}
+              className='pdb-search-input'
+              // value={relationSearchValue}
+              placeholder='搜索类型名称或ID'
+              allowClear={true}
+              enterButton={<i className='spicon icon-sousuo2'></i>}
+              onChange={(event: any) => {
+                if (!isRelSearched) {
+                  setRelSearchedStatus(true);
+                } else if (!event.target.value) {
+                  setRelSearchedStatus(false);
+                  handleRelationSearch('');
+                }
+              }}
+              onPressEnter={(event: any) => handleRelationSearch(event.target.value)}
+            />
+          </div>
+          <i className='operation-icon spicon icon-tianjia' onClick={() => {navigate(`/edit/${routerParams.id}`)}} />
+        </div>
+        <div className='list-content'>
+          <div className='type-list relation-list'>
+            {relList.map((item: any, index: number) => {
+              const label: any = item[prevLabel + 'type.label']
+              return (
+                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu() }} trigger={['contextMenu']}>
+                  <span
+                    className='type-item'
+                  >
+                    <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
+                    {(<span className='type-item-label'>{label}</span>)}
+                  </span>
+                </Dropdown>
+              );
+            })}
+          </div>
+          {relList.length === 0 && isRelSearched &&
+            <div className='no-data-info'>
+              <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+            </div>
+          }
+        </div>
+      </div>
+    );
+  }, [relationList]);
+
   const tabs = [{
     key: 'type',
     label: '对象',
@@ -152,7 +242,7 @@ export default function TypeList(props: any) {
   }, {
     key: 'relation',
     label: '关系',
-    // children: renderRelationTree('relation')
+    children: renderRelationTree('relation')
   }];
 
   return (
