@@ -1,26 +1,40 @@
-import { Input, InputRef } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Input, InputRef,Tabs,Tree,Dropdown } from 'antd';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 import './index.less';
 import { TypeConfig } from '@/reducers/type';
 import { useSelector } from 'react-redux';
 import { StoreState } from '@/store';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 
 const { Search } = Input;
 
 export default function TypeList(props: any) {
   const allTypes = useSelector((state: StoreState) => state.type.data);
+  const allRelations  = useSelector((state: StoreState) => state.relation.data);
+  const [currentTab, setCurrentTab] = useState('type');
   const [list, setList] = useState(allTypes),
+    [relationList, setRelationList] = useState(allRelations),
     [isSearched, setSearchedStatus] = useState(false),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams();
+  const navigate = useNavigate();
+
+  // 右键菜单
+  const typeMenus = [{
+    label: '编辑',
+    key: 'edit',
+  }];
 
   useEffect(() => {
     setList(JSON.parse(JSON.stringify(allTypes)));
   }, [allTypes])
+
+  useEffect(() => {
+    setRelationList(JSON.parse(JSON.stringify(allRelations)));
+  }, [allRelations])
 
   const handleSearch = function (value: string) {
     let types = JSON.parse(JSON.stringify(allTypes));
@@ -28,6 +42,10 @@ export default function TypeList(props: any) {
       types = getList(types, value);
     }
     setList(types);
+  }
+
+  const handleChangeTab = function (activeKey: string) {
+    setCurrentTab(activeKey);
   }
 
   const getList = function (list: Array<any>, keyWord: string): Array<any> {
@@ -59,44 +77,123 @@ export default function TypeList(props: any) {
     event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
   }
 
-  return (
-    <div className='list-container'>
-      <div className='list-header'>
-        <div className='pdb-search'>
-          <Search
-            ref={searchRef}
-            className='pdb-search-input'
-            placeholder='搜索类型名称或ID'
-            allowClear={true}
-            enterButton={<i className='spicon icon-sousuo2'></i>}
-            onChange={(event: any) => {
-              if (!isSearched) {
-                setSearchedStatus(true);
-              } else if (!event.target.value) {
-                setSearchedStatus(false);
-                handleSearch('');
-              }
-            }}
-            onPressEnter={(event: any) => handleSearch(event.target.value)}
-          />
-        </div>
-        <i className='operation-icon spicon icon-tianjia' onClick={() => {window.location.href = `/web/pdb/edit/${routerParams.id}`}} />
-      </div>
-      <div className='list-content'>
-        <div className='type-list'>
-          {list.map((item: any, index: number) => (
-            <span className='type-item' draggable={currentGraphTab === 'main'} onDragStart={event => handleDragStart(event, item)}>
-              <i className='iconfont icon-duixiangleixing'></i>
-              {item.title || item['x.type.label']}
-            </span>
-          ))}
-        </div>
-        {list.length === 0 && isSearched &&
-          <div className='no-data-info'>
-            <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+  const handleClickMenu = () => {}
+
+  const renderTypeTree = useCallback((type: string) => {
+    return (
+      <div className='list-container'>
+        <div className='list-header'>
+          <div className='pdb-search'>
+            <Search
+              ref={searchRef}
+              className='pdb-search-input'
+              placeholder='搜索类型名称或ID'
+              allowClear={true}
+              enterButton={<i className='spicon icon-sousuo2'></i>}
+              onChange={(event: any) => {
+                if (!isSearched) {
+                  setSearchedStatus(true);
+                } else if (!event.target.value) {
+                  setSearchedStatus(false);
+                  handleSearch('');
+                }
+              }}
+              onPressEnter={(event: any) => handleSearch(event.target.value)}
+            />
           </div>
-        }
+          <i className='operation-icon spicon icon-tianjia' onClick={() => {navigate(`/edit/${routerParams.id}`)}} />
+        </div>
+        <div className='list-content'>
+          <div className='type-list'>
+            <Tree
+              treeData={list.map((item: any) => ({
+                title:  item['x.type.label'],
+                key: item['x.type.name'],
+                className: 'type-item',
+              }))}
+              // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
+              switcherIcon={() => (<span></span>)}
+              titleRender={(item: any) => (
+                <Dropdown
+                  overlayClassName='pdb-dropdown-menu'
+                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu() }}
+                  trigger={['contextMenu']}
+                >
+                  <span
+                    className='type-item' 
+                    draggable={currentGraphTab === 'main'}
+                    onDragStart={event => handleDragStart(event, item)}
+                  >
+                    <i className='iconfont icon-duixiangleixing'></i>
+                    <span className='type-item-label'>{item.title}</span>
+                  </span>
+                </Dropdown>
+              )}
+              // expandedKeys={expandedKeys}
+              blockNode
+              showIcon
+              // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
+            />
+          </div>
+          {list.length === 0 && isSearched &&
+            <div className='no-data-info'>
+              <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+            </div>
+          }
+        </div>
       </div>
-    </div>
+    );
+  }, [list]);
+
+  const tabs = [{
+    key: 'type',
+    label: '对象',
+    children: renderTypeTree('type')
+  }, {
+    key: 'relation',
+    label: '关系',
+    // children: renderRelationTree('relation')
+  }];
+
+  return (
+    <Tabs defaultActiveKey="type" items={tabs} activeKey={currentTab} onChange={handleChangeTab} />
+    // <div className='list-container'>
+    //   <div className='list-header'>
+    //     <div className='pdb-search'>
+    //       <Search
+    //         ref={searchRef}
+    //         className='pdb-search-input'
+    //         placeholder='搜索类型名称或ID'
+    //         allowClear={true}
+    //         enterButton={<i className='spicon icon-sousuo2'></i>}
+    //         onChange={(event: any) => {
+    //           if (!isSearched) {
+    //             setSearchedStatus(true);
+    //           } else if (!event.target.value) {
+    //             setSearchedStatus(false);
+    //             handleSearch('');
+    //           }
+    //         }}
+    //         onPressEnter={(event: any) => handleSearch(event.target.value)}
+    //       />
+    //     </div>
+    //     <i className='operation-icon spicon icon-tianjia' onClick={() => {window.location.href = `/web/pdb/edit/${routerParams.id}`}} />
+    //   </div>
+    //   <div className='list-content'>
+    //     <div className='type-list'>
+    //       {list.map((item: any, index: number) => (
+    //         <span className='type-item' draggable={currentGraphTab === 'main'} onDragStart={event => handleDragStart(event, item)}>
+    //           <i className='iconfont icon-duixiangleixing'></i>
+    //           {item.title || item['x.type.label']}
+    //         </span>
+    //       ))}
+    //     </div>
+    //     {list.length === 0 && isSearched &&
+    //       <div className='no-data-info'>
+    //         <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+    //       </div>
+    //     }
+    //   </div>
+    // </div>
   )
 }

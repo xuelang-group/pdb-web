@@ -3,7 +3,7 @@ import _ from "lodash";
 import "moment/locale/zh-cn";
 import { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './index.less'
 
 interface HeaderProps {
@@ -16,6 +16,7 @@ export default function EditHeader(props: HeaderProps) {
   const { route, headerEXtraWidth } = props;
   const graphData = useSelector((store: any) => store[route].graphData);
   const graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
+  const navigate = useNavigate();
 
   let timer: any,
     len = 10.501562118716425,
@@ -67,7 +68,12 @@ export default function EditHeader(props: HeaderProps) {
 
   return (
     <div className='pdb-header'>
-      <a className="pdb-header-button" onClick={() =>{window.location.href = `/web/pdb/object/${routerParams.id}`}}>
+      <a
+        className="pdb-header-button"
+        onClick={() =>{
+          navigate(`/object/${routerParams.id}`)
+        }}
+      >
         <i className="spicon icon-jiantou-zuo"></i>
       </a>
       <div className="pdb-header-info">
@@ -75,7 +81,12 @@ export default function EditHeader(props: HeaderProps) {
           <h2 className="pdb-header-title">
             类型管理
           </h2>
-          <a className="pdb-header-button" onClick={() =>{window.location.href = `/web/pdb/object/${routerParams.id}`}}>
+          <a
+            className="pdb-header-button"
+            onClick={() =>{
+              navigate(`/object/${routerParams.id}`)
+            }}
+          >
             退出
           </a>
         </div>

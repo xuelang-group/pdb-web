@@ -1,24 +1,44 @@
-.pdb-object-left {
-  display: flex;
-  flex-direction: column;
+.pdb-type-left {
+  height: 100%;
+  overflow: hidden;
 
-  &-panel .pdb-sider-content {
-    height: 100%;
-  }
+  .pdb-sider-content {
+    overflow: hidden;
+    padding: 0;
 
-  .pdb-content-sider {
-    flex: 1;
-    height: 0;
-    border: none;
+    .pdb-ant-tabs {
+      height: 100%;
+      overflow: hidden;
 
-    .list {
-      &-container {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
+      .pdb-ant-tabs-nav-list {
+        width: 100%;
       }
 
-      &-header {
+      &-tab {
+        flex: 1;
+
+        &-btn {
+          width: 100%;
+          text-align: center;
+        }
+
+        &+.pdb-ant-tabs-tab {
+          margin: 0;
+        }
+      }
+
+      &-content,
+      &-tabpane {
+        height: 100%;
+      }
+    }
+
+    .list-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .list-header {
         padding: 1.6rem 1.6rem 1rem;
         display: flex;
 
@@ -31,9 +51,69 @@
         }
       }
 
-      &-content {
-        flex: 1;
+      .list-content {
         overflow: auto;
+        flex: 1;
+
+        .type-list {
+          .type-item {
+            padding: 0;
+
+            &.pdb-ant-tree-treenode-selected {
+              background: var(--primary-selected-bg);
+              color: var(--primary-color);
+            }
+
+            .pdb-ant-tree-switcher {
+              display: none;
+            }
+
+            .pdb-ant-tree-node-content-wrapper {
+              height: 3.6rem;
+              display: flex;
+              align-items: center;
+              overflow: hidden;
+
+              .pdb-ant-tree-title {
+                flex: 1 !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-wrap: nowrap;
+                line-height: 3.6rem;
+
+                .pdb-ant-dropdown-trigger {
+                  width: 100%;
+                  display: flex;
+                  height: 100%;
+                  padding: 0 1.6rem;
+                }
+              }
+
+              &:hover {
+                background-color: transparent !important;
+              }
+
+              &.pdb-ant-tree-node-selected {
+                background-color: transparent !important;
+              }
+            }
+          }
+        }
+
+        .relation-list {
+          .type-item {
+            display: flex;
+            padding: 0 1.6rem;
+          }
+        }
+
+        .type-item-label {
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          text-wrap: nowrap;
+          width: 0;
+        }
       }
     }
   }

@@ -89,7 +89,7 @@ export default function Left(props: any) {
   }, [types]);
 
   useEffect(() => {
-    const newData: any = new Array();
+    const newData: any = [];
     const loop = (data: any, newData: any): any => {
       data.forEach((item: any) => {
         const strTitle = item.title as string;
@@ -111,7 +111,7 @@ export default function Left(props: any) {
         }
 
         if (item.children && item.children.length > 0) {
-          const children = new Array();
+          const children: Array<any> = [];
           loop(item.children, children);
           if (index > -1 || children.length > 0) {
             newData.push({ ...item, title, children });
