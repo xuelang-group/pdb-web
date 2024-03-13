@@ -24,6 +24,7 @@ import TypeLeft from '@/pages/left/type/index';
 import TypeGraph from '@/pages/graph/type/index';
 import List from '@/pages/list';
 import CommonHeader from '@/pages/header/index';
+import EditHeader from './pages/header/editHeader';
 
 import PdbContent from '@/components/Content';
 import { getIconUrl } from '@/components/NodeIconPicker/CustomIconList';
@@ -64,7 +65,7 @@ function App(props: PdbConfig) {
     const _iconMap = {};
     const path = 'studio/' + userId + '/pdb/icons/';
     ossOperate().list(path).then(async (res: any) => {
-      let fetchList = new Array();
+      let fetchList: Array<any> = [];
       await _.get(res, 'data.Contents', []).forEach(function (file: any) {
         const icon = file.Key;
         const fetch = getIconUrl(icon).then(url => {
@@ -105,12 +106,14 @@ function App(props: PdbConfig) {
               <Routes>
                 <Route path="/template/:id" element={<CommonHeader route="template" headerEXtraWidth={headerEXtraWidth} />} />
                 <Route path="/object/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+                <Route path="/edit/:id?" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
               </Routes>
               <Content className="pdb-layout-content">
                 <Routes>
                   <Route path="/template/:id" element={<TemplateLeft />} />
                   <Route path="/object/:id/template?" element={<ObjectLeft />} />
                   <Route path="/type" element={<TypeLeft getIconList={getIconList} />} />
+                  <Route path="/edit/:id?" element={<TypeLeft getIconList={getIconList} />} />
                 </Routes>
                 <PdbContent>
                   <Routes>
@@ -123,6 +126,7 @@ function App(props: PdbConfig) {
                     <Route path="/template/:id" element={<CommonRight route="template" />} />
                     <Route path="/object/:id/template?" element={<CommonRight route="object" />} />
                     <Route path="/type" element={<CommonRight route="type" />} />
+                    <Route path="/edit/:id?" element={<CommonRight route='type' />} />
                   </Routes>
                 </PdbContent>
               </Content>
