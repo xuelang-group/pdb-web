@@ -1,12 +1,11 @@
-import { getQueryResult, runPql, runQuery } from "@/actions/query";
+import { getQueryResult, runPql } from "@/actions/query";
 import { NodeItemData, setCurrentGraphTab, setToolbarConfig } from "@/reducers/editor";
 import { StoreState } from "@/store";
-import { optionSymbolMap } from "@/utils/common";
 import { convertResultData } from "@/utils/objectGraph";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
-import { LoadingOutlined } from '@ant-design/icons';
-import { Alert, DatePicker, Empty, message, notification, Popover, RefSelectProps, Select, SelectProps, Spin, Tabs, Tag, Tooltip } from "antd";
-import _, { last } from "lodash";
+import { EnterOutlined } from '@ant-design/icons';
+import { Empty, message, notification, Popover, Select, Tabs, Tag } from "antd";
+import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,9 +14,7 @@ import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
 
-const { TabPane } = Tabs;
-type TagRender = SelectProps['tagRender'];
-
+// const { TabPane } = Tabs;
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -54,6 +51,9 @@ export default function AppExplore() {
       document.removeEventListener('keydown', onFocusSearch);
     }
   }, []);
+  useEffect(() => {
+    handleSearch(currentSearchValue, currentFocusIndex);
+  }, [searchTags]);
 
   useEffect(() => {
     const searchRef: any = searchRefArr.current[currentFocusIndex];
@@ -81,137 +81,125 @@ export default function AppExplore() {
       message.warning("正在搜索");
       return;
     }
+    if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = newValue;
     setSearchTags(newSearchTags);
     if (_.isEmpty(newValue)) {
       hanldeClear(index);
-    } else {
-      handleBlur(index, newValue);
     }
   };
 
-  let timeout: ReturnType<typeof setTimeout> | null, currentValue: string;
-
   // 文本框值变化时回调	
   const handleSearch = function (value: any, index: number) {
-    if (timeout) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    currentValue = value;
+    if (index < 0) return;
     setFilterLoading(true);
-    if (value) {
-      let prevSearchTagType = "";
-      const currentTags = searchTags[index],
-        currentTagLen = currentTags.length;
 
-      if (currentTagLen === 5) {
-        // 一层最多3个对象类型
-        setOptionMap({});
-        setFilterLoading(false);
-        return;
-      }
-      if (currentTags.length > 0) {
-        const prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
-        prevSearchTagType = _.get(prevSearchTag, 'type', "");
-      }
-      const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : [];
-      const optionMap = {};
-      let typeOptions: any[] = [], relationOptions: any[] = [], objectOptions: any[], allOptions: { label: string; key: string; options: any; }[] = [];
-      // 对象类型
-      if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
-        typeOptions = searchTypes.map((val, index: number) => ({
-          label: val['x.type.label'],
-          value: val['x.type.name'] + `-${currentTagLen}`,
-          key: val['x.type.name'],
-          type: 'type',
-          data: val,
-          prevSearchTagType
-        }));
-        const options = typeOptions.length > 3 ? typeOptions.slice(0, 3).concat({
-          type: "divider",
-          link: "type",
-        }) : typeOptions;
-        allOptions.push({
-          label: "对象类型",
-          key: "type",
-          options
-        });
-      }
+    let prevSearchTagType = "";
+    const currentTags = searchTags[index],
+      currentTagLen = currentTags.length;
 
-      // 关系类型 - 关系必须在类型后面
-      if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
-        const searchRelations = value ? relations.filter(val => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : []
-        if (searchRelations.length > 0) {
-          relationOptions = searchRelations.map((val, index: number) => ({
-            label: val['r.type.label'],
-            value: val['r.type.name'] + `-${currentTagLen}`,
-            key: val['r.type.name'],
-            type: 'relation',
-            data: val
-          }));
-          const options = relationOptions.length > 3 ? relationOptions.slice(0, 3).concat({
-            type: "divider",
-            link: "relation",
-          }) : relationOptions;
-          allOptions.push({
-            label: "关系类型",
-            key: "relation",
-            options
-          });
-        }
-      }
-
-      // if (prevSearchTagType == "" || prevSearchTagType === 'object') {
-      //   // 对象实例
-      //   runQuery('x.name', { graphId: 50107, match: "allofterms", names: [value] }, (success: boolean, response: any) => {
-      //     if (currentValue !== value) return;
-      //     if (success && response.length > 0) {
-      //       objectOptions = response.map((val: any, index: number) => ({ label: val['x.name'], value: val['uid'], type: 'object', data: val }));
-      //       const options = objectOptions.length > 3 ? objectOptions.slice(0, 3).concat({
-      //         type: "divider",
-      //         link: "object",
-      //       }) : objectOptions;
-      //       allOptions.push({
-      //         label: "对象实例",
-      //         key: "object",
-      //         options
-      //       });
-      //     }
-
-      //     Object.assign(optionMap, {
-      //       all: allOptions,
-      //       type: typeOptions,
-      //       relation: relationOptions,
-      //       object: objectOptions
-      //     });
-      //     setOptionMap(optionMap);
-      //     setFilterLoading(false);
-      //   });
-      // } else {
-      Object.assign(optionMap, {
-        all: allOptions,
-        type: typeOptions,
-        relation: relationOptions,
-      });
-      setOptionMap(optionMap);
-      setFilterLoading(false);
-      // }
-    } else {
+    if (currentTagLen === 5) {
+      // 一层最多3个对象类型
       setOptionMap({});
       setFilterLoading(false);
+      return;
     }
+    if (currentTags.length > 0) {
+      const prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
+      prevSearchTagType = _.get(prevSearchTag, 'type', "");
+    }
+    const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+    const optionMap = {};
+    let typeOptions: any[] = [], relationOptions: any[] = [], objectOptions: any[], allOptions: { label: string; key: string; options: any; }[] = [];
+    const enterOption = {
+      label: "回车换行",
+      value: "__ENTER__"
+    };
+    // 对象类型
+    if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
+      if (prevSearchTagType === 'relation') {
+        typeOptions.push(enterOption);
+      }
+      typeOptions = typeOptions.concat(searchTypes.map((val, index: number) => ({
+        label: val['x.type.label'],
+        value: val['x.type.name'] + `-${currentTagLen}`,
+        key: val['x.type.name'],
+        type: 'type',
+        data: val,
+        prevSearchTagType
+      })));
+      /**
+       * TODO: 当前单次搜索只有一种类型，因此暂时注释
+       */
+      // const options = typeOptions.length > 3 ? typeOptions.slice(0, 3).concat({
+      //   type: "divider",
+      //   link: "type",
+      // }) : typeOptions;
+      // allOptions.push({
+      //   label: "对象类型",
+      //   key: "type",
+      //   options
+      // });
+    } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
+      // 关系类型 - 关系必须在类型后面
+      const searchRelations = value ? relations.filter(val => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : relations;
+      if (searchRelations.length > 0) {
+        relationOptions.push(enterOption);
+        relationOptions = relationOptions.concat(searchRelations.map((val, index: number) => ({
+          label: val['r.type.label'],
+          value: val['r.type.name'] + `-${currentTagLen}`,
+          key: val['r.type.name'],
+          type: 'relation',
+          data: val
+        })));
+        /**
+         * TODO: 当前单次搜索只有一种类型，因此暂时注释
+         */
+        // const options = relationOptions.length > 3 ? relationOptions.slice(0, 3).concat({
+        //   type: "divider",
+        //   link: "relation",
+        // }) : relationOptions;
+        // allOptions.push({
+        //   label: "关系类型",
+        //   key: "relation",
+        //   options
+        // });
+      }
+    }
+
+    Object.assign(optionMap, {
+      /**
+       * TODO: 当前单次搜索只有一种类型，因此暂时注释
+       */
+      // all: allOptions, 
+      type: typeOptions,
+      relation: relationOptions,
+    });
+    if (typeOptions.length > 0) {
+      setSearchTab("type");
+    } else if (relationOptions.length > 0) {
+      setSearchTab("relation");
+    } else {
+      setSearchTab("");
+    }
+    setOptionMap(optionMap);
+    setFilterLoading(false);
     setSearchValue(value);
   }
 
   // 被选中时调用，参数为选中项的 value (或 key) 值
   const handleSelect = function (value: string, option: any, index: number) {
     if (searchLoading) return;
+    if (value === "__ENTER__") {
+      setSearchTagMap([...searchTagMap, {}]);
+      setSearchTags([...searchTags, []]);
+      setCurrentFocusIndex(searchTags.length);
+      return;
+    }
     const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
     Object.assign(newSearchTagsMap[index], { [value]: option });
     setSearchTagMap(newSearchTagsMap);
-    setDropdownOpen(false);
     setSearchValue("");
   }
 
@@ -266,7 +254,6 @@ export default function AppExplore() {
     }
   }
 
-
   const updateGraphData = function (data: any) {
     const graph = (window as any).PDB_GRAPH;
 
@@ -283,19 +270,8 @@ export default function AppExplore() {
     graph.zoom(1);
   }
 
-
   // 失去焦点
   const handleBlur = function (index: number, types?: string[]) {
-    // let query = "";
-    // searchTags[index].forEach(key => {
-    //   if (query !== "") {
-    //     query += " ";
-    //   }
-    //   if (searchTagMap[index][key]) {
-    //     query += _.get(searchTagMap[index][key], 'label', "") + _.get(searchTagMap[index][key], 'config.key', "")
-    //   }
-    // });
-    // searchPQL();
   }
 
   const searchPQL = function (_searchTagMap = searchTagMap) {
@@ -346,8 +322,9 @@ export default function AppExplore() {
   }
 
   const handleDropdownVisibleChange = function (visible: boolean) {
-    if (visible && filterPanelOpenKey !== null) {
-      setFilterPanelOpenKey(null);
+    if (visible) {
+      filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
+      handleSearch(currentSearchValue, currentFocusIndex);
     }
     setDropdownOpen(visible);
     setSearchValue("");
@@ -369,7 +346,7 @@ export default function AppExplore() {
     }
     if (_searchTags.length === 5) {
       tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
-    } else if (prevTagType !== "relation") {
+    } else if (prevTagType && prevTagType !== "relation") {
       tooltip = "当前关键词搜索结果包含：关系类型。";
       if (prevTagType === 'type') {
         tooltip += "若想搜索对象类型，请先回车换行。";
@@ -379,16 +356,15 @@ export default function AppExplore() {
     }
     return (
       <div className="pdb-explore-dropdown">
-        {currentSearchValue &&
-          <Tabs activeKey={selectedSearchTab} onChange={activeKey => setSearchTab(activeKey)}>
-            <TabPane tab="综合" key="all">
-            </TabPane>
-            {(optionMap["all"] || []).map((opt: any) => (
-              <TabPane tab={opt.label} key={opt.key}></TabPane>
-            ))}
-          </Tabs>
-        }
-        {currentSearchValue && originNode}
+        {/* TODO: 当前单次搜索只有一种类型，因此暂时注释 */}
+        {/* <Tabs activeKey={selectedSearchTab} onChange={activeKey => setSearchTab(activeKey)}>
+          <TabPane tab="综合" key="all">
+          </TabPane>
+          {(optionMap["all"] || []).map((opt: any) => (
+            <TabPane tab={opt.label} key={opt.key}></TabPane>
+          ))}
+        </Tabs> */}
+        {originNode}
         <div className="pdb-explore-dropdown-footer">
           <i className="spicon icon-tishi" style={{ fontSize: 12, marginRight: 6 }}></i>
           <span>{tooltip}</span>
@@ -398,12 +374,20 @@ export default function AppExplore() {
   }
 
   const optionRender = function (option: any, info: { index: number }) {
+    if (option.value === "__ENTER__") {
+      return (
+        <span className="pdb-explore-dropdown-enter">
+          <span style={{ flex: 1 }}>回车换行</span>
+          <EnterOutlined />
+        </span>
+      )
+    }
     if (!option.label) {
       const link = _.get(option, 'data.link', ''),
         linkLabel = _.get(typeLabelMap, link, '');
       return (
         <span
-          style={{ fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', display: 'flex', alignItems: 'center' }}
+          className="pdb-explore-dropdown-more"
           onClick={event => {
             event.preventDefault();
             event.stopPropagation();
@@ -535,8 +519,7 @@ export default function AppExplore() {
                 onKeyDown={(event) => {
                   if (event.keyCode === 8 && _.isEmpty(currentSearchValue) && searchTags[currentFocusIndex].length === 0 && currentFocusIndex > 0) {
                     hanldeClear(currentFocusIndex, currentFocusIndex - 1);
-                  } else if (event.keyCode === 13 && _.isEmpty(optionMap["all"]) && searchTags[searchTags.length - 1].length > 0) {
-                    setDropdownOpen(false);
+                  } else if (event.keyCode === 13 && _.isEmpty(optionMap[selectedSearchTab]) && searchTags[searchTags.length - 1].length > 0) {
                     setSearchTagMap([...searchTagMap, {}]);
                     setSearchTags([...searchTags, []]);
                     setCurrentFocusIndex(searchTags.length);

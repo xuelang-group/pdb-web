@@ -33,7 +33,8 @@ export default function Left() {
             dispatch(setObjectTemplateInfo(response));
             const { connections, processes } = response;
             const types = Object.values(processes as Array<ObjectState>).map((item: ObjectState) => item.metadata),
-              relations = connections.map((item: ConnectionState) => item.metadata);
+              relations = Object.values(Object.fromEntries(connections.map((item: any) => [item['r.type.name'], item])))
+                .map((item: ConnectionState) => item.metadata);
             dispatch(setTypes(types));
             dispatch(setRelations(relations));
           } else {
