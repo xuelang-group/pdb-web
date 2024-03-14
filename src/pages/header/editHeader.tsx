@@ -70,7 +70,7 @@ export default function EditHeader(props: HeaderProps) {
     <div className='pdb-header'>
       <a
         className="pdb-header-button"
-        onClick={() =>{
+        onClick={() => {
           navigate(`/${routerParams.id}`)
         }}
       >
@@ -83,7 +83,7 @@ export default function EditHeader(props: HeaderProps) {
           </h2>
           <a
             className="pdb-header-button"
-            onClick={() =>{
+            onClick={() => {
               navigate(`/${routerParams.id}`)
             }}
           >

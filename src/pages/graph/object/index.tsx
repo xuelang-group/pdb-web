@@ -16,7 +16,7 @@ import store from '@/store';
 import { RelationConfig } from '@/reducers/relation';
 import './index.less';
 import GraphToolbar from './GraphToolbar';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { isArray } from 'lodash';
 import { QueryResultState, setResult } from '@/reducers/query';
 import _ from 'lodash';
@@ -34,9 +34,10 @@ const modalTile: any = {
 let graph: any;
 let graphCopyItem: any;
 export default function Editor(props: EditorProps) {
-  const graphRef = useRef(null);
-  const routerParams = useParams();
-  const dispatch = useDispatch();
+  const graphRef = useRef(null),
+    routerParams = useParams(),
+    dispatch = useDispatch(),
+    navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
@@ -576,11 +577,15 @@ export default function Editor(props: EditorProps) {
         <GraphToolbar theme={props.theme} />
         <div ref={graphRef} className="graph" id="object-graph"></div>
         <div
-          className='pdb-object-template'
+          className='pdb-object-switch'
           onClick={event => {
-
+            event.stopPropagation();
+            navigate(`/${routerParams.id}/template`);
           }}
-        ></div>
+        >
+          <div className='pdb-object-switch-img'></div>
+          <span className='pdb-object-switch-label'>类型模板</span>
+        </div>
       </div>
       {/* <Modal
         title={modalTile[modalOperate]}

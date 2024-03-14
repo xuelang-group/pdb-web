@@ -1,23 +1,17 @@
-import G6, { Edge, Item } from '@antv/g6';
-import { message, Spin } from 'antd';
-import { useSelector, useDispatch } from 'react-redux';
+import G6 from '@antv/g6';
+import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useRef } from 'react';
-import { notification } from 'antd';
-import { useParams } from 'react-router-dom';
-import _, { bind } from 'lodash';
+import { useNavigate, useParams } from 'react-router-dom';
+import _ from 'lodash';
 
 import type { StoreState } from '@/store';
-import store from '@/store';
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
-import { G6OperateFunctions } from '@/g6/type/behavior';
 import { initG6 } from '@/g6';
 
 import './index.less';
 import { RelationConfig } from '@/reducers/relation';
-import { fittingString, GLOBAL_FONT_SIZE } from '@/utils/objectGraph';
-import { addDisableType, ConnectionState, ConstraintState, setGraphData, setGraphSavedMsg } from '@/reducers/template';
-import { getTemplateData, updateTemplateGraph } from '@/actions/template';
-import { defaultNodeColor, disabledNodeColor, getBorderColor, getSavedMsg, getTextColor } from '@/utils/common'
+import { fittingString } from '@/utils/objectGraph';
+import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common'
 import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 import { useResizeDetector } from 'react-resize-detector';
 import ossOperate from '@/actions/ossOperate';
@@ -30,19 +24,13 @@ interface EditorProps {
 }
 
 export default function Editor(props: EditorProps) {
-  const graphRef = useRef(null);
-  let sourceAnchorIdx: any = null, highlightNode: any = null;
-
-  const routerParams = useParams();
-  const dispatch = useDispatch();
+  const graphRef = useRef(null),
+    routerParams = useParams(),
+    navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    disableType = useSelector((state: StoreState) => state.template.disableType),
-    graphData = useSelector((state: StoreState) => state.template.graphData),
     userId = useSelector((state: StoreState) => state.app.appConfig.userId),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
-
-  let edgeRelation: any = null, edgeCreating = false, startNode: any = null;
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -136,7 +124,7 @@ export default function Editor(props: EditorProps) {
       fitView: true
     });
     (window as any).PDR_GRAPH = graph;
- 
+
     graph.get('canvas').set('localRefresh', false);
     graph.data(data);
     graph.render();
@@ -218,6 +206,16 @@ export default function Editor(props: EditorProps) {
   return (
     <div className="pdb-graph">
       <div ref={graphRef} className="graph" id="template-graph"></div>
+      <div
+        className='pdb-object-switch'
+        onClick={event => {
+          event.stopPropagation();
+          navigate(`/${routerParams.id}`);
+        }}
+      >
+        <div className='pdb-object-switch-img'></div>
+        <span className='pdb-object-switch-label'>类型实例</span>
+      </div>
     </div>
   );
 }

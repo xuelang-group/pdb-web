@@ -86,7 +86,7 @@ export default function AppExplore() {
     newSearchTags[index] = newValue;
     setSearchTags(newSearchTags);
     if (_.isEmpty(newValue)) {
-      hanldeClear(index);
+      handleClear(index);
     }
   };
 
@@ -212,7 +212,7 @@ export default function AppExplore() {
   }
 
   // 清空搜索
-  const hanldeClear = function (index: number, autoFocusIndex: number = -1) {
+  const handleClear = function (index: number, autoFocusIndex: number = -1) {
     let newSearchTags = JSON.parse(JSON.stringify(searchTags)),
       newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
     newSearchTags[index] = [];
@@ -244,9 +244,10 @@ export default function AppExplore() {
   }
 
   // 搜索框获取到焦点时
-  const hanldeFocus = function (index: number) {
+  const handleFocus = function (index: number) {
     const graph = (window as any).PDB_GRAPH;
     setCurrentFocusIndex(index);
+    handleSearch(currentSearchValue, index);
     if ((searchTags.length === 0 || (searchTags.length === 1 && _.isEmpty(searchTags[0]))) && graph) {
       setGraphDataMap({
         'main': graph.save()
@@ -324,7 +325,7 @@ export default function AppExplore() {
   const handleDropdownVisibleChange = function (visible: boolean) {
     if (visible) {
       filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
-      handleSearch(currentSearchValue, currentFocusIndex);
+      // handleSearch(currentSearchValue, currentFocusIndex);
     }
     setDropdownOpen(visible);
     setSearchValue("");
@@ -515,17 +516,17 @@ export default function AppExplore() {
                 onDeselect={value => handleDeselect(value, index)}
                 onDropdownVisibleChange={handleDropdownVisibleChange}
                 onBlur={() => handleBlur(index)}
-                onFocus={() => hanldeFocus(index)}
+                onFocus={() => handleFocus(index)}
                 onKeyDown={(event) => {
                   if (event.keyCode === 8 && _.isEmpty(currentSearchValue) && searchTags[currentFocusIndex].length === 0 && currentFocusIndex > 0) {
-                    hanldeClear(currentFocusIndex, currentFocusIndex - 1);
+                    handleClear(currentFocusIndex, currentFocusIndex - 1);
                   } else if (event.keyCode === 13 && _.isEmpty(optionMap[selectedSearchTab]) && searchTags[searchTags.length - 1].length > 0) {
                     setSearchTagMap([...searchTagMap, {}]);
                     setSearchTags([...searchTags, []]);
                     setCurrentFocusIndex(searchTags.length);
                   }
                 }}
-                onClear={() => hanldeClear(index)}
+                onClear={() => handleClear(index)}
               />
             </Popover>
           ))}

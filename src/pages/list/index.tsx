@@ -172,7 +172,7 @@ export default function List(props: ListProps) {
     if (!node.isLeaf) return;
     handleSelectTree([node.key], { node });
     dispatch(setCollapsed(true));
-    const pathname = `/${route}/${node.key}`;
+    const pathname = `/${node.key}`;
     if (location.pathname !== pathname) navigate(pathname, { replace: true });
   }
 

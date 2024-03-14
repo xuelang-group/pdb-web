@@ -57,12 +57,6 @@ export default function Preview(props: PreviewProps) {
               <span className="label">{appLabel}ID：</span>
               <span className="value">{activeItem.id}</span>
             </li>
-            {route === 'object' &&
-              <li className="pdb-list-preview-item">
-                <span className="label">模板ID：</span>
-                <span className="value">{_.get(activeItem, 'data.templateId') || '--'}</span>
-              </li>
-            }
             <li className="pdb-list-preview-item">
               <span className="label">{appLabel}描述：</span>
               <span className="value">{activeItem.description || '--'}</span>
