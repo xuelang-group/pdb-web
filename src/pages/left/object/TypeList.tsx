@@ -47,10 +47,8 @@ export default function TypeList(props: any) {
 
   const handleRelationSearch = function (value: string) {
     let relations = JSON.parse(JSON.stringify(allRelations));
-    console.log(relations)
     if (value) {
       relations = getRelationList(relations, value);
-      console.log(relations)
     }
     setRelationList(relations);
   }
@@ -113,7 +111,9 @@ export default function TypeList(props: any) {
     event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
   }
 
-  const handleClickMenu = () => {navigate(`/edit/${routerParams.id}`)}
+  const handleClickMenu = function (id: any) {
+    navigate(`/edit/${id}`)
+  }
 
   const renderTypeTree = useCallback((type: string) => {
     return (
@@ -137,7 +137,10 @@ export default function TypeList(props: any) {
               onPressEnter={(event: any) => handleSearch(event.target.value)}
             />
           </div>
-          <i className='operation-icon spicon icon-tianjia' onClick={() => {navigate(`/edit/${routerParams.id}`)}} />
+          <i
+            className='operation-icon spicon icon-tianjia' 
+            onClick={() => handleClickMenu(routerParams.id)} 
+          />
         </div>
         <div className='list-content'>
           <div className='type-list'>
@@ -152,7 +155,7 @@ export default function TypeList(props: any) {
               titleRender={(item: any) => (
                 <Dropdown
                   overlayClassName='pdb-dropdown-menu'
-                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu() }}
+                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id) }}
                   trigger={['contextMenu']}
                 >
                   <span
@@ -179,12 +182,11 @@ export default function TypeList(props: any) {
         </div>
       </div>
     );
-  }, [list]);
+  }, [list, routerParams?.id]);
 
   const renderRelationTree = useCallback((type: string) => {
     const prevLabel = type === 'type' ? 'x.' : 'r.';
     let relList = JSON.parse(JSON.stringify(relationList));
-    console.log(relList)
     return (
       <div className='list-container'>
         <div className='list-header'>
@@ -207,14 +209,17 @@ export default function TypeList(props: any) {
               onPressEnter={(event: any) => handleRelationSearch(event.target.value)}
             />
           </div>
-          <i className='operation-icon spicon icon-tianjia' onClick={() => {navigate(`/edit/${routerParams.id}`)}} />
+          <i 
+            className='operation-icon spicon icon-tianjia'
+            onClick={() => handleClickMenu(routerParams.id)} 
+          />
         </div>
         <div className='list-content'>
           <div className='type-list relation-list'>
             {relList.map((item: any, index: number) => {
               const label: any = item[prevLabel + 'type.label']
               return (
-                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu() }} trigger={['contextMenu']}>
+                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id) }} trigger={['contextMenu']}>
                   <span
                     className='type-item'
                   >
@@ -233,7 +238,7 @@ export default function TypeList(props: any) {
         </div>
       </div>
     );
-  }, [relationList]);
+  }, [relationList, routerParams?.id]);
 
   const tabs = [{
     key: 'type',

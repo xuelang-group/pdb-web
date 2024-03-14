@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { QueryItemState, QueryResultState, setList, setQueryState, setResult } from '@/reducers/query';
 import QueryBuilder from '@/components/QueryBuilder';
-import { getRelation } from '@/actions/relation';
+import { getRelationByGraphId } from '@/actions/relation';
 import { setRelations } from '@/reducers/relation';
 import { getQueryResult, runQuery } from '@/actions/query';
 import moment from 'moment';
@@ -71,7 +71,7 @@ export default function QueryList(props: any) {
 
   const handleModalOpen = function () {
     setModalOpen(true);
-    getRelation(null, (success: boolean, response: any) => {
+    getRelationByGraphId(routerParams?.id ,null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setRelations(response || []));
       } else {

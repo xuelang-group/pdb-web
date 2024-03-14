@@ -1,24 +1,24 @@
 import { Button, Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tree } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-
+import { useParams } from 'react-router-dom';
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
-import { getType, deleteType, addType } from '@/actions/type';
+import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
 import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { defaultNodeColor, fuzzyQuery, getBorderColor, getTextColor, uuid } from '@/utils/common';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
-import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
+import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
 import _ from 'lodash';
 const { Search } = Input;
 
 export default function Left(props: any) {
-
+  const routerParams = useParams();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     types = useSelector((state: StoreState) => state.type.data),
@@ -53,7 +53,7 @@ export default function Left(props: any) {
 
   useEffect(() => {
     props.getIconList(() => {
-      getType(null, (success: boolean, response: any) => {
+      getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
         if (success) {
           dispatch(setTypes(response || []));
           const treeData = getTypeTreeData(response);
@@ -69,7 +69,7 @@ export default function Left(props: any) {
       });
     });
 
-    getRelation(null, (success: boolean, response: any) => {
+    getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setRelations(response || []));
         setDefaultItem('relation', response);
@@ -219,7 +219,7 @@ export default function Left(props: any) {
 
   // 添加对象类型
   const createType = function (type: any) {
-    addType([type], (success: boolean, response: any) => {
+    addTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       setModalLoading(false);
       const message = modalLabel[modalType] + typeLabel[operateItem.type];
       if (success) {
@@ -245,7 +245,7 @@ export default function Left(props: any) {
 
   // 删除对象类型
   const removeType = function (typeName: string, nameLabel: string) {
-    deleteType(typeName, (success: boolean, response: any) => {
+    deleteTypeByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -269,7 +269,7 @@ export default function Left(props: any) {
 
   // 添加关系类型
   const createRelation = function (relation: any) {
-    addRelation([relation], (success: boolean, response: any) => {
+    addRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
       setModalLoading(false);
       const message = modalLabel[modalType] + typeLabel[operateItem.type];
       if (success) {
@@ -295,7 +295,7 @@ export default function Left(props: any) {
 
   // 删除关系类型
   const removeRelation = function (typeName: string, nameLabel: string) {
-    deleteRelation(typeName, (success: boolean, response: any) => {
+    deleteRelationByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -351,7 +351,7 @@ export default function Left(props: any) {
 
     let node;
     if (type === 'type') {
-      getType(item['x.type.name'], (success: boolean, response: any) => {
+      getTypeByGraphId(routerParams?.id, item['x.type.name'], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
         if (success) {
           const data = response[0];

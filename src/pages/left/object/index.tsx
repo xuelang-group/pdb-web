@@ -1,4 +1,6 @@
 import { getObjectData, getGraphTemplate } from '@/actions/object';
+import { getTypeByGraphId } from '@/actions/type';
+import { getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import { setGraphData, setObjectTemplateInfo } from '@/reducers/object';
 import { setRelations } from '@/reducers/relation';
@@ -27,23 +29,43 @@ export default function Left() {
     getObjectData(id, (success: boolean, data: any) => {
       if (success) {
         dispatch(setGraphData(data));
-        getGraphTemplate(id, (success: boolean, response: any) => {
+        getTypeByGraphId(id, null, (success: boolean, response: any) => {
           if (success) {
-            initObjectInfo(response);
-            dispatch(setObjectTemplateInfo(response));
-            const { connections, processes } = response;
-            const types = Object.values(processes as Array<ObjectState>).map((item: ObjectState) => item.metadata),
-              relations = Object.values(Object.fromEntries(connections.map((item: any) => [item['r.type.name'], item])))
-                .map((item: ConnectionState) => item.metadata);
-            dispatch(setTypes(types));
-            dispatch(setRelations(relations));
+            dispatch(setTypes(response || []));
           } else {
             notification.error({
-              message: '获取项目模板信息失败',
+              message: '获取对象类型列表失败',
+              description: response.message || response.msg
+            });
+          }
+        })
+        getRelationByGraphId(id, null, (success: boolean, response: any) => {
+          if (success) {
+            dispatch(setRelations(response || []));
+          } else {
+            notification.error({
+              message: '获取关系列表失败',
               description: response.message || response.msg
             });
           }
         });
+        // getGraphTemplate(id, (success: boolean, response: any) => {
+        //   if (success) {
+        //     initObjectInfo(response);
+        //     dispatch(setObjectTemplateInfo(response));
+        //     const { connections, processes } = response;
+        //     const types = Object.values(processes as Array<ObjectState>).map((item: ObjectState) => item.metadata),
+        //       relations = Object.values(Object.fromEntries(connections.map((item: any) => [item['r.type.name'], item])))
+        //         .map((item: ConnectionState) => item.metadata);
+        //     dispatch(setTypes(types));
+        //     dispatch(setRelations(relations));
+        //   } else {
+        //     notification.error({
+        //       message: '获取项目模板信息失败',
+        //       description: response.message || response.msg
+        //     });
+        //   }
+        // });
       } else {
         notification.error({
           message: '获取项目信息失败',
