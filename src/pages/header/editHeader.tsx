@@ -71,7 +71,7 @@ export default function EditHeader(props: HeaderProps) {
       <a
         className="pdb-header-button"
         onClick={() =>{
-          navigate(`/object/${routerParams.id}`)
+          navigate(`/${routerParams.id}`)
         }}
       >
         <i className="spicon icon-jiantou-zuo"></i>
@@ -84,7 +84,7 @@ export default function EditHeader(props: HeaderProps) {
           <a
             className="pdb-header-button"
             onClick={() =>{
-              navigate(`/object/${routerParams.id}`)
+              navigate(`/${routerParams.id}`)
             }}
           >
             退出

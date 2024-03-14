@@ -29,7 +29,7 @@ export default function Preview(props: PreviewProps) {
 
     const handleOpen = function () {
       dispatch(setCollapsed(true));
-      const pathname = `/${route}/${activeItem.id}`;
+      const pathname = `/${activeItem.id}`;
       if (location.pathname !== pathname) navigate(pathname, { replace: true });
     }
 

@@ -97,35 +97,35 @@ function App(props: PdbConfig) {
           }}
           getPopupContainer={node => (document.getElementsByClassName('pdb')[0] || document.body) as HTMLElement}
         >
-          <Router basename='/web/pdb'>
+          <Router basename='/web'>
             <Routes>
-              <Route path="/template/:id?" element={<List route="template" theme={theme} />}></Route>
-              <Route path="/object/:id?/template?" element={<List route="object" theme={theme} />}></Route>
+              {/* <Route path="/template/:id?" element={<List route="template" theme={theme} />}></Route> */}
+              <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
             </Routes>
             <Layout className="pdb-layout">
               <Routes>
-                <Route path="/template/:id" element={<CommonHeader route="template" headerEXtraWidth={headerEXtraWidth} />} />
-                <Route path="/object/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+                {/* <Route path="/template/:id" element={<CommonHeader route="template" headerEXtraWidth={headerEXtraWidth} />} /> */}
+                <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
                 <Route path="/edit/:id?" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
               </Routes>
               <Content className="pdb-layout-content">
                 <Routes>
-                  <Route path="/template/:id" element={<TemplateLeft />} />
-                  <Route path="/object/:id/template?" element={<ObjectLeft />} />
-                  <Route path="/type" element={<TypeLeft getIconList={getIconList} />} />
+                  {/* <Route path="/template/:id" element={<TemplateLeft />} /> */}
+                  <Route path="/:id/template?" element={<ObjectLeft />} />
+                  {/* <Route path="/type" element={<TypeLeft getIconList={getIconList} />} /> */}
                   <Route path="/edit/:id?" element={<TypeLeft getIconList={getIconList} />} />
                 </Routes>
                 <PdbContent>
                   <Routes>
-                    <Route path="/object/:id" element={<ObjectGraph theme={theme} getIconList={getIconList} />} />
-                    <Route path="/object/:id/template" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
-                    <Route path="/type" element={<TypeGraph theme={theme} />} />
+                    <Route path="/:id" element={<ObjectGraph theme={theme} getIconList={getIconList} />} />
+                    <Route path="/:id/template" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
+                    {/* <Route path="/type" element={<TypeGraph theme={theme} />} /> */}
                     <Route path="/edit/:id?" element={<TypeGraph theme={theme} />} />
                   </Routes>
                   <Routes>
-                    <Route path="/template/:id" element={<CommonRight route="template" />} />
-                    <Route path="/object/:id/template?" element={<CommonRight route="object" />} />
-                    <Route path="/type" element={<CommonRight route="type" />} />
+                    {/* <Route path="/template/:id" element={<CommonRight route="template" />} /> */}
+                    <Route path="/:id/template?" element={<CommonRight route="object" />} />
+                    {/* <Route path="/type" element={<CommonRight route="type" />} /> */}
                     <Route path="/edit/:id?" element={<CommonRight route='type' />} />
                   </Routes>
                 </PdbContent>
