@@ -12,12 +12,12 @@ import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
 import { defaultNodeColor, formatDate, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
-import { getType, setType } from '@/actions/type';
+import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 
 import './index.less';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { setRelation } from '@/actions/relation';
+import { setRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import { CustomObjectConfig, ObjectGraphDataState, setObjectDetail } from '@/reducers/object';
 import { getObject, setObject, updateObjectInfo } from '@/actions/object';
@@ -34,6 +34,7 @@ import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
 import dayjs from 'dayjs';
 import MultiModelParamEditor from './MultiModelParamEditor';
+import { useParams } from 'react-router-dom';
 
 const { Option } = Select;
 
@@ -41,6 +42,7 @@ interface RightProps {
   route: string // 路由
 }
 export default function Right(props: RightProps) {
+  const routerParams = useParams();
   const dispatch = useDispatch();
   const idRef = useRef<any>(), templateIdRef = useRef<any>();
 
@@ -308,7 +310,7 @@ export default function Right(props: RightProps) {
       }
 
       setTypeLoading(true);
-      getType(typeName, (success: boolean, response: any) => {
+      getTypeByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
         setTypeLoading(false);
         if (success) {
           const attrs = _.get(response[0], 'x.type.attrs', []);
@@ -341,7 +343,7 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date().getTime();
 
-    setType([type], (success: boolean, response: any) => {
+    setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       if (success) {
         const label = type['x.type.label'],
           name = type['x.type.name'];
@@ -376,7 +378,7 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date().getTime();
 
-    setRelation([relation], (success: boolean, response: any) => {
+    setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
       if (success) {
         const name = relation['r.type.name'],
           label = relation['r.type.label'];
