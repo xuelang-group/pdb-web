@@ -48,7 +48,7 @@ export default function Editor(props: EditorProps) {
     iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    userId = useSelector((state: StoreState) => state.app.appConfig.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
   const [graphData, setGraphData] = useState({}),
     [graphDataMap, setGraphDataMap] = useState<any>({});
 

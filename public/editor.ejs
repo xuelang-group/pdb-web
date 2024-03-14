@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字主线</title>
+  <style>
+    #container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 999 !important
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border-radius: 3px;
+      background-color: var(--scroll-thumb)
+    }
+
+    ::-webkit-scrollbar-track {
+      border-radius: 3px;
+      background-color: unset
+    }
+  </style>
+  <script>
+    window.pdbConfig = {
+      basePath: '<%= basePath %>'
+    }
+  </script>
+  <script defer="defer" src="<%= basePath %>/static/js/main.js"></script>
+  <link href="<%= basePath %>/static/css/main.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="container">
+    <div id="root"></div>
+  </div>
+</body>
+
+</html>

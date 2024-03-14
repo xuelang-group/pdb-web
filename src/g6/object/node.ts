@@ -14,7 +14,7 @@ export function registerNode() {
   G6.registerNode('pbdNode', {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode?.uid;
-      const userId = store.getState().app.appConfig.userId;
+      const userId = store.getState().app.systemInfo.userId;
       const { parent, name, id, data, childLen } = cfg;
       const isRootNode = parent === rootId;
       const metadata = JSON.parse((data as any)['x.metadata'] || '{}'),
@@ -225,7 +225,7 @@ export function registerNode() {
       const { name, data, id, parent, childLen } = cfg;
       const group = item.getContainer();
       const rootId = store.getState().editor.rootNode?.uid;
-      const userId = store.getState().app.appConfig.userId;
+      const userId = store.getState().app.systemInfo.userId;
       const nodeText = group.find(ele => ele.get('name') === 'node-text'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
         nodeRect = group?.find(ele => ele.get('name') === 'node-rect');

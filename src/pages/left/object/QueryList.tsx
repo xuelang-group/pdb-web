@@ -28,7 +28,7 @@ export default function QueryList(props: any) {
     queryStatus = useSelector((state: StoreState) => state.query.status),
     queryResult = useSelector((state: StoreState) => state.query.result),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    userId = useSelector((state: StoreState) => state.app.appConfig.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
 
   const [isSearched, setSearchedStatus] = useState(false),
     [searchValue, setSearchValue] = useState(''),

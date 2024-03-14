@@ -30,6 +30,7 @@ module.exports = {
           miniCssExtractPlugin.options.filename = 'static/css/[name].css'; // 修改为你想要的 CSS 文件名
           miniCssExtractPlugin.options.chunkFilename = 'static/css/[name].chunk.css';
         }
+        webpackConfig.output.publicPath = "./";
       }
 
       webpackConfig.ignoreWarnings = [/Failed to parse source map/];
@@ -43,11 +44,11 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb/api/v1': {
-        target: "http://pdb-dev.xuelangyun.com:30080",
+        target: "http://10.88.40.73/proxr/1000001/55525/08b403e0e1a611eeb5077d099eb5e29a/7000",
         changeOrigin: true,
         onProxyReq(proxyReq) {
           // 设置Cookie
-          proxyReq.setHeader('Cookie', 'pdb-dev.sid=s%3AJYtVZK_73rQiiyDKfkVTwD2kh0nunhri.IYMyewag%2BBXcSDsKW5VUIfyxuwGNeb7RycJjFEqCDcg; SL_G_WPT_TO=en; NG_TRANSLATE_LANG_KEY=zh_CN; SL_GWPT_Show_Hide_tmp=1; SL_wptGlobTipTmp=1');
+          proxyReq.setHeader('Cookie', 'os.sid=s%3A6jkOH4kSg2i08ddAjLnoSXOUvsr3hRUI.IMy5LENeOQUJIRS5FSXfyOuDcUh8cuRdlJF0tTl6NgE; Path=/; Expires=Thu, 14 Mar 2024 11:43:34 GMT; HttpOnly');
         },
       },
     },

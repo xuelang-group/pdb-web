@@ -15,7 +15,7 @@ export interface NodeIconPickerProps {
 export default function NodeIconPicker(props: NodeIconPickerProps) {
   const { currentIcon, changeIcon } = props;
   const iconMap = useSelector((state: StoreState) => state.editor.iconMap),
-    userId = useSelector((state: StoreState) => state.app.appConfig.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
 
   const [currentTab, setCurrentTab] = useState('default');
   const fontIcons = fonts.glyphs,

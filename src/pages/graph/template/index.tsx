@@ -28,7 +28,7 @@ export default function Editor(props: EditorProps) {
     routerParams = useParams(),
     navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    userId = useSelector((state: StoreState) => state.app.appConfig.userId),
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
 

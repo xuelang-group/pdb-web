@@ -1,4 +1,5 @@
 import axios from 'axios';
+import _ from 'lodash';
 axios.defaults.withCredentials = false;
 
 export default {
@@ -12,7 +13,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'POST',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         data,
         headers: header,
         timeout: 100000,
@@ -33,7 +34,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'GET',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         params,
         timeout: 100000,
         headers: header,
@@ -58,7 +59,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'PUT',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         data,
         headers: header,
         timeout: 100000,
@@ -80,7 +81,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'HEAD',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         headers: header,
         timeout: 100000,
       }).then((res) => {
@@ -101,7 +102,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'delete',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         data,
         timeout: 100000,
         headers: header,
@@ -119,7 +120,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'GET',
-        url,
+        url: _.get(window, 'pdbConfig.basePath', '') + url,
         responseType: responseType,
       }).then(
         (response) => {

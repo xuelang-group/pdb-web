@@ -59,7 +59,7 @@ export function registerNode() {
         if (icon) {
           let _textWidth = textWidth;
           if (hasEllipsis) _textWidth += 10;
-          const userId = store.getState().app.appConfig.userId;
+          const userId = store.getState().app.systemInfo.userId;
           const textColor: string = _.get(textShape, 'attrs.fill', '#1C2126'),
             iconColor = iconColorMap[textColor],
             iconX = -_textWidth / 2 - 5;
@@ -133,7 +133,7 @@ export function registerNode() {
             iconX = textX - _textWidth / 2 - 20;
           }
           const prevIconType = nodeIcon ? nodeIcon.get('type') : '',
-            userId = store.getState().app.appConfig.userId,
+            userId = store.getState().app.systemInfo.userId,
             currentIconType = icon.indexOf('studio/' + userId + '/pdb/icons/') > -1 ? 'image' : 'text';
 
           if (nodeIcon && (prevIconType === currentIconType)) {

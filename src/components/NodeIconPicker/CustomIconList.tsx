@@ -22,7 +22,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
   const uploadRef = useRef(null);
   const dispatch = useDispatch();
   const iconMap = useSelector((state: StoreState) => state.editor.iconMap),
-    userId = useSelector((state: StoreState) => state.app.appConfig.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
   const [iconKeys, setIconKeys] = useState([] as any),
     [customIconLoading, setCustomIconLoading] = useState(false);
 
