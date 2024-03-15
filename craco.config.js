@@ -43,7 +43,7 @@ module.exports = {
   },
   devServer: {
     proxy: {
-      '/pdb/api/v1': {
+      '/pdb': {
         target: "http://10.88.40.73/proxr/1000001/55525/08b403e0e1a611eeb5077d099eb5e29a/7000",
         changeOrigin: true,
         onProxyReq(proxyReq) {

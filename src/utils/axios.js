@@ -2,6 +2,10 @@ import axios from 'axios';
 import _ from 'lodash';
 axios.defaults.withCredentials = false;
 
+const wrapUrl = function (url) {
+  if (url.startsWith("http") || url.startsWith("https")) return url;
+  return _.get(window, 'pdbConfig.basePath', '') + url;
+}
 export default {
   post(url, data, headers) {
     const header = {
@@ -13,7 +17,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'POST',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         data,
         headers: header,
         timeout: 100000,
@@ -34,7 +38,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'GET',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         params,
         timeout: 100000,
         headers: header,
@@ -59,7 +63,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'PUT',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         data,
         headers: header,
         timeout: 100000,
@@ -81,7 +85,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'HEAD',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         headers: header,
         timeout: 100000,
       }).then((res) => {
@@ -102,7 +106,7 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'delete',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         data,
         timeout: 100000,
         headers: header,
@@ -120,11 +124,11 @@ export default {
     return new Promise((resolve, reject) => {
       axios({
         method: 'GET',
-        url: _.get(window, 'pdbConfig.basePath', '') + url,
+        url: wrapUrl(url),
         responseType: responseType,
       }).then(
         (response) => {
-          resolve(response);
+          resolve(response.data);
         },
         (err) => {
           reject(err);

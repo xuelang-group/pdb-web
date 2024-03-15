@@ -3413,7 +3413,7 @@ aliyun-sdk2@^1.0.5:
     xml2js "0.4.4"
     xmlbuilder "^13.0.2"
 
-aliyun-sdk@^1.10.18:
+aliyun-sdk@^1.10.18, aliyun-sdk@^1.12.10:
   version "1.12.10"
   resolved "https://registry.yarnpkg.com/aliyun-sdk/-/aliyun-sdk-1.12.10.tgz#3dc46b928cfba50fa95ab844d669c9cff636a723"
   integrity sha512-uTuDRw+YiZSiKoHl9wg8SaUvCyh2lj470X/piz8ZExscJal1D5JE95O4PoMAebLM9tGOd+X47vbQWe1q3wPxpg==

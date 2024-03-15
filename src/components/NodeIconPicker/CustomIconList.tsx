@@ -1,4 +1,4 @@
-import ossOperate from "@/actions/ossOperate";
+import { deleteObject, getObjectUrl, uploadObject } from "@/actions/minioOperate";
 import { setIconMap } from "@/reducers/editor";
 import { StoreState } from "@/store";
 import { Dropdown, message, notification, Spin } from "antd";
@@ -9,7 +9,7 @@ import { NodeIconPickerProps } from ".";
 
 export async function getIconUrl(iconKey: string) {
   return new Promise((resolve, reject) => {
-    ossOperate().url(iconKey).then(function (res: any) {
+    getObjectUrl(iconKey).then(function (res: any) {
       resolve(res.data)
     }).catch(() => {
       resolve('');
@@ -22,7 +22,8 @@ export default function CustomIconList(props: NodeIconPickerProps) {
   const uploadRef = useRef(null);
   const dispatch = useDispatch();
   const iconMap = useSelector((state: StoreState) => state.editor.iconMap),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
   const [iconKeys, setIconKeys] = useState([] as any),
     [customIconLoading, setCustomIconLoading] = useState(false);
 
@@ -41,7 +42,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
     // } else {
     const path = 'studio/' + userId + '/pdb/icons/',
       iconKey = path + file.name;
-    ossOperate().upload(iconKey, file,
+    uploadObject(iconKey, ossBucket, file,
       (res: any) => {
         console.log(res)
       },
@@ -72,7 +73,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
   const handleClickMenu = function (operation: string, index: number) {
     if (operation === 'remove') {
       const iconKey = iconKeys[index];
-      ossOperate().remove(iconKey).then(() => {
+      deleteObject(iconKey, ossBucket).then(() => {
         const newIconMap = JSON.parse(JSON.stringify(iconMap));
         delete newIconMap[iconKey];
         dispatch(setIconMap(newIconMap));

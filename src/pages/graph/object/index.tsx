@@ -21,7 +21,7 @@ import { isArray } from 'lodash';
 import { QueryResultState, setResult } from '@/reducers/query';
 import _ from 'lodash';
 import { edgeLabelStyle } from '@/g6/type/edge';
-import ossOperate from '@/actions/ossOperate';
+import { uploadObject } from '@/actions/minioOperate';
 
 interface EditorProps {
   theme: string
@@ -48,7 +48,8 @@ export default function Editor(props: EditorProps) {
     iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
   const [graphData, setGraphData] = useState({}),
     [graphDataMap, setGraphDataMap] = useState<any>({});
 
@@ -455,9 +456,10 @@ export default function Editor(props: EditorProps) {
     if (graphRef.current) {
       const id = routerParams.id;
       if (!id) return;
+      const { userId, ossBucket } = store.getState().app.systemInfo;
       let shotPath = 'studio/' + userId + '/pdb/graph/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        ossOperate().upload(shotPath, blob,
+        uploadObject(shotPath, ossBucket, blob,
           () => { console.log("progress") },
           () => { console.log("error"); isUpdateScreenshot = false; },
           () => { isUpdateScreenshot = false; }

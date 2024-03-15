@@ -14,8 +14,8 @@ import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common'
 import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 import { useResizeDetector } from 'react-resize-detector';
-import ossOperate from '@/actions/ossOperate';
 import { TypeConfig } from '@/reducers/type';
+import { uploadObject } from '@/actions/minioOperate';
 let graph: any;
 
 interface EditorProps {
@@ -29,6 +29,7 @@ export default function Editor(props: EditorProps) {
     navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
 
@@ -59,7 +60,7 @@ export default function Editor(props: EditorProps) {
       if (!tid) return;
       let shotPath = 'studio/' + userId + '/pdb/template/' + tid + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        ossOperate().upload(shotPath, blob,
+        uploadObject(shotPath, ossBucket, blob,
           () => { console.log("progress") },
           () => { console.log("error"); isUpdateScreenshot = false; },
           () => { isUpdateScreenshot = false; }

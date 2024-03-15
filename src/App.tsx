@@ -29,24 +29,27 @@ import PdbContent from '@/components/Content';
 import { getIconUrl } from '@/components/NodeIconPicker/CustomIconList';
 
 import { StoreState } from '@/store';
-import ossOperate from '@/actions/ossOperate';
+import { getObject, listObject, putObject } from '@/actions/minioOperate';
 import { PdbConfig } from '.';
 import ObjectHeaderExtra from './pages/header/ObjectHeaderExtra';
 
 import './App.less';
 import { getSystemInfo } from './actions/system';
-import { setSystemInfo } from './reducers/app';
+import { setCatalog, setSystemInfo } from './reducers/app';
 
 const { Content } = Layout;
 function App(props: PdbConfig) {
   const { locale, messages, theme, headerEXtraWidth } = props;
   const dispatch = useDispatch();
   const iconMap = useSelector((state: StoreState) => state.editor.iconMap), // 当前对象原始数据
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    catalog = useSelector((state: StoreState) => state.app.catalog);
   useEffect(() => {
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
+        const { userId, ossBucket } = response;
         dispatch(setSystemInfo(response));
+        getAppFolderList(userId, ossBucket)
       } else {
         notification.error({
           message: '获取系统信息失败：',
@@ -63,6 +66,21 @@ function App(props: PdbConfig) {
     };
   }, []);
 
+  const getAppFolderList = function (userId: number, ossBucket: string) {
+    const path = `studio/${userId}/pdb/config`;
+    getObject(path, ossBucket).then(data => {
+      dispatch(setCatalog(data.catalog));
+    }).catch(err => {
+      putObject(path, JSON.stringify({ catalog }), ossBucket).then(res => {
+        console.log(res)
+      }, err => {
+        console.log(err)
+      });
+    });
+  }
+
+
+
   // 获取自定义图标列表
   const getIconList = async function (callback: Function) {
     if (!iconMap) {
@@ -71,10 +89,10 @@ function App(props: PdbConfig) {
     };
     const _iconMap = {};
     const path = 'studio/' + userId + '/pdb/icons/';
-    ossOperate().list(path).then(async (res: any) => {
+    listObject(path).then(async (data: any) => {
       let fetchList: Array<any> = [];
-      await _.get(res, 'data.Contents', []).forEach(function (file: any) {
-        const icon = file.Key;
+      await (data || []).forEach(function (file: any) {
+        const icon = file.name;
         const fetch = getIconUrl(icon).then(url => {
           if (url) {
             Object.assign(_iconMap, { [icon]: url });

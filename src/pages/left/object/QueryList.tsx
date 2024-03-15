@@ -14,7 +14,7 @@ import { setRelations } from '@/reducers/relation';
 import { getQueryResult, runQuery } from '@/actions/query';
 import moment from 'moment';
 import { addToolbarConfig } from '@/reducers/editor';
-import ossOperate from '@/actions/ossOperate';
+import { getObject } from '@/actions/minioOperate';
 
 const { Search } = Input;
 
@@ -28,7 +28,8 @@ export default function QueryList(props: any) {
     queryStatus = useSelector((state: StoreState) => state.query.status),
     queryResult = useSelector((state: StoreState) => state.query.result),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
 
   const [isSearched, setSearchedStatus] = useState(false),
     [searchValue, setSearchValue] = useState(''),
@@ -46,11 +47,11 @@ export default function QueryList(props: any) {
     const graphId = routerParams.id;
     if (!graphId) return;
     const queryPath = 'studio/' + userId + '/pdb/graph/' + graphId + '/query.json';
-    ossOperate().get(queryPath).then(function (data: any) {
+    getObject(queryPath, ossBucket).then(function (data: any) {
       dispatch(setList(data));
       const queryStatus = data.map(() => ({ loading: false }));
       dispatch(setQueryState(queryStatus));
-    }, function () {
+    }).catch(() => {
       dispatch(setList([]));
       dispatch(setQueryState([]));
     });
@@ -71,7 +72,7 @@ export default function QueryList(props: any) {
 
   const handleModalOpen = function () {
     setModalOpen(true);
-    getRelationByGraphId(routerParams?.id ,null, (success: boolean, response: any) => {
+    getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setRelations(response || []));
       } else {
@@ -135,10 +136,10 @@ export default function QueryList(props: any) {
               });
             }
             return (
-            index === 0 ? _other : {
-              ..._other,
-              connectives
-            });
+              index === 0 ? _other : {
+                ..._other,
+                connectives
+              });
           });
           Object.assign(data, { type, constraints });
         }

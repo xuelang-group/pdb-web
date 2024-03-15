@@ -20,6 +20,7 @@ import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCat
 import Preview from "./Preview";
 import ModalForm from "./ModalForm";
 import "./index.less";
+import { putObject } from "@/actions/minioOperate";
 
 const { Search } = Input;
 const { DirectoryTree, TreeNode } = Tree;
@@ -70,7 +71,8 @@ export default function List(props: ListProps) {
     [formInitialValue, setFormInitialValue] = useState<any>({});
 
   const collapsed = useSelector((state: StoreState) => state.app.collapsed),
-    catalog = useSelector((state: StoreState) => state.app.catalog);
+    catalog = useSelector((state: StoreState) => state.app.catalog),
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
 
   const leftRef: React.Ref<any> = useRef(null),
     treeRef: React.Ref<any> = useRef(null),
@@ -104,13 +106,6 @@ export default function List(props: ListProps) {
 
   useEffect(() => {
     setTreeLoading(true);
-    if (route === 'object') {
-      getTemplateList(function (success: boolean, response: any) {
-        if (success) {
-          dispatch(setTemplateList(response));
-        }
-      });
-    }
     routeActionMap[route].get(function (success: boolean, response: any) {
       if (success) {
         setDataList(response);
@@ -325,8 +320,20 @@ export default function List(props: ListProps) {
     const newCatalog = JSON.parse(JSON.stringify(catalog));
     const newFolderId = getNewFolderId(newCatalog);
     moveCatalog(newCatalog, parentDir, [{ id: newFolderId, label: name, folder: true, children: [] }]);
-    console.log(newCatalog);
-    handleModalCancel();
+    saveCatalog(newCatalog, () => {
+      handleModalCancel();
+    });
+  }
+
+  const saveCatalog = function (catalog: any, callback?: Function) {
+    const { userId, ossBucket } = systemInfo;
+    const path = `studio/${userId}/pdbConfig`;
+    putObject(path, JSON.stringify({ catalog }), ossBucket).then(res => {
+      dispatch(setCatalog(catalog));
+      callback && callback();
+    }, err => {
+      callback && callback();
+    });
   }
 
   // 重命名
@@ -453,8 +460,7 @@ export default function List(props: ListProps) {
           if (!removeAll) {
             moveCatalog(newCatalog, myDirId, folderChildren);
           }
-          dispatch(setCatalog(newCatalog));
-          console.log(newCatalog);
+          saveCatalog(newCatalog);
         }
       });
     } else {
