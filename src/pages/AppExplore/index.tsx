@@ -5,7 +5,7 @@ import { convertResultData } from "@/utils/objectGraph";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Empty, message, notification, Popover, Select, Tabs, Tag } from "antd";
-import _ from "lodash";
+import _, { bind } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,6 +13,8 @@ import { useParams } from "react-router";
 import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
+import relation, { RelationConfig } from "@/reducers/relation";
+import { TypeConfig } from "@/reducers/type";
 
 // const { TabPane } = Tabs;
 
@@ -29,6 +31,8 @@ export default function AppExplore() {
 
   const types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data),
+    relationMap = useSelector((state: StoreState) => state.editor.relationMap),
+    typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     showSearch = useSelector((state: StoreState) => state.editor.showSearch);
   const [exploreExpand, setExploreExpand] = useState(false),
@@ -95,7 +99,7 @@ export default function AppExplore() {
     if (index < 0) return;
     setFilterLoading(true);
 
-    let prevSearchTagType = "";
+    let prevSearchTag = null, prevSearchTagType = "";
     const currentTags = searchTags[index],
       currentTagLen = currentTags.length;
 
@@ -106,7 +110,7 @@ export default function AppExplore() {
       return;
     }
     if (currentTags.length > 0) {
-      const prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
+      prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
       prevSearchTagType = _.get(prevSearchTag, 'type', "");
     }
     const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
@@ -118,10 +122,23 @@ export default function AppExplore() {
     };
     // 对象类型
     if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
+      let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
       if (prevSearchTagType === 'relation') {
         typeOptions.push(enterOption);
+        const relationName = prevSearchTag['key'],
+          sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
+          targetTypeMap: any = {};
+
+        if (sourceType) {
+          relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
+            if (bind.source === sourceType) {
+              Object.assign(targetTypeMap, { [bind.target]: bind.target });
+            }
+          });
+          _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
+        }
       }
-      typeOptions = typeOptions.concat(searchTypes.map((val, index: number) => ({
+      typeOptions = typeOptions.concat(_types.map((val, index: number) => ({
         label: val['x.type.label'],
         value: val['x.type.name'] + `-${currentTagLen}`,
         key: val['x.type.name'],
@@ -143,10 +160,12 @@ export default function AppExplore() {
       // });
     } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
       // 关系类型 - 关系必须在类型后面
-      const searchRelations = value ? relations.filter(val => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : relations;
+      const _relations = Array.from(new Set(_.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', [])))
+        .map((id: string) => relationMap[id]);
+      const searchRelations = value ? _relations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : _relations;
       if (searchRelations.length > 0) {
         relationOptions.push(enterOption);
-        relationOptions = relationOptions.concat(searchRelations.map((val, index: number) => ({
+        relationOptions = relationOptions.concat(searchRelations.map((val: RelationConfig, index: number) => ({
           label: val['r.type.label'],
           value: val['r.type.name'] + `-${currentTagLen}`,
           key: val['r.type.name'],
@@ -247,7 +266,6 @@ export default function AppExplore() {
   const handleFocus = function (index: number) {
     const graph = (window as any).PDB_GRAPH;
     setCurrentFocusIndex(index);
-    handleSearch(currentSearchValue, index);
     if ((searchTags.length === 0 || (searchTags.length === 1 && _.isEmpty(searchTags[0]))) && graph) {
       setGraphDataMap({
         'main': graph.save()
@@ -322,10 +340,10 @@ export default function AppExplore() {
     });
   }
 
-  const handleDropdownVisibleChange = function (visible: boolean) {
+  const handleDropdownVisibleChange = function (visible: boolean, index: number) {
     if (visible) {
       filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
-      // handleSearch(currentSearchValue, currentFocusIndex);
+      handleSearch(currentSearchValue, index);
     }
     setDropdownOpen(visible);
     setSearchValue("");
@@ -514,7 +532,7 @@ export default function AppExplore() {
                 onSearch={value => handleSearch(value, index)}
                 onSelect={(value, option) => handleSelect(value, option, index)}
                 onDeselect={value => handleDeselect(value, index)}
-                onDropdownVisibleChange={handleDropdownVisibleChange}
+                onDropdownVisibleChange={open => handleDropdownVisibleChange(open, index)}
                 onBlur={() => handleBlur(index)}
                 onFocus={() => handleFocus(index)}
                 onKeyDown={(event) => {
