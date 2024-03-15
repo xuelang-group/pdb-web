@@ -30,7 +30,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const dispatch = useDispatch();
   const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // root节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
-    objectTemplateInfo = useSelector((state: StoreState) => state.object.objectTemplateInfo),  // 所有的关系列表，数组
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
@@ -87,21 +86,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }
     showRelationLine ? showRelationLines() : hideRelationLines();
   }, [allObjects]);
-
-  useEffect(() => {
-    console.log(_.get(objectTemplateInfo, 'processes', []))
-    let uniqKey: any = {}, relationList: any = [];
-    _.get(objectTemplateInfo, 'connections', []).forEach(function (connection: ConnectionState) {
-      const relationId = connection['r.type.name'];
-      if (uniqKey[relationId]) return;
-      Object.assign(uniqKey, {
-        [relationId]: relationId
-      });
-      relationList.push(connection);
-    });
-    setRelationList(relationList);
-    setTypeList(Object.values(_.get(objectTemplateInfo, 'processes', {})));
-  }, [objectTemplateInfo])
 
   useEffect(() => {
     if (showRelationLine) showRelationLines();

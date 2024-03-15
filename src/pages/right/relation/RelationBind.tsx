@@ -1,6 +1,5 @@
 import { StoreState } from "@/store";
 import { Button, Form, Select, Table } from "antd";
-import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import './index.less';

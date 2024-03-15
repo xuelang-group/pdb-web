@@ -1320,38 +1320,23 @@ export function registerBehavior() {
         this.dropTarget = target;
         return;
       }
-      countObject(dropAddTypeId, (success: boolean, response: any) => {
-        if (success) {
-          const { objectTemplateInfo } = store.getState().object;
-          const { processes } = objectTemplateInfo as TemplateGraphDataState;
-          const templateObjectDetail = processes[dropAddTypeId];
-          const constraints = templateObjectDetail['metadata']['x.type.constraints'] || [];
-          const maximum = constraints.filter(val => val.type === 'maximum');
-          const maxNum = maximum && maximum.length > 0 ? maximum[0].value : Infinity;
-          const dropAddTypeName = dropAddType['x.type.label'];
-
-          if (maxNum <= response) {
-            message.warning(`当前 “${dropAddTypeName}” 对象达到数量上线，最多${maxNum}个`);
-            return;
-          }
-          const dropAddTypeAttrs = {};
-          (dropAddType['x.type.attrs'] || []).forEach((attr: any) => {
-            if (attr.default !== undefined && attr.default !== '') {
-              Object.assign(dropAddTypeAttrs, {
-                [attr.name]: attr.default
-              });
-            }
-          })
-          const graph = this.graph as Graph;
-          const { cfg } = (target as IShapeBase);
-          dropCanvasAddNode({
-            id: dropAddTypeId,
-            name: dropAddTypeName,
-            attrs: dropAddTypeAttrs,
-            metadata: dropAddTypeMetadata
-          }, item, cfg.name, graph);
+      const dropAddTypeName = dropAddType['x.type.label'];
+      const dropAddTypeAttrs = {};
+      (dropAddType['x.type.attrs'] || []).forEach((attr: any) => {
+        if (attr.default !== undefined && attr.default !== '') {
+          Object.assign(dropAddTypeAttrs, {
+            [attr.name]: attr.default
+          });
         }
-      });
+      })
+      const graph = this.graph as Graph;
+      const { cfg } = (target as IShapeBase);
+      dropCanvasAddNode({
+        id: dropAddTypeId,
+        name: dropAddTypeName,
+        attrs: dropAddTypeAttrs,
+        metadata: dropAddTypeMetadata
+      }, item, cfg.name, graph);
     },
   });
 
@@ -1373,35 +1358,37 @@ export function registerBehavior() {
       const model = node.get('model');
       (window as any).PDB_GRAPH = graph;
 
-      const { ctrlKey, metaKey } = event.originalEvent as any;
-      const { currentEditModel, multiEditModel } = store.getState().editor;
-      if (ctrlKey || metaKey) {
-        // ctrl + 点击节点 多选
-        let newMultiEditModel = JSON.parse(JSON.stringify(multiEditModel || []));
-        if (currentEditModel) {
-          newMultiEditModel.push(currentEditModel);
-          store.dispatch(setCurrentEditModel(null));
+      if (event.originalEvent) {
+        const { ctrlKey, metaKey } = event.originalEvent as any;
+        const { currentEditModel, multiEditModel } = store.getState().editor;
+        if (ctrlKey || metaKey) {
+          // ctrl + 点击节点 多选
+          let newMultiEditModel = JSON.parse(JSON.stringify(multiEditModel || []));
+          if (currentEditModel) {
+            newMultiEditModel.push(currentEditModel);
+            store.dispatch(setCurrentEditModel(null));
+          }
+          if (node.hasState('selected')) {
+            // 取消选中
+            if (currentEditModel?.id === model.id) store.dispatch(setCurrentEditModel(null));
+            newMultiEditModel = newMultiEditModel.filter((item: NodeItemData) => item.id !== model.id);
+            graph.setItemState(model.id, 'selected', false);
+          } else {
+            newMultiEditModel.push(model);
+            graph.setItemState(model.id, 'selected', true);
+          }
+          if (newMultiEditModel.length !== 1) {
+            store.dispatch(setMultiEditModel(newMultiEditModel));
+          } else {
+            store.dispatch(setMultiEditModel(null));
+            store.dispatch(setCurrentEditModel(newMultiEditModel[0]));
+            graph.setItemState(newMultiEditModel[0].id, 'selected', true);
+          }
+          return;
         }
-        if (node.hasState('selected')) {
-          // 取消选中
-          if (currentEditModel?.id === model.id) store.dispatch(setCurrentEditModel(null));
-          newMultiEditModel = newMultiEditModel.filter((item: NodeItemData) => item.id !== model.id);
-          graph.setItemState(model.id, 'selected', false);
-        } else {
-          newMultiEditModel.push(model);
-          graph.setItemState(model.id, 'selected', true);
-        }
-        if (newMultiEditModel.length !== 1) {
-          store.dispatch(setMultiEditModel(newMultiEditModel));
-        } else {
-          store.dispatch(setMultiEditModel(null));
-          store.dispatch(setCurrentEditModel(newMultiEditModel[0]));
-          graph.setItemState(newMultiEditModel[0].id, 'selected', true);
-        }
-        return;
-      }
 
-      if (currentEditModel?.id === model.id) return;
+        if (currentEditModel?.id === model.id) return;
+      }
 
       store.dispatch(setMultiEditModel(null));
       store.dispatch(setCurrentEditModel(model));
@@ -1426,7 +1413,7 @@ export function registerBehavior() {
       const { currentEditModel, multiEditModel } = store.getState().editor;
       if (currentEditModel) store.dispatch(setCurrentEditModel(null));
       if (multiEditModel) store.dispatch(setMultiEditModel(null));
-      
+
       // 取消选中高亮
       G6OperateFunctions.unSelectedItem('node', 'selected', graph);
       G6OperateFunctions.unSelectedItem('edge', 'selected', graph);

@@ -47,14 +47,12 @@ export interface ObjectGraphDataState {
 interface ObjectState {
   data: Array<CustomObjectConfig>
   graphData: ObjectGraphDataState | {}
-  objectTemplateInfo: TemplateGraphDataState | {}
 }
 
 // 使用该类型定义初始 state
 const initialState: ObjectState = {
   data: [],
-  graphData: {},
-  objectTemplateInfo: {},
+  graphData: {}
 }
 
 // 对象列表
@@ -68,9 +66,6 @@ export const objectSlice = createSlice({
     },
     setGraphData: (state, action: PayloadAction<any>) => {
       state.graphData = JSON.parse(JSON.stringify(action.payload));
-    },
-    setObjectTemplateInfo: (state, action: PayloadAction<Array<CustomObjectConfig>>) => {
-      state.objectTemplateInfo = JSON.parse(JSON.stringify(action.payload));
     },
     setObjectDetail: (state, action: PayloadAction<{ uid?: string, options: any, index?: number }>) => {
       const { uid, options, index } = action.payload;
@@ -91,5 +86,5 @@ export const objectSlice = createSlice({
   }
 })
 
-export const { setObjects, setObjectDetail, reset, setGraphData, setObjectTemplateInfo } = objectSlice.actions
+export const { setObjects, setObjectDetail, reset, setGraphData } = objectSlice.actions
 export default objectSlice.reducer

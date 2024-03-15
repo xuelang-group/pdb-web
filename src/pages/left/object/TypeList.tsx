@@ -1,4 +1,4 @@
-import { Input, InputRef,Tabs,Tree,Dropdown } from 'antd';
+import { Input, InputRef, Tabs, Tree, Dropdown } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 import './index.less';
@@ -10,9 +10,9 @@ import _ from 'lodash';
 
 const { Search } = Input;
 
-export default function TypeList(props: any) {
+export default function TypeList() {
   const allTypes = useSelector((state: StoreState) => state.type.data);
-  const allRelations  = useSelector((state: StoreState) => state.relation.data);
+  const allRelations = useSelector((state: StoreState) => state.relation.data);
   const [currentTab, setCurrentTab] = useState('type');
   const [list, setList] = useState(allTypes),
     [relationList, setRelationList] = useState(allRelations),
@@ -138,17 +138,18 @@ export default function TypeList(props: any) {
             />
           </div>
           <i
-            className='operation-icon spicon icon-tianjia' 
-            onClick={() => handleClickMenu(routerParams.id)} 
+            className='operation-icon spicon icon-tianjia'
+            onClick={() => handleClickMenu(routerParams.id)}
           />
         </div>
         <div className='list-content'>
           <div className='type-list'>
             <Tree
               treeData={list.map((item: any) => ({
-                title:  item['x.type.label'],
+                title: item['x.type.label'],
                 key: item['x.type.name'],
                 className: 'type-item',
+                data: item
               }))}
               // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
@@ -159,9 +160,9 @@ export default function TypeList(props: any) {
                   trigger={['contextMenu']}
                 >
                   <span
-                    className='type-item' 
+                    className='type-item'
                     draggable={currentGraphTab === 'main'}
-                    onDragStart={event => handleDragStart(event, item)}
+                    onDragStart={event => handleDragStart(event, item.data)}
                   >
                     <i className='iconfont icon-duixiangleixing'></i>
                     <span className='type-item-label'>{item.title}</span>
@@ -171,7 +172,7 @@ export default function TypeList(props: any) {
               // expandedKeys={expandedKeys}
               blockNode
               showIcon
-              // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
+            // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
             />
           </div>
           {list.length === 0 && isSearched &&
@@ -209,9 +210,9 @@ export default function TypeList(props: any) {
               onPressEnter={(event: any) => handleRelationSearch(event.target.value)}
             />
           </div>
-          <i 
+          <i
             className='operation-icon spicon icon-tianjia'
-            onClick={() => handleClickMenu(routerParams.id)} 
+            onClick={() => handleClickMenu(routerParams.id)}
           />
         </div>
         <div className='list-content'>

@@ -48,7 +48,6 @@ export default function Right(props: RightProps) {
 
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    objectTemplateInfo = useSelector((state: StoreState) => state.object.objectTemplateInfo),
     iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel);
 
@@ -299,16 +298,6 @@ export default function Right(props: RightProps) {
   const getObjectTypeInfo = function (typeName: string) {
     return new Promise((resolve) => {
       if (!typeName) return;
-      if (objectTemplateInfo) {
-        const processes = (objectTemplateInfo as TemplateGraphDataState).processes;
-        if (processes && processes[typeName]) {
-          const attrs = processes[typeName].metadata['x.type.attrs'];
-          setAttrs(attrs);
-          resolve(attrs);
-          return;
-        }
-      }
-
       setTypeLoading(true);
       getTypeByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
         setTypeLoading(false);

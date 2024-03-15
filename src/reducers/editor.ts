@@ -73,6 +73,7 @@ interface EditorState {
   currentEditModel: NodeItemData | EdgeItemData | TypeItemData | null // 所有 - 单个选中编辑
   iconMap: any // 所有 - 图标Map
   showSearch: boolean
+  typeRelationMap: {}
 }
 
 // 使用该类型定义初始 state
@@ -97,7 +98,8 @@ const initialState: EditorState = {
   },
   currentEditModel: null,
   iconMap: {},
-  showSearch: false //显示搜索框
+  typeRelationMap: {},
+  showSearch: false, //显示搜索框
 }
 
 export const editorSlice = createSlice({
@@ -108,6 +110,9 @@ export const editorSlice = createSlice({
     reset: (state) => initialState,
     setRootNode: (state, action: PayloadAction<any>) => {
       state.rootNode = action.payload;
+    },
+    setTypeRelationMap: (state, action: PayloadAction<any>) => {
+      state.typeRelationMap = JSON.parse(JSON.stringify(action.payload));
     },
     setIconMap: (state, action: PayloadAction<any>) => {
       state.iconMap = action.payload;
@@ -167,5 +172,6 @@ export const editorSlice = createSlice({
 });
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setIconMap, setShowSearch } = editorSlice.actions
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setIconMap, setShowSearch, setTypeRelationMap
+} = editorSlice.actions
 export default editorSlice.reducer

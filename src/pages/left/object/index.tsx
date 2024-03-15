@@ -1,22 +1,23 @@
-import { getObjectData, getGraphTemplate } from '@/actions/object';
-import { getTypeByGraphId } from '@/actions/type';
-import { getRelationByGraphId } from '@/actions/relation';
-import PdbPanel from '@/components/Panel';
-import { setGraphData, setObjectTemplateInfo } from '@/reducers/object';
-import { setRelations } from '@/reducers/relation';
-import { ConnectionState, ObjectState, TemplateGraphDataState } from '@/reducers/template';
-import { setTypes } from '@/reducers/type';
 import { notification } from 'antd';
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import './index.less';
-import QueryList from './QueryList';
+
+import { getObjectData } from '@/actions/object';
+import { getTypeByGraphId } from '@/actions/type';
+import { getRelationByGraphId } from '@/actions/relation';
+
+import { setGraphData } from '@/reducers/object';
+import { RelationConfig, setRelations } from '@/reducers/relation';
+import { setTypes } from '@/reducers/type';
+import { setTypeRelationMap } from '@/reducers/editor';
+
+import PdbPanel from '@/components/Panel';
 import TypeList from './TypeList';
+import './index.less';
 
 export default function Left() {
-  const [typeList, setTypeList] = useState([] as any);
   const routerParams = useParams();
   const dispatch = useDispatch();
 
@@ -38,52 +39,58 @@ export default function Left() {
               description: response.message || response.msg
             });
           }
-        })
+        });
         getRelationByGraphId(id, null, (success: boolean, response: any) => {
+          let typeRelationMap: any = {};
           if (success) {
             dispatch(setRelations(response || []));
+            (response || []).forEach(function (relation: RelationConfig) {
+              const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
+                relationId = relation['r.type.name'];
+              binds.forEach(function (bind) {
+                const { source, target } = bind;
+                if (typeRelationMap[source]) {
+                  if (typeRelationMap[source]['source']) {
+                    typeRelationMap[source]['source'].push(relationId);
+                  } else {
+                    Object.assign(typeRelationMap[source], { source: [relationId] });
+                  }
+                } else {
+                  Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
+                }
+                if (typeRelationMap[target]) {
+                  if (typeRelationMap[target]['target']) {
+                    typeRelationMap[target]['target'].push(relationId);
+                  } else {
+                    Object.assign(typeRelationMap[target], { target: [relationId] });
+                  }
+                } else {
+                  Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
+                }
+              });
+            });
           } else {
             notification.error({
               message: '获取关系列表失败',
               description: response.message || response.msg
             });
           }
+          dispatch(setTypeRelationMap(typeRelationMap));
         });
-        // getGraphTemplate(id, (success: boolean, response: any) => {
-        //   if (success) {
-        //     initObjectInfo(response);
-        //     dispatch(setObjectTemplateInfo(response));
-        //     const { connections, processes } = response;
-        //     const types = Object.values(processes as Array<ObjectState>).map((item: ObjectState) => item.metadata),
-        //       relations = Object.values(Object.fromEntries(connections.map((item: any) => [item['r.type.name'], item])))
-        //         .map((item: ConnectionState) => item.metadata);
-        //     dispatch(setTypes(types));
-        //     dispatch(setRelations(relations));
-        //   } else {
-        //     notification.error({
-        //       message: '获取项目模板信息失败',
-        //       description: response.message || response.msg
-        //     });
-        //   }
-        // });
       } else {
         notification.error({
           message: '获取项目信息失败',
           description: data.message || data.msg
         });
+        dispatch(setTypeRelationMap({}));
       }
     });
-  }
-
-  const initObjectInfo = (templateInfo: TemplateGraphDataState) => {
-    const { processes } = templateInfo;
-    setTypeList(Object.values(processes));
   }
 
   return (
     <div className='pdb-left-sider'>
       <PdbPanel className='pdb-type-left' title='类型列表' direction="left">
-        <TypeList list={typeList} />
+        <TypeList />
       </PdbPanel>
       {/* <PdbPanel className='pdb-object-search-left' title='查询构建器' direction="left">
         <QueryList />

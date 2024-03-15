@@ -17,8 +17,8 @@ export default function RelationList(props: RelationListProps) {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
   const relationMap = useSelector((store: StoreState) => store.editor.relationMap),
+    typeRelationMap: any = useSelector((store: StoreState) => store.editor.typeRelationMap),
     { relationLines, showRelationLine } = useSelector((store: StoreState) => store.editor.toolbarConfig.main),
-    objectTemplateInfo = useSelector((state: StoreState) => state.object.objectTemplateInfo),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
 
   const [relations, setRelations] = useState([]),
@@ -79,54 +79,23 @@ export default function RelationList(props: RelationListProps) {
   }, [props.source]);
 
   useEffect(() => {
-    if (!objectTemplateInfo) return;
-    const { connections } = (objectTemplateInfo as TemplateGraphDataState);
-    const _relationConstrarintMap: any = {}
-    connections && connections.forEach((connection: ConnectionState) => {
-      const { src, tgt, metadata } = connection;
-      let maxTgt = Infinity;
-      metadata['r.constraints'] && metadata['r.constraints'].forEach((constraint: ConstraintState) => {
-        if (constraint.type === 'max_tgt' && constraint.value < maxTgt) {
-          maxTgt = constraint.value;
-        }
-      });
-      const relationName = connection['r.type.name'];
-      if (_relationConstrarintMap[relationName]) {
-        Object.assign(_relationConstrarintMap[relationName], {
-          [`${src.process}-${tgt.process}`]: maxTgt
-        });
-      } else {
-        Object.assign(_relationConstrarintMap, {
-          [relationName]: { [`${src.process}-${tgt.process}`]: maxTgt }
-        });
-      }
-    });
-    setRelationConstrarintMap(_relationConstrarintMap);
-    updateRelationList();
-  }, [objectTemplateInfo]);
-
-  useEffect(() => {
-    updateRelationList();
+    currentEditModel && updateRelationList(currentEditModel.data['x.type.name']);
   }, [currentEditModel?.id]);
 
-  function updateRelationList() {
-    if (!currentEditModel) return;
-    const { connections } = objectTemplateInfo as TemplateGraphDataState;
+  function updateRelationList(typeId: any) {
     const relationList: any = [];
     const usedRelationMap: any = {};
-    connections && connections.forEach(connection => {
-      const { metadata, src } = connection;
-      if (src.process === currentEditModel.data['x.type.name']) {
-        const typeName = metadata['r.type.name'], typeLabel = metadata['r.type.label'];
-        if (!usedRelationMap[typeName]) {
+    Array.from(new Set(_.get(typeRelationMap[typeId], 'source', [])))
+      .forEach((relationName: any) => {
+        const relationLabel = relationMap[relationName]['r.type.label'];
+        if (!usedRelationMap[relationName]) {
           relationList.push({
-            value: typeName,
-            label: typeLabel
+            value: relationName,
+            label: relationLabel
           });
-          Object.assign(usedRelationMap, { [typeName]: typeLabel });
+          Object.assign(usedRelationMap, { [relationName]: relationLabel });
         }
-      }
-    });
+      });
     setRelationList(relationList);
   }
 
