@@ -983,8 +983,8 @@ export default function Right(props: RightProps) {
       });
     } else if (currentEditModel) {
       const { source, target, tgtCardinality } = currentEditModel;
-      if (source && target) {
-        const graph = (window as any).PDB_GRAPH;
+      const graph = (window as any).PDB_GRAPH;
+      if (source && target && graph) {
         const sourceNode = graph.findById(source),
           targetNode = graph.findById(target);
         const sourceName: string = sourceNode.getModel().name,

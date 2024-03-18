@@ -1,4 +1,4 @@
-import G6 from '@antv/g6';
+import G6, { Edge } from '@antv/g6';
 import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,6 +16,8 @@ import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 import { useResizeDetector } from 'react-resize-detector';
 import { TypeConfig } from '@/reducers/type';
 import { uploadObject } from '@/actions/minioOperate';
+import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
+
 let graph: any;
 
 interface EditorProps {
@@ -28,6 +30,7 @@ export default function Editor(props: EditorProps) {
     routerParams = useParams(),
     navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
+    appScreenshotPath = useSelector((state: StoreState) => state.app.appScreenshotPath),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket),
     types = useSelector((state: StoreState) => state.type.data),
@@ -56,9 +59,9 @@ export default function Editor(props: EditorProps) {
     }
     isUpdateScreenshot = true;
     if (graphRef.current) {
-      const tid = routerParams.id;
-      if (!tid) return;
-      let shotPath = 'studio/' + userId + '/pdb/template/' + tid + '/screen_shot.png';
+      const id = routerParams.id;
+      if (!id) return;
+      const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
         uploadObject(shotPath, ossBucket, blob,
           () => { console.log("progress") },
@@ -122,13 +125,26 @@ export default function Editor(props: EditorProps) {
         }
       },
       linkCenter: true,
-      fitView: true
     });
     (window as any).PDR_GRAPH = graph;
 
     graph.get('canvas').set('localRefresh', false);
     graph.data(data);
     graph.render();
+    graph.on("afterrender", function () {
+      saveScreenShoot();
+    });
+
+    const edges: any = graph.save().edges;
+    G6.Util.processParallelEdges(edges, 20);
+    graph.getEdges().forEach((edge: Edge, i: number) => {
+      const { source, target } = edge.getModel();
+      graph.updateItem(edge, {
+        type: source === target ? 'loop' : 'connect-line',
+        curveOffset: edges[i].curveOffset,
+        curvePosition: edges[i].curvePosition,
+      });
+    });
 
     (window as any).PDB_GRAPH = graph;
   }
@@ -202,7 +218,7 @@ export default function Editor(props: EditorProps) {
       graph = null;
       (window as any).PDB_GRAPH = null;
     }
-  }, [types, relations]);
+  }, []);
 
   return (
     <div className="pdb-graph">
@@ -214,7 +230,16 @@ export default function Editor(props: EditorProps) {
           navigate(`/${routerParams.id}`);
         }}
       >
-        <div className='pdb-object-switch-img'></div>
+        <div className='pdb-object-switch-img'>
+          <img
+            src={appScreenshotPath}
+            onError={(event: any) => {
+              if (event.target.src !== appDefaultScreenshotPath) {
+                event.target.src = appDefaultScreenshotPath;
+                event.target.onerror = null;
+              }
+            }} />
+        </div>
         <span className='pdb-object-switch-label'>类型实例</span>
       </div>
     </div>

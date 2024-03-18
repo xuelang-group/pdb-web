@@ -18,7 +18,7 @@ export const addType = (params, callback) => {
   }, (err) => {
     callback && callback(false, err);
   });
-} 
+}
 
 // 类型的创建/更新
 export const setType = (params, callback) => {
@@ -92,7 +92,7 @@ export const addTypeByGraphId = (graphId, params, callback) => {
   }, (err) => {
     callback && callback(false, err);
   });
-} 
+}
 
 // 类型的删除
 export const deleteTypeByGraphId = (graphId, type, callback) => {
@@ -119,6 +119,17 @@ export const setTypeByGraphId = (graphId, params, callback) => {
     set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const resetSchema = (graphId, callback) => {
+
+  return axios.post("/pdb/api/v1/schema/reset", {
+    graphId: graphId ? Number(graphId) : 0,
+  }).then(({ data }) => {
+    callback && callback(data.success);
   }, (err) => {
     callback && callback(false, err);
   });

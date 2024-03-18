@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 interface ossState {
   bucket: string
@@ -19,6 +20,7 @@ interface ListState {
   systemInfo: systemInfoState
   collapsed: boolean
   catalog: any
+  appScreenshotPath: any
 }
 
 const initialState: ListState = {
@@ -32,7 +34,8 @@ const initialState: ListState = {
     ossType: "minio"
   },
   collapsed: true,
-  catalog: [{ "id": 2, "label": "我的项目", "folder": true, "children": [] }]
+  catalog: [{ "id": 2, "label": "我的项目", "folder": true, "children": [] }],
+  appScreenshotPath: appDefaultScreenshotPath
 }
 
 // 对象列表
@@ -48,9 +51,12 @@ export const listSlice = createSlice({
     },
     setCatalog: (state, action: PayloadAction<any>) => {
       state.catalog = JSON.parse(JSON.stringify(action.payload));
+    },
+    setAppScreenshotPath: (state, action: PayloadAction<any>) => {
+      state.appScreenshotPath = JSON.parse(JSON.stringify(action.payload));
     }
   }
 });
 
-export const { setCollapsed, setCatalog, setSystemInfo } = listSlice.actions;
+export const { setCollapsed, setCatalog, setSystemInfo, setAppScreenshotPath } = listSlice.actions;
 export default listSlice.reducer;

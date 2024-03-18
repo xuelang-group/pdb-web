@@ -2,13 +2,16 @@ import { Empty, Spin } from "antd";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import _ from "lodash";
 import moment from "moment";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 
 import previewEmptyDark from '@/assets/images/preview-empty-dark.png'
 import previewEmpty from '@/assets/images/preview-empty.png';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
-import { setCollapsed } from "@/reducers/app";
+import { setAppScreenshotPath, setCollapsed } from "@/reducers/app";
+import { StoreState } from "@/store";
+import { useEffect } from "react";
+import { getObjectUrl } from "@/actions/minioOperate";
 interface PreviewProps {
   activeItem: any
   theme: string
@@ -21,6 +24,23 @@ export default function Preview(props: PreviewProps) {
   const dispatch = useDispatch(),
     location = useLocation(),
     navigate = useNavigate();
+
+  const appScreenshotPath = useSelector((state: StoreState) => state.app.appScreenshotPath),
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+
+  useEffect(() => {
+    if (activeItem?.id) {
+      getAppScreenshot(activeItem?.id);
+    }
+  }, [activeItem?.id]);
+
+  function getAppScreenshot(id: string) {
+    const { userId, ossBucket } = systemInfo;
+    const shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
+    getObjectUrl(shotPath, ossBucket).then(function (url) {
+      dispatch(setAppScreenshotPath(url));
+    }).catch(() => dispatch(setAppScreenshotPath(appDefaultScreenshotPath)));
+  }
 
   if (!_.isEmpty(activeItem)) {
     const localTime = moment.utc(activeItem.gmt_create).toDate();
@@ -43,7 +63,7 @@ export default function Preview(props: PreviewProps) {
           </div>
           <Spin wrapperClassName="pdb-list-preview-img" spinning={false}>
             <img
-              src={appDefaultScreenshotPath}
+              src={appScreenshotPath}
               onError={(event: any) => {
                 if (event.target.src !== appDefaultScreenshotPath) {
                   event.target.src = appDefaultScreenshotPath;

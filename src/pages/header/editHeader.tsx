@@ -1,3 +1,4 @@
+import { resetSchema } from "@/actions/type";
 import { Button, Divider } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
@@ -66,8 +67,13 @@ export default function EditHeader(props: HeaderProps) {
     drawCircle();
   }, [graphSavedMsg?.status]);
 
+  function exit() {
+    navigate(`/${routerParams.id}`);
+    resetSchema(routerParams.id, ()=> {});
+  }
+
   return (
-    <div className='pdb-header'>
+    <div className='pdb-header pdb-header-edit'>
       <a
         className="pdb-header-button"
         onClick={() => {
@@ -77,26 +83,17 @@ export default function EditHeader(props: HeaderProps) {
         <i className="spicon icon-jiantou-zuo"></i>
       </a>
       <div className="pdb-header-info">
-        <div className="pdb-header-edittitle">
-          <h2 className="pdb-header-title">
-            类型管理
-          </h2>
-          <a
-            className="pdb-header-button"
-            onClick={() => {
-              navigate(`/${routerParams.id}`)
-            }}
-          >
-            退出
-          </a>
-        </div>
+        <h2 className="pdb-header-title">
+          类型管理
+        </h2>
       </div>
       <div className="pdb-header-right" style={{ marginRight: headerEXtraWidth || 0 }}>
-        {/* <div className="pdb-header-toolbar">
-          <div className="pdb-header-toolbar-item">
-            <i className="spicon icon-daoru"></i>
-          </div>
-        </div> */}
+        <a
+          className="pdb-header-button"
+          onClick={exit}
+        >
+          退出
+        </a>
         {Number(headerEXtraWidth) > 0 && <Divider />}
       </div>
     </div>

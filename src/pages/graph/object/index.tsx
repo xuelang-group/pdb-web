@@ -21,7 +21,8 @@ import { isArray } from 'lodash';
 import { QueryResultState, setResult } from '@/reducers/query';
 import _ from 'lodash';
 import { edgeLabelStyle } from '@/g6/type/edge';
-import { uploadObject } from '@/actions/minioOperate';
+import { getObjectUrl, uploadObject } from '@/actions/minioOperate';
+import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 interface EditorProps {
   theme: string
@@ -51,7 +52,8 @@ export default function Editor(props: EditorProps) {
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
   const [graphData, setGraphData] = useState({}),
-    [graphDataMap, setGraphDataMap] = useState<any>({});
+    [graphDataMap, setGraphDataMap] = useState<any>({}),
+    [templateSnapshot, setTemplateSnapshot] = useState("");
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -68,6 +70,7 @@ export default function Editor(props: EditorProps) {
     setCommonParams({ graphId });
     initG6('object');
     getRootsData();
+    getTemplateSnapshot(routerParams?.id);
 
     return () => {
       graph?.destroy();
@@ -85,6 +88,13 @@ export default function Editor(props: EditorProps) {
     });
     dispatch(setRelationMap(relationMap));
   }, [relations]);
+
+  function getTemplateSnapshot(id: string) {
+    const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
+    getObjectUrl(shotPath, ossBucket).then(function (res) {
+      setTemplateSnapshot(res);
+    }).catch(err => setTemplateSnapshot(""))
+  }
 
   function getRootsData() {
     getRoots((success: boolean, data: any) => {
@@ -357,7 +367,7 @@ export default function Editor(props: EditorProps) {
             },
             okText: "确定删除",
             cancelText: "取消",
-            onOk: handleModalOk,
+            onOk: () => handleModalOk(currentEditModel),
             onCancel: handleModalCancel
           });
           break;
@@ -457,7 +467,7 @@ export default function Editor(props: EditorProps) {
       const id = routerParams.id;
       if (!id) return;
       const { userId, ossBucket } = store.getState().app.systemInfo;
-      let shotPath = 'studio/' + userId + '/pdb/graph/' + id + '/screen_shot.png';
+      let shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
         uploadObject(shotPath, ossBucket, blob,
           () => { console.log("progress") },
@@ -532,17 +542,14 @@ export default function Editor(props: EditorProps) {
     )
   }
 
-  const handleModalOk = function () {
-    if (!currentEditModel?.id) return;
-    if (modalOperate === 'remove') {
-      setModalLoading(true);
-      G6OperateFunctions.removeNode(currentEditModel?.id, {
-        uid: currentEditModel?.uid,
-        recurse: removeAll
-      }, graph, () => {
-        handleModalCancel();
-      });
-    }
+  const handleModalOk = function (currentEditModel: any) {
+    setModalLoading(true);
+    G6OperateFunctions.removeNode(currentEditModel?.id, {
+      uid: currentEditModel?.uid,
+      recurse: removeAll
+    }, graph, () => {
+      handleModalCancel();
+    });
   }
 
   const handleModalCancel = function () {
@@ -585,7 +592,16 @@ export default function Editor(props: EditorProps) {
             navigate(`/${routerParams.id}/template`);
           }}
         >
-          <div className='pdb-object-switch-img'></div>
+          <div className='pdb-object-switch-img'>
+            <img
+              src={templateSnapshot}
+              onError={(event: any) => {
+                if (event.target.src !== appDefaultScreenshotPath) {
+                  event.target.src = appDefaultScreenshotPath;
+                  event.target.onerror = null;
+                }
+              }} />
+          </div>
           <span className='pdb-object-switch-label'>类型模板</span>
         </div>
       </div>

@@ -10,7 +10,7 @@ import { NodeIconPickerProps } from ".";
 export async function getIconUrl(iconKey: string) {
   return new Promise((resolve, reject) => {
     getObjectUrl(iconKey).then(function (res: any) {
-      resolve(res.data)
+      resolve(res);
     }).catch(() => {
       resolve('');
     });
