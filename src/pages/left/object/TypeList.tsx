@@ -211,7 +211,7 @@ export default function TypeList() {
             />
           </div>
           <i
-            className='operation-icon spicon icon-tianjia'
+            className='operation-icon spicon icon-gengduo2'
             onClick={() => handleClickMenu(routerParams.id)}
           />
         </div>

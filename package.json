@@ -39,7 +39,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "bash ./build.sh",
     "test": "craco test",
     "eject": "craco eject"
   },

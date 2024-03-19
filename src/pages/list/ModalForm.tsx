@@ -79,16 +79,6 @@ export default function ModalForm(props: ModalFormProps) {
           />
         </Form.Item>
       }
-      {route === 'object' && operate.key === "create" &&
-        <Form.Item name="templateId" label="模板ID">
-          <Select>
-            <Select.Option value={null}>不指定模板</Select.Option>
-            {templateList.map(({ id, name }) => (
-              <Select.Option value={id}>{name}</Select.Option>
-            ))}
-          </Select>
-        </Form.Item>
-      }
     </Form>
   );
 }

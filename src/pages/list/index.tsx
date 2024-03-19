@@ -372,15 +372,13 @@ export default function List(props: ListProps) {
   const handleModalOk = function () {
     formRef.current.validateFields().then((values: any) => {
       setModalConfirmLoading(true);
-      const { name, dir, templateId, description } = values;
+      const { name, dir, description } = values;
       let params: any;
       switch (operate.key) {
         case 'create':
           params = { ...formInitialValue, name };
           if (dir) Object.assign(params, { dir });
           if (description) Object.assign(params, { description });
-          if (templateId !== undefined) Object.assign(params, { templateId });
-          if (params.templateId === null) delete params['templateId'];
           handleCreate(params);
           break;
         case 'createFolder':
@@ -496,9 +494,6 @@ export default function List(props: ListProps) {
         const { id } = targetItem;
         if (key.startsWith('create')) {
           Object.assign(initialValue, { dir: id || myDirId });
-          if (route === 'object' && key === 'create') {
-            Object.assign(initialValue, { templateId: null });
-          }
         } else {
           if (targetType === 'folder') {
             const { parents, label } = targetItem;
@@ -510,8 +505,6 @@ export default function List(props: ListProps) {
           }
           if (key === 'rename' || key === 'remove') Object.assign(initialValue, { id, targetType });
         }
-      } else if (key.startsWith('create') && route === 'object' && key === 'create') {
-        Object.assign(initialValue, { templateId: null });
       }
       setFormInitialValue(initialValue);
       setOperate(operate);

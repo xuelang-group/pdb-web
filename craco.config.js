@@ -30,7 +30,15 @@ module.exports = {
           miniCssExtractPlugin.options.filename = 'static/css/[name].css'; // 修改为你想要的 CSS 文件名
           miniCssExtractPlugin.options.chunkFilename = 'static/css/[name].chunk.css';
         }
+
         webpackConfig.output.publicPath = "./";
+        console.log(webpackConfig.output.assetModuleFilename)
+        webpackConfig.output.assetModuleFilename = pathData => {
+          if ((/\.(woff2?|woff|ttf|svg)(\?.*)?$/.test(pathData.filename)) && pathData.filename.includes("iconfont")) {
+            return '[name].[hash][ext]';
+          }
+          return 'static/media/[name].[hash][ext]';
+        }
       }
 
       webpackConfig.ignoreWarnings = [/Failed to parse source map/];
@@ -44,7 +52,7 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "http://10.88.40.73/proxr/1000001/55525/08b403e0e1a611eeb5077d099eb5e29a/7000",
+        target: "http://10.88.40.73/proxr/1000001/55525/221ec7d0e2b311eeaeb585a9aa8f4fab/7000",
         changeOrigin: true,
         onProxyReq(proxyReq) {
           // 设置Cookie

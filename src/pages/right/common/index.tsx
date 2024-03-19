@@ -85,7 +85,6 @@ export default function Right(props: RightProps) {
       infoForm.setFieldsValue({
         name,
         uid: id,
-        templateId: _.get(data, "templateId"),
         lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
         created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss"),
         description
@@ -1049,8 +1048,7 @@ export default function Right(props: RightProps) {
 
 
   const appName = Form.useWatch('name', infoForm),
-    appId = Form.useWatch('uid', infoForm),
-    appTemplateId = Form.useWatch('templateId', infoForm);
+    appId = Form.useWatch('uid', infoForm);
 
   const renderPanelForm = function () {
     if (!currentEditModel) {
@@ -1088,17 +1086,6 @@ export default function Right(props: RightProps) {
                 <i className='spicon icon-fuzhi' onClick={() => copyId(idRef)}></i>
               </div>
             </Form.Item>
-            {props.route === 'object' &&
-              <Form.Item label='模板ID'>
-                <Form.Item name='templateId' label='' style={{ opacity: 0 }}>
-                  <Input ref={templateIdRef} readOnly />
-                </Form.Item>
-                <div className='copy-item'>
-                  <span>{appTemplateId || '暂无'}</span>
-                  {appTemplateId && <i className='spicon icon-fuzhi' onClick={() => copyId(templateIdRef)}></i>}
-                </div>
-              </Form.Item>
-            }
             {props.route !== 'type' &&
               <Form.Item className='info-description' name='description' label={`${props.route === 'object' ? '项目' : '模板'}描述`} >
                 <TextArea

@@ -1,9 +1,10 @@
 import { resetSchema } from "@/actions/type";
+import { setCurrentEditModel } from "@/reducers/editor";
 import { Button, Divider } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
 import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from 'react-router-dom';
 import './index.less'
 
@@ -13,7 +14,8 @@ interface HeaderProps {
 }
 
 export default function EditHeader(props: HeaderProps) {
-  const routerParams = useParams();
+  const routerParams = useParams(),
+    dispatch = useDispatch();
   const { route, headerEXtraWidth } = props;
   const graphData = useSelector((store: any) => store[route].graphData);
   const graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
@@ -69,7 +71,8 @@ export default function EditHeader(props: HeaderProps) {
 
   function exit() {
     navigate(`/${routerParams.id}`);
-    resetSchema(routerParams.id, ()=> {});
+    resetSchema(routerParams.id, () => { });
+    dispatch(setCurrentEditModel(null));
   }
 
   return (
