@@ -60,6 +60,11 @@ export default function Left(props: any) {
           setTreeData(treeData);
           setAllTreeData(treeData);
           setDefaultItem('type', response);
+
+          if (currentEditModel && currentEditModel.type === 'type') {
+            const { dataIndex, data } = currentEditModel;
+            handleSelectItem(data, 'type', Number(dataIndex));
+          }
         } else {
           notification.error({
             message: '获取对象类型列表失败',
@@ -73,6 +78,11 @@ export default function Left(props: any) {
       if (success) {
         dispatch(setRelations(response || []));
         setDefaultItem('relation', response);
+        
+        if (currentEditModel && currentEditModel.type === 'relation') {
+          const { dataIndex, data } = currentEditModel;
+          handleSelectItem(data, 'relation', Number(dataIndex));
+        }
       } else {
         notification.error({
           message: '获取关系列表失败',
@@ -197,7 +207,7 @@ export default function Left(props: any) {
   }
 
   const location = useLocation();
-  const [currentTab, setCurrentTab] = useState('type');
+  const [currentTab, setCurrentTab] = useState(_.get(currentEditModel, 'type', 'type'));
   useEffect(() => {
     const data = new URLSearchParams(location.search).get('data');
     defaultType = '';
@@ -532,7 +542,7 @@ export default function Left(props: any) {
               return (
                 <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                   <span
-                    className={'type-item' + (currentEditModel && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
+                    className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
                     onClick={() => handleSelectItem(item, type, index)}
                   >
                     <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
@@ -582,7 +592,7 @@ export default function Left(props: any) {
           <div className='type-list'>
             <Tree
               treeData={treeData}
-              selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
+              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
               titleRender={(item: any) => (
                 <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>

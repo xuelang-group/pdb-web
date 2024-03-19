@@ -129,22 +129,22 @@ function App(props: PdbConfig) {
             <Layout className="pdb-layout">
               <Routes>
                 <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
-                <Route path="/edit/:id?" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
+                <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
               </Routes>
               <Content className="pdb-layout-content">
                 <Routes>
                   <Route path="/:id/template?" element={<ObjectLeft />} />
-                  <Route path="/edit/:id?" element={<TypeLeft getIconList={getIconList} />} />
+                  <Route path="/:id/edit" element={<TypeLeft getIconList={getIconList} />} />
                 </Routes>
                 <PdbContent>
                   <Routes>
                     <Route path="/:id" element={<ObjectGraph theme={theme} getIconList={getIconList} />} />
                     <Route path="/:id/template" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
-                    <Route path="/edit/:id?" element={<TypeGraph theme={theme} />} />
+                    <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
                   </Routes>
                   <Routes>
                     <Route path="/:id/template?" element={<CommonRight route="object" />} />
-                    <Route path="/edit/:id?" element={<CommonRight route='type' />} />
+                    <Route path="/:id/edit" element={<CommonRight route='type' />} />
                   </Routes>
                 </PdbContent>
               </Content>

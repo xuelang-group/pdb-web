@@ -3,10 +3,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 import './index.less';
 import { TypeConfig } from '@/reducers/type';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { useParams, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
+import { setCurrentEditModel } from '@/reducers/editor';
 
 const { Search } = Input;
 
@@ -20,8 +21,9 @@ export default function TypeList() {
     [isRelSearched, setRelSearchedStatus] = useState(false),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const searchRef = useRef<InputRef>(null);
-  const routerParams = useParams();
-  const navigate = useNavigate();
+  const routerParams = useParams(),
+    navigate = useNavigate(),
+    dispatch = useDispatch();
 
   // 右键菜单
   const typeMenus = [{
@@ -111,8 +113,9 @@ export default function TypeList() {
     event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
   }
 
-  const handleClickMenu = function (id: any) {
-    navigate(`/edit/${id}`)
+  const handleClickMenu = function (id: any, item?: any) {
+    navigate(`/${id}/edit`);
+    dispatch(setCurrentEditModel(item));
   }
 
   const renderTypeTree = useCallback((type: string) => {
@@ -145,10 +148,11 @@ export default function TypeList() {
         <div className='list-content'>
           <div className='type-list'>
             <Tree
-              treeData={list.map((item: any) => ({
+              treeData={list.map((item: any, dataIndex: number) => ({
                 title: item['x.type.label'],
                 key: item['x.type.name'],
                 className: 'type-item',
+                dataIndex,
                 data: item
               }))}
               // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
@@ -156,7 +160,7 @@ export default function TypeList() {
               titleRender={(item: any) => (
                 <Dropdown
                   overlayClassName='pdb-dropdown-menu'
-                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id) }}
+                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, { ...item, type: 'type' }) }}
                   trigger={['contextMenu']}
                 >
                   <span
@@ -220,7 +224,14 @@ export default function TypeList() {
             {relList.map((item: any, index: number) => {
               const label: any = item[prevLabel + 'type.label']
               return (
-                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id) }} trigger={['contextMenu']}>
+                <Dropdown
+                  overlayClassName='pdb-dropdown-menu'
+                  menu={{
+                    items: typeMenus,
+                    onClick: (menu) => handleClickMenu(routerParams.id, { data: item, dataIndex: index, type: 'relation' })
+                  }}
+                  trigger={['contextMenu']}
+                >
                   <span
                     className='type-item'
                   >
@@ -253,43 +264,5 @@ export default function TypeList() {
 
   return (
     <Tabs defaultActiveKey="type" items={tabs} activeKey={currentTab} onChange={handleChangeTab} />
-    // <div className='list-container'>
-    //   <div className='list-header'>
-    //     <div className='pdb-search'>
-    //       <Search
-    //         ref={searchRef}
-    //         className='pdb-search-input'
-    //         placeholder='搜索类型名称或ID'
-    //         allowClear={true}
-    //         enterButton={<i className='spicon icon-sousuo2'></i>}
-    //         onChange={(event: any) => {
-    //           if (!isSearched) {
-    //             setSearchedStatus(true);
-    //           } else if (!event.target.value) {
-    //             setSearchedStatus(false);
-    //             handleSearch('');
-    //           }
-    //         }}
-    //         onPressEnter={(event: any) => handleSearch(event.target.value)}
-    //       />
-    //     </div>
-    //     <i className='operation-icon spicon icon-tianjia' onClick={() => {window.location.href = `/web/pdb/edit/${routerParams.id}`}} />
-    //   </div>
-    //   <div className='list-content'>
-    //     <div className='type-list'>
-    //       {list.map((item: any, index: number) => (
-    //         <span className='type-item' draggable={currentGraphTab === 'main'} onDragStart={event => handleDragStart(event, item)}>
-    //           <i className='iconfont icon-duixiangleixing'></i>
-    //           {item.title || item['x.type.label']}
-    //         </span>
-    //       ))}
-    //     </div>
-    //     {list.length === 0 && isSearched &&
-    //       <div className='no-data-info'>
-    //         <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
-    //       </div>
-    //     }
-    //   </div>
-    // </div>
   )
 }

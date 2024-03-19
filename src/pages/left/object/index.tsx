@@ -88,13 +88,8 @@ export default function Left() {
   }
 
   return (
-    <div className='pdb-left-sider'>
-      <PdbPanel className='pdb-type-left' title='类型列表' direction="left">
-        <TypeList />
-      </PdbPanel>
-      {/* <PdbPanel className='pdb-object-search-left' title='查询构建器' direction="left">
-        <QueryList />
-      </PdbPanel> */}
-    </div>
+    <PdbPanel className='pdb-type-left' title='类型列表' direction="left" canCollapsed={true}>
+      <TypeList />
+    </PdbPanel>
   );
 }
