@@ -91,9 +91,14 @@ export default function Preview(props: PreviewProps) {
     );
   }
 
+  let previewImage = theme === 'dark' ? previewEmptyDark : previewEmpty;
+  if (previewImage.startsWith("./")) {
+    previewImage =  _.get(window, 'pdbConfig.basePath', '') + previewImage.replace("./", "/");
+  }
+
   return (
     <div className="pdb-list-preview" style={{ justifyContent: 'center' }}>
-      <Empty image={theme === 'dark' ? previewEmptyDark : previewEmpty} description="请选择一个模板预览" />
+      <Empty image={previewImage} description="请选择一个模板预览" />
     </div>
   );
 } 

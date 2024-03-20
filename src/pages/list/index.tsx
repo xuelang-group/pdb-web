@@ -133,7 +133,10 @@ export default function List(props: ListProps) {
       const icon = routeIconMap[route];
       return <i className={icon} />;
     }
-    const SvgHref = expanded ? FolderOnSvg : FolderOffSvg;
+    let SvgHref = expanded ? FolderOnSvg : FolderOffSvg;
+    if (SvgHref.startsWith("./")) {
+      SvgHref = _.get(window, 'pdbConfig.basePath', '') + SvgHref.replace("./", "/");
+    }
     return <img src={SvgHref} style={{ marginTop: 2 }} />;
   }
 
