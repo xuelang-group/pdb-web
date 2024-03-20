@@ -72,7 +72,7 @@ function findLastIndex(nodes: any[], xid: string) {
 }
 
 // 转换为画布数据
-export function covertToGraphData(data: CustomObjectConfig[], parentId: string, iconMap: any, filterMap: any) {
+export function covertToGraphData(data: CustomObjectConfig[], parentId: string, filterMap: any) {
   const edges: EdgeConfig[] = [];
   const combos: ComboConfig[] = [];
   const nodes: NodeItemData[] = [];
@@ -103,7 +103,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       data: item,
       childLen,
       collapsed,
-      icon: iconMap[iconKey] || iconKey,
+      icon: iconKey,
       isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.name'] || ''),
       style: {
         ...nodeStateStyle.default,
@@ -153,7 +153,6 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 // 添加子节点
 export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
   const id = parent.id;
-  const iconMap = store.getState().editor.iconMap;
 
   const sortData = data.sort((a, b) => {
     const aIds: any = a['x.id'].split('.'),
@@ -165,7 +164,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
     return 1;
   });
-  const { nodes, combos, edges } = covertToGraphData(sortData, id, iconMap, filterMap);
+  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
 
   const lastIndex = findLastIndex(currentData.nodes || [], parent.xid);
   const newNodes = JSON.parse(JSON.stringify(currentData.nodes));
@@ -195,7 +194,6 @@ export function convertResultData(
   edges: EdgeConfig[],
   combos: ComboConfig[],
   edgeIdMap: any,
-  iconMap: any,
   relationLines: any,
   xid?: string
 ) {
@@ -217,7 +215,7 @@ export function convertResultData(
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     if (uid === rootId) {
-      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, iconMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     } else {
       const comboId = `${id}-combo`;
       const parentId = currentParentId || rootId;
@@ -232,7 +230,7 @@ export function convertResultData(
         data: { ...item, collapsed: false },
         childLen,
         collapsed,
-        icon: iconMap[iconKey] || iconKey,
+        icon: iconKey,
         target, // true代表uid传入的目标节点，false代表父节点
         style: {
           ...nodeStateStyle.default,
@@ -293,7 +291,7 @@ export function convertResultData(
         });
       }
 
-      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, iconMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
   });
 
@@ -311,7 +309,6 @@ export function convertAllData(data: CustomObjectConfig[]) {
   let edgeIdMap: any = {};
   const rootId = store.getState().editor.rootNode?.uid;
   combos.push({ id: `${rootId}-combo` });
-  const iconMap = store.getState().editor.iconMap;
   for (const item of data) {
     const uid = item['uid'],
       xid = item['x.id'] || uid,
@@ -334,7 +331,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
       data: item,
       childLen,
       collapsed,
-      icon: iconMap[iconKey] || iconKey,
+      icon: iconKey,
       style: {
         ...nodeStateStyle.default,
         fill

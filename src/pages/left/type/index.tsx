@@ -20,7 +20,6 @@ const { Search } = Input;
 export default function Left(props: any) {
   const routerParams = useParams();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
 
@@ -52,33 +51,31 @@ export default function Left(props: any) {
   }
 
   useEffect(() => {
-    props.getIconList(() => {
-      getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
-        if (success) {
-          dispatch(setTypes(response || []));
-          const treeData = getTypeTreeData(response);
-          setTreeData(treeData);
-          setAllTreeData(treeData);
-          setDefaultItem('type', response);
+    getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
+      if (success) {
+        dispatch(setTypes(response || []));
+        const treeData = getTypeTreeData(response);
+        setTreeData(treeData);
+        setAllTreeData(treeData);
+        setDefaultItem('type', response);
 
-          if (currentEditModel && currentEditModel.type === 'type') {
-            const { dataIndex, data } = currentEditModel;
-            handleSelectItem(data, 'type', Number(dataIndex));
-          }
-        } else {
-          notification.error({
-            message: '获取对象类型列表失败',
-            description: response.message || response.msg
-          });
+        if (currentEditModel && currentEditModel.type === 'type') {
+          const { dataIndex, data } = currentEditModel;
+          handleSelectItem(data, 'type', Number(dataIndex));
         }
-      });
+      } else {
+        notification.error({
+          message: '获取对象类型列表失败',
+          description: response.message || response.msg
+        });
+      }
     });
 
     getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setRelations(response || []));
         setDefaultItem('relation', response);
-        
+
         if (currentEditModel && currentEditModel.type === 'relation') {
           const { dataIndex, data } = currentEditModel;
           handleSelectItem(data, 'relation', Number(dataIndex));
@@ -371,7 +368,7 @@ export default function Left(props: any) {
           stroke = getBorderColor(_.get(metadata, 'borderColor'), fill);
           const iconKey = _.get(metadata, 'icon', '');
           Object.assign(commonConfig, {
-            icon: iconMap[iconKey] || iconKey
+            icon: iconKey
           });
         }
         node = graph.addItem('node', {

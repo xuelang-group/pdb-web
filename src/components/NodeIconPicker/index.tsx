@@ -6,6 +6,7 @@ import fonts from '@/assets/iconfont/pdb/iconfont-icon.json';
 import CustomIconList from './CustomIconList';
 import { useSelector } from 'react-redux';
 import { StoreState } from '@/store';
+import { getImagePath } from '@/actions/minioOperate';
 
 export interface NodeIconPickerProps {
   changeIcon: Function
@@ -14,8 +15,7 @@ export interface NodeIconPickerProps {
 
 export default function NodeIconPicker(props: NodeIconPickerProps) {
   const { currentIcon, changeIcon } = props;
-  const iconMap = useSelector((state: StoreState) => state.editor.iconMap),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+  const userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
 
   const [currentTab, setCurrentTab] = useState('default');
   const fontIcons = fonts.glyphs,
@@ -86,7 +86,7 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
       <Tooltip title="图标">
         <div className='pdb-node-metadata-item node-icon'>
           {currentIcon.indexOf('studio/' + userId + '/pdb/icons/') > -1 ?
-            <img src={iconMap[currentIcon]} width='100%' height='100%' /> :
+            <img src={getImagePath(currentIcon)} width='100%' height='100%' /> :
             <i className={`iconfont icon-${currentIcon || 'jinzhi-yuanxing no-icon'}`}></i>
           }
         </div>

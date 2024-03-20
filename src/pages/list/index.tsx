@@ -20,7 +20,7 @@ import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCat
 import Preview from "./Preview";
 import ModalForm from "./ModalForm";
 import "./index.less";
-import { putObject } from "@/actions/minioOperate";
+import { putFile } from "@/actions/minioOperate";
 
 const { Search } = Input;
 const { DirectoryTree, TreeNode } = Tree;
@@ -329,12 +329,12 @@ export default function List(props: ListProps) {
   }
 
   const saveCatalog = function (catalog: any, callback?: Function) {
-    const { userId, ossBucket } = systemInfo;
+    const { userId } = systemInfo;
     const path = `studio/${userId}/pdbConfig`;
-    putObject(path, JSON.stringify({ catalog }), ossBucket).then(res => {
+    putFile(path, JSON.stringify({ catalog })).then(() => {
       dispatch(setCatalog(catalog));
       callback && callback();
-    }, err => {
+    }, () => {
       callback && callback();
     });
   }

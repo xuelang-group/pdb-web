@@ -4,6 +4,7 @@ import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
+import { getImagePath } from '@/actions/minioOperate';
 
 export function registerNode() {
   /**
@@ -107,7 +108,8 @@ export function registerNode() {
       // 节点图标
       if (iconName) {
         if (iconName.indexOf('studio/' + userId + '/pdb/icons/') > -1) {
-          checkImgExists(iconName, (exist: boolean, proportion = 0) => {
+          const img = getImagePath(iconName);
+          checkImgExists(img, (exist: boolean, proportion = 0) => {
             if (exist) {
               const height = iconImgWidth / proportion < 30 ? (iconImgWidth / proportion) : 30;
               group.addShape('image', {
@@ -116,7 +118,7 @@ export function registerNode() {
                   y: 32 - height + (height - 16) / 2,
                   width: iconImgWidth,
                   height,
-                  img: iconName
+                  img
                 },
                 name: 'node-icon',
               });
@@ -289,7 +291,7 @@ export function registerNode() {
           if (currentIconType === 'text') {
             nodeIcon.attr({ x: iconX, text: getIcon(iconName), fill: iconColor });
           } else {
-            nodeIcon.attr({ x: iconX, img: iconName });
+            nodeIcon.attr({ x: iconX, img: getImagePath(iconName) });
           }
         } else {
           nodeIcon && nodeIcon.remove();
@@ -306,7 +308,8 @@ export function registerNode() {
               name: 'node-icon'
             });
           } else {
-            checkImgExists(iconName, (exist: boolean, proportion = 0) => {
+            const img = getImagePath(iconName);
+            checkImgExists(img, (exist: boolean, proportion = 0) => {
               if (exist) {
                 const height = iconImgWidth / proportion < 30 ? (iconImgWidth / proportion) : 30;
                 group.addShape('image', {
@@ -315,7 +318,7 @@ export function registerNode() {
                     y: 32 - height,
                     width: iconImgWidth,
                     height,
-                    img: iconName
+                    img
                   },
                   name: 'node-icon',
                 });

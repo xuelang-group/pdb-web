@@ -71,7 +71,6 @@ interface EditorState {
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
   toolbarConfig: ToolbarConfig // 对象管理 - 工具栏,每个tab都有对应的工具栏
   currentEditModel: NodeItemData | EdgeItemData | TypeItemData | null // 所有 - 单个选中编辑
-  iconMap: any // 所有 - 图标Map
   showSearch: boolean
   typeRelationMap: {}
 }
@@ -97,7 +96,6 @@ const initialState: EditorState = {
     }
   },
   currentEditModel: null,
-  iconMap: {},
   typeRelationMap: {},
   showSearch: false, //显示搜索框
 }
@@ -113,9 +111,6 @@ export const editorSlice = createSlice({
     },
     setTypeRelationMap: (state, action: PayloadAction<any>) => {
       state.typeRelationMap = JSON.parse(JSON.stringify(action.payload));
-    },
-    setIconMap: (state, action: PayloadAction<any>) => {
-      state.iconMap = action.payload;
     },
     setCurrentGraphTab: (state, action: PayloadAction<string>) => {
       state.currentGraphTab = action.payload;
@@ -172,6 +167,6 @@ export const editorSlice = createSlice({
 });
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setIconMap, setShowSearch, setTypeRelationMap
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap
 } = editorSlice.actions
 export default editorSlice.reducer

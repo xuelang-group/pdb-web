@@ -48,7 +48,6 @@ export default function Right(props: RightProps) {
 
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
@@ -338,7 +337,7 @@ export default function Right(props: RightProps) {
         if (name !== currentEditModel.name) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
           (window as any).PDB_GRAPH?.updateItem(item, {
-            icon: iconMap[icon] || icon,
+            icon: icon,
             data: type,
             name: label
           });
@@ -412,7 +411,7 @@ export default function Right(props: RightProps) {
         const icon = _.get(JSON.parse(object['x.metadata'] || '{}'), 'icon', '');
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
-          icon: iconMap[icon] || icon,
+          icon: icon,
           data: object,
           name: name
         })
@@ -567,7 +566,7 @@ export default function Right(props: RightProps) {
           if (JSON.stringify(graphData) !== JSON.stringify(newGraphData)) dispatch(setGraphData(newGraphData));
           const icon = _.get(newMetadata, 'icon', '');
           (window as any).PDB_GRAPH.updateItem(currentEditModel.uid, {
-            icon: iconMap[icon] || icon,
+            icon: icon,
             data: {
               ...newData.metadata,
               [metadataKey]: JSON.stringify(newMetadata)

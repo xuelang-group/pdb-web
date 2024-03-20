@@ -21,12 +21,11 @@ import { isArray } from 'lodash';
 import { QueryResultState, setResult } from '@/reducers/query';
 import _ from 'lodash';
 import { edgeLabelStyle } from '@/g6/type/edge';
-import { getObjectUrl, uploadObject } from '@/actions/minioOperate';
+import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 interface EditorProps {
   theme: string
-  getIconList: Function
 }
 
 const modalTile: any = {
@@ -46,14 +45,11 @@ export default function Editor(props: EditorProps) {
     queryStatus = useSelector((state: StoreState) => state.query.status),
     queryResult = useSelector((state: StoreState) => state.query.result),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
   const [graphData, setGraphData] = useState({}),
-    [graphDataMap, setGraphDataMap] = useState<any>({}),
-    [templateSnapshot, setTemplateSnapshot] = useState("");
+    [graphDataMap, setGraphDataMap] = useState<any>({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -70,7 +66,6 @@ export default function Editor(props: EditorProps) {
     setCommonParams({ graphId });
     initG6('object');
     getRootsData();
-    getTemplateSnapshot(routerParams?.id);
 
     return () => {
       graph?.destroy();
@@ -89,13 +84,6 @@ export default function Editor(props: EditorProps) {
     dispatch(setRelationMap(relationMap));
   }, [relations]);
 
-  function getTemplateSnapshot(id: string) {
-    const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
-    getObjectUrl(shotPath, ossBucket).then(function (res) {
-      setTemplateSnapshot(res);
-    }).catch(err => setTemplateSnapshot(""))
-  }
-
   function getRootsData() {
     getRoots((success: boolean, data: any) => {
       if (success) {
@@ -103,59 +91,57 @@ export default function Editor(props: EditorProps) {
         const rootData = data[0];
         const rootId = rootData.uid;
         dispatch(setRootNode(rootData));
-        props.getIconList((iconMap: any) => {
-          getChildren({ uid: rootId }, (success: boolean, data: any) => {
-            let newData = [];
-            if (success) {
-              const relationLines = {};
-              newData = data.map((value: any, index: number) => {
-                const newValue = JSON.parse(JSON.stringify(value)),
-                  parents = newValue['x.parent'],
-                  currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
+        getChildren({ uid: rootId }, (success: boolean, data: any) => {
+          let newData = [];
+          if (success) {
+            const relationLines = {};
+            newData = data.map((value: any, index: number) => {
+              const newValue = JSON.parse(JSON.stringify(value)),
+                parents = newValue['x.parent'],
+                currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
 
-                delete newValue['~x.parent'];
-                delete newValue['~x.parent|x.index'];
+              delete newValue['~x.parent'];
+              delete newValue['~x.parent|x.index'];
 
-                // 获取对象关系列表数据
-                if (newValue['x.relation.name']) {
-                  const relations: any[] = [];
-                  newValue['x.relation.name'].forEach((relation: string) => {
-                    if (isArray(newValue[relation])) {
-                      newValue[relation].forEach((target: any) => {
-                        relations.push({
-                          relation,
-                          target
-                        });
-                      });
-                    } else {
+              // 获取对象关系列表数据
+              if (newValue['x.relation.name']) {
+                const relations: any[] = [];
+                newValue['x.relation.name'].forEach((relation: string) => {
+                  if (isArray(newValue[relation])) {
+                    newValue[relation].forEach((target: any) => {
                       relations.push({
                         relation,
-                        target: newValue[relation]
+                        target
                       });
-                    }
-                  });
-                  Object.assign(relationLines, {
-                    [newValue.uid]: relations
-                  });
-                }
+                    });
+                  } else {
+                    relations.push({
+                      relation,
+                      target: newValue[relation]
+                    });
+                  }
+                });
+                Object.assign(relationLines, {
+                  [newValue.uid]: relations
+                });
+              }
 
-                return {
-                  ...newValue,
-                  currentParent: {
-                    ...currentParent,
-                    id: rootId,
-                  },
-                  'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
-                  id: newValue.uid
-                };
-              });
-              dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
-              dispatch(setObjects(newData));
-            }
+              return {
+                ...newValue,
+                currentParent: {
+                  ...currentParent,
+                  id: rootId,
+                },
+                'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+                id: newValue.uid
+              };
+            });
+            dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
+            dispatch(setObjects(newData));
+          }
 
-            initLayout(newData, rootId, iconMap);
-            initEvent();
-          });
+          initLayout(newData, rootId);
+          initEvent();
         });
       } else {
         notification.error({
@@ -173,7 +159,7 @@ export default function Editor(props: EditorProps) {
     graph.paint();
   }, [currentEditModel?.id]);
 
-  function initLayout(data: Array<CustomObjectConfig>, rootId: string, iconMap: any) {
+  function initLayout(data: Array<CustomObjectConfig>, rootId: string) {
     const container: any = graphRef.current;
     if (!container) return;
     const width = container.clientWidth;
@@ -314,7 +300,7 @@ export default function Editor(props: EditorProps) {
     (window as any).PDR_GRAPH = graph;
     let graphData: any = {};
     if (data) {
-      graphData = covertToGraphData(data, rootId, iconMap, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
+      graphData = covertToGraphData(data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
     }
     graph.data(graphData);
     setGraphData(graphData);
@@ -466,14 +452,12 @@ export default function Editor(props: EditorProps) {
     if (graphRef.current) {
       const id = routerParams.id;
       if (!id) return;
-      const { userId, ossBucket } = store.getState().app.systemInfo;
+      const { userId } = store.getState().app.systemInfo;
       let shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        uploadObject(shotPath, ossBucket, blob,
-          () => { console.log("progress") },
-          () => { console.log("error"); isUpdateScreenshot = false; },
-          () => { isUpdateScreenshot = false; }
-        );
+        uploadFile(shotPath, blob).finally(() => {
+          isUpdateScreenshot = false;
+        });
       });
     }
   }
@@ -489,7 +473,7 @@ export default function Editor(props: EditorProps) {
     const data = _.get(queryResult[index], 'data');
     if (!data) return;
     const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, iconMap, relationLines);
+    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
     dispatch(setToolbarConfig({
       key: activeKey,
       config: { relationLines }
@@ -594,7 +578,7 @@ export default function Editor(props: EditorProps) {
         >
           <div className='pdb-object-switch-img'>
             <img
-              src={templateSnapshot}
+              src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png')}
               onError={(event: any) => {
                 if (event.target.src !== appDefaultScreenshotPath) {
                   event.target.src = appDefaultScreenshotPath;

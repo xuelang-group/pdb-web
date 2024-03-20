@@ -14,7 +14,7 @@ import { setRelations } from '@/reducers/relation';
 import { getQueryResult, runQuery } from '@/actions/query';
 import moment from 'moment';
 import { addToolbarConfig } from '@/reducers/editor';
-import { getObject } from '@/actions/minioOperate';
+import { getFile } from '@/actions/minioOperate';
 
 const { Search } = Input;
 
@@ -28,8 +28,7 @@ export default function QueryList(props: any) {
     queryStatus = useSelector((state: StoreState) => state.query.status),
     queryResult = useSelector((state: StoreState) => state.query.result),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
 
   const [isSearched, setSearchedStatus] = useState(false),
     [searchValue, setSearchValue] = useState(''),
@@ -47,7 +46,7 @@ export default function QueryList(props: any) {
     const graphId = routerParams.id;
     if (!graphId) return;
     const queryPath = 'studio/' + userId + '/pdb/graph/' + graphId + '/query.json';
-    getObject(queryPath, ossBucket).then(function (data: any) {
+    getFile(queryPath).then(function (data: any) {
       dispatch(setList(data));
       const queryStatus = data.map(() => ({ loading: false }));
       dispatch(setQueryState(queryStatus));

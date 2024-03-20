@@ -1,35 +1,30 @@
-import { deleteObject, getObjectUrl, uploadObject } from "@/actions/minioOperate";
-import { setIconMap } from "@/reducers/editor";
+import { deleteFile, listFile, uploadFile } from "@/actions/minioOperate";
 import { StoreState } from "@/store";
 import { Dropdown, message, notification, Spin } from "antd";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { NodeIconPickerProps } from ".";
-
-export async function getIconUrl(iconKey: string) {
-  return new Promise((resolve, reject) => {
-    getObjectUrl(iconKey).then(function (res: any) {
-      resolve(res);
-    }).catch(() => {
-      resolve('');
-    });
-  });
-}
 
 export default function CustomIconList(props: NodeIconPickerProps) {
   const { currentIcon, changeIcon } = props;
   const uploadRef = useRef(null);
-  const dispatch = useDispatch();
-  const iconMap = useSelector((state: StoreState) => state.editor.iconMap),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket);
+  const userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
   const [iconKeys, setIconKeys] = useState([] as any),
     [customIconLoading, setCustomIconLoading] = useState(false);
 
   useEffect(() => {
-    setIconKeys(Object.keys(iconMap));
-  }, [iconMap]);
+    getIconList();
+  }, []);
+
+  const getIconList = async function () {
+    const path = 'studio/' + userId + '/pdb/icons/';
+    listFile(path).then(async (data: any) => {
+      setIconKeys(data.map((val: any) => val.name))
+    }).catch(err => {
+      setIconKeys([]);
+    });
+  }
 
   let files, i: number;
 
@@ -42,20 +37,9 @@ export default function CustomIconList(props: NodeIconPickerProps) {
     // } else {
     const path = 'studio/' + userId + '/pdb/icons/',
       iconKey = path + file.name;
-    uploadObject(iconKey, ossBucket, file,
-      (res: any) => {
-        console.log(res)
-      },
-      () => { message.error(file.name + '上传失败'); },
-      () => {
-        getIconUrl(iconKey).then(url => {
-          if (url) {
-            message.success(file.name + '上传成功');
-            dispatch(setIconMap({ ...iconMap, [iconKey]: url }));
-          }
-        });
-      }
-    );
+    uploadFile(iconKey, file)
+      .then(() => { setIconKeys([...iconKeys, iconKey]) })
+      .catch(err => message.error(file.name + '上传失败'));
     // }
   };
   const uploadIcon = function (e: any) {
@@ -73,10 +57,10 @@ export default function CustomIconList(props: NodeIconPickerProps) {
   const handleClickMenu = function (operation: string, index: number) {
     if (operation === 'remove') {
       const iconKey = iconKeys[index];
-      deleteObject(iconKey, ossBucket).then(() => {
-        const newIconMap = JSON.parse(JSON.stringify(iconMap));
-        delete newIconMap[iconKey];
-        dispatch(setIconMap(newIconMap));
+      deleteFile(iconKey).then(() => {
+        const newIconKeys = JSON.parse(JSON.stringify(iconKeys));
+        newIconKeys.splice(index, 1);
+        setIconKeys(newIconKeys);
       }).catch((error: any) => {
         notification.error({
           message: '删除图标失败',
@@ -104,7 +88,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
                 }
                 onClick={() => changeIcon(iconKeys[index - 1])}
               >
-                <img className="pdb-icon-custom-item" src={iconMap[iconKey]} />
+                <img className="pdb-icon-custom-item" src={'/pdb/oss/object/get?Key=' + iconKey} />
               </div>
             </Dropdown>
           )

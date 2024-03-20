@@ -26,10 +26,9 @@ import CommonHeader from '@/pages/header/index';
 import EditHeader from './pages/header/editHeader';
 
 import PdbContent from '@/components/Content';
-import { getIconUrl } from '@/components/NodeIconPicker/CustomIconList';
 
 import { StoreState } from '@/store';
-import { getObject, listObject, putObject } from '@/actions/minioOperate';
+import { getFile, putFile } from '@/actions/minioOperate';
 import { PdbConfig } from '.';
 import ObjectHeaderExtra from './pages/header/ObjectHeaderExtra';
 
@@ -41,15 +40,14 @@ const { Content } = Layout;
 function App(props: PdbConfig) {
   const { locale, messages, theme, headerEXtraWidth } = props;
   const dispatch = useDispatch();
-  const iconMap = useSelector((state: StoreState) => state.editor.iconMap), // 当前对象原始数据
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+  const userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     catalog = useSelector((state: StoreState) => state.app.catalog);
   useEffect(() => {
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
-        const { userId, ossBucket } = response;
+        const { userId } = response;
         dispatch(setSystemInfo(response));
-        getAppFolderList(userId, ossBucket)
+        getAppFolderList(userId)
       } else {
         notification.error({
           message: '获取系统信息失败：',
@@ -66,46 +64,16 @@ function App(props: PdbConfig) {
     };
   }, []);
 
-  const getAppFolderList = function (userId: number, ossBucket: string) {
+  const getAppFolderList = function (userId: number) {
     const path = `studio/${userId}/pdb/config`;
-    getObject(path, ossBucket).then(data => {
+    getFile(path).then(data => {
       dispatch(setCatalog(data.catalog));
     }).catch(err => {
-      putObject(path, JSON.stringify({ catalog }), ossBucket).then(res => {
+      putFile(path, JSON.stringify({ catalog })).then(res => {
         console.log(res)
       }, err => {
         console.log(err)
       });
-    });
-  }
-
-
-
-  // 获取自定义图标列表
-  const getIconList = async function (callback: Function) {
-    if (!iconMap) {
-      callback && callback(iconMap);
-      return
-    };
-    const _iconMap = {};
-    const path = 'studio/' + userId + '/pdb/icons/';
-    listObject(path).then(async (data: any) => {
-      let fetchList: Array<any> = [];
-      await (data || []).forEach(function (file: any) {
-        const icon = file.name;
-        const fetch = getIconUrl(icon).then(url => {
-          if (url) {
-            Object.assign(_iconMap, { [icon]: url });
-          }
-        });
-        fetchList.push(fetch);
-      });
-      Promise.all(fetchList).then(function () {
-        dispatch(Editor.setIconMap(_iconMap));
-        callback && callback(_iconMap);
-      });
-    }).catch(err => {
-      callback && callback({});
     });
   }
 
@@ -134,12 +102,12 @@ function App(props: PdbConfig) {
               <Content className="pdb-layout-content">
                 <Routes>
                   <Route path="/:id/template?" element={<ObjectLeft />} />
-                  <Route path="/:id/edit" element={<TypeLeft getIconList={getIconList} />} />
+                  <Route path="/:id/edit" element={<TypeLeft />} />
                 </Routes>
                 <PdbContent>
                   <Routes>
-                    <Route path="/:id" element={<ObjectGraph theme={theme} getIconList={getIconList} />} />
-                    <Route path="/:id/template" element={<TemplateGraph theme={theme} getIconList={getIconList} />} />
+                    <Route path="/:id" element={<ObjectGraph theme={theme} />} />
+                    <Route path="/:id/template" element={<TemplateGraph theme={theme} />} />
                     <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
                   </Routes>
                   <Routes>

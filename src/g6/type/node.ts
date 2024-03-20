@@ -1,3 +1,4 @@
+import { getImagePath } from '@/actions/minioOperate';
 import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import { fittingString, GLOBAL_FONT_SIZE } from '@/utils/objectGraph';
@@ -65,7 +66,8 @@ export function registerNode() {
             iconX = -_textWidth / 2 - 5;
 
           if (icon.indexOf('studio/' + userId + '/pdb/icons/') > -1) {
-            checkImgExists(icon, (exist: boolean, proportion = 0) => {
+            const img = getImagePath(icon);
+            checkImgExists(img, (exist: boolean, proportion = 0) => {
               if (exist) {
                 const height = iconImgWidth / proportion;
                 group.addShape('image', {
@@ -74,7 +76,7 @@ export function registerNode() {
                     y: -height / 2,
                     width: iconImgWidth,
                     height,
-                    img: icon,
+                    img,
                     fill: 'transparent'
                   },
                   name: 'node-icon',
@@ -141,7 +143,8 @@ export function registerNode() {
               nodeIcon.attr({ x: iconX, text: getIcon(icon), fill: iconColor });
               textShape && textShape.attr({ text, x: textX, fill: textColor });
             } else {
-              checkImgExists(icon, (exist: boolean, proportion = 0) => {
+              const img = getImagePath(icon);
+              checkImgExists(img, (exist: boolean, proportion = 0) => {
                 if (exist) {
                   const height = iconImgWidth / proportion;
                   nodeIcon.attr({
@@ -149,7 +152,7 @@ export function registerNode() {
                     y: -height / 2,
                     width: iconImgWidth,
                     height,
-                    img: icon
+                    img
                   });
                   textShape && textShape.attr({ text, x: textX, fill: textColor });
                 }
@@ -172,7 +175,8 @@ export function registerNode() {
               });
               textShape && textShape.attr({ text, x: textX, fill: textColor });
             } else {
-              checkImgExists(icon, (exist: boolean, proportion = 0) => {
+              const img = getImagePath(icon);
+              checkImgExists(img, (exist: boolean, proportion = 0) => {
                 if (exist) {
                   const height = iconImgWidth / proportion;
                   group.addShape('image', {
@@ -181,7 +185,7 @@ export function registerNode() {
                       y: -height / 2,
                       width: iconImgWidth,
                       height,
-                      img: icon
+                      img
                     },
                     name: 'node-icon',
                   });

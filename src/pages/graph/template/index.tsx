@@ -15,14 +15,13 @@ import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common'
 import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 import { useResizeDetector } from 'react-resize-detector';
 import { TypeConfig } from '@/reducers/type';
-import { uploadObject } from '@/actions/minioOperate';
+import { uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 let graph: any;
 
 interface EditorProps {
   theme: string,
-  getIconList: Function
 }
 
 export default function Editor(props: EditorProps) {
@@ -32,7 +31,6 @@ export default function Editor(props: EditorProps) {
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     appScreenshotPath = useSelector((state: StoreState) => state.app.appScreenshotPath),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    ossBucket = useSelector((state: StoreState) => state.app.systemInfo.ossBucket),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
 
@@ -63,11 +61,9 @@ export default function Editor(props: EditorProps) {
       if (!id) return;
       const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        uploadObject(shotPath, ossBucket, blob,
-          () => { console.log("progress") },
-          () => { console.log("error"); isUpdateScreenshot = false; },
-          () => { isUpdateScreenshot = false; }
-        );
+        uploadFile(shotPath, blob).finally(() => {
+          isUpdateScreenshot = false;
+        });
       });
     }
   }
@@ -167,7 +163,6 @@ export default function Editor(props: EditorProps) {
           name: type['x.type.label'] || '',
           uid: type,
           id,
-          // icon: iconMap[icon] || icon,
           data: type,
           style: {
             ...nodeStateStyle.default,

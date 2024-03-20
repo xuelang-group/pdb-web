@@ -12,9 +12,6 @@ interface systemInfoState {
   appId: number | null
   nodeId: string
   graphId: number | null
-  ossBucket: string
-  ossEndpoint: string
-  ossType: string
 }
 interface ListState {
   systemInfo: systemInfoState
@@ -28,10 +25,7 @@ const initialState: ListState = {
     userId: null,
     appId: null,
     nodeId: "",
-    graphId: null,
-    ossBucket: "suanpan",
-    ossEndpoint: "",
-    ossType: "minio"
+    graphId: null
   },
   collapsed: true,
   catalog: [{ "id": 2, "label": "我的项目", "folder": true, "children": [] }],

@@ -13,8 +13,7 @@ import { setObject } from '@/actions/object';
 
 export default function MultiModelParamEditor(props: any) {
 
-  const multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
-    iconMap = useSelector((state: StoreState) => state.editor.iconMap);
+  const multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel);
 
   const [currentEditModel, setCurrentEditModel] = useState<any>([]),
     [currentIcon, setCurrentIcon] = useState(''),
@@ -75,9 +74,9 @@ export default function MultiModelParamEditor(props: any) {
         shouldUpdateData.forEach(function (data) {
           const option = { data };
           if (type === 'icon') {
-            Object.assign(option, { icon: iconMap[value] || value });
+            Object.assign(option, { icon: value });
           } else if (currentIcon) {
-            Object.assign(option, { icon: iconMap[currentIcon] || currentIcon });
+            Object.assign(option, { icon: currentIcon });
           }
           graph?.updateItem(data.uid, option);
         });

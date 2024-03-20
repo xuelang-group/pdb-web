@@ -33,7 +33,6 @@ export default function AppExplore() {
     relations = useSelector((state: StoreState) => state.relation.data),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
-    iconMap = useSelector((state: StoreState) => state.editor.iconMap),
     showSearch = useSelector((state: StoreState) => state.editor.showSearch);
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
@@ -278,7 +277,7 @@ export default function AppExplore() {
 
     if (!data || !graph) return;
     const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, iconMap, relationLines);
+    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
     dispatch(setCurrentGraphTab("explore"));
     dispatch(setToolbarConfig({
       key: "explore",

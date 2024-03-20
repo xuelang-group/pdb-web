@@ -8,10 +8,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import previewEmptyDark from '@/assets/images/preview-empty-dark.png'
 import previewEmpty from '@/assets/images/preview-empty.png';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
-import { setAppScreenshotPath, setCollapsed } from "@/reducers/app";
+import { setCollapsed } from "@/reducers/app";
 import { StoreState } from "@/store";
-import { useEffect } from "react";
-import { getObjectUrl } from "@/actions/minioOperate";
+import { getImagePath } from "@/actions/minioOperate";
 interface PreviewProps {
   activeItem: any
   theme: string
@@ -25,22 +24,7 @@ export default function Preview(props: PreviewProps) {
     location = useLocation(),
     navigate = useNavigate();
 
-  const appScreenshotPath = useSelector((state: StoreState) => state.app.appScreenshotPath),
-    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
-
-  useEffect(() => {
-    if (activeItem?.id) {
-      getAppScreenshot(activeItem?.id);
-    }
-  }, [activeItem?.id]);
-
-  function getAppScreenshot(id: string) {
-    const { userId, ossBucket } = systemInfo;
-    const shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
-    getObjectUrl(shotPath, ossBucket).then(function (url) {
-      dispatch(setAppScreenshotPath(url));
-    }).catch(() => dispatch(setAppScreenshotPath(appDefaultScreenshotPath)));
-  }
+  const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
 
   if (!_.isEmpty(activeItem)) {
     const localTime = moment.utc(activeItem.gmt_create).toDate();
@@ -63,7 +47,7 @@ export default function Preview(props: PreviewProps) {
           </div>
           <Spin wrapperClassName="pdb-list-preview-img" spinning={false}>
             <img
-              src={appScreenshotPath}
+              src={getImagePath('studio/' + systemInfo?.userId + '/pdb/' + activeItem?.id + '/screen_shot.png')}
               onError={(event: any) => {
                 if (event.target.src !== appDefaultScreenshotPath) {
                   event.target.src = appDefaultScreenshotPath;
@@ -93,7 +77,7 @@ export default function Preview(props: PreviewProps) {
 
   let previewImage = theme === 'dark' ? previewEmptyDark : previewEmpty;
   if (previewImage.startsWith("./")) {
-    previewImage =  _.get(window, 'pdbConfig.basePath', '') + previewImage.replace("./", "/");
+    previewImage = _.get(window, 'pdbConfig.basePath', '') + previewImage.replace("./", "/");
   }
 
   return (
