@@ -3,10 +3,9 @@ import { addChildrenToGraphData, convertAllData } from '../../utils/objectGraph'
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, copyObject, countObject, deleteObject, getChildren, getObject, moveObject, setObject } from '@/actions/object';
+import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
-import { TemplateGraphDataState } from '@/reducers/template';
 
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {
@@ -16,7 +15,7 @@ export const G6OperateFunctions = {
       if (success) {
         Object.assign(newData, { uid: Object.values(response)[0] });
         getObject({ uid: Object.values(response)[0] }, (success: boolean, response: any) => {
-          if (success) {
+          if (success && response && response[0]) {
             newData = response[0];
           }
           callback && callback(newData);

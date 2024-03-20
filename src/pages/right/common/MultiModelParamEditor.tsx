@@ -1,4 +1,4 @@
-import { Divider, notification } from 'antd';
+import { notification } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import './index.less';
 import PdbPanel from '@/components/Panel';

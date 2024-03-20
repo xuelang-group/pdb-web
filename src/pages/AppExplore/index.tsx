@@ -1,11 +1,11 @@
 import { getQueryResult, runPql } from "@/actions/query";
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Empty, message, notification, Popover, Select, Tabs, Tag } from "antd";
-import _, { bind } from "lodash";
+import { Empty, message, notification, Popover, Select, Tag } from "antd";
+import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,10 +13,8 @@ import { useParams } from "react-router";
 import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
-import relation, { RelationConfig } from "@/reducers/relation";
+import { RelationConfig } from "@/reducers/relation";
 import { TypeConfig } from "@/reducers/type";
-
-// const { TabPane } = Tabs;
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -315,6 +313,7 @@ export default function AppExplore() {
     });
     if (pql.length === 0) return;
     setSearchLoading(true);
+    dispatch(setGraphLoading(true));
     const graphId = routerParams.id;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
@@ -328,9 +327,11 @@ export default function AppExplore() {
             });
           }
           setSearchLoading(false);
+          dispatch(setGraphLoading(false));
         });
       } else {
         setSearchLoading(false);
+        dispatch(setGraphLoading(false));
         notification.error({
           message: '搜索失败',
           description: response.message || response.msg

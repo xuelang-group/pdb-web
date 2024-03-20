@@ -14,7 +14,6 @@ import FolderOnSvg from '@/assets/images/folder-expand.svg';
 
 import { StoreState } from "@/store";
 import { setCatalog, setCollapsed } from "@/reducers/app";
-import { setTemplateList } from "@/reducers/template";
 import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCatalog, getNewFolderId } from "@/utils/common";
 
 import Preview from "./Preview";

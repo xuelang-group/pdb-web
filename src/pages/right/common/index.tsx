@@ -7,6 +7,9 @@ import moment from 'moment';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
+import { useParams } from 'react-router-dom';
+import dayjs from 'dayjs';
+import _ from 'lodash';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
@@ -24,7 +27,6 @@ import { getObject, setObject, updateObjectInfo } from '@/actions/object';
 import TextArea from 'antd/lib/input/TextArea';
 import RelationBind from '../relation/RelationBind';
 import { ParamItem } from './ParamItem';
-import _ from 'lodash';
 import RelationList from '../object/RelationList';
 import { NodeItemData, setCurrentEditModel } from '@/reducers/editor';
 import { TemplateGraphDataState, setGraphData } from '@/reducers/template';
@@ -32,9 +34,8 @@ import { updateTemplateInfo } from '@/actions/template';
 import ConstraintList from '../constraint/ConstraintList';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
-import dayjs from 'dayjs';
 import MultiModelParamEditor from './MultiModelParamEditor';
-import { useParams } from 'react-router-dom';
+
 
 const { Option } = Select;
 
@@ -268,7 +269,7 @@ export default function Right(props: RightProps) {
   const getObjectInfo = function (uid: string, attrs: any) {
     setAttrLoading(true);
     getObject({ uid }, (success: boolean, response: any) => {
-      if (success) {
+      if (success && response && response[0]) {
         setCurrentEditDefaultData(response[0]);
         const filedValue = response[0];
         const attFormValue = {};
@@ -282,7 +283,7 @@ export default function Right(props: RightProps) {
           }
         });
         attrForm.setFieldsValue(attFormValue);
-      } else {
+      } else if (!success) {
         notification.error({
           message: '获取对象属性值失败',
           description: response.message || response.msg

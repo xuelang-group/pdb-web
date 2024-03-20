@@ -1,12 +1,12 @@
-import { deleteObjectRelation, getRelationTarget, createObjectRelation } from '@/actions/object';
-import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/object/edge';
-import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
-import { ConnectionState, ConstraintState, TemplateGraphDataState } from '@/reducers/template';
-import { StoreState } from '@/store';
 import { Button, Form, message, notification, Select, Table } from 'antd';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { deleteObjectRelation, getRelationTarget, createObjectRelation } from '@/actions/object';
+import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/object/edge';
+import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
+import { StoreState } from '@/store';
 import './index.less';
 
 interface RelationListProps {

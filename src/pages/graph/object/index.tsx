@@ -2,7 +2,7 @@ import G6, { ComboConfig, EdgeConfig, IG6GraphEvent } from '@antv/g6';
 import { LoadingOutlined } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Checkbox, Modal, notification, Tabs } from 'antd';
+import { Checkbox, Modal, notification, Spin, Tabs } from 'antd';
 import { useResizeDetector } from 'react-resize-detector';
 
 import { convertResultData, covertToGraphData } from '@/utils/objectGraph';
@@ -41,6 +41,7 @@ export default function Editor(props: EditorProps) {
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
+    graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     relations = useSelector((state: StoreState) => state.relation.data),
     queryStatus = useSelector((state: StoreState) => state.query.status),
     queryResult = useSelector((state: StoreState) => state.query.result),
@@ -566,29 +567,31 @@ export default function Editor(props: EditorProps) {
           onEdit={handleEditTab}
         />
       }
-      <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
-        <GraphToolbar theme={props.theme} />
-        <div ref={graphRef} className="graph" id="object-graph"></div>
-        <div
-          className='pdb-object-switch'
-          onClick={event => {
-            event.stopPropagation();
-            navigate(`/${routerParams.id}/template`);
-          }}
-        >
-          <div className='pdb-object-switch-img'>
-            <img
-              src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png')}
-              onError={(event: any) => {
-                if (event.target.src !== appDefaultScreenshotPath) {
-                  event.target.src = appDefaultScreenshotPath;
-                  event.target.onerror = null;
-                }
-              }} />
+      <Spin spinning={graphLoading}>
+        <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
+          <GraphToolbar theme={props.theme} />
+          <div ref={graphRef} className="graph" id="object-graph"></div>
+          <div
+            className='pdb-object-switch'
+            onClick={event => {
+              event.stopPropagation();
+              navigate(`/${routerParams.id}/template`);
+            }}
+          >
+            <div className='pdb-object-switch-img'>
+              <img
+                src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png')}
+                onError={(event: any) => {
+                  if (event.target.src !== appDefaultScreenshotPath) {
+                    event.target.src = appDefaultScreenshotPath;
+                    event.target.onerror = null;
+                  }
+                }} />
+            </div>
+            <span className='pdb-object-switch-label'>类型模板</span>
           </div>
-          <span className='pdb-object-switch-label'>类型模板</span>
         </div>
-      </div>
+      </Spin>
       {/* <Modal
         title={modalTile[modalOperate]}
         open={isModalOpen}

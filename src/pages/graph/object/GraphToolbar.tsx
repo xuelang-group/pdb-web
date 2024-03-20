@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import { ObjectRelationConig, RelationsConfig, setToolbarConfig } from "@/reducers/editor";
-import { ConnectionState } from "@/reducers/template";
 import { StoreState } from "@/store";
 
 const { Panel } = Collapse;

@@ -1,6 +1,6 @@
 import { resetSchema } from "@/actions/type";
 import { setCurrentEditModel } from "@/reducers/editor";
-import { Button, Divider } from "antd";
+import { Divider } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
 import { useEffect, useRef } from "react";

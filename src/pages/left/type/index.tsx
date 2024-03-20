@@ -1,4 +1,4 @@
-import { Button, Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tree } from 'antd';
+import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tree } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 import { useParams } from 'react-router-dom';
@@ -9,7 +9,7 @@ import { fittingString } from '@/utils/objectGraph';
 import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
 import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { defaultNodeColor, fuzzyQuery, getBorderColor, getTextColor, uuid } from '@/utils/common';
+import { defaultNodeColor, getBorderColor, getTextColor, uuid } from '@/utils/common';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
@@ -360,7 +360,7 @@ export default function Left(props: any) {
     if (type === 'type') {
       getTypeByGraphId(routerParams?.id, item['x.type.name'], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
-        if (success) {
+        if (success && response && response[0]) {
           const data = response[0];
           Object.assign(commonConfig, { data });
           const metadata = JSON.parse(data['x.type.metadata'] || '{}');

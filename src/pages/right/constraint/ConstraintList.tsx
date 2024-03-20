@@ -1,11 +1,11 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { StoreState } from '@/store';
-import { Button, Dropdown, MenuProps, Form, Empty, notification, InputNumber } from 'antd';
-import './index.less';
+import { Button, Dropdown, MenuProps, Form, Empty, InputNumber } from 'antd';
 import { useEffect, useState } from 'react';
-import { ConstraintState, setGraphData } from '@/reducers/template';
 import _ from 'lodash';
-import { updateTemplateGraph } from '@/actions/template';
+
+import { StoreState } from '@/store';
+import { ConstraintState, setGraphData } from '@/reducers/template';
+import './index.less';
 
 const constarintMap: any = {
   'maximum': {

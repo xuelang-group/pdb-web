@@ -1,4 +1,4 @@
-import { memo, useRef } from 'react'
+import { memo } from 'react'
 import { useDrag, useDrop } from 'react-dnd'
 
 export const ParamItem = memo(function ParamItem({ index, attr, isActive, canOperate, canDrag, moveParam, deleteParam, editParam, children, findParam, inherit }: any) {

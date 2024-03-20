@@ -1,17 +1,17 @@
-import { Button, Dropdown, Input, InputRef, notification, Tabs, Tree } from 'antd';
+import { Input, InputRef, notification, Tabs, Tree } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import _ from 'lodash';
+
 import { StoreState } from '@/store';
 import { getType } from '@/actions/type';
 import { setTypes, TypeConfig } from '@/reducers/type';
 import { useEffect, useRef, useState } from 'react';
-import { fuzzyQuery } from '@/utils/common';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 
 import './index.less';
-import _ from 'lodash';
-import { useParams } from 'react-router-dom';
 
 const { Search } = Input;
 export default function Left() {
