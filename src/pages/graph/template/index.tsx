@@ -15,7 +15,7 @@ import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common'
 import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 import { useResizeDetector } from 'react-resize-detector';
 import { TypeConfig } from '@/reducers/type';
-import { uploadFile } from '@/actions/minioOperate';
+import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 let graph: any;
@@ -29,7 +29,6 @@ export default function Editor(props: EditorProps) {
     routerParams = useParams(),
     navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    appScreenshotPath = useSelector((state: StoreState) => state.app.appScreenshotPath),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
@@ -227,7 +226,7 @@ export default function Editor(props: EditorProps) {
       >
         <div className='pdb-object-switch-img'>
           <img
-            src={appScreenshotPath}
+            src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/screen_shot.png')}
             onError={(event: any) => {
               if (event.target.src !== appDefaultScreenshotPath) {
                 event.target.src = appDefaultScreenshotPath;
