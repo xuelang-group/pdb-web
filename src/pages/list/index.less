@@ -171,13 +171,19 @@
           overflow: hidden;
 
           .pdb-app-title {
-            display: inline-block;
+            display: flex;
+            align-items: center;
             width: 100%;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
             padding-left: 2.8rem;
             z-index: 2;
+
+            &-name {
+              text-overflow: ellipsis;
+              overflow: hidden;
+              flex: 1;
+            }
 
             .text-equal {
               color: var(--danger-color);

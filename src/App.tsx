@@ -1,9 +1,8 @@
 
 import { ConfigProvider, Layout, notification } from 'antd';
-import antdLocale from 'antd/es/locale/zh_CN';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { IntlProvider } from 'react-intl';
 import _ from 'lodash';
 
@@ -38,16 +37,17 @@ import { setCatalog, setSystemInfo } from './reducers/app';
 
 const { Content } = Layout;
 function App(props: PdbConfig) {
-  const { locale, messages, theme, headerEXtraWidth } = props;
-  const dispatch = useDispatch();
-  const userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    catalog = useSelector((state: StoreState) => state.app.catalog);
+  const { theme, headerEXtraWidth } = props;
+  const dispatch = useDispatch(),
+    navigate = useNavigate();
+  const catalog = useSelector((state: StoreState) => state.app.catalog);
   useEffect(() => {
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
-        const { userId } = response;
+        const { userId, graphId } = response;
         dispatch(setSystemInfo(response));
-        getAppFolderList(userId)
+        getAppFolderList(userId);
+        navigate(`/${graphId}`);
       } else {
         notification.error({
           message: '获取系统信息失败：',
@@ -79,47 +79,32 @@ function App(props: PdbConfig) {
 
   return (
     <div className='pdb'>
-      <IntlProvider locale={locale} messages={messages}>
-        <ConfigProvider
-          locale={antdLocale}
-          prefixCls='pdb-ant'
-          theme={{
-            token: {
-              borderRadius: 2
-            }
-          }}
-          getPopupContainer={node => (document.getElementsByClassName('pdb')[0] || document.body) as HTMLElement}
-        >
-          <Router basename={_.get(window, 'pdbConfig.basePath', '') + '/web'}>
+      <Routes>
+        <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
+      </Routes>
+      <Layout className="pdb-layout">
+        <Routes>
+          <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+          <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
+        </Routes>
+        <Content className="pdb-layout-content">
+          <Routes>
+            <Route path="/:id/template?" element={<ObjectLeft />} />
+            <Route path="/:id/edit" element={<TypeLeft />} />
+          </Routes>
+          <PdbContent>
             <Routes>
-              <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
+              <Route path="/:id" element={<ObjectGraph theme={theme} />} />
+              <Route path="/:id/template" element={<TemplateGraph theme={theme} />} />
+              <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
             </Routes>
-            <Layout className="pdb-layout">
-              <Routes>
-                <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
-                <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
-              </Routes>
-              <Content className="pdb-layout-content">
-                <Routes>
-                  <Route path="/:id/template?" element={<ObjectLeft />} />
-                  <Route path="/:id/edit" element={<TypeLeft />} />
-                </Routes>
-                <PdbContent>
-                  <Routes>
-                    <Route path="/:id" element={<ObjectGraph theme={theme} />} />
-                    <Route path="/:id/template" element={<TemplateGraph theme={theme} />} />
-                    <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
-                  </Routes>
-                  <Routes>
-                    <Route path="/:id/template?" element={<CommonRight route="object" />} />
-                    <Route path="/:id/edit" element={<CommonRight route='type' />} />
-                  </Routes>
-                </PdbContent>
-              </Content>
-            </Layout>
-          </Router>
-        </ConfigProvider>
-      </IntlProvider>
+            <Routes>
+              <Route path="/:id/template?" element={<CommonRight route="object" />} />
+              <Route path="/:id/edit" element={<CommonRight route='type' />} />
+            </Routes>
+          </PdbContent>
+        </Content>
+      </Layout>
     </div>
   );
 }

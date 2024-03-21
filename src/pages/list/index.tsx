@@ -1,4 +1,4 @@
-import { Button, Checkbox, Dropdown, Empty, Input, MenuProps, Modal, message, Spin, Tabs, Tree } from "antd";
+import { Button, Checkbox, Dropdown, Empty, Input, MenuProps, Modal, message, Spin, Tabs, Tree, Tag } from "antd";
 import { DownOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import React, { Key, useEffect, useRef, useState } from "react";
 import { ResizableBox } from "react-resizable";
@@ -54,6 +54,7 @@ export default function List(props: ListProps) {
     leafMenuItems: MenuProps["items"] = Object.keys(operation(route)['leaf']).map(key => ({ key, label: _.get(operation(route)['leaf'], key, '') }));
 
   const [dragWidth, setDragWidth] = useState(800),
+    [initData, setInitData] = useState(false),
     [searchKeyword, setSearchKeyword] = useState(""),
     [isSearched, setSearchedStatus] = useState(false),
     [dataList, setDataList] = useState([]),
@@ -108,6 +109,7 @@ export default function List(props: ListProps) {
     routeActionMap[route].get(function (success: boolean, response: any) {
       if (success) {
         setDataList(response);
+        setInitData(true);
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
@@ -116,8 +118,17 @@ export default function List(props: ListProps) {
   }, [route]);
 
   useEffect(() => {
-    getTreeData(catalog, dataList, treeSelectedKeys[0], searchKeyword);
-  }, [dataList, catalog])
+    if (initData && systemInfo.graphId) {
+      getTreeData(catalog, dataList, systemInfo.graphId, searchKeyword);
+      setInitData(false);
+      setTreeSelectedKeys([systemInfo.graphId.toString()]);
+      dispatch(setCollapsed(true));
+    }
+  }, [initData, systemInfo.graphId]);
+
+  useEffect(() => {
+    getTreeData(catalog, dataList, treeSelectedKeys[0] || routerParams?.id, searchKeyword);
+  }, [dataList, catalog]);
 
   // 搜索
   const handleSearch = function (value: string) {
@@ -520,15 +531,23 @@ export default function List(props: ListProps) {
       const isFolder = item.folder || item.isFolder;
       const name = item.label || item.name;
       const index = _.toLower(name).indexOf(_.toLower(searchKeyword));
-      let title = <span className='pdb-app-title'>{name}</span>;
+      let title = (
+        <span className='pdb-app-title'>
+          <span className='pdb-app-title-name'>{name}</span>
+          {item.id === systemInfo.graphId && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
+        </span>
+      );
       if (!_.isEmpty(searchKeyword) && index > -1) {
         const beforeStr = name.substr(0, index);
         const equalStr = name.substr(index, searchKeyword.length);
         const afterStr = name.substr(index + searchKeyword.length);
         title = (<span className='pdb-app-title'>
-          {beforeStr}
-          <span className='text-equal'>{equalStr}</span>
-          {afterStr}
+          <span className='pdb-app-title-name'>
+            {beforeStr}
+            <span className='text-equal'>{equalStr}</span>
+            {afterStr}
+          </span>
+          {item.id === systemInfo.graphId && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
         </span>);
       }
       let items = isFolder ? folderMenuItems : leafMenuItems;
@@ -550,7 +569,9 @@ export default function List(props: ListProps) {
           }}
           trigger={['contextMenu']}
           destroyPopupOnHide
-        >{title}</Dropdown>
+        >
+          {title}
+        </Dropdown>
       );
       let data;
       if (isFolder) {

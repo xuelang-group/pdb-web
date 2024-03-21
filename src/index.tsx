@@ -1,7 +1,9 @@
 import ReactDOM from 'react-dom/client';
-import { message, notification, Modal } from 'antd';
+import { message, notification, Modal, ConfigProvider } from 'antd';
+import { BrowserRouter as Router } from 'react-router-dom';
 import 'oss-js-upload/src/oss-js-upload.js';
 import 'aliyun-sdk2/dist/aliyun-sdk.min.js';
+import antdLocale from 'antd/es/locale/zh_CN';
 
 import { addTemplate, deleteTemplate, getTemplateList, updateTemplateInfo, getTemplateData, deleteTemplates, updateTemplatesInfo } from './actions/template';
 import { createObject, getObjectData, getObjectList, removeObject, removeObjects, updateObjectInfo, updateObjects } from './actions/object';
@@ -12,6 +14,8 @@ import '@/assets/iconfont/index';
 import '@/assets/less/index.less';
 import './index.css';
 import { Provider } from 'react-redux';
+import { IntlProvider } from 'react-intl';
+import _ from 'lodash';
 export interface PdbConfig {
   locale: string
   theme: string
@@ -29,9 +33,25 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   message.config({ prefixCls: 'pdb-ant-message' });
   notification.config({ prefixCls: 'pdb-ant-notification' });
   Modal.config({ rootPrefixCls: 'pdb-ant' });
+  const { locale, messages } = config;
   root.render(
     <Provider store={store}>
-      <App {...config} />
+      <IntlProvider locale={locale} messages={messages}>
+        <ConfigProvider
+          locale={antdLocale}
+          prefixCls='pdb-ant'
+          theme={{
+            token: {
+              borderRadius: 2
+            }
+          }}
+          getPopupContainer={node => (document.getElementsByClassName('pdb')[0] || document.body) as HTMLElement}
+        >
+          <Router basename={_.get(window, 'pdbConfig.basePath', '') + '/web'}>
+            <App {...config} />
+          </Router>
+        </ConfigProvider>
+      </IntlProvider>
     </Provider>
   );
   currentRoot = root;
