@@ -2,19 +2,19 @@ import G6, { Edge } from '@antv/g6';
 import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useResizeDetector } from 'react-resize-detector';
 import _ from 'lodash';
 
 import type { StoreState } from '@/store';
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
 import { initG6 } from '@/g6';
+import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 
 import './index.less';
 import { RelationConfig } from '@/reducers/relation';
-import { fittingString } from '@/utils/objectGraph';
-import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common'
-import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
-import { useResizeDetector } from 'react-resize-detector';
 import { TypeConfig } from '@/reducers/type';
+import { fittingString } from '@/utils/objectGraph';
+import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 

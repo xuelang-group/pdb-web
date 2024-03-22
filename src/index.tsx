@@ -1,6 +1,9 @@
 import ReactDOM from 'react-dom/client';
 import { message, notification, Modal, ConfigProvider } from 'antd';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { IntlProvider } from 'react-intl';
+import _ from 'lodash';
 import 'oss-js-upload/src/oss-js-upload.js';
 import 'aliyun-sdk2/dist/aliyun-sdk.min.js';
 import antdLocale from 'antd/es/locale/zh_CN';
@@ -13,9 +16,7 @@ import App from './App';
 import '@/assets/iconfont/index';
 import '@/assets/less/index.less';
 import './index.css';
-import { Provider } from 'react-redux';
-import { IntlProvider } from 'react-intl';
-import _ from 'lodash';
+
 export interface PdbConfig {
   locale: string
   theme: string

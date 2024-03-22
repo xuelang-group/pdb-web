@@ -1,18 +1,15 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { Button, Empty, Form, Input, message, Modal, Popconfirm, Select } from 'antd';
-import { ExclamationCircleFilled } from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import _ from 'lodash';
 
 import { StoreState } from '@/store';
 import { QueryItemState, QueryResultState, setList, setQueryState, setResult } from '@/reducers/query';
+import { deleteToolbarConfig } from '@/reducers/editor';
 import { saveQueryData } from '@/actions/query';
 import ConditionForm from './ConditionForm';
 import './index.less';
-import { deleteToolbarConfig } from '@/reducers/editor';
-
-const { confirm } = Modal;
 
 interface QueryBuilderProps {
   onRunQuery: Function

@@ -1,19 +1,19 @@
 import { Input, InputRef, Modal, notification } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { Loading3QuartersOutlined, FormOutlined } from '@ant-design/icons';
-
-import './index.less';
-import _ from 'lodash';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Loading3QuartersOutlined, FormOutlined } from '@ant-design/icons';
+import _ from 'lodash';
+import moment from 'moment';
+
+import './index.less';
 import { StoreState } from '@/store';
 import { QueryItemState, QueryResultState, setList, setQueryState, setResult } from '@/reducers/query';
+import { setRelations } from '@/reducers/relation';
+import { addToolbarConfig } from '@/reducers/editor';
 import QueryBuilder from '@/components/QueryBuilder';
 import { getRelationByGraphId } from '@/actions/relation';
-import { setRelations } from '@/reducers/relation';
 import { getQueryResult, runQuery } from '@/actions/query';
-import moment from 'moment';
-import { addToolbarConfig } from '@/reducers/editor';
 import { getFile } from '@/actions/minioOperate';
 
 const { Search } = Input;

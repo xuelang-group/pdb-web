@@ -8,6 +8,7 @@ import _ from "lodash";
 
 import { addTemplate, deleteTemplate, deleteTemplates, getTemplateList, updateTemplateInfo } from "@/actions/template";
 import { removeObject, getObjectList, removeObjects, createObject, updateObjectInfo } from "@/actions/object";
+import { putFile } from "@/actions/minioOperate";
 import searchEmpty from '@/assets/images/search_empty.png';
 import FolderOffSvg from '@/assets/images/folder-collpased.svg';
 import FolderOnSvg from '@/assets/images/folder-expand.svg';
@@ -19,7 +20,6 @@ import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCat
 import Preview from "./Preview";
 import ModalForm from "./ModalForm";
 import "./index.less";
-import { putFile } from "@/actions/minioOperate";
 
 const { Search } = Input;
 const { DirectoryTree, TreeNode } = Tree;

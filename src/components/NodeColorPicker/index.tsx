@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ColorPicker, Divider, Popover, Tabs, Tooltip } from 'antd';
-import './index.less';
-import _, { fill } from 'lodash';
+import { useEffect, useState } from 'react';
+import { ColorPicker, Divider, Popover, Tooltip } from 'antd';
+import _ from 'lodash';
 import { defaultNodeColor, getBorderColor, nodeColorList } from '@/utils/common';
+import './index.less';
 
 interface NodeColorPickerProps {
   type: string

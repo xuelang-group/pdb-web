@@ -1,9 +1,10 @@
 import { deleteFile, listFile, uploadFile } from "@/actions/minioOperate";
-import { StoreState } from "@/store";
 import { Dropdown, message, notification, Spin } from "antd";
-import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import _ from "lodash";
+
+import { StoreState } from "@/store";
 import { NodeIconPickerProps } from ".";
 
 export default function CustomIconList(props: NodeIconPickerProps) {

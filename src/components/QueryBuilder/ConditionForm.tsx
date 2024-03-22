@@ -1,14 +1,15 @@
 import React, { Key, useEffect, useRef, useState } from 'react';
-import { DatePicker, InputNumber, InputRef, Radio, Select } from 'antd';
-import { Button, Form, Input, Modal, Table } from 'antd';
+import { DatePicker, InputNumber, InputRef, Radio, Select, Button, Form, Input, Table } from 'antd';
 import locale from 'antd/es/date-picker/locale/zh_CN';
+import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
-import _ from 'lodash';
-import { getType } from '@/actions/type';
-import { RelationConfig } from '@/reducers/relation';
-import { getTypeSupportRelation } from '@/actions/object';
-import dayjs from 'dayjs'
 import moment from 'moment';
+import _ from 'lodash';
+
+import { getType } from '@/actions/type';
+import { getTypeSupportRelation } from '@/actions/object';
+import { RelationConfig } from '@/reducers/relation';
+
 interface Item {
   key: string;
   name: string;

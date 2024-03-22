@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Popover, Tabs, Tooltip } from 'antd';
-import './index.less';
 import _ from 'lodash';
+
 import fonts from '@/assets/iconfont/pdb/iconfont-icon.json';
 import CustomIconList from './CustomIconList';
-import { useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getImagePath } from '@/actions/minioOperate';
+import './index.less';
 
 export interface NodeIconPickerProps {
   changeIcon: Function

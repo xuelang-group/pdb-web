@@ -1,12 +1,13 @@
-import { resetSchema } from "@/actions/type";
-import { setCurrentEditModel } from "@/reducers/editor";
 import { Divider } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from 'react-router-dom';
-import './index.less'
+
+import { resetSchema } from "@/actions/type";
+import { setCurrentEditModel } from "@/reducers/editor";
+import './index.less';
 
 interface HeaderProps {
   route: string

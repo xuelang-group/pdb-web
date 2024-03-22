@@ -1,13 +1,12 @@
 import { Input, Button, Form, Select, InputNumber, Checkbox, notification, DatePicker } from 'antd';
-import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
-
+import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState } from 'react';
-import { typeMap } from '@/utils/common';
 import { useSelector } from 'react-redux';
+import moment from 'moment';
+
+import { typeMap } from '@/utils/common';
 import { StoreState } from '@/store';
 import { getType } from '@/actions/type';
-import TextArea from 'antd/lib/input/TextArea';
-import moment from 'moment';
 import PdbPanel from '@/components/Panel';
 
 const { Option } = Select;

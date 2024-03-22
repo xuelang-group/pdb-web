@@ -1,9 +1,10 @@
-import { setCollapsed } from "@/reducers/app";
 import { Divider, Layout } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
 import { ReactNode, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+import { setCollapsed } from "@/reducers/app";
 import './index.less'
 
 const title: any = {

@@ -4,25 +4,25 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Checkbox, Modal, notification, Spin, Tabs } from 'antd';
 import { useResizeDetector } from 'react-resize-detector';
+import { useNavigate, useParams } from 'react-router-dom';
+import _ from 'lodash';
 
 import { convertResultData, covertToGraphData } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
+import store from '@/store';
+import { initG6 } from '@/g6';
+import { edgeLabelStyle } from '@/g6/type/edge';
+import { G6OperateFunctions } from '@/g6/object/behavior';
 import { getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
-import { initG6 } from '@/g6';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch } from '@/reducers/editor';
-import { G6OperateFunctions } from '@/g6/object/behavior';
-import store from '@/store';
 import { RelationConfig } from '@/reducers/relation';
-import './index.less';
-import GraphToolbar from './GraphToolbar';
-import { useNavigate, useParams } from 'react-router-dom';
-import { isArray } from 'lodash';
 import { QueryResultState, setResult } from '@/reducers/query';
-import _ from 'lodash';
-import { edgeLabelStyle } from '@/g6/type/edge';
+import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
+
+import './index.less';
+import GraphToolbar from './GraphToolbar';
 
 interface EditorProps {
   theme: string
@@ -108,7 +108,7 @@ export default function Editor(props: EditorProps) {
               if (newValue['x.relation.name']) {
                 const relations: any[] = [];
                 newValue['x.relation.name'].forEach((relation: string) => {
-                  if (isArray(newValue[relation])) {
+                  if (_.isArray(newValue[relation])) {
                     newValue[relation].forEach((target: any) => {
                       relations.push({
                         relation,

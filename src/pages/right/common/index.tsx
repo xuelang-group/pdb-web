@@ -1,5 +1,6 @@
 import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Table, Empty, Divider } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
+import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import debounce from 'lodash/debounce';
@@ -16,25 +17,24 @@ import ParamEditor from './ParamEditor';
 import { defaultNodeColor, formatDate, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
-import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
-
-import './index.less';
-import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { setRelationByGraphId } from '@/actions/relation';
-import PdbPanel from '@/components/Panel';
-import { CustomObjectConfig, ObjectGraphDataState, setObjectDetail } from '@/reducers/object';
 import { getObject, setObject, updateObjectInfo } from '@/actions/object';
-import TextArea from 'antd/lib/input/TextArea';
-import RelationBind from '../relation/RelationBind';
-import { ParamItem } from './ParamItem';
-import RelationList from '../object/RelationList';
+import { updateTemplateInfo } from '@/actions/template';
+import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
+import { RelationConfig, setRelationDetail } from '@/reducers/relation';
+import { CustomObjectConfig, ObjectGraphDataState, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel } from '@/reducers/editor';
 import { TemplateGraphDataState, setGraphData } from '@/reducers/template';
-import { updateTemplateInfo } from '@/actions/template';
-import ConstraintList from '../constraint/ConstraintList';
+import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
 import MultiModelParamEditor from './MultiModelParamEditor';
+import { ParamItem } from './ParamItem';
+import RelationBind from '../relation/RelationBind';
+import RelationList from '../object/RelationList';
+import ConstraintList from '../constraint/ConstraintList';
+
+import './index.less';
 
 
 const { Option } = Select;

@@ -1,13 +1,13 @@
 import { Input, InputRef, Tabs, Tree, Dropdown } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams, useNavigate } from 'react-router-dom';
+import _ from 'lodash';
 
 import './index.less';
 import { TypeConfig } from '@/reducers/type';
-import { useDispatch, useSelector } from 'react-redux';
-import { StoreState } from '@/store';
-import { useParams, useNavigate } from 'react-router-dom';
-import _ from 'lodash';
 import { setCurrentEditModel } from '@/reducers/editor';
+import { StoreState } from '@/store';
 
 const { Search } = Input;
 

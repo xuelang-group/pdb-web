@@ -1,15 +1,15 @@
 import { notification } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import './index.less';
-import PdbPanel from '@/components/Panel';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import _ from 'lodash';
+import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
-import { useSelector } from 'react-redux';
 import { StoreState } from '@/store';
-import { useEffect, useState } from 'react';
 import { defaultNodeColor, getBorderColor } from '@/utils/common';
 import { setObject } from '@/actions/object';
+import './index.less';
 
 export default function MultiModelParamEditor(props: any) {
 

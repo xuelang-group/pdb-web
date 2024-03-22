@@ -1,7 +1,3 @@
-import { getQueryResult, runPql } from "@/actions/query";
-import { NodeItemData, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { StoreState } from "@/store";
-import { convertResultData } from "@/utils/objectGraph";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Empty, message, notification, Popover, Select, Tag } from "antd";
@@ -10,11 +6,17 @@ import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
+
+import { RelationConfig } from "@/reducers/relation";
+import { TypeConfig } from "@/reducers/type";
+import { NodeItemData, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
+import { getQueryResult, runPql } from "@/actions/query";
+import { StoreState } from "@/store";
+import { convertResultData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
-import { RelationConfig } from "@/reducers/relation";
-import { TypeConfig } from "@/reducers/type";
+
 
 export const typeLabelMap: any = {
   object: "对象实例",

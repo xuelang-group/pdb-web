@@ -1,14 +1,14 @@
 import { Input, InputRef, notification, Tabs, Tree } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
 import _ from 'lodash';
 
 import { StoreState } from '@/store';
 import { getType } from '@/actions/type';
-import { setTypes, TypeConfig } from '@/reducers/type';
-import { useEffect, useRef, useState } from 'react';
-import { RelationConfig, setRelations } from '@/reducers/relation';
 import { getRelation } from '@/actions/relation';
+import { setTypes, TypeConfig } from '@/reducers/type';
+import { RelationConfig, setRelations } from '@/reducers/relation';
 import PdbPanel from '@/components/Panel';
 
 import './index.less';

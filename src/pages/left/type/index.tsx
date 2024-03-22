@@ -1,20 +1,22 @@
 import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tree } from 'antd';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
 import { useParams } from 'react-router-dom';
+import _ from 'lodash';
+
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
 import { setCurrentEditModel } from '@/reducers/editor';
+import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
+import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
-import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { defaultNodeColor, getBorderColor, getTextColor, uuid } from '@/utils/common';
-import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
+import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
-import _ from 'lodash';
+
 const { Search } = Input;
 
 export default function Left(props: any) {

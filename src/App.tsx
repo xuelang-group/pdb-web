@@ -1,9 +1,8 @@
 
-import { ConfigProvider, Layout, notification } from 'antd';
+import { Layout, notification } from 'antd';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
-import { IntlProvider } from 'react-intl';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 
 import * as Editor from '@/reducers/editor';
@@ -11,29 +10,26 @@ import * as _Object from '@/reducers/object';
 import * as Relation from '@/reducers/relation';
 import * as Template from '@/reducers/template';
 import * as Type from '@/reducers/type';
+import { setCatalog, setSystemInfo } from '@/reducers/app';
 
 import ObjectLeft from '@/pages/left/object';
 import ObjectGraph from '@/pages/graph/object';
-
 import TemplateGraph from '@/pages/graph/template/index';
 import CommonRight from '@/pages/right/common/index';
-
 import TypeLeft from '@/pages/left/type/index';
 import TypeGraph from '@/pages/graph/type/index';
 import List from '@/pages/list';
 import CommonHeader from '@/pages/header/index';
-import EditHeader from './pages/header/editHeader';
-
+import EditHeader from '@/pages/header/editHeader';
+import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';
 import PdbContent from '@/components/Content';
 
 import { StoreState } from '@/store';
 import { getFile, putFile } from '@/actions/minioOperate';
-import { PdbConfig } from '.';
-import ObjectHeaderExtra from './pages/header/ObjectHeaderExtra';
+import { getSystemInfo } from '@/actions/system';
 
+import { PdbConfig } from '.';
 import './App.less';
-import { getSystemInfo } from './actions/system';
-import { setCatalog, setSystemInfo } from './reducers/app';
 
 const { Content } = Layout;
 function App(props: PdbConfig) {
