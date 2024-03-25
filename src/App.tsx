@@ -1,8 +1,8 @@
 
-import { Layout, notification } from 'antd';
-import { useEffect } from 'react';
+import { Layout, notification, Spin } from 'antd';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
 import * as Editor from '@/reducers/editor';
@@ -37,7 +37,9 @@ function App(props: PdbConfig) {
   const dispatch = useDispatch(),
     navigate = useNavigate();
   const catalog = useSelector((state: StoreState) => state.app.catalog);
+  const [pageLoading, setPageLoading] = useState(false);
   useEffect(() => {
+    setPageLoading(true);
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
@@ -50,6 +52,7 @@ function App(props: PdbConfig) {
           description: response.message || response.msg
         });
       }
+      setPageLoading(false);
     });
     return () => {
       dispatch(Editor.reset());
@@ -73,11 +76,16 @@ function App(props: PdbConfig) {
     });
   }
 
+  // if (!(window as any).location.pathname.startsWith("/web/") && (window as any).location.pathname !== "/web") {
+  //   (window as any).location.href = "/web";
+  // }
+
   return (
     <div className='pdb'>
-      <Routes>
+      {/* 隐藏列表页 */}
+      {/* <Routes>
         <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
-      </Routes>
+      </Routes> */}
       <Layout className="pdb-layout">
         <Routes>
           <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
@@ -101,6 +109,7 @@ function App(props: PdbConfig) {
           </PdbContent>
         </Content>
       </Layout>
+      <Spin className='pdb-init-loading' spinning={pageLoading} />
     </div>
   );
 }

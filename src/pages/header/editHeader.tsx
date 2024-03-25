@@ -78,12 +78,12 @@ export default function EditHeader(props: HeaderProps) {
 
   return (
     <div className='pdb-header pdb-header-edit'>
-      <a
+      {/* <a
         className="pdb-header-button"
         onClick={exit}
       >
         <i className="spicon icon-jiantou-zuo"></i>
-      </a>
+      </a> */}
       <div className="pdb-header-info">
         <h2 className="pdb-header-title">
           类型管理
