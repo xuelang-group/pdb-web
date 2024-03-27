@@ -17,7 +17,7 @@ import { getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround } from '@/reducers/editor';
+import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
@@ -49,9 +49,8 @@ export default function Editor(props: EditorProps) {
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    searchAround = useSelector((state: StoreState) => state.editor.searchAround);
-  const [graphData, setGraphData] = useState({}),
-    [graphDataMap, setGraphDataMap] = useState<any>({});
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
+  const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -324,7 +323,7 @@ export default function Editor(props: EditorProps) {
     if (data) {
       graphData = covertToGraphData(data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
     }
-    graph.data(graphData);
+    graph.data(JSON.parse(JSON.stringify(graphData)));
     setGraphData(graphData);
     graph.render();
     graph.zoom(1);
@@ -507,9 +506,9 @@ export default function Editor(props: EditorProps) {
 
   const selectTab = function (activeKey: string) {
     if (currentGraphTab === activeKey) return;
-    setGraphDataMap({ ...graphDataMap, [currentGraphTab]: graph.save() });
+    dispatch(setGraphDataMap({ ...graphDataMap, [currentGraphTab]: graph.save() }));
     if (graphDataMap[activeKey]) {
-      graph.data(graphDataMap[activeKey]);
+      graph.data(JSON.parse(JSON.stringify(graphDataMap[activeKey])));
       graph.render();
       graph.zoom(1);
     } else {
@@ -524,7 +523,7 @@ export default function Editor(props: EditorProps) {
     dispatch(setResult(newQueryResult));
     dispatch(setCurrentGraphTab('main'));
 
-    graph.data(graphDataMap['main']);
+    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
     graph.render();
     graph.zoom(1);
   }

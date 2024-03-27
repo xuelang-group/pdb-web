@@ -9,7 +9,7 @@ import { useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { TypeConfig } from "@/reducers/type";
-import { NodeItemData, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
@@ -30,14 +30,13 @@ export default function AppExplore() {
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
 
   const types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
-    showSearch = useSelector((state: StoreState) => state.editor.showSearch);
+    showSearch = useSelector((state: StoreState) => state.editor.showSearch),
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
     [filterPanelOpenKey, setFilterPanelOpenKey] = useState<any>(null),
-    [graphDataMap, setGraphDataMap] = useState<any>({}),
     [filterLoading, setFilterLoading] = useState(false),
     [searchTags, setSearchTags] = useState<(string[])[]>([[]]),
     [searchTagMap, setSearchTagMap] = useState<any>([{}]),
@@ -255,7 +254,7 @@ export default function AppExplore() {
       if (searchLoading) return;
       if (!graph || !graphDataMap['main']) return;
       dispatch(setCurrentGraphTab("main"));
-      graph.data(graphDataMap['main']);
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
       graph.render();
       graph.zoom(1);
     }
@@ -266,9 +265,10 @@ export default function AppExplore() {
     const graph = (window as any).PDB_GRAPH;
     setCurrentFocusIndex(index);
     if ((searchTags.length === 0 || (searchTags.length === 1 && _.isEmpty(searchTags[0]))) && graph) {
-      setGraphDataMap({
+      dispatch(setGraphDataMap({
+        ...graphDataMap,
         'main': graph.save()
-      });
+      }));
     }
   }
 

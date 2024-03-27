@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
-import { NodeItemData, setCurrentGraphTab, setSearchAround, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setSearchAround, setToolbarConfig } from "@/reducers/editor";
 import { ObjectConfig } from "@/reducers/object";
 import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
@@ -25,7 +25,9 @@ export default function SearchAround() {
   const relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
-    types = useSelector((state: StoreState) => state.type.data);
+    types = useSelector((state: StoreState) => state.type.data),
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
 
   const [relationSearchValue, setRelationSearchValue] = useState(""),
     [activeTab, setActiveTab] = useState("0"),
@@ -95,12 +97,20 @@ export default function SearchAround() {
     )
   }
 
-  const changeValue = function (tabIndex: number, index: number, key: string, value: string) {
-    const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
-    _searchAroundOptions[tabIndex]['options'][index][key] = value;
-    setSearchAroundOptions(_searchAroundOptions);
-    if (key === "object") {
-      handleSearch(tabIndex, false, _searchAroundOptions);
+  const changeValue = function (tabIndex: number, index: number, key: string, value: any, _searchAroundOptions = searchAroundOptions) {
+    const _searchAroundOptions_ = JSON.parse(JSON.stringify(_searchAroundOptions));
+    if (index > -1) {
+      _searchAroundOptions_[tabIndex]['options'][index][key] = value;
+      setSearchAroundOptions(_searchAroundOptions_);
+      if (key === "object") {
+        handleSearch(tabIndex, false, _searchAroundOptions_);
+      }
+    } else {
+      _searchAroundOptions_[tabIndex][key] = value;
+      setSearchAroundOptions(_searchAroundOptions_);
+      if (key === "results") {
+        handleSearch(tabIndex, false, _searchAroundOptions_);
+      }
     }
   }
 
@@ -120,6 +130,13 @@ export default function SearchAround() {
   }
 
   const handleSearch = function (index: number, tree: boolean, _searchAroundOptions = searchAroundOptions) {
+    const graph = (window as any).PDB_GRAPH;
+    if (tree && graph && currentGraphTab === "main") {
+      dispatch(setGraphDataMap({
+        ...graphDataMap,
+        'main': graph.save()
+      }));
+    }
     const { start, options } = _searchAroundOptions[index] as any;
     const vertex = [], relationNames: string[] = [];
     vertex.push({
@@ -173,6 +190,7 @@ export default function SearchAround() {
       relationNames.push(id);
     });
     const graphId = routerParams.id;
+    dispatch(setGraphLoading(true));
     runVertex({ graphId, vertex, tree }, (success: boolean, response: any) => {
       if (success) {
         if (tree) {
@@ -188,6 +206,7 @@ export default function SearchAround() {
           description: response.message || response.msg
         });
       }
+      dispatch(setGraphLoading(false));
     });
   }
 
@@ -196,6 +215,7 @@ export default function SearchAround() {
       opt = _searchAroundOptions[tabIndex];
     opt.options.splice(index, 1);
     setSearchAroundOptions(_searchAroundOptions);
+    changeValue(tabIndex, -1, "results", {}, _searchAroundOptions);
   }
 
   const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[], results = {}) {
@@ -206,7 +226,14 @@ export default function SearchAround() {
         Object.assign(targetTypeMap, { [bind.target]: bind.target });
       }
     });
-    const _types = types.filter(type => targetTypeMap[type['x.type.name']]);
+    let typeExist = false;
+    const _types = types.filter(type => {
+      if (!typeExist) typeExist = targetTypeMap[type['x.type.name']] === option.object;
+      return targetTypeMap[type['x.type.name']];
+    });
+    if (!typeExist && option.object) {
+      changeValue(tabIndex, index, 'object', '');
+    }
     return (
       <div className="pdb-search-around-relation">
         <span><i className="spicon icon-jiantou2-xia"></i></span>

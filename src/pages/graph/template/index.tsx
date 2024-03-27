@@ -124,7 +124,7 @@ export default function Editor(props: EditorProps) {
     (window as any).PDR_GRAPH = graph;
 
     graph.get('canvas').set('localRefresh', false);
-    graph.data(data);
+    graph.data(JSON.parse(JSON.stringify(data)));
     graph.render();
     graph.on("afterrender", function () {
       saveScreenShoot();

@@ -5,7 +5,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ObjectRelationConig, RelationsConfig, setToolbarConfig } from "@/reducers/editor";
+import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setToolbarConfig } from "@/reducers/editor";
 import { StoreState } from "@/store";
 
 const { Panel } = Collapse;
@@ -27,11 +27,12 @@ interface GraphToolbarProps {
 
 export default function GraphToolbar(props: GraphToolbarProps) {
   const dispatch = useDispatch();
-  const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // root节点uid
+  const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
 
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x.name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
@@ -46,11 +47,25 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const tabs = [{
     key: 'setting',
     label: '全局设置',
-    icon: 'icon-shezhi'
+    icon: 'icon-shezhi',
+    popover: true
   }, {
     key: 'filter',
     label: '视图过滤',
-    icon: 'icon-shaixuan'
+    icon: 'icon-shaixuan',
+    popover: true
+  }, {
+    key: 'reset',
+    label: '重置画布',
+    icon: 'icon-zhongzhi1',
+    onClick: () => {
+      const graph = (window as any).PDB_GRAPH;
+      if (!graph || !graphDataMap['main']) return;
+      dispatch(setCurrentGraphTab("main"));
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+      graph.render();
+      graph.zoom(1);
+    }
   }];
 
   useEffect(() => {
@@ -424,7 +439,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       <div className='pdb-graph-toolbar'>
         {tabs.map((tab) => (
           <Popover
-            visible={tab.key === _.get(selectedTab, 'key', '')}
+            visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
             placement="right"
             trigger="click"
             content={
@@ -448,7 +463,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             <Tooltip title={tab.label} placement="right">
               <div
                 className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''}`}
-                onClick={() => setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab)}
+                onClick={() => {
+                  if (tab.popover) {
+                    setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab);
+                  }
+                  tab.onClick && tab.onClick();
+                }}
               >
                 <div className="pdb-graph-toolbar-icon">
                   <i className={`operation-icon spicon ${tab.icon}`}></i>

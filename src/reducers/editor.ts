@@ -66,6 +66,7 @@ interface ToolbarConfig {
 
 interface EditorState {
   currentGraphTab: string // 对象管理 - 画布当前tab
+  graphDataMap: any
   multiEditModel: Array<NodeItemData | EdgeItemData | TypeItemData> | null // 对象管理 - 多个选中编辑
   rootNode: ObjectConfig | null // 对象管理 - 根节点数据
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
@@ -80,6 +81,7 @@ interface EditorState {
 // 使用该类型定义初始 state
 const initialState: EditorState = {
   currentGraphTab: 'main',
+  graphDataMap: {},
   multiEditModel: null,
   rootNode: null,
   relationMap: {},
@@ -121,6 +123,9 @@ export const editorSlice = createSlice({
     reset: (state) => initialState,
     setRootNode: (state, action: PayloadAction<any>) => {
       state.rootNode = action.payload;
+    },
+    setGraphDataMap:(state, action: PayloadAction<any>) => {
+      state.graphDataMap = JSON.parse(JSON.stringify(action.payload));
     },
     setTypeRelationMap: (state, action: PayloadAction<any>) => {
       state.typeRelationMap = JSON.parse(JSON.stringify(action.payload));
@@ -186,6 +191,6 @@ export const editorSlice = createSlice({
 });
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, setGraphDataMap
 } = editorSlice.actions
 export default editorSlice.reducer
