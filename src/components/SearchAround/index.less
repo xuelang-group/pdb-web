@@ -1,0 +1,125 @@
+.pdb-search-around {
+
+  &.pdb-content-sider .pdb-sider-content {
+    height: 100%;
+  }
+
+  .pdb-ant-tabs.pdb-ant-tabs-card {
+    background-color: #fff;
+
+    .pdb-ant-tabs-content,
+    .pdb-ant-tabs-tabpane {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .pdb-ant-tabs-tabpane {
+      padding: 0 1rem;
+    }
+  }
+
+  &-item {
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .pdb-search-around-relation {
+      width: 100%;
+
+      .pdb-search-around-card {
+        width: 100%;
+
+        &-label {
+          display: block;
+          color: var(--text-color3);
+          margin: .8rem 0;
+          font-size: 1.2rem;
+
+          &:nth-child(1) {
+            margin-top: 0;
+          }
+        }
+
+        .pdb-ant-select {
+          width: 100%;
+        }
+
+        .pdb-explore-filter-content {
+          padding: 0;
+
+          .pdb-ant-empty {
+            display: none;
+          }
+        }
+
+        .pdb-ant-card {
+          &-body {
+            padding: 0;
+            .pdb-ant-form {
+              .pdb-ant-form-item:last-child {
+                margin-bottom: 0;
+              }
+            }
+          }
+        }
+      }
+
+      .spicon.icon-jiantou2-xia {
+        font-size: 1.4rem;
+      }
+    }
+
+    .pdb-search-around-condition-add.pdb-ant-btn-dashed {
+      background-color: #fff;
+      margin-top: .5rem;
+    }
+  }
+
+  &-card {
+    background: #fff;
+    padding: .8rem 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-default);
+  }
+
+  &-start {
+    span:nth-child(1) {
+      margin-right: .8rem;
+    }
+  }
+
+  &-relation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    &-add {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    &-dropdown {
+      padding: .4rem;
+      background: #fff;
+      box-shadow: var(--modal-shadow);
+
+      .pdb-ant-input {
+        background-color: #fff;
+      }
+
+      .pdb-ant-dropdown-menu.pdb-ant-dropdown-menu-root {
+        box-shadow: none !important;
+      }
+
+      .pdb-ant-empty {
+        margin-top: 1rem;
+
+        &-image {
+          height: 6rem;
+        }
+      }
+    }
+  }
+}

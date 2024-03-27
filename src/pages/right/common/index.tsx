@@ -35,6 +35,7 @@ import RelationList from '../object/RelationList';
 import ConstraintList from '../constraint/ConstraintList';
 
 import './index.less';
+import SearchAround from '@/components/SearchAround';
 
 
 const { Option } = Select;
@@ -49,7 +50,8 @@ export default function Right(props: RightProps) {
 
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel);
+    multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
+    searchAround = useSelector((state: StoreState) => state.editor.searchAround);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -1162,17 +1164,16 @@ export default function Right(props: RightProps) {
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
-        {currentEditParam &&
-          <ParamEditor
-            params={currentEditParam}
-            attrs={attrs}
-            currentEditDefaultData={currentEditDefaultData}
-            cancel={cancelEditParam}
-            currentEditType={currentEditType}
-          />
-        }
-        {
-          multiEditModel && multiEditModel.length > 0 ?
+        {searchAround.show ? <SearchAround /> : (<>
+          {currentEditParam &&
+            <ParamEditor
+              params={currentEditParam}
+              attrs={attrs}
+              currentEditDefaultData={currentEditDefaultData}
+              cancel={cancelEditParam}
+              currentEditType={currentEditType}
+            />}
+          {multiEditModel && multiEditModel.length > 0 ?
             <MultiModelParamEditor /> :
             <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>
               {renderPanelForm()}
@@ -1195,7 +1196,8 @@ export default function Right(props: RightProps) {
               }
               {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
             </PdbPanel>
-        }
+          }
+        </>)}
       </div>
     </div>
   );

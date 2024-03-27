@@ -17,7 +17,7 @@ import { getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch } from '@/reducers/editor';
+import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
@@ -48,7 +48,8 @@ export default function Editor(props: EditorProps) {
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
+    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    searchAround = useSelector((state: StoreState) => state.editor.searchAround);
   const [graphData, setGraphData] = useState({}),
     [graphDataMap, setGraphDataMap] = useState<any>({});
 
@@ -184,6 +185,27 @@ export default function Editor(props: EditorProps) {
         return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || id;
       },
     });
+
+    const contextMenu = new G6.Menu({
+      getContent(evt: any) {
+        return `<ul class="pdb-graph-node-contextmenu">
+          <li title="探索">探索</li>
+        </ul>`;
+      },
+      handleMenuClick: (target: any, item) => {
+        if (target?.title === "探索") {
+          const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
+          _searchAround.show = true;
+          _searchAround.options.push({ start: [item.get("model").data], options: [] });
+          dispatch(setSearchAround(_searchAround));
+        }
+      },
+      offsetX: 10,
+      offsetY: 0,
+      // 在哪些类型的元素上响应
+      itemTypes: ['node'],
+    });
+
     graph = new G6.Graph({
       container,
       width,
@@ -294,9 +316,8 @@ export default function Editor(props: EditorProps) {
           style: edgeLabelStyle(props.theme).default,
         },
       },
-      plugins: [tooltip]
+      plugins: [tooltip, contextMenu]
       // plugins: [minimap],
-      // plugins: [contextMenu]
     });
     (window as any).PDR_GRAPH = graph;
     let graphData: any = {};

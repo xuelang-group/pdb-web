@@ -23,6 +23,23 @@
 .pdb-graph.pdb-object-graph {
   // display: flex;
 
+  .pdb-graph-node-contextmenu {
+    list-style-type: none;
+    padding: .5rem 0;
+    margin: 0;
+    width: 16rem;
+
+    li {
+      padding: .8rem 1rem;
+      cursor: pointer;
+      color: var(--text-color1);
+
+      &:hover {
+        background-color: var(--primary-selected-bg);
+      }
+    }
+  }
+
   .pdb-ant-spin-nested-loading, .pdb-ant-spin-container {
     height: 100%;
   }

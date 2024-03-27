@@ -74,6 +74,7 @@ interface EditorState {
   showSearch: boolean
   typeRelationMap: {}
   graphLoading: boolean
+  searchAround: any
 }
 
 // 使用该类型定义初始 state
@@ -99,7 +100,11 @@ const initialState: EditorState = {
   currentEditModel: null,
   typeRelationMap: {},
   showSearch: false, //显示搜索框
-  graphLoading: false
+  graphLoading: false,
+  searchAround: {
+    show: false,
+    options: []
+  }
 }
 
 export const editorSlice = createSlice({
@@ -159,6 +164,9 @@ export const editorSlice = createSlice({
     setGraphLoading: (state, action: PayloadAction<boolean>) => {
       state.graphLoading = action.payload;
     },
+    setSearchAround: (state, action: PayloadAction<any>) => {
+      state.searchAround = action.payload;
+    },
     // setRelationLines: (state, action: PayloadAction<RelationsConfig>) => {
     //   state.relationLines = JSON.parse(JSON.stringify(action.payload));
     // },
@@ -171,7 +179,7 @@ export const editorSlice = createSlice({
   }
 });
 
-export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig,
+export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
   addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading
 } = editorSlice.actions
 export default editorSlice.reducer
