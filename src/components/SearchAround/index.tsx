@@ -1,18 +1,20 @@
+import { Button, Dropdown, Empty, Form, Input, Select, Tabs, Tag } from "antd";
+import _ from "lodash";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
 import { setSearchAround } from "@/reducers/editor";
 import { ObjectConfig } from "@/reducers/object";
 import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap } from "@/utils/common";
-import { Button, Dropdown, Empty, Form, Input, Select, Space, Tabs, Tag } from "antd";
-import _ from "lodash";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import PdbPanel from "../Panel";
 import "./index.less";
 
 export default function SearchAround() {
   const [exploreForm] = Form.useForm(),
     childRef = React.createRef(),
+    panelRef = React.createRef(),
     dispatch = useDispatch();
   const relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
@@ -23,17 +25,25 @@ export default function SearchAround() {
     [activeTab, setActiveTab] = useState("0"),
     [searchAroundOptions, setSearchAroundOptions] = useState([]),
     [isNew, setIsNew] = useState(false),
-    [editConditionIndex, setEditConditionIndex] = useState(-1);
+    [editConditionIndex, setEditConditionIndex] = useState(-1),
+    [siderHidden, setSiderHidden] = useState(false);
 
   useEffect(() => {
     if (JSON.stringify(searchAroundOptions) !== JSON.stringify(searchAround.options)) {
       setSearchAroundOptions(searchAround.options);
+      if (siderHidden) {
+        setSiderHidden(false);
+        (panelRef.current as any).setSiderHidden();
+      }
+      if (searchAround.options.length > 0) {
+        setActiveTab((searchAround.options.length - 1).toString());
+      }
     }
   }, [searchAround.options]);
 
   useEffect(() => {
     if (JSON.stringify(searchAroundOptions) !== JSON.stringify(searchAround.options)) {
-      dispatch(setSearchAround({...searchAround, options: searchAroundOptions}));
+      dispatch(setSearchAround({ ...searchAround, options: searchAroundOptions }));
     }
   }, [searchAroundOptions]);
 
@@ -79,6 +89,7 @@ export default function SearchAround() {
       </Dropdown>
     )
   }
+
   const changeValue = function (tabIndex: number, index: number, key: string, value: string) {
     const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
     _searchAroundOptions[tabIndex]['options'][index][key] = value;
@@ -180,7 +191,7 @@ export default function SearchAround() {
             <Button
               type="primary"
               icon={<i className="spicon icon-sousuo2"></i>}
-              style={{marginLeft: 8}}
+              style={{ marginLeft: 8 }}
             >搜索画布</Button>
           }
         </div>
@@ -188,8 +199,16 @@ export default function SearchAround() {
     )
   }
 
+  const handleEditTabs = function (data: any, action: string) {
+    if (action === "remove") {
+      const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
+      _searchAroundOptions.splice(Number(data), 1);
+      setSearchAroundOptions(_searchAroundOptions);
+    }
+  }
+
   return (
-    <PdbPanel className="pdb-search-around" title="" direction="right" canCollapsed={true}>
+    <PdbPanel onRef={panelRef} className="pdb-search-around" title="" direction="right" canCollapsed={false}>
       <Tabs
         activeKey={activeTab}
         type="editable-card"
@@ -201,8 +220,15 @@ export default function SearchAround() {
         }))}
         hideAdd
         onChange={activeKey => setActiveTab(activeKey)}
+        onEdit={handleEditTabs}
       >
       </Tabs>
+      <button className="btn-aside-toggle" onClick={() => {
+        setSiderHidden(!siderHidden);
+        (panelRef.current as any).setSiderHidden();
+      }}>
+        <i className={`spicon icon-${siderHidden ? "sousuo2" : "shuangjiantou-you"}`}></i>
+      </button>
     </PdbPanel>
   )
 }

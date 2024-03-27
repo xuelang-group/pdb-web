@@ -2,6 +2,20 @@
 
   &.pdb-content-sider .pdb-sider-content {
     height: 100%;
+
+    .btn-aside-toggle {
+      visibility: visible;
+      opacity: 1;
+      top: 6.5rem;
+    }
+  }
+
+  &.pdb-right-sider.pdb-right-sider-hidden .btn-aside-toggle{
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    transform: rotate(0);
+    border-top-left-radius: 50%;
+    border-bottom-left-radius: 50%;
   }
 
   .pdb-ant-tabs.pdb-ant-tabs-card {
@@ -101,7 +115,7 @@
     }
 
     &-dropdown {
-      padding: .4rem;
+      padding: 0.4rem 0.4rem 0;
       background: #fff;
       box-shadow: var(--modal-shadow);
 

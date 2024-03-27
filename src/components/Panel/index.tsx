@@ -1,6 +1,6 @@
 import { Tooltip } from "antd";
 import _ from "lodash";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 import './index.less'
 interface PanelProps {
   title?: string // 面板标题
@@ -9,6 +9,7 @@ interface PanelProps {
   external?: ReactNode
   direction?: string
   canCollapsed?: boolean
+  onRef?: any
 }
 
 export default function PdbPanel({ title, children, external, direction, canCollapsed, ...other }: PanelProps) {
@@ -20,6 +21,12 @@ export default function PdbPanel({ title, children, external, direction, canColl
   }
   const platform = _.get(window.navigator, 'platform').indexOf('Mac') > -1 ? 'mac' : 'win';
   const altKey = platform === 'win' ? 'Alt' : '⌥';
+
+  useImperativeHandle(other.onRef, () => {
+    return {
+      setSiderHidden: () => setSiderHidden(!siderHidden)
+    }
+  });
 
   useEffect(() => {
     if (canCollapsed) {

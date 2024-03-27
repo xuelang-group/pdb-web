@@ -8,7 +8,7 @@ import moment from 'moment';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import _ from 'lodash';
 
@@ -44,9 +44,10 @@ interface RightProps {
   route: string // 路由
 }
 export default function Right(props: RightProps) {
-  const routerParams = useParams();
-  const dispatch = useDispatch();
-  const idRef = useRef<any>(), templateIdRef = useRef<any>();
+  const routerParams = useParams(),
+   dispatch = useDispatch(),
+   idRef = useRef<any>(), 
+   location = useLocation();
 
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
@@ -1161,43 +1162,44 @@ export default function Right(props: RightProps) {
     );
   }
 
+  console.log(location)
+
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
-        {searchAround.show ? <SearchAround /> : (<>
-          {currentEditParam &&
-            <ParamEditor
-              params={currentEditParam}
-              attrs={attrs}
-              currentEditDefaultData={currentEditDefaultData}
-              cancel={cancelEditParam}
-              currentEditType={currentEditType}
-            />}
-          {multiEditModel && multiEditModel.length > 0 ?
-            <MultiModelParamEditor /> :
-            <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>
-              {renderPanelForm()}
-              {currentEditType === 'type' &&
-                <div className='pdb-node-metadata'>
-                  <NodeIconPicker changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} />
-                  <Divider type='vertical' />
-                  <NodeColorPicker
-                    type='fill'
-                    changeColor={(color: string) => changeNodeMetadata('color', color)}
-                    currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
-                  />
-                  <NodeColorPicker
-                    type='border'
-                    fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
-                    changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
-                    currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}
-                  />
-                </div>
-              }
-              {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
-            </PdbPanel>
-          }
-        </>)}
+        {searchAround.show && !(location.pathname.endsWith("/template") || location.pathname.endsWith("/edit")) && <SearchAround />}
+        {currentEditParam &&
+          <ParamEditor
+            params={currentEditParam}
+            attrs={attrs}
+            currentEditDefaultData={currentEditDefaultData}
+            cancel={cancelEditParam}
+            currentEditType={currentEditType}
+          />}
+        {multiEditModel && multiEditModel.length > 0 ?
+          <MultiModelParamEditor /> :
+          <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>
+            {renderPanelForm()}
+            {currentEditType === 'type' &&
+              <div className='pdb-node-metadata'>
+                <NodeIconPicker changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} />
+                <Divider type='vertical' />
+                <NodeColorPicker
+                  type='fill'
+                  changeColor={(color: string) => changeNodeMetadata('color', color)}
+                  currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
+                />
+                <NodeColorPicker
+                  type='border'
+                  fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
+                  changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
+                  currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}
+                />
+              </div>
+            }
+            {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
+          </PdbPanel>
+        }
       </div>
     </div>
   );

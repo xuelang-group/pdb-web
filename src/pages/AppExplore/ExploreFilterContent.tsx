@@ -259,7 +259,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           label = _.get(opt, 'attr.label');
         let title;
         if (condition === "has") {
-          title = `存在属性 ${label}`
+          title = `${opt.isNot ? "NOT " : ""}存在属性 ${label}`
         } else {
           let keyword = _.get(opt, 'keyword', "");
           if (typeof keyword === "object") {
