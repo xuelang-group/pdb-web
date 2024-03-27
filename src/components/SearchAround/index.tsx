@@ -1,21 +1,27 @@
-import { Button, Dropdown, Empty, Form, Input, Select, Tabs, Tag } from "antd";
+import { Button, Dropdown, Empty, Form, Input, notification, Select, Tabs, Tag } from "antd";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
-import { setSearchAround } from "@/reducers/editor";
+import { NodeItemData, setCurrentGraphTab, setSearchAround, setToolbarConfig } from "@/reducers/editor";
 import { ObjectConfig } from "@/reducers/object";
 import { StoreState } from "@/store";
-import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap } from "@/utils/common";
+import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import PdbPanel from "../Panel";
 import "./index.less";
+import { runVertex } from "@/actions/query";
+import { ComboConfig, EdgeConfig } from "@antv/g6";
+import { convertResultData } from "@/utils/objectGraph";
+import { useParams } from "react-router-dom";
 
 export default function SearchAround() {
   const [exploreForm] = Form.useForm(),
     childRef = React.createRef(),
     panelRef = React.createRef(),
-    dispatch = useDispatch();
+    dispatch = useDispatch(),
+    routerParams = useParams();
+
   const relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
@@ -43,7 +49,7 @@ export default function SearchAround() {
 
   useEffect(() => {
     if (JSON.stringify(searchAroundOptions) !== JSON.stringify(searchAround.options)) {
-      dispatch(setSearchAround({ ...searchAround, options: searchAroundOptions }));
+      dispatch(setSearchAround({ ...searchAround, options: JSON.parse(JSON.stringify(searchAroundOptions)) }));
     }
   }, [searchAroundOptions]);
 
@@ -56,7 +62,6 @@ export default function SearchAround() {
       data: _.get(item, "item.props.data")
     });
     setSearchAroundOptions(_searchAroundOptions);
-    exploreForm.setFieldsValue(opt);
   }
 
   const renderAddRelationBtn = function (relations: any[]) {
@@ -94,9 +99,106 @@ export default function SearchAround() {
     const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
     _searchAroundOptions[tabIndex]['options'][index][key] = value;
     setSearchAroundOptions(_searchAroundOptions);
+    if (key === "object") {
+      handleSearch(tabIndex, false, _searchAroundOptions);
+    }
   }
 
-  const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[]) {
+  const updateGraphData = function (data: any) {
+    const graph = (window as any).PDB_GRAPH;
+    if (!data || !graph) return;
+    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
+    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    dispatch(setCurrentGraphTab("vertex"));
+    dispatch(setToolbarConfig({
+      key: "vertex",
+      config: { relationLines }
+    }));
+    graph.data({ nodes, edges, combos });
+    graph.render();
+    graph.zoom(1);
+  }
+
+  const handleSearch = function (index: number, tree: boolean, _searchAroundOptions = searchAroundOptions) {
+    const { start, options } = _searchAroundOptions[index] as any;
+    const vertex = [], relationNames: string[] = [];
+    vertex.push({
+      type: "object",
+      id: start.map((val: any) => val.id)
+    });
+    options.map((opt: { object: string; id: string; conditions: any[]; }) => {
+      const { object, id, conditions } = opt;
+
+      let _conditions: any = [];
+      (conditions || []).forEach((opt: any, index: number) => {
+        const condition = _.get(opt, 'condition.value', ""),
+          attrValue = _.get(opt, 'attr.value');
+        let keyword = _.get(opt, 'keyword', ""),
+          keywordValue = keyword;
+        if (typeof keyword === "object") {
+          keyword = keyword.format("YYYY-MM-DD HH:mm:ss");
+          keywordValue = new Date(keywordValue).getTime();
+        }
+        let conditionDetail = {};
+        if (index > 0) {
+          Object.assign(conditionDetail, {
+            connectives: opt.operator
+          });
+        }
+        let raw = "";
+        if (condition === "has") {
+          raw += `HAS ${attrValue}`;
+        } else {
+          raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof _.get(opt, 'keyword', "") === "string" ? `'${keywordValue}'` : keywordValue}`;
+        }
+        Object.assign(conditionDetail, {
+          raw,
+          name: attrValue,
+          function: optionSymbolMap[condition] || "",
+          value: keywordValue
+        });
+        _conditions.push(conditionDetail);
+      });
+
+      vertex.push({
+        type: "relation",
+        id,
+        conditions: _conditions
+      });
+      vertex.push({
+        type: "object",
+        id: object,
+        conditions: []
+      });
+      relationNames.push(id);
+    });
+    const graphId = routerParams.id;
+    runVertex({ graphId, vertex, tree }, (success: boolean, response: any) => {
+      if (success) {
+        if (tree) {
+          updateGraphData(response);
+        } else {
+          const _searchAroundOptions_ = JSON.parse(JSON.stringify(_searchAroundOptions));
+          _searchAroundOptions_[index]['results'] = response;
+          setSearchAroundOptions(_searchAroundOptions_);
+        }
+      } else {
+        notification.error({
+          message: '搜索失败',
+          description: response.message || response.msg
+        });
+      }
+    });
+  }
+
+  const handleDeleteRelation = function (tabIndex: number, index: number) {
+    const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions)),
+      opt = _searchAroundOptions[tabIndex];
+    opt.options.splice(index, 1);
+    setSearchAroundOptions(_searchAroundOptions);
+  }
+
+  const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[], results = {}) {
     const relationName = option.id,
       targetTypeMap: any = {};
     relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
@@ -109,6 +211,7 @@ export default function SearchAround() {
       <div className="pdb-search-around-relation">
         <span><i className="spicon icon-jiantou2-xia"></i></span>
         <div className="pdb-search-around-card">
+          <i className="spicon icon-shanchu2" onClick={() => handleDeleteRelation(tabIndex, index)}></i>
           <span className="pdb-search-around-card-label">关系</span>
           <Select
             value={relationName}
@@ -125,6 +228,7 @@ export default function SearchAround() {
             onRef={childRef}
             originType={{ data: option.data, type: "relation" }}
             configForm={exploreForm}
+            onSave={(value: any) => changeValue(tabIndex, index, 'conditions', value)}
           />
           <Button
             className="pdb-search-around-condition-add"
@@ -152,19 +256,22 @@ export default function SearchAround() {
             disabled={isNew || editConditionIndex > -1}
           > 添加条件 </Button>
           <span className="pdb-search-around-card-label">对象</span>
-          <Select
-            value={option.object}
-            options={_types}
-            fieldNames={{ value: 'x.type.name', label: 'x.type.label' }}
-            onChange={value => changeValue(tabIndex, index, 'object', value)}
-          ></Select>
+          <div className="pdb-search-around-object-select">
+            <Select
+              value={option.object}
+              options={_types}
+              fieldNames={{ value: 'x.type.name', label: 'x.type.label' }}
+              onChange={value => changeValue(tabIndex, index, 'object', value)}
+            ></Select>
+            {option.object && <span>{_.get(results, option.object, []).length}</span>}
+          </div>
         </div>
       </div>
     )
   }
 
   const renderTabChildren = function (item: any, tabIndex: number) {
-    const { start, options } = item,
+    const { start, options, results } = item,
       type = start[0]['x.type.name'];
     const relations = Array.from(new Set(_.get(_.get(typeRelationMap, type, {}), 'source', [])))
       .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
@@ -183,7 +290,7 @@ export default function SearchAround() {
         {options.map((opt: any, index: number) => {
           let objectType = type;
           if (index > 0) objectType = options[index - 1]['object'];
-          return renderOptionPanel(tabIndex, opt, index, objectType, relations);
+          return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
         })}
         <div>
           {renderAddRelationBtn(relations)}
@@ -192,6 +299,7 @@ export default function SearchAround() {
               type="primary"
               icon={<i className="spicon icon-sousuo2"></i>}
               style={{ marginLeft: 8 }}
+              onClick={() => handleSearch(tabIndex, true)}
             >搜索画布</Button>
           }
         </div>

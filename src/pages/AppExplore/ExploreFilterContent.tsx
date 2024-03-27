@@ -14,6 +14,7 @@ interface ExploreFilterProps {
   setIsNew: Function
   editConditionIndex: number
   setEditConditionIndex: Function
+  onSave?: Function
 }
 
 const operators: any = {
@@ -22,7 +23,7 @@ const operators: any = {
 };
 
 export default function ExploreFilterContent(props: ExploreFilterProps) {
-  const { originType, configForm, isNew, setIsNew, editConditionIndex, setEditConditionIndex } = props;
+  const { originType, configForm, isNew, setIsNew, editConditionIndex, setEditConditionIndex, onSave } = props;
 
   const [filterOptions, setFilterOption] = useState<any>(_.get(originType, 'config.options', [])),
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
@@ -75,6 +76,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
 
       setFilterOption(_filterOption);
       handleCancel();
+      onSave && onSave(_filterOption);
     }).catch(() => { });
   }
 

@@ -13,7 +13,7 @@ interface ExploreFilterProps {
   close: Function
 }
 
-const operators: any = {
+export const operators: any = {
   "AND": "与",
   "OR": "或"
 };

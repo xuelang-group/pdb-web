@@ -6,11 +6,20 @@ const api = {
   'x.name': apiPrefix + '/name',
   'x.type.name': apiPrefix + '/type',
   'results': apiPrefix + '/results',
-  'pql': apiPrefix + '/pql'
+  'pql': apiPrefix + '/pql',
+  'vertex': apiPrefix + '/vertex'
 };
 
 export const runPql = function (params, callback) {
   return axios.post(api['pql'], params).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
+export const runVertex = function (params, callback) {
+  return axios.post(api['vertex'], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

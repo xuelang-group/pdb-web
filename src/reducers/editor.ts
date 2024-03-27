@@ -95,6 +95,12 @@ const initialState: EditorState = {
       showRelationLine: false,
       showRelationLabel: false,
       filters: []
+    },
+    'vertex': {
+      relationLines: {},
+      showRelationLine: false,
+      showRelationLabel: false,
+      filters: []
     }
   },
   currentEditModel: null,
