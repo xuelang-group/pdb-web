@@ -1343,7 +1343,7 @@ export function registerBehavior() {
     getEvents: function getEvents() {
       return {
         'node:click': 'nodeSelected',   // 节点选中
-        // 'edge:click': 'edgeSelected',
+        'edge:click': 'edgeSelected',
         'canvas:click': 'nodeUnselected',
       };
     },
@@ -1391,6 +1391,10 @@ export function registerBehavior() {
 
       store.dispatch(setMultiEditModel(null));
       store.dispatch(setCurrentEditModel(model));
+
+      graph.findAllByState('edge', 'selected').forEach((item: any) => {
+        graph.setItemState(item, 'selected', false);
+      });
       G6OperateFunctions.selectItem(node, 'node', 'selected', graph);
     },
     edgeSelected: function (event: IG6GraphEvent) {
@@ -1401,8 +1405,12 @@ export function registerBehavior() {
       const model = edge.get('model');
       const { currentEditModel } = store.getState().editor;
       if (currentEditModel?.id === model.id) return;
+      store.dispatch(setMultiEditModel(null));
       store.dispatch(setCurrentEditModel(model));
 
+      graph.findAllByState('node', 'selected').forEach((item: any) => {
+        graph.setItemState(item, 'selected', false);
+      });
       G6OperateFunctions.selectItem(edge, 'edge', 'selected', graph);
     },
     nodeUnselected: function (event: IG6GraphEvent) {

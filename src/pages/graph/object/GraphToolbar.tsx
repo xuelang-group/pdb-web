@@ -1,7 +1,7 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { Item } from "@antv/g6";
-import _ from "lodash";
+import _, { keys } from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -148,11 +148,20 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           if ((targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) || (sourceIsRoot && targetIsRoot)) {
             edgeType = 'same-tree-relation-line';
           }
+          const attrs = {};
+          Object.keys(target).forEach(function (key) {
+            if (key.startsWith(relation + "|")) {
+              Object.assign(attrs, { [key.replace(relation + "|", "")]: _.get(target, key) });
+            }
+          });
           const edgeOption = {
             id: edgeId,
             source: objectUid,
             target: target.uid,
             relationName: relation,
+            name: relationMap[relation]['r.type.label'],
+            data: relationMap[relation],
+            attrs,
             type: edgeType,
             sourceIsRoot,
             sourceWidth,
@@ -170,6 +179,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             },
             stateStyles: {
               'active': {
+                lineWidth: 2.5,
+                stroke: '#2EA1FF',
+                endArrow: {
+                  path: G6.Arrow.triangle(5, 5, 1),
+                  fill: '#2EA1FF',
+                  stroke: '#2EA1FF',
+                },
+              },
+              'selected': {
                 lineWidth: 2.5,
                 stroke: '#2EA1FF',
                 endArrow: {

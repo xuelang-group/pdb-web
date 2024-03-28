@@ -18,7 +18,7 @@ import { defaultNodeColor, formatDate, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
-import { getObject, setObject, updateObjectInfo } from '@/actions/object';
+import { createObjectRelation, getObject, setObject, updateObjectInfo } from '@/actions/object';
 import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
@@ -45,9 +45,9 @@ interface RightProps {
 }
 export default function Right(props: RightProps) {
   const routerParams = useParams(),
-   dispatch = useDispatch(),
-   idRef = useRef<any>(), 
-   location = useLocation();
+    dispatch = useDispatch(),
+    idRef = useRef<any>(),
+    location = useLocation();
 
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
@@ -132,8 +132,12 @@ export default function Right(props: RightProps) {
             [name]: dayjs(moment(_currentEditDefaultData[name]).format(datetimeFormat), datetimeFormat)
           });
         } else if (currentEditType === 'relation') {
+          let value = attr.default;
+          if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
+            value = currentEditModel.attrs[name];
+          }
           Object.assign(_currentEditDefaultData, {
-            [name]: attr.default
+            [name]: value
           });
         }
       });
@@ -148,7 +152,11 @@ export default function Right(props: RightProps) {
       if (type === 'datetime') {
         attr.default && Object.assign(attFormValue, { [name]: dayjs(moment(attr.default).format(datetimeFormat), datetimeFormat) });
       } else {
-        Object.assign(attFormValue, { [name]: attr.default });
+        let value = attr.default;
+        if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
+          value = currentEditModel.attrs[name];
+        }
+        Object.assign(attFormValue, { [name]: value });
       }
     });
     attrForm.setFieldsValue(attFormValue);
@@ -163,6 +171,11 @@ export default function Right(props: RightProps) {
     if (currentEditType === 'object') {
       Object.assign(formValues, {
         typeName: _currentEditDefaultData['x.type.name'] || ''
+      });
+    } else if (currentEditType === 'relation') {
+      Object.assign(formValues, {
+        source: currentEditModel.source,
+        target: currentEditModel.target
       });
     }
     infoForm.setFieldsValue(formValues);
@@ -366,31 +379,28 @@ export default function Right(props: RightProps) {
   // 更新关系类型
   const updateRelation = (relation: RelationConfig) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
-    const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
-    const timestamp = new Date().getTime();
+    const { source, target, relationName } = currentEditModel;
+    const attrs = {};
 
-    setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
+    Object.keys(relation).forEach(function (key) {
+      if (!key.startsWith("r.type.")) {
+        Object.assign(attrs, { [`${relationName}|${key}`]: _.get(relation, key) })
+      }
+    });
+    const config = [{
+      uid: source,
+      [relationName as string]: [{
+        uid: target,
+        ...attrs
+      }]
+    }];
+
+    createObjectRelation(config, (success: boolean, response: any) => {
       if (success) {
-        const name = relation['r.type.name'],
-          label = relation['r.type.label'];
 
-        if (label !== currentEditModel.name) {
-          (window as any).PDB_GRAPH?.updateItem(item, {
-            data: relation,
-            name: label
-          });
-        }
-
-        setCurrentEditDefaultData(relation);
-        if (currentEditModel.dataIndex) {
-          dispatch(setRelationDetail({ index: Number(currentEditModel.dataIndex), options: relation }));
-        } else {
-          dispatch(setRelationDetail({ name, options: relation }));
-        }
-        infoForm.setFieldValue('lastChange', formatDate(timestamp));
       } else {
         notification.error({
-          message: '更新关系类型失败',
+          message: '更新关系属性失败',
           description: response.message || response.msg
         });
       }
@@ -814,10 +824,8 @@ export default function Right(props: RightProps) {
     if (!typeMap[currentEditType]) return;
     const addonBefore = typeMap[currentEditType][type];
 
-    if (currentEditType === 'object' || props.route === 'template') {
-      return renderEditorInput(type, _default, addonBefore, attr, index);
-    }
-    return renderReadOnlyInput(type, _default, addonBefore, attr);
+    return renderEditorInput(type, _default, addonBefore, attr, index);
+    // return renderReadOnlyInput(type, _default, addonBefore, attr);
   }
 
   const editCurrentType = () => {
@@ -899,7 +907,7 @@ export default function Right(props: RightProps) {
                   <Empty image={require('@/assets/images/search_empty.png')} />
                 }
               </div>
-              {currentEditType !== 'object' &&
+              {/* {currentEditType !== 'object' &&
                 <div className='param-btn'>
                   {props.route !== 'template' ?
                     <Button className='btn-default' onClick={addParam} block icon={<i className='spicon icon-tianjia2'></i>}>
@@ -910,7 +918,7 @@ export default function Right(props: RightProps) {
                     </Button>
                   }
                 </div>
-              }
+              } */}
             </DndProvider>
           )
         }
@@ -983,57 +991,6 @@ export default function Right(props: RightProps) {
             readOnly={false}
           />)
       });
-    } else if (currentEditModel) {
-      const { source, target, tgtCardinality } = currentEditModel;
-      const graph = (window as any).PDB_GRAPH;
-      if (source && target && graph) {
-        const sourceNode = graph.findById(source),
-          targetNode = graph.findById(target);
-        const sourceName: string = sourceNode.getModel().name,
-          targetName: string = targetNode.getModel().name;
-        rightPanelTabs.push({
-          key: 'bind',
-          label: '连接对象',
-          children: (
-            <div className='type-items'>
-              <div className='type-item'>
-                <div className='type-title'>
-                  <span className={'type-label'}>
-                    <span>源对象类型</span>
-                  </span>
-                </div>
-                <Input value={sourceName} disabled />
-              </div>
-              <div className='type-item'>
-                <div className='type-title'>
-                  <span className={'type-label'}>
-                    <span>源对象上限</span>
-                  </span>
-                </div>
-                <InputNumber value={1} disabled />
-              </div>
-              <div className='type-item'>
-                <div className='type-title'>
-                  <span className={'type-label'}>
-                    <span>目标对象类型</span>
-                  </span>
-                </div>
-                <Input value={targetName} disabled />
-              </div>
-              <div className='type-item'>
-                <div className='type-title'>
-                  <span className={'type-label'}>
-                    <span>目标对象上限</span>
-                  </span>
-                </div>
-                <InputNumber value={tgtCardinality === null || tgtCardinality === undefined ? Infinity : Number(tgtCardinality)}
-                  onChange={handleChangeTgtCardinality}
-                />
-              </div>
-            </div>
-          )
-        });
-      }
     }
   } else if (props.route === 'object') {
     rightPanelTabs.push({
@@ -1127,7 +1084,7 @@ export default function Right(props: RightProps) {
                 placeholder={'点击编辑名称'}
                 onBlur={changeName}
                 onPressEnter={changeName}
-                disabled={Boolean(props.route === 'template')}
+                disabled={(currentEditModel.data || {}).hasOwnProperty("r.type.name")}
               />
             </Form.Item>
           </div>
@@ -1141,6 +1098,16 @@ export default function Right(props: RightProps) {
               </div>
               {currentEditType === 'object' &&
                 <Form.Item name='typeName' label='类型' >
+                  <Input bordered={false} readOnly />
+                </Form.Item>
+              }
+              {currentEditType === 'relation' &&
+                <Form.Item name='source' label='源对象' >
+                  <Input bordered={false} readOnly />
+                </Form.Item>
+              }
+              {currentEditType === 'relation' &&
+                <Form.Item name='target' label='目标对象' >
                   <Input bordered={false} readOnly />
                 </Form.Item>
               }
@@ -1161,8 +1128,6 @@ export default function Right(props: RightProps) {
       </Form>
     );
   }
-
-  console.log(location)
 
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
