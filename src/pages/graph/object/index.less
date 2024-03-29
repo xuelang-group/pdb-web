@@ -40,10 +40,11 @@
     }
   }
 
-  .pdb-ant-spin-nested-loading, .pdb-ant-spin-container {
+  .pdb-ant-spin-nested-loading,
+  .pdb-ant-spin-container {
     height: 100%;
   }
-  
+
   .pdb-graph-toolbar {
     width: 4.8rem;
     // border: 1px solid var(--border-color2);
@@ -87,6 +88,22 @@
 
         .operation-icon {
           color: var(--text-color2);
+        }
+      }
+
+      &.disabled {
+        color: var(--disabled-color);
+        cursor: not-allowed;
+
+        &:hover {
+          .pdb-graph-toolbar-icon {
+            background: #fff;
+          }
+
+          .operation-icon {
+            color: var(--disabled-color);
+            cursor: not-allowed;
+          }
         }
       }
     }

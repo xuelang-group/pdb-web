@@ -1,4 +1,4 @@
-import { Button, Dropdown, Empty, Form, Input, notification, Select, Tabs, Tag } from "antd";
+import { Button, Dropdown, Empty, Form, Input, notification, Select, Tabs, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,7 @@ import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import PdbPanel from "../Panel";
 import "./index.less";
-import { runVertex } from "@/actions/query";
+import { api, runVertex } from "@/actions/query";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
@@ -102,7 +102,7 @@ export default function SearchAround() {
     if (index > -1) {
       _searchAroundOptions_[tabIndex]['options'][index][key] = value;
       setSearchAroundOptions(_searchAroundOptions_);
-      if (key === "object") {
+      if (key === "object" || key === "conditions") {
         handleSearch(tabIndex, false, _searchAroundOptions_);
       }
     } else {
@@ -129,16 +129,9 @@ export default function SearchAround() {
     graph.zoom(1);
   }
 
-  const handleSearch = function (index: number, tree: boolean, _searchAroundOptions = searchAroundOptions) {
-    const graph = (window as any).PDB_GRAPH;
-    if (tree && graph && currentGraphTab === "main") {
-      dispatch(setGraphDataMap({
-        ...graphDataMap,
-        'main': graph.save()
-      }));
-    }
+  const getVertexParams = function (index: number, _searchAroundOptions = searchAroundOptions) {
     const { start, options } = _searchAroundOptions[index] as any;
-    const vertex = [], relationNames: string[] = [];
+    const vertex = [];
     vertex.push({
       type: "object",
       id: start.map((val: any) => val.id)
@@ -187,10 +180,21 @@ export default function SearchAround() {
         id: object,
         conditions: []
       });
-      relationNames.push(id);
     });
+    return vertex;
+  }
+
+  const handleSearch = function (index: number, tree: boolean, _searchAroundOptions = searchAroundOptions) {
+    const graph = (window as any).PDB_GRAPH;
+    if (tree && graph && currentGraphTab === "main") {
+      dispatch(setGraphDataMap({
+        ...graphDataMap,
+        'main': graph.save()
+      }));
+    }
+    const vertex = getVertexParams(index, _searchAroundOptions);
     const graphId = routerParams.id;
-    dispatch(setGraphLoading(true));
+    tree && dispatch(setGraphLoading(true));
     runVertex({ graphId, vertex, tree }, (success: boolean, response: any) => {
       if (success) {
         if (tree) {
@@ -206,7 +210,7 @@ export default function SearchAround() {
           description: response.message || response.msg
         });
       }
-      dispatch(setGraphLoading(false));
+      tree && dispatch(setGraphLoading(false));
     });
   }
 
@@ -304,6 +308,23 @@ export default function SearchAround() {
       .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
     return (
       <div className="pdb-search-around-item">
+        <Tooltip title="复制接口">
+          <i
+            className="spicon icon-fuzhi"
+            onClick={event => {
+              let textarea: HTMLTextAreaElement = document.createElement('textarea');
+              textarea.style.position = 'fixed';
+              textarea.style.opacity = "0";
+              const vertex = getVertexParams(tabIndex);
+              const graphId = routerParams.id;
+              textarea.value = JSON.stringify({ api: api.vertex, params: { graphId, vertex, tree: true } });
+              document.body.appendChild(textarea);
+              textarea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textarea);
+            }}
+          ></i>
+        </Tooltip>
         <div className="pdb-search-around-card pdb-search-around-start">
           <span>起始对象</span>
           <span>

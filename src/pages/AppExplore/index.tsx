@@ -1,6 +1,6 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Empty, message, notification, Popover, Select, Tag } from "antd";
+import { Empty, message, notification, Popover, Select, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -10,7 +10,7 @@ import { useParams } from "react-router";
 import { RelationConfig } from "@/reducers/relation";
 import { TypeConfig } from "@/reducers/type";
 import { NodeItemData, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { getQueryResult, runPql } from "@/actions/query";
+import { api, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
@@ -292,7 +292,7 @@ export default function AppExplore() {
   const handleBlur = function (index: number, types?: string[]) {
   }
 
-  const searchPQL = function (_searchTagMap = searchTagMap) {
+  const getPQL = function (_searchTagMap = searchTagMap) {
     const pql: any = [], relationNames: string[] = [];
     searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
@@ -313,6 +313,11 @@ export default function AppExplore() {
         pql.push(pqlItem);
       }
     });
+    return { pql, relationNames };
+  }
+
+  const searchPQL = function (_searchTagMap = searchTagMap) {
+    const { pql, relationNames } = getPQL(_searchTagMap);
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
@@ -553,21 +558,42 @@ export default function AppExplore() {
         </div>
       }
       {!searchLoading &&
+        <Tooltip title="搜索">
+          <i
+            className="spicon icon-sousuo2"
+            onClick={event => {
+              event.stopPropagation();
+              searchPQL();
+            }}
+          ></i>
+        </Tooltip>
+      }
+      <Tooltip title="展开">
         <i
-          className="spicon icon-sousuo2"
+          className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
           onClick={event => {
             event.stopPropagation();
-            searchPQL();
+            setExploreExpand(!exploreExpand);
           }}
         ></i>
-      }
-      <i
-        className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
-        onClick={event => {
-          event.stopPropagation();
-          setExploreExpand(!exploreExpand);
-        }}
-      ></i>
+      </Tooltip>
+      <Tooltip title="复制接口">
+        <i
+          className="spicon icon-fuzhi"
+          onClick={event => {
+            let textarea: HTMLTextAreaElement = document.createElement('textarea');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = "0";
+            const { pql } = getPQL();
+            const graphId = routerParams.id;
+            textarea.value = JSON.stringify({ api: api.pql, params: { pql, graphId } });
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+          }}
+        ></i>
+      </Tooltip>
     </div>
   )
 }

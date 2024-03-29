@@ -84,6 +84,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     const _filterOption = JSON.parse(JSON.stringify(filterOptions));
     _filterOption.splice(index, 1);
     setFilterOption(_filterOption);
+    onSave && onSave(_filterOption);
   }
 
   const getExtra = (key: any, opt: any) => (

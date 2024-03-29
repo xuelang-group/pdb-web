@@ -19,6 +19,8 @@ export default function TypeList() {
     [relationList, setRelationList] = useState(allRelations),
     [isSearched, setSearchedStatus] = useState(false),
     [isRelSearched, setRelSearchedStatus] = useState(false),
+    [expandedKeys, setExpandedKeys] = useState([] as any),
+    [treeData, setTreeData] = useState([]),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams(),
@@ -31,13 +33,59 @@ export default function TypeList() {
     key: 'edit',
   }];
 
+  const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
+    const children: any = [];
+    types.forEach((val: TypeConfig, dataIndex: number) => {
+      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
+        const typeName = val['x.type.name'],
+          _children = getTypeTreeChildren(types, typeName, expandedKeys);
+        children.push({
+          dataIndex,
+          className: 'type-item isLeaf',
+          title: val['x.type.label'],
+          key: typeName,
+          data: val,
+          children: _children,
+        });
+        if (_children.length > 0) expandedKeys.push(typeName);
+      }
+    });
+    return children;
+  }
+
+  const getTypeTreeData = function (types: Array<TypeConfig>) {
+    const data: any = [], expandedKeys: Array<string> = [];
+    types.forEach((type: TypeConfig, dataIndex: number) => {
+      if (type['x.type.prototype'] && type['x.type.prototype'].length === 0) {
+        const typeName = type['x.type.name'];
+        const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
+        data.push({
+          dataIndex,
+          className: 'type-item isFolder',
+          title: type['x.type.label'],
+          key: typeName,
+          data: type,
+          children,
+        });
+        if (children.length > 0) expandedKeys.push(typeName);
+      }
+    });
+    return {data, expandedKeys};
+  }
+
+  useEffect(() => {
+    const {data, expandedKeys} = getTypeTreeData(list);
+    setTreeData(JSON.parse(JSON.stringify(data)));
+    setExpandedKeys(expandedKeys);
+  }, [list]);
+
   useEffect(() => {
     setList(JSON.parse(JSON.stringify(allTypes)));
-  }, [allTypes])
+  }, [allTypes]);
 
   useEffect(() => {
     setRelationList(JSON.parse(JSON.stringify(allRelations)));
-  }, [allRelations])
+  }, [allRelations]);
 
   const handleSearch = function (value: string) {
     let types = JSON.parse(JSON.stringify(allTypes));
@@ -148,13 +196,7 @@ export default function TypeList() {
         <div className='list-content'>
           <div className='type-list'>
             <Tree
-              treeData={list.map((item: any, dataIndex: number) => ({
-                title: item['x.type.label'],
-                key: item['x.type.name'],
-                className: 'type-item',
-                dataIndex,
-                data: item
-              }))}
+              treeData={treeData}
               // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
               titleRender={(item: any) => (
@@ -173,7 +215,7 @@ export default function TypeList() {
                   </span>
                 </Dropdown>
               )}
-              // expandedKeys={expandedKeys}
+              expandedKeys={expandedKeys}
               blockNode
               showIcon
             // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
@@ -187,7 +229,7 @@ export default function TypeList() {
         </div>
       </div>
     );
-  }, [list, routerParams?.id]);
+  }, [treeData, routerParams?.id]);
 
   const renderRelationTree = useCallback((type: string) => {
     const prevLabel = type === 'type' ? 'x.' : 'r.';

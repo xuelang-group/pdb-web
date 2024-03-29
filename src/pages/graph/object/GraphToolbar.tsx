@@ -480,8 +480,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           >
             <Tooltip title={tab.label} placement="right">
               <div
-                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''}`}
+                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && currentGraphTab === 'main' ? 'disabled' : ''}`}
                 onClick={() => {
+                  if (tab.key === 'reset' && currentGraphTab === 'main') return;
                   if (tab.popover) {
                     setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab);
                   }

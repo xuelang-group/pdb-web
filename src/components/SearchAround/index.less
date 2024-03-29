@@ -10,7 +10,7 @@
     }
   }
 
-  &.pdb-right-sider.pdb-right-sider-hidden .btn-aside-toggle{
+  &.pdb-right-sider.pdb-right-sider-hidden .btn-aside-toggle {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     transform: rotate(0);
@@ -21,6 +21,10 @@
   .pdb-ant-tabs.pdb-ant-tabs-card {
     background-color: #fff;
 
+    .pdb-ant-tabs-nav {
+      margin: 0;
+    }
+
     .pdb-ant-tabs-content,
     .pdb-ant-tabs-tabpane {
       height: 100%;
@@ -28,7 +32,7 @@
     }
 
     .pdb-ant-tabs-tabpane {
-      padding: 0 1rem;
+      padding: 1.6rem 1rem;
     }
   }
 
@@ -39,6 +43,19 @@
     flex-direction: column;
     align-items: center;
 
+    .icon-fuzhi {
+      position: absolute;
+      top: 0;
+      font-size: 1.4rem;
+      right: 1rem;
+      color: var(--text-color3);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--primary-color)
+      }
+    }
+
     .pdb-search-around-relation {
       width: 100%;
 
@@ -46,7 +63,7 @@
         width: 100%;
         position: relative;
 
-        & > .spicon.icon-shanchu2 {
+        &>.spicon.icon-shanchu2 {
           position: absolute;
           right: 1rem;
           font-size: 1.4rem;
@@ -84,6 +101,7 @@
         .pdb-ant-card {
           &-body {
             padding: 0;
+
             .pdb-ant-form {
               .pdb-ant-form-item:last-child {
                 margin-bottom: 0;
@@ -92,9 +110,10 @@
           }
         }
       }
-      
+
       .pdb-search-around-object-select {
         display: flex;
+
         &>span {
           line-height: 3.2rem;
           padding: 0 .8em;
@@ -129,8 +148,20 @@
   }
 
   &-start {
+    display: flex;
+    align-items: center;
+    padding-bottom: .5rem;
+
     span:nth-child(1) {
       margin-right: .8rem;
+    }
+
+    span:nth-child(2) {
+      flex: 1;
+
+      .pdb-ant-tag {
+        margin-bottom: 3px;
+      }
     }
   }
 
