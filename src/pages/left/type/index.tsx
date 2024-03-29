@@ -20,7 +20,8 @@ import './index.less';
 const { Search } = Input;
 
 export default function Left(props: any) {
-  const routerParams = useParams();
+  const routerParams = useParams(),
+    location = useLocation();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data);
@@ -31,11 +32,11 @@ export default function Left(props: any) {
     [operateItem, setOperateItem] = useState({ type: '', item: {} } as { type: string, item: any }),
     [allTreeData, setAllTreeData] = useState([]),
     [treeData, setTreeData] = useState([]),
-    [expandedKeys, setExpandedKeys] = useState([] as any);
-
-  const [searchValue, setSearchValue] = useState(''),
+    [expandedKeys, setExpandedKeys] = useState([] as any),
+    [searchValue, setSearchValue] = useState(''),
     [filterValue, setFilterValue] = useState(''),
-    [isSearched, setSearchedStatus] = useState(false);
+    [isSearched, setSearchedStatus] = useState(false),
+    [currentTab, setCurrentTab] = useState(_.get(currentEditModel, 'type', 'type'));
   const searchRef = useRef<InputRef>(null);
 
   const dispatch = useDispatch();
@@ -163,7 +164,6 @@ export default function Left(props: any) {
     return arr;
   }
 
-
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
@@ -205,8 +205,6 @@ export default function Left(props: any) {
     return children;
   }
 
-  const location = useLocation();
-  const [currentTab, setCurrentTab] = useState(_.get(currentEditModel, 'type', 'type'));
   useEffect(() => {
     const data = new URLSearchParams(location.search).get('data');
     defaultType = '';

@@ -17,7 +17,7 @@
     }
 
     &-popup {
-      .pdb-ant-color-picker-input-container > .pdb-ant-select {
+      .pdb-ant-color-picker-input-container>.pdb-ant-select {
         display: none;
       }
     }
@@ -39,7 +39,7 @@
         flex: 1;
       }
     }
-    
+
     &:hover {
       background-color: var(--primary-selected-bg);
     }
@@ -73,6 +73,8 @@
     &:hover {
       box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.15);
       border: 1px solid var(--border-color1);
+      width: 1.8rem;
+      height: 1.8rem;
     }
 
     .spicon {
@@ -87,13 +89,13 @@
     &:hover {
       background-color: var(--fill-color4);
     }
-    
-    & > span {
+
+    &>span {
       display: flex;
       color: var(--text-color2);
       align-items: center;
-      
-      & > span {
+
+      &>span {
         flex: 1;
       }
 
@@ -104,6 +106,6 @@
   }
 }
 
-.pdb-node-metadata-item.node-color{
+.pdb-node-metadata-item.node-color {
   padding: .3rem;
 }

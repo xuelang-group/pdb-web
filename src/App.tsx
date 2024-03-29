@@ -2,7 +2,7 @@
 import { Layout, notification, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
 import * as Editor from '@/reducers/editor';
@@ -35,7 +35,8 @@ const { Content } = Layout;
 function App(props: PdbConfig) {
   const { theme, headerEXtraWidth } = props;
   const dispatch = useDispatch(),
-    navigate = useNavigate();
+    navigate = useNavigate(),
+    location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog);
   const [pageLoading, setPageLoading] = useState(false);
   useEffect(() => {
@@ -45,7 +46,7 @@ function App(props: PdbConfig) {
         const { userId, graphId } = response;
         dispatch(setSystemInfo(response));
         getAppFolderList(userId);
-        navigate(`/${graphId}`);
+        if (!location.pathname.startsWith(`/web/${graphId}`)) navigate(`/${graphId}`);
       } else {
         notification.error({
           message: '获取系统信息失败：',

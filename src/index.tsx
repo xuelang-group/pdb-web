@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import { message, notification, Modal, ConfigProvider } from 'antd';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { IntlProvider } from 'react-intl';
 import _ from 'lodash';
@@ -35,7 +35,9 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   notification.config({ prefixCls: 'pdb-ant-notification' });
   Modal.config({ rootPrefixCls: 'pdb-ant' });
   const { locale, messages } = config;
-
+  if (!window.location.pathname.startsWith("/web")) {
+    window.location.replace("/web");
+  }
   root.render(
     <Provider store={store}>
       <IntlProvider locale={locale} messages={messages}>
