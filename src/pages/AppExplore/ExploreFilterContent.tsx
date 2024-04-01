@@ -147,10 +147,14 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           {({ getFieldValue, setFieldValue }) => {
             const condition = getFieldValue(["condition", "value"]),
               attrType = _.get(editCondition, 'attr.data.type', '');
+            let conditionOptions = _.get(conditionOptionMap, attrType, commonOptionKeys);
+            if (tagType === "relation") {
+              conditionOptions = conditionOptions.filter((val: string) => val.indexOf("has") === -1)
+            }
             const selectContent = (
               <Select
                 className="pdb-explore-filter-config-attr"
-                options={_.get(conditionOptionMap, attrType, commonOptionKeys).map((condition: string) => ({
+                options={conditionOptions.map((condition: string) => ({
                   value: condition,
                   label: optionLabelMap[condition]
                 }))}
@@ -254,12 +258,12 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     )
   }
 
-  const add =  () => {
+  const add = () => {
     configForm.resetFields();
     const initalValue = {
       condition: {
-        value: "has",
-        label: optionLabelMap["has"]
+        value: "eq",
+        label: optionLabelMap["eq"]
       }
     }
     if (filterOptions.length > 0) {
@@ -273,53 +277,53 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
 
   return (
     <>
-    <div className="pdb-explore-filter-content">
-      {filterOptions.map((opt: any, index: number) => {
-        const condition = _.get(opt, 'condition.value', ""),
-          label = _.get(opt, 'attr.label');
-        let title;
-        if (condition === "has") {
-          title = `${opt.isNot ? "NOT " : ""}存在属性 ${label}`
-        } else {
-          let keyword = _.get(opt, 'keyword', "");
-          if (typeof keyword === "object") {
-            keyword = keyword.format("YYYY-MM-DD");
-          }
-          const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
-          title = `${opt.isNot ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
-        }
-        return (
-          <>
-            {index > 0 &&
-              <div className="pdb-explore-filter-connection">
-                <Tag color="volcano">{operators[opt.operator]}</Tag>
-              </div>
+      <div className="pdb-explore-filter-content">
+        {filterOptions.map((opt: any, index: number) => {
+          const condition = _.get(opt, 'condition.value', ""),
+            label = _.get(opt, 'attr.label');
+          let title;
+          if (condition === "has") {
+            title = `${opt.isNot ? "NOT " : ""}存在属性 ${label}`
+          } else {
+            let keyword = _.get(opt, 'keyword', "");
+            if (typeof keyword === "object") {
+              keyword = keyword.format("YYYY-MM-DD");
             }
-            <Card
-              size="small"
-              extra={getExtra(index, opt)}
-              title={title}
-            >
-              {activePanelKey[0] === index ? renderPanelChildren() : null}
-            </Card>
-          </>
-        )
-      })}
-      {filterOptions.length === 0 && !isNew &&
-        <Empty description="暂无过滤条件" />
-      }
-      {isNew &&
-        <Card
-          size="small"
-          extra={getExtra("new", {})}
-          title="新建属性条件"
-          style={filterOptions.length === 0 ? {} : { marginTop: "1rem" }}
-        >
-          {renderPanelChildren()}
-        </Card>
-      }
-    </div>
-    {extraContent(isNew, editConditionIndex, add)}
+            const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
+            title = `${opt.isNot ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
+          }
+          return (
+            <>
+              {index > 0 &&
+                <div className="pdb-explore-filter-connection">
+                  <Tag color="volcano">{operators[opt.operator]}</Tag>
+                </div>
+              }
+              <Card
+                size="small"
+                extra={getExtra(index, opt)}
+                title={title}
+              >
+                {activePanelKey[0] === index ? renderPanelChildren() : null}
+              </Card>
+            </>
+          )
+        })}
+        {filterOptions.length === 0 && !isNew &&
+          <Empty description="暂无过滤条件" />
+        }
+        {isNew &&
+          <Card
+            size="small"
+            extra={getExtra("new", {})}
+            title="新建属性条件"
+            style={filterOptions.length === 0 ? {} : { marginTop: "1rem" }}
+          >
+            {renderPanelChildren()}
+          </Card>
+        }
+      </div>
+      {extraContent(isNew, editConditionIndex, add)}
     </>
   )
 }
