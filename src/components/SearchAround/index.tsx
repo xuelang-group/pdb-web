@@ -30,7 +30,7 @@ export default function SearchAround() {
 
   const [relationSearchValue, setRelationSearchValue] = useState(""),
     [activeTab, setActiveTab] = useState("0"),
-    [searchAroundOptions, setSearchAroundOptions] = useState([]),
+    [searchAroundOptions, setSearchAroundOptions] = useState(searchAround.options),
     [siderHidden, setSiderHidden] = useState(false);
 
   useEffect(() => {
@@ -48,7 +48,11 @@ export default function SearchAround() {
 
   useEffect(() => {
     if (JSON.stringify(searchAroundOptions) !== JSON.stringify(searchAround.options)) {
-      dispatch(setSearchAround({ ...searchAround, options: JSON.parse(JSON.stringify(searchAroundOptions)) }));
+      dispatch(setSearchAround({ 
+        ...searchAround, 
+        show: searchAroundOptions.length > 0,
+        options: JSON.parse(JSON.stringify(searchAroundOptions))
+      }));
     }
   }, [searchAroundOptions]);
 
@@ -291,7 +295,7 @@ export default function SearchAround() {
     const relations = !sourceType ? [] :
       Array.from(new Set(_.get(_.get(typeRelationMap, sourceType, {}), 'source', [])))
         .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
-    const addDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
+    const btnDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
     return (
       <div className="pdb-search-around-item">
         <Tooltip title="复制接口">
@@ -330,13 +334,14 @@ export default function SearchAround() {
           return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
         })}
         <div>
-          {renderAddRelationBtn(relations, addDisabled)}
+          {renderAddRelationBtn(relations, btnDisabled)}
           {options.length > 0 &&
             <Button
               type="primary"
               icon={<i className="spicon icon-sousuo2"></i>}
               style={{ marginLeft: 8 }}
               onClick={() => handleSearch(tabIndex, true)}
+              disabled={btnDisabled}
             >搜索画布</Button>
           }
         </div>
