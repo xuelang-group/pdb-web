@@ -6,6 +6,8 @@ import store from '@/store';
 import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
+import { nodeStateStyle } from '../type/node';
+import { defaultNodeColor, getTextColor } from '@/utils/common';
 
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {
@@ -719,8 +721,11 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const curentGraphData: any = graph.save();
   const { nodes, edges, combos } = curentGraphData;
 
-  const { uid, id } = newObj;
-  const name = newObj['x.name'];
+  const { uid, id, } = newObj;
+  const name = newObj['x.name'],
+    metadata = JSON.parse(newObj['x.metadata'] || '{}'),
+    fill = _.get(metadata, 'color', defaultNodeColor.fill),
+    iconKey = _.get(metadata, 'icon', '');
   const node = {
     uid,
     id,
@@ -729,8 +734,19 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
     name: name,
     data: newObj,
     comboId: rootId + '-combo',
-    childLen: Number(newObj['x.children'])
+    childLen: Number(newObj['x.children']),
+    icon: iconKey,
+    style: {
+      ...nodeStateStyle.default,
+      fill
+    },
+    labelCfg: {
+      style: {
+        fill: getTextColor(fill)
+      }
+    }
   };
+
   const combo = {
     id: `${id}-combo`,
     parentId: rootId + '-combo',

@@ -54,6 +54,12 @@ export default function Left(props: any) {
   }
 
   useEffect(() => {
+    if (currentTab !== 'type' && currentTab !== 'relation') {
+      setCurrentTab('type');
+    }
+  }, [currentTab]);
+
+  useEffect(() => {
     getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes(response || []));
