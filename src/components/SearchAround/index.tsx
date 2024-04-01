@@ -63,7 +63,7 @@ export default function SearchAround() {
     setSearchAroundOptions(_searchAroundOptions);
   }
 
-  const renderAddRelationBtn = function (relations: any[]) {
+  const renderAddRelationBtn = function (relations: any[], disabled: boolean) {
     const items = !relationSearchValue ? relations :
       relations.filter((val: any) => val.label.toLowerCase().indexOf(relationSearchValue.toLowerCase()) > -1);
     return (
@@ -85,10 +85,12 @@ export default function SearchAround() {
         )}
         placement="bottom"
         arrow
+        disabled={disabled}
       >
         <Button
           className="pdb-search-around-relation-add"
           icon={<i className="spicon icon-tianjia2"></i>}
+          disabled={disabled}
         >添加关系</Button>
       </Dropdown>
     )
@@ -281,10 +283,15 @@ export default function SearchAround() {
   }
 
   const renderTabChildren = function (item: any, tabIndex: number) {
-    const { start, options, results } = item,
-      type = start[0]['x.type.name'];
-    const relations = Array.from(new Set(_.get(_.get(typeRelationMap, type, {}), 'source', [])))
-      .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
+    const { start, options, results } = item;
+    let sourceType = start[0]['x.type.name'];
+    if (options.length > 0) {
+      sourceType = _.get(options[options.length - 1], 'object');
+    }
+    const relations = !sourceType ? [] :
+      Array.from(new Set(_.get(_.get(typeRelationMap, sourceType, {}), 'source', [])))
+        .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
+    const addDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
     return (
       <div className="pdb-search-around-item">
         <Tooltip title="复制接口">
@@ -315,12 +322,15 @@ export default function SearchAround() {
           </span>
         </div>
         {options.map((opt: any, index: number) => {
-          let objectType = type;
+          let objectType = start[0]['x.type.name'];
           if (index > 0) objectType = options[index - 1]['object'];
+          const relations = !objectType ? [] :
+            Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))
+              .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
           return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
         })}
         <div>
-          {renderAddRelationBtn(relations)}
+          {renderAddRelationBtn(relations, addDisabled)}
           {options.length > 0 &&
             <Button
               type="primary"
