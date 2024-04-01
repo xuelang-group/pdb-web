@@ -411,6 +411,7 @@ export default function Left(props: any) {
       node = graph.addItem('edge', {
         ...commonConfig,
         label: name,
+        relationName: commonConfig.uid,
         source: sourceNode.get('id'),
         target: targetNode.get('id')
       });

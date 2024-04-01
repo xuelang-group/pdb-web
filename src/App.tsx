@@ -18,7 +18,6 @@ import TemplateGraph from '@/pages/graph/template/index';
 import CommonRight from '@/pages/right/common/index';
 import TypeLeft from '@/pages/left/type/index';
 import TypeGraph from '@/pages/graph/type/index';
-import List from '@/pages/list';
 import CommonHeader from '@/pages/header/index';
 import EditHeader from '@/pages/header/editHeader';
 import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';

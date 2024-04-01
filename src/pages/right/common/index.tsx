@@ -379,32 +379,66 @@ export default function Right(props: RightProps) {
   // 更新关系类型
   const updateRelation = (relation: RelationConfig) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
-    const { source, target, relationName } = currentEditModel;
-    const attrs = {};
+    const graph = (window as any).PDB_GRAPH;
+    if (props.route === "object") {
+      const { source, target, relationName } = currentEditModel;
+      const attrs = {}, modelAtts = {};
 
-    Object.keys(relation).forEach(function (key) {
-      if (!key.startsWith("r.type.")) {
-        Object.assign(attrs, { [`${relationName}|${key}`]: _.get(relation, key) })
-      }
-    });
-    const config = [{
-      uid: source,
-      [relationName as string]: [{
-        uid: target,
-        ...attrs
-      }]
-    }];
+      Object.keys(relation).forEach(function (key) {
+        if (!key.startsWith("r.type.")) {
+          Object.assign(attrs, { [`${relationName}|${key}`]: _.get(relation, key) });
+          Object.assign(modelAtts, { [key]: _.get(relation, key) });
+        }
+      });
+      const config = [{
+        uid: source,
+        [relationName as string]: [{
+          uid: target,
+          ...attrs
+        }]
+      }];
 
-    createObjectRelation(config, (success: boolean, response: any) => {
-      if (success) {
+      createObjectRelation(config, (success: boolean, response: any) => {
+        if (success) {
+          graph.updateItem(currentEditModel.id, { attrs: modelAtts });
+        } else {
+          notification.error({
+            message: '更新关系属性失败',
+            description: response.message || response.msg
+          });
+        }
+      });
+    } else {
+      const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
+      const timestamp = new Date().getTime();
 
-      } else {
-        notification.error({
-          message: '更新关系属性失败',
-          description: response.message || response.msg
-        });
-      }
-    });
+      setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
+        if (success) {
+          const name = relation['r.type.name'],
+            label = relation['r.type.label'];
+
+          if (label !== currentEditModel.name) {
+            (window as any).PDB_GRAPH?.updateItem(item, {
+              data: relation,
+              name: label
+            });
+          }
+
+          setCurrentEditDefaultData(relation);
+          if (currentEditModel.dataIndex) {
+            dispatch(setRelationDetail({ index: Number(currentEditModel.dataIndex), options: relation }));
+          } else {
+            dispatch(setRelationDetail({ name, options: relation }));
+          }
+          infoForm.setFieldValue('lastChange', formatDate(timestamp));
+        } else {
+          notification.error({
+            message: '更新关系类型失败',
+            description: response.message || response.msg
+          });
+        }
+      });
+    }
   }
 
   // 更新对象
