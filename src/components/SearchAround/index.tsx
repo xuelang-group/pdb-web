@@ -16,8 +16,7 @@ import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
 
 export default function SearchAround() {
-  const [exploreForm] = Form.useForm(),
-    childRef = React.createRef(),
+  const childRef = React.createRef(),
     panelRef = React.createRef(),
     dispatch = useDispatch(),
     routerParams = useParams();
@@ -32,8 +31,6 @@ export default function SearchAround() {
   const [relationSearchValue, setRelationSearchValue] = useState(""),
     [activeTab, setActiveTab] = useState("0"),
     [searchAroundOptions, setSearchAroundOptions] = useState([]),
-    [isNew, setIsNew] = useState(false),
-    [editConditionIndex, setEditConditionIndex] = useState(-1),
     [siderHidden, setSiderHidden] = useState(false);
 
   useEffect(() => {
@@ -205,7 +202,7 @@ export default function SearchAround() {
           setSearchAroundOptions(_searchAroundOptions_);
         }
       } else {
-        notification.error({
+        tree && notification.error({
           message: '搜索失败',
           description: response.message || response.msg
         });
@@ -252,40 +249,22 @@ export default function SearchAround() {
           ></Select>
           <span className="pdb-search-around-card-label">条件</span>
           <ExploreFilterContent
-            isNew={isNew}
-            setIsNew={setIsNew}
-            editConditionIndex={editConditionIndex}
-            setEditConditionIndex={setEditConditionIndex}
             onRef={childRef}
             originType={{ data: option.data, type: "relation" }}
-            configForm={exploreForm}
             onSave={(value: any) => changeValue(tabIndex, index, 'conditions', value)}
+            extraContent={(isNew: boolean, editConditionIndex: number, add: any) => (
+              <Button
+                className="pdb-search-around-condition-add"
+                type="dashed"
+                icon={<i className="spicon icon-tianjia" />}
+                block
+                ghost
+                onClick={add}
+                disabled={isNew || editConditionIndex > -1}
+              > 添加条件 </Button>
+            )}
           />
-          <Button
-            className="pdb-search-around-condition-add"
-            type="dashed"
-            icon={<i className="spicon icon-tianjia" />}
-            block
-            ghost
-            onClick={() => {
-              const { filterOptions, setEditCondition, setActivePanelKey } = childRef.current as any;
-              exploreForm.resetFields();
-              const initalValue = {
-                condition: {
-                  value: "has",
-                  label: optionLabelMap["has"]
-                }
-              }
-              if (filterOptions.length > 0) {
-                Object.assign(initalValue, { operator: "AND" });
-              }
-              setEditCondition(initalValue);
-              exploreForm.setFieldsValue(initalValue);
-              setActivePanelKey(["new"]);
-              setIsNew(true);
-            }}
-            disabled={isNew || editConditionIndex > -1}
-          > 添加条件 </Button>
+
           <span className="pdb-search-around-card-label">对象</span>
           <div className="pdb-search-around-object-select">
             <Select

@@ -20,30 +20,9 @@ export const operators: any = {
 
 export default function ExploreFilter(props: ExploreFilterProps) {
   const { originType, saveConfig, close } = props;
-  const [configForm] = Form.useForm(),
-    childRef = React.createRef();
+  const childRef = React.createRef();
 
-  const [isNew, setIsNew] = useState(false),
-    [editConditionIndex, setEditConditionIndex] = useState(-1);
   const tagType: string = _.get(originType, 'type', '');
-
-  const add = function () {
-    const { filterOptions, setEditCondition, setActivePanelKey } = childRef.current as any;
-    configForm.resetFields();
-    const initalValue = {
-      condition: {
-        value: "has",
-        label: optionLabelMap["has"]
-      }
-    }
-    if (filterOptions.length > 0) {
-      Object.assign(initalValue, { operator: "AND" });
-    }
-    setEditCondition(initalValue);
-    configForm.setFieldsValue(initalValue);
-    setActivePanelKey(["new"]);
-    setIsNew(true);
-  }
 
   const save = function () {
     const { filterOptions } = childRef.current as any;
@@ -111,27 +90,24 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
       <ExploreFilterContent
-        isNew={isNew}
-        setIsNew={setIsNew}
-        editConditionIndex={editConditionIndex} 
-        setEditConditionIndex={setEditConditionIndex}
         onRef={childRef}
         originType={originType}
-        configForm={configForm}
+        extraContent={(isNew: boolean, editConditionIndex: number, add: any) => (
+          <div className="pdb-explore-filter-add">
+            <Button
+              icon={<i className="spicon icon-add"></i>}
+              onClick={add}
+              disabled={isNew || editConditionIndex > -1}
+            >添加条件</Button>
+            <Button
+              type="primary"
+              icon={<i className="spicon icon-baocun1"></i>}
+              onClick={save}
+              disabled={isNew || editConditionIndex > -1}
+            >保存配置</Button>
+          </div>
+        )}
       />
-      <div className="pdb-explore-filter-add">
-        <Button
-          icon={<i className="spicon icon-add"></i>}
-          onClick={add}
-          disabled={isNew || editConditionIndex > -1}
-        >添加条件</Button>
-        <Button
-          type="primary"
-          icon={<i className="spicon icon-baocun1"></i>}
-          onClick={save}
-          disabled={isNew || editConditionIndex > -1}
-        >保存配置</Button>
-      </div>
     </div>
   )
 }

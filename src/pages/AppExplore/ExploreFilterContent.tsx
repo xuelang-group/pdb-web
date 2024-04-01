@@ -9,12 +9,8 @@ import { commonOptionKeys, conditionOptionMap, optionLabelMap, optionSymbolMap }
 interface ExploreFilterProps {
   originType: any
   onRef: any
-  configForm: any
-  isNew: boolean
-  setIsNew: Function
-  editConditionIndex: number
-  setEditConditionIndex: Function
   onSave?: Function
+  extraContent: any
 }
 
 const operators: any = {
@@ -23,11 +19,15 @@ const operators: any = {
 };
 
 export default function ExploreFilterContent(props: ExploreFilterProps) {
-  const { originType, configForm, isNew, setIsNew, editConditionIndex, setEditConditionIndex, onSave } = props;
+  const [configForm] = Form.useForm();
+
+  const { originType, onSave, extraContent } = props;
 
   const [filterOptions, setFilterOption] = useState<any>(_.get(originType, 'config.options', [])),
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
-    [editCondition, setEditCondition] = useState<any>(null);
+    [editCondition, setEditCondition] = useState<any>(null),
+    [isNew, setIsNew] = useState(false),
+    [editConditionIndex, setEditConditionIndex] = useState(-1);
   const tagType: string = _.get(originType, 'type', ''),
     data: any = _.get(originType, 'data');
   let attrs = JSON.parse(JSON.stringify(data[tagType === 'type' ? "x.type.attrs" : "r.type.constraints"]));
@@ -42,7 +42,6 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     // 需要将暴露的接口返回出去
     return {
       filterOptions,
-      isNew,
       editConditionIndex,
       setIsNew,
       setActivePanelKey,
@@ -255,7 +254,25 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     )
   }
 
+  const add =  () => {
+    configForm.resetFields();
+    const initalValue = {
+      condition: {
+        value: "has",
+        label: optionLabelMap["has"]
+      }
+    }
+    if (filterOptions.length > 0) {
+      Object.assign(initalValue, { operator: "AND" });
+    }
+    setEditCondition(initalValue);
+    configForm.setFieldsValue(initalValue);
+    setActivePanelKey(["new"]);
+    setIsNew(true);
+  }
+
   return (
+    <>
     <div className="pdb-explore-filter-content">
       {filterOptions.map((opt: any, index: number) => {
         const condition = _.get(opt, 'condition.value', ""),
@@ -302,5 +319,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
         </Card>
       }
     </div>
+    {extraContent(isNew, editConditionIndex, add)}
+    </>
   )
 }
