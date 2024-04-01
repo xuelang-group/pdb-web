@@ -45,7 +45,7 @@ function App(props: PdbConfig) {
         const { userId, graphId } = response;
         dispatch(setSystemInfo(response));
         getAppFolderList(userId);
-        if (!location.pathname.startsWith(`/web/${graphId}`)) navigate(`/${graphId}`);
+        if (!location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) navigate(`/${graphId}`);
       } else {
         notification.error({
           message: '获取系统信息失败：',

@@ -35,9 +35,7 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   notification.config({ prefixCls: 'pdb-ant-notification' });
   Modal.config({ rootPrefixCls: 'pdb-ant' });
   const { locale, messages } = config;
-  if (!window.location.pathname.startsWith("/web")) {
-    window.location.replace("/web");
-  }
+  
   root.render(
     <Provider store={store}>
       <IntlProvider locale={locale} messages={messages}>
