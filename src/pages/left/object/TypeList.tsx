@@ -70,11 +70,11 @@ export default function TypeList() {
         if (children.length > 0) expandedKeys.push(typeName);
       }
     });
-    return {data, expandedKeys};
+    return { data, expandedKeys };
   }
 
   useEffect(() => {
-    const {data, expandedKeys} = getTypeTreeData(list);
+    const { data, expandedKeys } = getTypeTreeData(list);
     setTreeData(JSON.parse(JSON.stringify(data)));
     setExpandedKeys(expandedKeys);
   }, [list]);
@@ -161,8 +161,8 @@ export default function TypeList() {
     event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
   }
 
-  const handleClickMenu = function (id: any, item?: any) {
-    navigate(`/${id}/edit`);
+  const handleClickMenu = function (id: any, tab: string, item?: any) {
+    navigate(`/${id}/edit`, { state: { tab } });
     item && dispatch(setCurrentEditModel(item));
   }
 
@@ -190,7 +190,7 @@ export default function TypeList() {
           </div>
           <i
             className='operation-icon spicon icon-gengduo2'
-            onClick={() => handleClickMenu(routerParams.id)}
+            onClick={() => handleClickMenu(routerParams.id, 'type')}
           />
         </div>
         <div className='list-content'>
@@ -202,7 +202,7 @@ export default function TypeList() {
               titleRender={(item: any) => (
                 <Dropdown
                   overlayClassName='pdb-dropdown-menu'
-                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, { ...item, type: 'type' }) }}
+                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, 'type', item) }}
                   trigger={['contextMenu']}
                 >
                   <span
@@ -258,7 +258,7 @@ export default function TypeList() {
           </div>
           <i
             className='operation-icon spicon icon-gengduo2'
-            onClick={() => handleClickMenu(routerParams.id)}
+            onClick={() => handleClickMenu(routerParams.id, 'relation')}
           />
         </div>
         <div className='list-content'>
@@ -270,7 +270,7 @@ export default function TypeList() {
                   overlayClassName='pdb-dropdown-menu'
                   menu={{
                     items: typeMenus,
-                    onClick: (menu) => handleClickMenu(routerParams.id, { data: item, dataIndex: index, type: 'relation' })
+                    onClick: (menu) => handleClickMenu(routerParams.id, 'relation', { data: item, dataIndex: index })
                   }}
                   trigger={['contextMenu']}
                 >

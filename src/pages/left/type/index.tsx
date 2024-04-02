@@ -36,28 +36,10 @@ export default function Left(props: any) {
     [searchValue, setSearchValue] = useState(''),
     [filterValue, setFilterValue] = useState(''),
     [isSearched, setSearchedStatus] = useState(false),
-    [currentTab, setCurrentTab] = useState(_.get(currentEditModel, 'type', 'type'));
+    [currentTab, setCurrentTab] = useState('type');
   const searchRef = useRef<InputRef>(null);
 
   const dispatch = useDispatch();
-
-  let defaultType = '', defaultTypeName = '';
-
-  const setDefaultItem = function (type: string, data: any) {
-    if (type !== defaultType || data.length === 0) return;
-    const list = JSON.parse(JSON.stringify(data));
-    const nameLabel = defaultType === 'type' ? 'x.type.name' : 'r.type.name';
-    const index = list.findIndex((val: any) => val[nameLabel] === defaultTypeName);
-
-    if (index === -1) return;
-    handleSelectItem(list[index], defaultType, index);
-  }
-
-  useEffect(() => {
-    if (currentTab !== 'type' && currentTab !== 'relation') {
-      setCurrentTab('type');
-    }
-  }, [currentTab]);
 
   useEffect(() => {
     getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
@@ -66,7 +48,6 @@ export default function Left(props: any) {
         const treeData = getTypeTreeData(response);
         setTreeData(treeData);
         setAllTreeData(treeData);
-        setDefaultItem('type', response);
 
         if (currentEditModel && currentEditModel.type === 'type') {
           const { dataIndex, data } = currentEditModel;
@@ -83,7 +64,6 @@ export default function Left(props: any) {
     getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setRelations(response || []));
-        setDefaultItem('relation', response);
 
         if (currentEditModel && currentEditModel.type === 'relation') {
           const { dataIndex, data } = currentEditModel;
@@ -212,22 +192,8 @@ export default function Left(props: any) {
   }
 
   useEffect(() => {
-    const data = new URLSearchParams(location.search).get('data');
-    defaultType = '';
-    defaultTypeName = '';
-    if (!data || location.pathname !== '/type') return;
-    let type: string = '', typeName: string = '';
-    if (data.startsWith('type-')) {
-      type = 'type';
-      typeName = data.replace('type-', '');
-    } else if (data.startsWith('relation-')) {
-      type = 'relation';
-      typeName = data.replace('relation-', '');
-    }
-    if (!type || !typeName) return;
-    setCurrentTab(type);
-    defaultType = type;
-    defaultTypeName = typeName;
+    const tab = _.get(location, 'state.tab', 'type');
+    if (tab !== currentTab) setCurrentTab(tab);
   }, [location]);
 
   // 添加对象类型

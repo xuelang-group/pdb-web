@@ -941,6 +941,13 @@ export default function Right(props: RightProps) {
                   <Empty image={require('@/assets/images/search_empty.png')} />
                 }
               </div>
+              {props.route === 'type' &&
+                <div className='param-btn'>
+                  <Button className='btn-default' onClick={addParam} block icon={<i className='spicon icon-tianjia2'></i>}>
+                    添加属性
+                  </Button>
+                </div>
+              }
               {/* {currentEditType !== 'object' &&
                 <div className='param-btn'>
                   {props.route !== 'template' ?
