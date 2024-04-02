@@ -189,7 +189,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
 export function convertResultData(
   data: any,
-  currentParentId: string | null,
+  currentParent: any,
   nodes: NodeItemData[],
   edges: EdgeConfig[],
   combos: ComboConfig[],
@@ -199,7 +199,7 @@ export function convertResultData(
 ) {
   const rootId = store.getState().editor.rootNode?.uid;
 
-  if (!currentParentId) {
+  if (!currentParent) {
     combos.push({ id: `${rootId}-combo` });
   }
 
@@ -215,10 +215,11 @@ export function convertResultData(
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     if (uid === rootId) {
-      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     } else {
       const comboId = `${id}-combo`;
-      const parentId = currentParentId || rootId;
+      const currentParentId = _.get(currentParent, 'uid'),
+        parentId = currentParentId || rootId;
       const collapsed = false;
       const node: any = {
         id,
@@ -227,7 +228,16 @@ export function convertResultData(
         parent: parentId,
         isQueryNode: true,
         name,
-        data: { ...item, collapsed: false },
+        data: {
+          ...item,
+          collapsed: false,
+          currentParent: {
+            ...currentParent,
+            id: rootId,
+          },
+          'x.id': xid,
+          id: uid
+        },
         childLen,
         collapsed,
         icon: iconKey,
@@ -291,7 +301,7 @@ export function convertResultData(
         });
       }
 
-      childLen > 0 && convertResultData(children, uid, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
   });
 
