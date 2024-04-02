@@ -32,14 +32,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
-
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
+    typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
+    relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x.name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [relationList, setRelationList] = useState([] as any), // 画布工具栏 - 支持的关系类型列表
-    [typeList, setTypeList] = useState([] as any), // 画布工具栏 - 支持的对象类型列表
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} });  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
 
   const [filterForm] = Form.useForm();
@@ -411,10 +410,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                                     }
                                   >
                                     {target === 'relation' && relationList.map((info: any) => (
-                                      <Select.Option value={info['r.type.name']} disabled={_.get(filterMap.relation, info['r.type.name'])}>{info.metadata['r.type.label']}</Select.Option>
+                                      <Select.Option value={info['r.type.name']} disabled={_.get(filterMap.relation, info['r.type.name'])}>{info['r.type.label']}</Select.Option>
                                     ))}
                                     {target === 'type' && typeList.map((info: any) => (
-                                      <Select.Option value={info['type']} disabled={_.get(filterMap.type, info['type'])}>{info.metadata['x.type.label']}</Select.Option>
+                                      <Select.Option value={info['x.type.name']} disabled={_.get(filterMap.type, info['x.type.name'])}>{info['x.type.label']}</Select.Option>
                                     ))}
                                   </Select>
                                 </Form.Item>

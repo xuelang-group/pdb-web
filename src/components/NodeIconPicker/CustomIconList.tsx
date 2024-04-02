@@ -15,8 +15,8 @@ export default function CustomIconList(props: NodeIconPickerProps) {
     [customIconLoading, setCustomIconLoading] = useState(false);
 
   useEffect(() => {
-    getIconList();
-  }, []);
+    if (userId) getIconList();
+  }, [userId]);
 
   const getIconList = async function () {
     const path = 'studio/' + userId + '/pdb/icons/';
