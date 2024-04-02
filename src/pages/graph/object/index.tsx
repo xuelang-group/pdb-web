@@ -600,7 +600,7 @@ export default function Editor(props: EditorProps) {
           >
             <div className='pdb-object-switch-img'>
               <img
-                src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png')}
+                src={userId && routerParams?.id ? getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') : ''}
                 onError={(event: any) => {
                   if (event.target.src !== appDefaultScreenshotPath) {
                     event.target.src = appDefaultScreenshotPath;
