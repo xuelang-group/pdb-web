@@ -9,7 +9,7 @@ import { useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { TypeConfig } from "@/reducers/type";
-import { NodeItemData, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { api, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
@@ -33,7 +33,8 @@ export default function AppExplore() {
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     showSearch = useSelector((state: StoreState) => state.editor.showSearch),
-    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
     [filterPanelOpenKey, setFilterPanelOpenKey] = useState<any>(null),
@@ -264,7 +265,7 @@ export default function AppExplore() {
   const handleFocus = function (index: number) {
     const graph = (window as any).PDB_GRAPH;
     setCurrentFocusIndex(index);
-    if ((searchTags.length === 0 || (searchTags.length === 1 && _.isEmpty(searchTags[0]))) && graph) {
+    if ((searchTags.length === 0 || (searchTags.length === 1 && _.isEmpty(searchTags[0]))) && graph && currentGraphTab === "main") {
       dispatch(setGraphDataMap({
         ...graphDataMap,
         'main': graph.save()
@@ -321,6 +322,7 @@ export default function AppExplore() {
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
+    dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
@@ -506,7 +508,6 @@ export default function AppExplore() {
                     Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config } });
                     setSearchTagMap(newSearchTagsMap);
                     setFilterPanelOpenKey(null);
-                    // searchPQL(newSearchTagsMap);
                   }}
                 />
               }

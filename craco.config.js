@@ -52,12 +52,12 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "http://10.88.40.73/proxr/1000001/55526/99e53e90eb2111eea1e74bac440ec68d/7000",
+        target: "http://10.88.40.73/proxr/1000001/55530/390985b0eff711eeb9e8bb8ce1174325/7000",
         changeOrigin: true,
-        onProxyReq(proxyReq) {
-          // 设置Cookie
-          proxyReq.setHeader('Cookie', 'os.sid=s%3AulMkyM8OURwh3O1HDKz3OIRzM4hevtmG.z7OEj7FlH%2BqXougGOYU%2FgiARC998UjjPHfAM4lXqFUI; Path=/; Expires=Tue, 26 Mar 2024 11:51:16 GMT; HttpOnly');
-        },
+        // onProxyReq(proxyReq) {
+        //   // 设置Cookie
+        //   proxyReq.setHeader('Cookie', 'os.sid=s%3AulMkyM8OURwh3O1HDKz3OIRzM4hevtmG.z7OEj7FlH%2BqXougGOYU%2FgiARC998UjjPHfAM4lXqFUI; Path=/; Expires=Tue, 26 Mar 2024 11:51:16 GMT; HttpOnly');
+        // },
       },
     },
   }

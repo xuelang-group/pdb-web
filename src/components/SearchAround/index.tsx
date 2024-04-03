@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
-import { NodeItemData, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setSearchAround, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setSearchAround, setToolbarConfig } from "@/reducers/editor";
 import { ObjectConfig } from "@/reducers/object";
 import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
@@ -15,6 +15,7 @@ import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
 
+let prevActiveTabIndex: string = "", __searchAroundOptions = {};
 export default function SearchAround() {
   const childRef = React.createRef(),
     panelRef = React.createRef(),
@@ -48,13 +49,64 @@ export default function SearchAround() {
 
   useEffect(() => {
     if (JSON.stringify(searchAroundOptions) !== JSON.stringify(searchAround.options)) {
-      dispatch(setSearchAround({ 
-        ...searchAround, 
+      dispatch(setSearchAround({
+        ...searchAround,
         show: searchAroundOptions.length > 0,
         options: JSON.parse(JSON.stringify(searchAroundOptions))
       }));
     }
+    __searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
   }, [searchAroundOptions]);
+
+  useEffect(() => {
+    const graph = (window as any).PDB_GRAPH;
+    if (!graph) return;
+    graph.on("afterlayout", onAfterGraphLayout);
+    return () => {
+      graph.off("afterlayout", onAfterGraphLayout);
+      closeSearchAround();
+    }
+  }, []);
+
+  function onAfterGraphLayout() {
+    const tabIndex = Number(prevActiveTabIndex);
+    openSearchAround(tabIndex, __searchAroundOptions);
+  }
+
+  function closeSearchAround() {
+    const graph = (window as any).PDB_GRAPH;
+    if (!graph) return;
+    if (prevActiveTabIndex && _.get(searchAroundOptions[Number(prevActiveTabIndex)], 'start')) {
+      (searchAroundOptions[Number(prevActiveTabIndex)].start || []).forEach(({ id }: any) => {
+        const nodeItem = graph.findById(id);
+        if (nodeItem) {
+          nodeItem.setState('searchAround', false);
+        }
+      });
+    }
+  }
+
+  function openSearchAround(tabIndex: number, searchAroundOpts = searchAroundOptions) {
+    const graph = (window as any).PDB_GRAPH;
+    if (tabIndex < 0 || !graph || !_.get(searchAroundOpts[tabIndex], 'start')) return;
+    const { start } = searchAroundOpts[tabIndex];
+    if (start && start.length > 0) {
+      start.forEach(({ id }: any) => {
+        const nodeItem = graph.findById(id);
+        if (nodeItem) {
+          nodeItem.setState('searchAround', true);
+        }
+      });
+    }
+  }
+
+  useEffect(() => {
+    const tabIndex = Number(activeTab);
+    if (prevActiveTabIndex === activeTab) return;
+    closeSearchAround();
+    openSearchAround(tabIndex, searchAroundOptions);
+    prevActiveTabIndex = activeTab;
+  }, [activeTab]);
 
   const handleAddRelation = function (item: any) {
     const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions)),
@@ -130,6 +182,7 @@ export default function SearchAround() {
     graph.data({ nodes, edges, combos });
     graph.render();
     graph.zoom(1);
+    graph.layout();
   }
 
   const getVertexParams = function (index: number, _searchAroundOptions = searchAroundOptions) {
@@ -197,7 +250,10 @@ export default function SearchAround() {
     }
     const vertex = getVertexParams(index, _searchAroundOptions);
     const graphId = routerParams.id;
-    tree && dispatch(setGraphLoading(true));
+    if (tree) {
+      dispatch(setGraphLoading(true));
+      dispatch(setCurrentEditModel(null));
+    }
     runVertex({ graphId, vertex, tree }, (success: boolean, response: any) => {
       if (success) {
         if (tree) {
@@ -253,7 +309,7 @@ export default function SearchAround() {
             fieldNames={{ value: 'key' }}
             onChange={value => changeValue(tabIndex, index, 'id', value)}
           ></Select>
-          <span className="pdb-search-around-card-label">条件</span>
+          <span className="pdb-search-around-card-label">过滤条件</span>
           <ExploreFilterContent
             onRef={childRef}
             originType={{ data: option.data, type: "relation" }}
@@ -286,6 +342,12 @@ export default function SearchAround() {
     )
   }
 
+
+  function onFocusItem(id: string) {
+    const graph = (window as any).PDB_GRAPH;
+    if (!graph || !id) return;
+    graph.focusItem(id, true);
+  }
   const renderTabChildren = function (item: any, tabIndex: number) {
     const { start, options, results } = item;
     let sourceType = start[0]['x.type.name'];
@@ -321,8 +383,15 @@ export default function SearchAround() {
             {start.map((item: ObjectConfig) => {
               const metadata = JSON.parse(item['x.metadata'] || '{}'),
                 color = _.get(metadata, 'color', defaultNodeColor.fill);
-              return (<Tag color={color} style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color) }}>{item["x.name"]}</Tag>);
-            })}
+              return (
+                <Tag
+                  color={color}
+                  style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color), cursor: "pointer" }}
+                  onClick={() => onFocusItem(item["uid"])}
+                >{item["x.name"]}</Tag>
+              );
+            })
+            }
           </span>
         </div>
         {options.map((opt: any, index: number) => {
@@ -354,6 +423,11 @@ export default function SearchAround() {
       const _searchAroundOptions = JSON.parse(JSON.stringify(searchAroundOptions));
       _searchAroundOptions.splice(Number(data), 1);
       setSearchAroundOptions(_searchAroundOptions);
+      setActiveTab("-1");
+      if (prevActiveTabIndex === data) {
+        closeSearchAround();
+        prevActiveTabIndex = "";
+      }
     }
   }
 
@@ -376,6 +450,13 @@ export default function SearchAround() {
       <button className="btn-aside-toggle" onClick={() => {
         setSiderHidden(!siderHidden);
         (panelRef.current as any).setSiderHidden();
+        if (!siderHidden) {
+          closeSearchAround();
+        } else {
+          const tabIndex = Number(activeTab);
+          openSearchAround(tabIndex);
+          prevActiveTabIndex = activeTab;
+        }
       }}>
         <i className={`spicon icon-${siderHidden ? "sousuo2" : "shuangjiantou-you"}`}></i>
       </button>

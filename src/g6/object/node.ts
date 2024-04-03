@@ -178,6 +178,39 @@ export function registerNode() {
         });
       }
 
+      group.addShape('marker', {
+        attrs: {
+          r: 10,
+          x: width - 0.5,
+          y: -0.5,
+          cursor: 'pointer',
+          symbol: function collapse(x: number, y: number, r: number) {
+            return [['M', x - r, y], ['a', r, r, 0, 1, 0, r * 2, 0], ['a', r, r, 0, 1, 0, -r * 2, 0]];
+          },
+          fill: nodeColor,
+          stroke: "#f9fbfc",
+          lineWidth: 2,
+        },
+        name: 'search-shape',
+        draggable: false,
+        visible: false,
+        modelId: id
+      });
+
+      group.addShape('text', {
+        attrs: {
+          x: width - 0.5,
+          y: 6,
+          fill: textColor,
+          fontFamily: 'iconfont',
+          textAlign: 'center',
+          text: String.fromCodePoint(58909),
+          fontSize: 12
+        },
+        visible: false,
+        name: 'search-icon'
+      });
+
       cfg.width = width;
       textShape.toFront();
       textShape.attr({ x: textX });
@@ -231,6 +264,8 @@ export function registerNode() {
       const nodeText = group.find(ele => ele.get('name') === 'node-text'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
         nodeRect = group?.find(ele => ele.get('name') === 'node-rect');
+      const searchShape = group?.find(ele => ele.get('name') === 'search-shape'),
+        searchIcon = group?.find(ele => ele.get('name') === 'search-icon');
       let leftRect = group?.find(ele => ele.get('name') === 'left-rect');
 
       if (parent === rootId && !leftRect) {
@@ -283,6 +318,8 @@ export function registerNode() {
       // if (iconName && !isRootNode) width += 22;
       // 更新节点名称
       nodeRect.attr({ width, fill: nodeColor, stroke: nodeBorderColor });
+      searchShape.attr({ fill: nodeColor });
+      searchIcon.attr({ fill: textColor });
       cfg.width = width;
 
       const prevIconType = nodeIcon ? nodeIcon.get('type') : '', currentIconType = iconName.indexOf('studio/' + userId + '/pdb/icons/') > -1 ? 'image' : 'text';
@@ -401,6 +438,9 @@ export function registerNode() {
       const outerCircle = item.getContainer().findAll(ele => ele.get('name') === 'outer-rect')[0];
       const currentSelected = item.hasState('selected');
       const outerNodeWidth = item.getOriginStyle()['node-rect'].width + 10;
+      const searchShape = item.getContainer().findAll(ele => ele.get('name') === 'search-shape')[0],
+        searchIcon = item.getContainer().findAll(ele => ele.get('name') === 'search-icon')[0];
+
       if (!outerCircle) return;
       if (name === 'active') {
         if (currentSelected) return;
@@ -417,6 +457,14 @@ export function registerNode() {
         } else {
           outerCircle.attr({ lineWidth: 0, width: outerNodeWidth });
           outerCircle.hide();
+        }
+      } else if (name === 'searchAround') {
+        if (value) {
+          searchShape.show();
+          searchIcon.show();
+        } else {
+          searchShape.hide();
+          searchIcon.hide();
         }
       }
     }

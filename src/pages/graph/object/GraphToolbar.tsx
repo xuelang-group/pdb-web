@@ -79,11 +79,25 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
   useEffect(() => {
     if (!toolbarConfig[currentGraphTab]) return;
-    const _relationLines = toolbarConfig[currentGraphTab].relationLines;
+    const _relationLines = toolbarConfig[currentGraphTab].relationLines,
+      _showRelationLine = toolbarConfig[currentGraphTab].showRelationLine,
+      _showRelationLabel = toolbarConfig[currentGraphTab].showRelationLabel;
     if (JSON.stringify(relationLines) !== JSON.stringify(_relationLines)) {
       setRelationLines(_relationLines);
     }
-  }, [toolbarConfig])
+
+    if (_showRelationLine !== showRelationLine) {
+      setShowRelationLine(_showRelationLine);
+    }
+
+    if (_showRelationLabel !== showRelationLabel) {
+      setShowRelationLable(_showRelationLabel);
+    }
+
+    if (currentGraphTab === "vertex" && _showRelationLine) {
+      showRelationLines();
+    }
+  }, [toolbarConfig]);
 
   useEffect(() => {
     if (!(window as any).PDB_GRAPH) return;
