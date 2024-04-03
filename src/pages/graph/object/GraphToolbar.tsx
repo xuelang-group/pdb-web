@@ -84,6 +84,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       _showRelationLabel = toolbarConfig[currentGraphTab].showRelationLabel;
     if (JSON.stringify(relationLines) !== JSON.stringify(_relationLines)) {
       setRelationLines(_relationLines);
+    } if (currentGraphTab !== "main" && _showRelationLine) {
+      showRelationLines(_showRelationLabel);
     }
 
     if (_showRelationLine !== showRelationLine) {
@@ -94,9 +96,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       setShowRelationLable(_showRelationLabel);
     }
 
-    if (currentGraphTab === "vertex" && _showRelationLine) {
-      showRelationLines();
-    }
   }, [toolbarConfig]);
 
   useEffect(() => {
@@ -119,7 +118,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }, [relationLines]);
 
   // 显示关系边
-  const showRelationLines = function () {
+  const showRelationLines = function (_showRelationLabel = showRelationLabel) {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     let addEdge = false;
@@ -210,9 +209,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                 },
               }
             },
-            labelCfg: getRelationLabelCfg(labelColor, showRelationLabel, props.theme)
+            labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
-          if (showRelationLabel && relationMap[relation]) Object.assign(edgeOption, { label: relationMap[relation]['r.type.label'] });
+          if (_showRelationLabel && relationMap[relation]) Object.assign(edgeOption, { label: relationMap[relation]['r.type.label'] });
           edgeItem = graph.addItem('edge', edgeOption);
           addEdge = true;
         }

@@ -178,7 +178,7 @@ export default function SearchAround() {
     dispatch(setCurrentGraphTab("vertex"));
     dispatch(setToolbarConfig({
       key: "vertex",
-      config: { relationLines }
+      config: { relationLines, showRelationLine: true, showRelationLabel: true }
     }));
     graph.data({ nodes, edges, combos });
     graph.render();

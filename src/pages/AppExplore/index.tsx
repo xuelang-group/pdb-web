@@ -282,7 +282,7 @@ export default function AppExplore() {
     dispatch(setCurrentGraphTab("explore"));
     dispatch(setToolbarConfig({
       key: "explore",
-      config: { relationLines }
+      config: { relationLines, showRelationLine: true, showRelationLabel: true }
     }));
     graph.data({ nodes, edges, combos });
     graph.render();
