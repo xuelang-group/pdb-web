@@ -14,6 +14,7 @@ import { api, runVertex } from "@/actions/query";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
+import moment from "moment";
 
 let prevActiveTabIndex: string = "", __searchAroundOptions = {};
 export default function SearchAround() {
@@ -201,9 +202,12 @@ export default function SearchAround() {
           attrValue = _.get(opt, 'attr.value');
         let keyword = _.get(opt, 'keyword', ""),
           keywordValue = keyword;
-        if (typeof keyword === "object") {
-          keyword = keyword.format("YYYY-MM-DD HH:mm:ss");
-          keywordValue = new Date(keywordValue).getTime();
+        if (_.get(opt, 'attr.data.type') === "datetime") {
+          if (typeof keyword === "string") {
+            keyword = moment(keyword);
+          }
+          keyword = keyword.format(_.get(opt, 'attr.data.datetimeFormat', "YYYY-MM-DD"));
+          keywordValue = new Date(keyword).getTime();
         }
         let conditionDetail = {};
         if (index > 0) {

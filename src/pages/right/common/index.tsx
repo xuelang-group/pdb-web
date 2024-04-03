@@ -149,13 +149,13 @@ export default function Right(props: RightProps) {
     const attFormValue = {};
     _attrs.forEach((attr: AttrConfig) => {
       const { type, name, datetimeFormat } = attr;
+      let value = attr.default;
+      if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
+        value = currentEditModel.attrs[name];
+      }
       if (type === 'datetime') {
-        attr.default && Object.assign(attFormValue, { [name]: dayjs(moment(attr.default).format(datetimeFormat), datetimeFormat) });
+        value && Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
       } else {
-        let value = attr.default;
-        if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
-          value = currentEditModel.attrs[name];
-        }
         Object.assign(attFormValue, { [name]: value });
       }
     });
@@ -660,7 +660,7 @@ export default function Right(props: RightProps) {
       const newValues = { ...values };
       if (attr && attr.type === 'datetime' && values[attr.name]) {
         const datetime = values[attr.name].format(attr.datetimeFormat);
-        Object.assign(newValues, { [attr.name]: datetime })
+        Object.assign(newValues, { [attr.name]: new Date(datetime).getTime() });
       }
       const graph = (window as any).PDB_GRAPH;
       if (props.route === 'template' && currentEditModel) {

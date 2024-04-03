@@ -163,7 +163,7 @@ export default function TypeList() {
 
   const handleClickMenu = function (id: any, tab: string, item?: any) {
     navigate(`/${id}/edit`, { state: { tab } });
-    item && dispatch(setCurrentEditModel(item));
+    dispatch(setCurrentEditModel(item || null));
   }
 
   const renderTypeTree = useCallback((type: string) => {
