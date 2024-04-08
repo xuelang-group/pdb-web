@@ -233,7 +233,7 @@ export default function Right(props: RightProps) {
       setCurrentEditDefaultData(null);
       setCurrentEditType('');
     }
-  }, [currentEditModel?.id]);
+  }, [currentEditModel]);
 
   const [paramDragging, setParamDragging] = useState(false);
 

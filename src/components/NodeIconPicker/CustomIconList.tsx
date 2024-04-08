@@ -1,4 +1,4 @@
-import { deleteFile, listFile, uploadFile } from "@/actions/minioOperate";
+import { deleteFile, getImagePath, listFile, uploadFile } from "@/actions/minioOperate";
 import { Dropdown, message, notification, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -89,7 +89,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
                 }
                 onClick={() => changeIcon(iconKeys[index - 1])}
               >
-                <img className="pdb-icon-custom-item" src={'/pdb/oss/object/get?Key=' + iconKey} />
+                <img className="pdb-icon-custom-item" src={getImagePath(iconKey)} />
               </div>
             </Dropdown>
           )
