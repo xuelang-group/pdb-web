@@ -1126,10 +1126,10 @@ export default function Right(props: RightProps) {
               {
                 validator: async (_, value) => {
                   const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
-                  if (_types && _types.findIndex((_type: any, index: number) =>
+                  if (value.length > 50 || (_types && _types.findIndex((_type: any, index: number) =>
                     _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
                     _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
-                  ) > -1) {
+                  ) > -1)) {
                     throw new Error('');
                   }
                 }

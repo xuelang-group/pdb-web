@@ -197,6 +197,8 @@ export function registerNode() {
         } else if (nodeIcon) {
           nodeIcon && nodeIcon.remove();
           textShape && textShape.attr({ text, x: 0, fill: textColor });
+        } else {
+          textShape && textShape.attr({ text });
         }
 
         nodeShape.attr({ fill, stroke });

@@ -677,7 +677,9 @@ export default function Left(props: any) {
             {
               validator: async (_, value) => {
                 const _types = JSON.parse(JSON.stringify(prototypeList));
-                if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
+                if (value.length >= 0) {
+                  throw new Error('类型名称最多支持50个字符');
+                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
                   throw new Error('该名称已被使用');
                 }
               }
