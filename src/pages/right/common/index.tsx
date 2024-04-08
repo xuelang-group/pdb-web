@@ -14,7 +14,7 @@ import _ from 'lodash';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
-import { defaultNodeColor, formatDate, typeMap } from '@/utils/common';
+import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
@@ -166,8 +166,8 @@ export default function Right(props: RightProps) {
     const formValues = {
       name: currentEditModel?.name,
       uid,
-      lastChange: _currentEditDefaultData ? formatDate(_currentEditDefaultData[prevLabel + 'last_change']) : '',
-      created: _currentEditDefaultData ? formatDate(_currentEditDefaultData[prevLabel + 'created']) : ''
+      lastChange: _currentEditDefaultData ? moment(_currentEditDefaultData[prevLabel + 'last_change']).format("YYYY-MM-DD HH:mm:ss") : '',
+      created: _currentEditDefaultData ? moment(_currentEditDefaultData[prevLabel + 'created']).format("YYYY-MM-DD HH:mm:ss") : ''
     };
 
     if (currentEditType === 'object') {
@@ -368,7 +368,7 @@ export default function Right(props: RightProps) {
         } else {
           dispatch(setTypeDetail({ name, options: type }));
         }
-        infoForm.setFieldValue('lastChange', formatDate(timestamp));
+        infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
       } else {
         notification.error({
           message: '更新对象类型失败',
@@ -432,7 +432,7 @@ export default function Right(props: RightProps) {
           } else {
             dispatch(setRelationDetail({ name, options: relation }));
           }
-          infoForm.setFieldValue('lastChange', formatDate(timestamp));
+          infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
         } else {
           notification.error({
             message: '更新关系类型失败',
@@ -491,7 +491,7 @@ export default function Right(props: RightProps) {
         } else {
           dispatch(setObjectDetail({ uid: object.uid, options: object }));
         }
-        infoForm.setFieldValue('lastChange', formatDate(timestamp));
+        infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
       } else {
         notification.error({
           message: '更新实例失败',
@@ -1126,7 +1126,7 @@ export default function Right(props: RightProps) {
               {
                 validator: async (_, value) => {
                   const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
-                  if (_types && _types.findIndex((_type: any, index: number) => 
+                  if (_types && _types.findIndex((_type: any, index: number) =>
                     _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
                     _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
                   ) > -1) {
