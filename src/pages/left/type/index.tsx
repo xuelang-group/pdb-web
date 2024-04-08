@@ -672,7 +672,17 @@ export default function Left(props: any) {
         onCancel={handleModalCancel}
       >
         <Form {...layout} form={modalForm}>
-          <Form.Item name="name" label="类型名称" rules={[{ required: true, message: '类型名称不能为空' }]}>
+          <Form.Item name="name" label="类型名称" rules={[
+            { required: true, message: '类型名称不能为空' },
+            {
+              validator: async (_, value) => {
+                const _types = JSON.parse(JSON.stringify(prototypeList));
+                if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
+                  throw new Error('该名称已被使用');
+                }
+              }
+            }
+          ]}>
             <Input />
           </Form.Item>
           {type === 'type' && modalType !== 'copy' &&

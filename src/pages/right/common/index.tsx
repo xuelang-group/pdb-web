@@ -52,7 +52,9 @@ export default function Right(props: RightProps) {
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
-    searchAround = useSelector((state: StoreState) => state.editor.searchAround);
+    searchAround = useSelector((state: StoreState) => state.editor.searchAround),
+    types = useSelector((state: StoreState) => state.type.data),
+    relations = useSelector((state: StoreState) => state.relation.data);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -1119,7 +1121,20 @@ export default function Right(props: RightProps) {
         <div className='pdb-info'>
           <div className='info-name'>
             <div className='info-name-hidden'>{appName}</div>
-            <Form.Item name='name' label='' rules={[{ required: true, message: '' }]} >
+            <Form.Item name='name' label='' rules={[
+              { required: true, message: '' },
+              {
+                validator: async (_, value) => {
+                  const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
+                  if (_types && _types.findIndex((_type: any, index: number) => 
+                    _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
+                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
+                  ) > -1) {
+                    throw new Error('');
+                  }
+                }
+              }
+            ]} >
               <Input.TextArea
                 ref={inputRef}
                 placeholder={'点击编辑名称'}
