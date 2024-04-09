@@ -193,14 +193,18 @@ export default function Editor(props: EditorProps) {
       getContent(evt: any) {
         return `<ul class="pdb-graph-node-contextmenu">
           <li title="探索">探索</li>
+          <li title="删除">删除</li>
         </ul>`;
       },
       handleMenuClick: (target: any, item) => {
+        const itemModel = item.get("model");
         if (target?.title === "探索") {
           const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
           _searchAround.show = true;
-          _searchAround.options.push({ start: [item.get("model").data], options: [] });
+          _searchAround.options.push({ start: [itemModel.data], options: [] });
           dispatch(setSearchAround(_searchAround));
+        } else if (target?.title === "删除") {
+          deleteConfirm(itemModel);
         }
       },
       offsetX: 10,
@@ -336,6 +340,24 @@ export default function Editor(props: EditorProps) {
     (window as any).PDB_GRAPH = graph;
   }
 
+  function deleteConfirm(currentEditModel: any) {
+    if (!currentEditModel) return;
+    Modal.confirm({
+      className: 'pdb-confirm-modal',
+      title: '删除实例',
+      icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
+      getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
+      content: rendeRemoveModalContent(currentEditModel),
+      okButtonProps: {
+        danger: true
+      },
+      okText: "确定删除",
+      cancelText: "取消",
+      onOk: () => handleModalOk(currentEditModel),
+      onCancel: handleModalCancel
+    });
+  }
+
   function initEvent() {
     if (!graph) return
     graph.on('node:mouseenter', (event: { item: any; }) => {
@@ -365,22 +387,9 @@ export default function Editor(props: EditorProps) {
 
       switch (keyCode) {
         case 8:
+        case 46:
           // DEL键
-          if (!currentEditModel) return;
-          Modal.confirm({
-            className: 'pdb-confirm-modal',
-            title: '删除实例',
-            icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
-            getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
-            content: rendeRemoveModalContent(currentEditModel),
-            okButtonProps: {
-              danger: true
-            },
-            okText: "确定删除",
-            cancelText: "取消",
-            onOk: () => handleModalOk(currentEditModel),
-            onCancel: handleModalCancel
-          });
+          deleteConfirm(currentEditModel);
           break;
         // case 9:
         //   // Tab键响应，选中节点时，会向后增加子节点
