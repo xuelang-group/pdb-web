@@ -192,10 +192,13 @@ export default function ParamEditor(props: any) {
             {
               validator: async (_, value) => {
                 const _attrs = JSON.parse(JSON.stringify(attrs));
+                if (!value) return;
                 if (_attrs && _attrs.findIndex((attr: any, index: number) => attr.name === value && params.index !== index) > -1) {
                   throw new Error('该名称已被使用');
                 } else if (!/^[a-zA-Z0-9_]*$/.test(value)) {
                   throw new Error('名称只包含字母、数字、“_” ');
+                } else if (!/[a-zA-Z].*/.test(value)) {
+                  throw new Error('名称必须以字母开头');
                 }
               }
             }
@@ -280,13 +283,13 @@ export default function ParamEditor(props: any) {
                               dependencies={[["listEnums", key, "value"]]}
                               className='enums-item'
                               rules={[
-                                { required: true, message: '' },
                                 {
                                   validator: async (_, value) => {
-                                    if (listEnums.findIndex((val: any, index: number) => val.value === value && index !== key) > -1) {
+                                    if (!value) {
+                                      throw new Error("");
+                                    } else if (listEnums.findIndex((val: any, index: number) => val.value === value && index !== key) > -1) {
                                       throw new Error('选项值已存在');
-                                    }
-                                    if ((typeof value === 'number' && listType === 'string') ||
+                                    } else if ((typeof value === 'number' && listType === 'string') ||
                                       (typeof value === 'string' && listType !== 'string')) {
                                       throw new Error('类型不一致');
                                     }

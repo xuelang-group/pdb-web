@@ -139,10 +139,14 @@ export default function Editor(props: EditorProps) {
             });
             dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
             dispatch(setObjects(newData));
+            initLayout(newData, rootId);
+            initEvent();
+          } else {
+            notification.error({
+              message: '获取对象实例失败',
+              description: data.message || data.msg
+            });
           }
-
-          initLayout(newData, rootId);
-          initEvent();
         });
       } else {
         notification.error({
