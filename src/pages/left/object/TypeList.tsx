@@ -196,6 +196,7 @@ export default function TypeList() {
         <div className='list-content'>
           <div className='type-list'>
             <Tree
+              showLine={{ showLeafIcon: false }}
               treeData={treeData}
               // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
