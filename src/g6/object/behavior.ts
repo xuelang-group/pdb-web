@@ -403,6 +403,12 @@ export const G6OperateFunctions = {
           const graphData = convertAllData(newData);
           graph.changeData(graphData);
           graph.layout();
+
+          const currentEditModel = store.getState().editor.currentEditModel;
+          if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
+            const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
+            store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
+          }
         });
       }
     }
@@ -1281,6 +1287,12 @@ export function registerBehavior() {
                 const graphData = convertAllData(newData);
                 graph.changeData(JSON.parse(JSON.stringify(graphData)));
                 graph.layout();
+
+                const currentEditModel = store.getState().editor.currentEditModel;
+                if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
+                  const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
+                  store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
+                }
               } else {
                 notification.error({
                   message: '更新实例失败',

@@ -210,8 +210,8 @@ export default function Right(props: RightProps) {
         infoForm.setFieldsValue({
           name,
           uid: id,
-          lastChange: gmt_modified,
-          created: gmt_create
+          lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
+          created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss")
         });
       }
       return;
