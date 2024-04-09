@@ -653,7 +653,20 @@ export default function Right(props: RightProps) {
   // 关闭属性编辑框
   const cancelEditParam = (newAttrs?: any) => {
     setCurrentEditParam(null);
-    newAttrs && setAttrs(newAttrs);
+    if (newAttrs) {
+      const attFormValue = {};
+      newAttrs && newAttrs.forEach((attr: AttrConfig) => {
+        const { datetimeFormat, type, name } = attr;
+        const value = attr.default;
+        if (type === 'datetime') {
+          value && Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
+        } else {
+          Object.assign(attFormValue, { [name]: value });
+        }
+      });
+      attrForm.setFieldsValue(attFormValue);
+      setAttrs(newAttrs);
+    }
   }
 
   // 对象管理 - 属性值修改
@@ -664,57 +677,7 @@ export default function Right(props: RightProps) {
         const datetime = values[attr.name].format(attr.datetimeFormat);
         Object.assign(newValues, { [attr.name]: new Date(datetime).getTime() });
       }
-      const graph = (window as any).PDB_GRAPH;
-      if (props.route === 'template' && currentEditModel) {
-        if (currentEditType === 'type') {
-          const newGraphData = JSON.parse(JSON.stringify(graphData));
-          const processes = _.get(newGraphData, `processes`);
 
-          if (processes && processes[currentEditModel.uid as any]) {
-            const newData = processes[currentEditModel.uid as any];
-            const newAttrs = newData.metadata['x.type.attrs'];
-            newAttrs[index]['default'] = newValues[newAttrs[index]['name']];
-            Object.assign(newData.metadata, {
-              'x.type.attrs': newAttrs
-            });
-            Object.assign(newGraphData.processes, {
-              [currentEditModel.uid as any]: newData
-            });
-            if (JSON.stringify(graphData) !== JSON.stringify(newGraphData)) dispatch(setGraphData(newGraphData));
-            graph.updateItem(currentEditModel.uid, {
-              data: {
-                ...currentEditModel.data,
-                'x.type.attrs': newAttrs,
-                'x.type.label': newData.metadata['x.type.label']
-              }
-            });
-          }
-        } else {
-          const newGraphData = JSON.parse(JSON.stringify(graphData));
-          const connections = _.get(newGraphData, `connections`);
-          const { data, source, target } = currentEditModel;
-          let newData: any = null;
-          for (let connection of connections) {
-            if (connection['r.type.name'] === data['r.type.name'] && connection.src.process === source && connection.tgt.process === target) {
-              Object.keys(newValues).forEach(key => {
-                if (connection.metadata['r.type.constraints'][key]) {
-                  Object.assign(connection.metadata['r.type.constraints'][key], { default: newValues[key] });
-                }
-              });
-              newData = connection.metadata;
-              break;
-            }
-          }
-          if (!newData) return;
-          Object.assign(newGraphData, { connections });
-
-          if (JSON.stringify(graphData) !== JSON.stringify(newGraphData)) dispatch(setGraphData(newGraphData));
-          graph.updateItem(currentEditModel.id, {
-            data: newData
-          });
-        }
-        return;
-      }
       if (attr && attr.name && newValues[attr.name] === null) {
         delete newValues[attr.name];
         const newData = JSON.parse(JSON.stringify(currentEditDefaultData));
@@ -859,9 +822,10 @@ export default function Right(props: RightProps) {
     const _default = attr.default;
     if (!typeMap[currentEditType]) return;
     const addonBefore = typeMap[currentEditType][type];
-
-    return renderEditorInput(type, _default, addonBefore, attr, index);
-    // return renderReadOnlyInput(type, _default, addonBefore, attr);
+    if (currentEditType === 'object') {
+      return renderEditorInput(type, _default, addonBefore, attr, index);
+    }
+    return renderReadOnlyInput(type, _default, addonBefore, attr);
   }
 
   const editCurrentType = () => {
