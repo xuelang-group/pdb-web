@@ -340,9 +340,10 @@ export default function Editor(props: EditorProps) {
     (window as any).PDB_GRAPH = graph;
   }
 
+  let deleteConfirmModal: any = null;
   function deleteConfirm(currentEditModel: any) {
     if (!currentEditModel) return;
-    Modal.confirm({
+    deleteConfirmModal = Modal.confirm({
       className: 'pdb-confirm-modal',
       title: '删除实例',
       icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
@@ -353,7 +354,7 @@ export default function Editor(props: EditorProps) {
       },
       okText: "确定删除",
       cancelText: "取消",
-      onOk: () => handleModalOk(currentEditModel),
+      onOk: () => handleModalOk(currentEditModel, true),
       onCancel: handleModalCancel
     });
   }
@@ -474,9 +475,6 @@ export default function Editor(props: EditorProps) {
     [modalOperate, setModalOperate] = useState(''),
     [modalLoading, setModalLoading] = useState(false);
 
-  // 弹窗-删除-是否删除子对象
-  const [removeAll, setRemoveAll] = useState(true);
-
   let isUpdateScreenshot = false;
   function saveScreenShoot() {
     if (isUpdateScreenshot) {
@@ -541,8 +539,10 @@ export default function Editor(props: EditorProps) {
     graph.zoom(1);
   }
 
-  const handleChangeRemoveAll = function (event: any) {
-    setRemoveAll(event.target.checked);
+  const handleChangeRemoveAll = function (event: any, currentEditModel: any) {
+    deleteConfirmModal && deleteConfirmModal.update({
+      onOk: () => handleModalOk(currentEditModel, event.target.checked)
+    });
   }
 
   const rendeRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
@@ -552,7 +552,7 @@ export default function Editor(props: EditorProps) {
         <div className='pdb-confirm-info'>是否删除实例：{name}?</div>
         {Boolean(currentEditModel.childLen) &&
           <div className='pdb-confirm-info-checkbox'>
-            <Checkbox checked={removeAll} onChange={handleChangeRemoveAll} />
+            <Checkbox defaultChecked onChange={event => handleChangeRemoveAll(event, currentEditModel)} />
             <span>同时删除该实例的所有下级实例</span>
           </div>
         }
@@ -560,7 +560,7 @@ export default function Editor(props: EditorProps) {
     )
   }
 
-  const handleModalOk = function (currentEditModel: any) {
+  const handleModalOk = function (currentEditModel: any, removeAll: boolean) {
     setModalLoading(true);
     G6OperateFunctions.removeNode(currentEditModel?.id, {
       uid: currentEditModel?.uid,
@@ -573,8 +573,9 @@ export default function Editor(props: EditorProps) {
   const handleModalCancel = function () {
     setModalOpen(false);
     setModalOperate('');
-    setRemoveAll(true);
     setModalLoading(false);
+    deleteConfirmModal && deleteConfirmModal.destroy();
+    deleteConfirmModal = null;
   }
 
   return (

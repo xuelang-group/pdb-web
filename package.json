@@ -1,6 +1,6 @@
 {
   "name": "pdb-web",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "dependencies": {
     "@antv/g6": "^4.8.23",
@@ -41,6 +41,7 @@
     "start": "craco start",
     "v:patch": "npm version --no-git-tag-version patch",
     "build": "npm run v:patch && bash ./build.sh && bash ./docker/build.sh",
+    "docker": "bash ./docker/build.sh",
     "test": "craco test",
     "eject": "craco eject"
   },

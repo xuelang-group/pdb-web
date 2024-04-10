@@ -54,20 +54,36 @@ export const G6OperateFunctions = {
       if (success) {
         getRemoveIds(comboId);
 
-        const { parent } = graph.findById(nodeId).getModel();
+        const deleteModel: any = graph.findById(nodeId).getModel();
 
         const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
-          if (val.id === parent) {
+          if (val.id === deleteModel.parent) {
             val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
           }
           return !removeIds.hasOwnProperty(val.id);
         });
-        if (response) {
+        if (!_.isEmpty(response)) {
           const rootNode = store.getState().editor.rootNode;
           if (!rootNode) return;
           const rootId = rootNode.uid;
           const children = graph.getComboChildren(`${rootId}-combo`);
           let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
+          const shouldUpdateObject: any[] = [];
+          if (deleteModel.parent === rootId) {
+            if (lastRootNodeIndex > 0) {
+              lastRootNodeIndex -= 1;
+            }
+            _data.forEach((val: any) => {
+              if (val.currentParent.uid === deleteModel.parent && val.currentParent['x.parent|x.index'] > deleteModel?.data.currentParent['x.parent|x.index']) {
+                val.currentParent['x.parent|x.index'] -= 1;
+                val['x.parent'][0]['x.parent|x.index'] -= 1;
+                shouldUpdateObject.push({
+                  uid: val.uid,
+                  'x.parent': val['x.parent']
+                });
+              }
+            });
+          }
           response.map((item: ObjectConfig) => {
             const newXid = rootId + '.' + lastRootNodeIndex;
             const id = item.uid;
@@ -86,8 +102,15 @@ export const G6OperateFunctions = {
               id
             }
             _data.push(newObject);
+            shouldUpdateObject.push({
+              uid: id,
+              "x.parent": [newParent]
+            });
             lastRootNodeIndex++;
           });
+          if (shouldUpdateObject.length > 0) {
+            setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => { });
+          }
         }
         store.dispatch(setObjects(_data));
         store.dispatch(setCurrentEditModel(null));

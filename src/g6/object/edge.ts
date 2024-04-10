@@ -20,8 +20,8 @@ export function registerEdge() {
    */
   G6.registerEdge('step-line', {
     draw(cfg: EdgeConfig, group) {
-      const startPoint = cfg.startPoint,
-        endPoint = cfg.endPoint;
+      const startPoint = cfg.sourceNode?.getBBox(),
+        endPoint = cfg.targetNode?.getBBox();
       const { stroke } = LINE_SYTLE['default'];
       const targetModel = cfg.targetNode?.get('model'),
         sourceModel = cfg.sourceNode?.get('model');
@@ -33,9 +33,11 @@ export function registerEdge() {
         startPoinX = Number(startPoint?.x) - 15;
       }
 
-      let startPointY = Number(startPoint?.y) - 5;
+      let startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 - 3;
       if (targetModel['xid'] && targetModel['xid'] === (sourceModel['xid'] + '.0')) {
-        startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 + COLLAPSE_SHAPE_R;
+        startPointY = Number(startPoint?.y) + NODE_HEIGHT + COLLAPSE_SHAPE_R;
+      } else if (sourceModel['xid'].split(".").length === 2) {
+        startPointY = Number(startPoint?.y) + NODE_HEIGHT;
       }
       const shape: any = group.addShape('path', {
         attrs: {
@@ -43,8 +45,8 @@ export function registerEdge() {
           lineWidth,
           path: getPathWithBorderRadiusByPolyline([
             { x: startPoinX, y: startPointY },
-            { x: startPoinX, y: Number(endPoint?.y) },
-            { x: Number(endPoint?.x), y: Number(endPoint?.y) },
+            { x: startPoinX, y: Number(endPoint?.y) + NODE_HEIGHT / 2 },
+            { x: Number(endPoint?.x), y: Number(endPoint?.y) + NODE_HEIGHT / 2 },
           ], 3),
         },
         name: 'path-shape',
