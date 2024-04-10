@@ -1,6 +1,6 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE } from '@antv/g6';
 import { addChildrenToGraphData, convertAllData } from '../../utils/objectGraph';
-import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel } from '@/reducers/editor';
+import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
 import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, setObject } from '@/actions/object';
@@ -27,6 +27,7 @@ export const G6OperateFunctions = {
           message: '创建实例失败',
           description: response.message || response.msg
         });
+        store.dispatch(setGraphLoading(false));
       }
     });
   },
@@ -50,6 +51,8 @@ export const G6OperateFunctions = {
         getRemoveIds(id);
       });
     }
+
+    store.dispatch(setGraphLoading(true));
     deleteObject(params, (success: boolean, response: any) => {
       if (success) {
         getRemoveIds(comboId);
@@ -123,6 +126,7 @@ export const G6OperateFunctions = {
           description: response.message || response.msg
         });
       }
+      store.dispatch(setGraphLoading(false));
       callback && callback()
     });
   },
@@ -134,6 +138,7 @@ export const G6OperateFunctions = {
       collapsed = false;
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
+      store.dispatch(setGraphLoading(true));
       getChildren({ uid: model.uid }, (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
@@ -217,6 +222,7 @@ export const G6OperateFunctions = {
             description: data.message || data.msg
           });
         }
+        store.dispatch(setGraphLoading(false));
       });
     } else {
       store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
@@ -405,6 +411,7 @@ export const G6OperateFunctions = {
               message: '更新实例失败：',
               description: response.message || response.msg
             });
+            store.dispatch(setGraphLoading(false));
             return;
           }
           const newDropItemXid = (modifyIdMaps[dropItemId]?.new || dropItemXid);
@@ -426,6 +433,7 @@ export const G6OperateFunctions = {
           const graphData = convertAllData(newData);
           graph.changeData(graphData);
           graph.layout();
+          store.dispatch(setGraphLoading(false));
 
           const currentEditModel = store.getState().editor.currentEditModel;
           if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
@@ -433,9 +441,11 @@ export const G6OperateFunctions = {
             store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
           }
         });
+      } else {
+        store.dispatch(setGraphLoading(false));
       }
     }
-
+    store.dispatch(setGraphLoading(true));
     if (dragItemParentUid === dropItemModel.uid) {
       handleUpdateObjects();
       return;
@@ -450,6 +460,7 @@ export const G6OperateFunctions = {
           message: '移动实例失败：',
           description: response.message || response.msg
         });
+        store.dispatch(setGraphLoading(false));
         return;
       } else {
         handleUpdateObjects();
@@ -487,6 +498,7 @@ export const G6OperateFunctions = {
         uid: parentUid,
         'x.parent|x.index': childLen
       };
+    store.dispatch(setGraphLoading(true));
     copyObject({
       uid: copyItem.uid,
       'x.parent': [newParent],
@@ -519,6 +531,7 @@ export const G6OperateFunctions = {
           description: response.message || response.msg
         });
       }
+      store.dispatch(setGraphLoading(false));
     });
   }
 };
@@ -558,6 +571,8 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     "uid": parentNodeModel.uid,
     "x.parent|x.index": xIndex,
   };
+
+  store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
     "x.name": parentNodeModel.name + '-' + xIndex,
@@ -658,6 +673,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
       const graphData = convertAllData(_data);
       graph.changeData(graphData);
       graph.layout();
+      store.dispatch(setGraphLoading(false));
 
       const item = graph.findById(newObj.id);
       if (!item) return;
@@ -670,6 +686,8 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
       setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => {
         if (success) {
           updateGraph();
+        } else {
+          store.dispatch(setGraphLoading(false));
         }
       });
     } else {
@@ -811,6 +829,7 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
     "uid": sourceNode.uid,
     "x.parent|x.index": childLen,
   };
+  store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.name": defaultTypeName,
     "x.parent": [newParent],
@@ -849,6 +868,7 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
     };
 
     addNodeChildren(newObj, sourceNode, graph);
+    store.dispatch(setGraphLoading(false));
 
     const item = graph.findById(newObj.id);
     if (!item) return;
@@ -890,6 +910,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     "uid": rootId,
     "x.parent|x.index": childLen
   };
+  store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.name": defaultName,
     "x.parent": [newParent],
@@ -909,6 +930,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
       id
     }
     addRootNode(newObject, graph);
+    store.dispatch(setGraphLoading(false));
 
     const item = graph.findById(newObject.id);
     if (!item) return;
@@ -961,6 +983,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     }
   });
 
+  store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.name": defaultName,
     "x.parent": [newParent],
@@ -986,6 +1009,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       const graphData = convertAllData(newObjData);
       graph.changeData(graphData);
       graph.layout();
+      store.dispatch(setGraphLoading(false));
 
       const item = graph.findById(newObject.id);
       if (!item) return;
@@ -1006,6 +1030,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
             message: '更新实例失败',
             description: response.message || response.msg
           });
+          store.dispatch(setGraphLoading(false));
         }
       });
     } else {
@@ -1322,10 +1347,14 @@ export function registerBehavior() {
                   description: response.message || response.msg
                 });
               }
+              store.dispatch(setGraphLoading(false));
             });
+          } else {
+            store.dispatch(setGraphLoading(false));
           }
         }
 
+        store.dispatch(setGraphLoading(true));
         if (dragItemParentUid === dropItemParentUid) {
           handleUpdateObjects();
         } else {
@@ -1339,6 +1368,7 @@ export function registerBehavior() {
                 message: '移动实例失败',
                 description: response.message || response.msg
               });
+              store.dispatch(setGraphLoading(false));
               return;
             }
             handleUpdateObjects();

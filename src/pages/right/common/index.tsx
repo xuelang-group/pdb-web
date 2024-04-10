@@ -228,9 +228,32 @@ export default function Right(props: RightProps) {
   }, [currentEditModel]);
 
   const [paramDragging, setParamDragging] = useState(false);
-
+  let timer: any = null;
+  function initialForm() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      return;
+    }
+    timer = setTimeout(() => {
+      const typeItems = document.getElementsByClassName("type-items");
+      if (typeItems.length > 0 && typeItems[0].firstElementChild && typeItems[0].firstElementChild.children
+        && typeItems[0].firstElementChild.children.length === attrs.length) {
+        attrForm.validateFields();
+      } else {
+        clearTimeout(timer);
+        timer = null;
+      }
+      initialForm();
+    }, 500);
+  }
   useEffect(() => {
-    if (currentEditType === 'object' || !currentEditModel || paramDragging) return;
+    if (currentEditType === 'object') {
+
+      initialForm();
+      return;
+    }
+    if (!currentEditModel || paramDragging) return;
     updateAttrs(attrs);
   }, [attrs]);
 
