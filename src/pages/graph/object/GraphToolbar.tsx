@@ -358,6 +358,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }));
   }, [filters]);
 
+
+  function clearFilter() {
+    filterForm.setFieldValue('filter', []);
+  }
   const renderFilterPanel = function () {
     return (
       <div className="pdb-graph-toolbar-panel-container">
@@ -480,7 +484,16 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             title={_.get(tab, 'key', '') === 'filter' ? (
               <>
                 <span>视图过滤</span>
-                <i className="operation-icon spicon icon-guanbi" onClick={() => setSelectedTab(null)} />
+                <span>
+                  <Tooltip title="清空">
+                    <i
+                      className="operation-icon spicon icon-qingkonghuabu"
+                      style={{ marginRight: 5 }}
+                      onClick={clearFilter}
+                    />
+                  </Tooltip>
+                  <i className="operation-icon spicon icon-guanbi" onClick={() => setSelectedTab(null)} />
+                </span>
               </>
             ) : ''}
             rootClassName={_.get(tab, 'key', '') === 'filter' ? 'pdb-graph-toolbar-panel edit_tools pdb-param-editor' : ''}
