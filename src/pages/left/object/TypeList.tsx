@@ -1,4 +1,4 @@
-import { Input, InputRef, Tabs, Tree, Dropdown } from 'antd';
+import { Input, InputRef, Tabs, Tree, Dropdown, Tooltip } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -188,10 +188,12 @@ export default function TypeList() {
               onPressEnter={(event: any) => handleSearch(event.target.value)}
             />
           </div>
-          <i
-            className='operation-icon spicon icon-gengduo2'
-            onClick={() => handleClickMenu(routerParams.id, 'type')}
-          />
+          <Tooltip title="类型管理">
+            <i
+              className='operation-icon spicon icon-gengduo2'
+              onClick={() => handleClickMenu(routerParams.id, 'type')}
+            />
+          </Tooltip>
         </div>
         <div className='list-content'>
           <div className='type-list'>
@@ -257,10 +259,12 @@ export default function TypeList() {
               onPressEnter={(event: any) => handleRelationSearch(event.target.value)}
             />
           </div>
-          <i
-            className='operation-icon spicon icon-gengduo2'
-            onClick={() => handleClickMenu(routerParams.id, 'relation')}
-          />
+          <Tooltip title="类型管理">
+            <i
+              className='operation-icon spicon icon-gengduo2'
+              onClick={() => handleClickMenu(routerParams.id, 'relation')}
+            />
+          </Tooltip>
         </div>
         <div className='list-content'>
           <div className='type-list relation-list'>

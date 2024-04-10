@@ -1,4 +1,4 @@
-import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tree } from 'antd';
+import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -503,7 +503,9 @@ export default function Left(props: any) {
               onSearch={handleSearch}
             />
           </div>
-          <i className='operation-icon spicon icon-tianjia' onClick={() => handleAddItem(type)} />
+          <Tooltip title="新建">
+            <i className='operation-icon spicon icon-tianjia' onClick={() => handleAddItem(type)} />
+          </Tooltip>
         </div>
         <div className='list-content'>
           <div className='type-list relation-list'>
@@ -556,7 +558,9 @@ export default function Left(props: any) {
               onSearch={handleSearch}
             />
           </div>
-          <i className='operation-icon spicon icon-tianjia' onClick={() => handleAddItem(type)} />
+          <Tooltip title="新建">
+            <i className='operation-icon spicon icon-tianjia' onClick={() => handleAddItem(type)} />
+          </Tooltip>
         </div>
         <div className='list-content'>
           <div className='type-list'>
