@@ -307,11 +307,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       graph.findAll('edge', function (edge: Item) {
         const edgeModel = edge.get('model');
         if (edgeModel.type === 'step-line') return;
-        let lineColor = '#F77234', labelColor = labelThemeStyle[props.theme].fill; // 高亮
-        if (!_.isEmpty(filterMap.relation) && !_.get(filterMap.relation, edgeModel.relationName)) {
-          // 灰色
-          lineColor = '#EAECEF';
-          labelColor = '#DCDEE1';
+        let lineColor = '#EAECEF', labelColor = '#DCDEE1';// 灰化
+        if (!_.isEmpty(filterMap.relation) && _.get(filterMap.relation, edgeModel.relationName) || filters.length === 0) {
+          // 高亮
+          lineColor = '#F77234';
+          labelColor = labelThemeStyle[props.theme].fill;
         }
         graph.updateItem(edge, {
           style: {
@@ -334,22 +334,19 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       graph.findAll('node', function (node: Item) {
         const nodeModel = node.get('model'),
           nodeModelData = _.get(nodeModel, 'data'),
-          isDisabled = !_.isEmpty(filterMap.type) && !_.get(filterMap.type, nodeModelData['x.type.name'] || '');
+          isDisabled = (_.isEmpty(filterMap.type) || !_.get(filterMap.type, nodeModelData['x.type.name'] || '')) && filters.length > 0;
         graph.updateItem(node, { isDisabled });
         if (!isDisabled && !_.isEmpty(filterMap.type)) shouldSelectedNodes.push(node);
         node.setState('selected', !isDisabled && !_.isEmpty(filterMap.type));
       });
-      if (shouldSelectedNodes.length > 0) {
-        const graph = (window as any).PDB_GRAPH;
-        graph.emit('nodeselectchange', {
-          selectedItems: {
-            nodes: shouldSelectedNodes,
-            edges: [],
-            combos: [],
-          },
-          select: true,
-        });
-      }
+      graph.emit('nodeselectchange', {
+        selectedItems: {
+          nodes: shouldSelectedNodes,
+          edges: [],
+          combos: [],
+        },
+        select: true,
+      });
     }).catch(err => { });
 
     dispatch(setToolbarConfig({
