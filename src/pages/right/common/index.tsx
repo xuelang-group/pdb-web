@@ -76,16 +76,7 @@ export default function Right(props: RightProps) {
 
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
-    if (props.route === 'template') {
-      const { name, tid, last_change, created, description } = graphData as TemplateGraphDataState
-      infoForm.setFieldsValue({
-        name,
-        uid: tid,
-        lastChange: moment(last_change).format("YYYY-MM-DD HH:mm:ss"),
-        created: moment(created).format("YYYY-MM-DD HH:mm:ss"),
-        description
-      });
-    } else if (props.route === 'object') {
+    if (props.route === 'object') {
       const { name, id, gmt_modified, gmt_create, description, data } = graphData as ObjectGraphDataState
       infoForm.setFieldsValue({
         name,
@@ -163,11 +154,20 @@ export default function Right(props: RightProps) {
     });
     attrForm.setFieldsValue(attFormValue);
 
+    let _created = _.get(_currentEditDefaultData, prevLabel + 'created', ''),
+      _lastChange = _.get(_currentEditDefaultData, prevLabel + 'last_change', '');
+
+    if (Number(_created).toString() === _created) {
+      _created = Number(_created);
+    }
+    if (Number(_lastChange).toString() === _lastChange) {
+      _lastChange = Number(_lastChange);
+    }
     const formValues = {
       name: currentEditModel?.name,
       uid,
-      lastChange: _currentEditDefaultData ? moment(_currentEditDefaultData[prevLabel + 'last_change']).format("YYYY-MM-DD HH:mm:ss") : '',
-      created: _currentEditDefaultData ? moment(_currentEditDefaultData[prevLabel + 'created']).format("YYYY-MM-DD HH:mm:ss") : ''
+      lastChange: _created ? moment(_created).format("YYYY-MM-DD HH:mm:ss") : '',
+      created: _lastChange ? moment(_lastChange).format("YYYY-MM-DD HH:mm:ss") : ''
     };
 
     if (currentEditType === 'object') {
@@ -197,15 +197,7 @@ export default function Right(props: RightProps) {
     setPanelTitle(panelTitle);
     if (!currentEditModel) {
       if (!graphData) return;
-      if (props.route === 'template') {
-        const { name, tid, last_change, created } = graphData as TemplateGraphDataState;
-        infoForm.setFieldsValue({
-          name,
-          uid: tid,
-          lastChange: last_change,
-          created
-        });
-      } else if (props.route === 'object') {
+      if (props.route === 'object') {
         const { name, id, gmt_modified, gmt_create } = graphData as ObjectGraphDataState;
         infoForm.setFieldsValue({
           name,

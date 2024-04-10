@@ -439,7 +439,7 @@ export default function Left(props: any) {
         content: (
           <>
             <div className='pdb-confirm-info'>是否删除 “{item[nameLabel]}” {typeLabel[type]}类型 ?</div>
-            <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>
+            {currentTab === "type" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
           </>
         ),
         okButtonProps: {
@@ -561,7 +561,7 @@ export default function Left(props: any) {
         <div className='list-content'>
           <div className='type-list'>
             <Tree
-              showLine={{ showLeafIcon: false } }
+              showLine={{ showLeafIcon: false }}
               treeData={treeData}
               selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
