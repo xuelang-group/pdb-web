@@ -258,7 +258,7 @@ export const G6OperateFunctions = {
       dragItemParentUid = dragItemParentModel.uid;
       dragItemParentName = dragItemParentModel.name;
     }
-    const lastChangeTime = new Date().getTime();
+    const lastChangeTime = new Date();
 
     let dragItems: CustomObjectConfig[] = [];
     let newData: CustomObjectConfig[] = [], sameParentWithDrag = 0, dropItemLastChildrenIndex = -1, modifyIdMaps: any = {};
@@ -1155,7 +1155,7 @@ export function registerBehavior() {
       const dragItemData = JSON.parse(JSON.stringify(dragItemModel.data));
       const shouldUpdateObject: ObjectConfig[] = [];
 
-      const lastChangeTime = new Date().getTime();
+      const lastChangeTime = new Date();
       if (type === 'top-rect' || type === 'left-rect') {
         const rootInfo = store.getState().editor.rootNode,
           rootId = rootInfo?.uid;

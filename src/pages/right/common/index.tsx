@@ -362,7 +362,7 @@ export default function Right(props: RightProps) {
   const updateType = (type: TypeConfig) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
-    const timestamp = new Date().getTime();
+    const timestamp = new Date();
 
     setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       if (success) {
@@ -427,7 +427,7 @@ export default function Right(props: RightProps) {
       });
     } else {
       const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
-      const timestamp = new Date().getTime();
+      const timestamp = new Date();
 
       setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
         if (success) {
@@ -462,7 +462,7 @@ export default function Right(props: RightProps) {
   const updateObject = (object: CustomObjectConfig, key?: string, deleteConfig?: any) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
-    const timestamp = new Date().getTime();
+    const timestamp = new Date();
 
     const { id, currentParent, collapsed, ...newObject } = JSON.parse(JSON.stringify(object));
     delete newObject['x.id'];
@@ -690,7 +690,7 @@ export default function Right(props: RightProps) {
       const newValues = { ...values };
       if (attr && attr.type === 'datetime' && values[attr.name]) {
         const datetime = values[attr.name].format(attr.datetimeFormat);
-        Object.assign(newValues, { [attr.name]: new Date(datetime).getTime() });
+        Object.assign(newValues, { [attr.name]: new Date(datetime) });
       }
 
       if (attr && attr.name && newValues[attr.name] === null) {

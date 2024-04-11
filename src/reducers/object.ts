@@ -13,9 +13,9 @@ export interface ObjectConfig {
   'x.name': string
   'x.parent': Array<Parent>
   'x.type.name': string
-  'x.last_change': number
+  'x.last_change': any
   'x.relation.name': Array<string> // 属于关系的谓词名称
-  'x.created': number
+  'x.created': any
   'x.children': number
   'x.metadata': string
   [key: string]: any

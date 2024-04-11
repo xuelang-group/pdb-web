@@ -207,7 +207,7 @@ export default function SearchAround() {
             keyword = moment(keyword);
           }
           keyword = keyword.format(_.get(opt, 'attr.data.datetimeFormat', "YYYY-MM-DD"));
-          keywordValue = new Date(keyword).getTime();
+          keywordValue = new Date(keyword);
         }
         let conditionDetail = {};
         if (index > 0) {

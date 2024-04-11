@@ -51,7 +51,7 @@ export const typeSlice = createSlice({
 });
 
 export const getDefaultRelationConfig = () => {
-  const timestamp = new Date().getTime();
+  const timestamp = new Date();
 
   return {
     "r.type.label": '新类型',

@@ -39,7 +39,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           keywordValue = keyword;
         if (typeof keyword === "object") {
           keyword = keyword.format(_.get(opt, 'attr.data.datetimeFormat', "YYYY-MM-DD"));
-          keywordValue = new Date(keyword).getTime();
+          keywordValue = new Date(keyword);
         }
         let conditionDetail = {};
         if (index > 0) {
