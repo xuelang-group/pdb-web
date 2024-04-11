@@ -75,6 +75,8 @@ interface EditorState {
   showSearch: boolean
   typeRelationMap: {}
   graphLoading: boolean
+  typeLoading: boolean
+  relationLoading: boolean
   searchAround: any
 }
 
@@ -109,6 +111,8 @@ const initialState: EditorState = {
   typeRelationMap: {},
   showSearch: false, //显示搜索框
   graphLoading: false,
+  typeLoading: false,
+  relationLoading: false,
   searchAround: {
     show: false,
     options: []
@@ -175,6 +179,12 @@ export const editorSlice = createSlice({
     setGraphLoading: (state, action: PayloadAction<boolean>) => {
       state.graphLoading = action.payload;
     },
+    setTypeLoading: (state, action: PayloadAction<boolean>) => {
+      state.typeLoading = action.payload;
+    },
+    setRelationLoading: (state, action: PayloadAction<boolean>) => {
+      state.relationLoading = action.payload;
+    },
     setSearchAround: (state, action: PayloadAction<any>) => {
       state.searchAround = action.payload;
     },
@@ -191,6 +201,7 @@ export const editorSlice = createSlice({
 });
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, setGraphDataMap
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, 
+  setRelationLoading, setTypeLoading, setGraphDataMap
 } = editorSlice.actions
 export default editorSlice.reducer

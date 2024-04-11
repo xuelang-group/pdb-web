@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Checkbox, Modal, notification, Spin, Tabs } from 'antd';
 import { useResizeDetector } from 'react-resize-detector';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
 import { convertResultData, covertToGraphData } from '@/utils/objectGraph';
@@ -20,6 +20,7 @@ import { QueryResultState, setResult } from '@/reducers/query';
 import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
+import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
@@ -36,6 +37,7 @@ let graphCopyItem: any;
 export default function Editor(props: EditorProps) {
   const graphRef = useRef(null),
     routerParams = useParams(),
+    location = useLocation(),
     dispatch = useDispatch(),
     navigate = useNavigate();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
@@ -49,7 +51,10 @@ export default function Editor(props: EditorProps) {
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap);
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
+    typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
   const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -86,6 +91,7 @@ export default function Editor(props: EditorProps) {
   }, [relations]);
 
   function getRootsData() {
+    dispatch(setGraphLoading(true));
     getRoots((success: boolean, data: any) => {
       if (success) {
         if (!data || data.length === 0) return;
@@ -147,12 +153,14 @@ export default function Editor(props: EditorProps) {
               description: data.message || data.msg
             });
           }
+          dispatch(setGraphLoading(false));
         });
       } else {
         notification.error({
           message: '获取根对象失败',
           description: data.message || data.msg
         });
+        dispatch(setGraphLoading(false));
       }
     });
   }
@@ -489,7 +497,7 @@ export default function Editor(props: EditorProps) {
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
-        });
+        }).catch(err => { });
       });
     }
   }
@@ -579,54 +587,55 @@ export default function Editor(props: EditorProps) {
   }
 
   return (
-    <div className="pdb-graph pdb-object-graph">
-      {queryResult.length > 0 &&
-        <Tabs
-          type="editable-card"
-          hideAdd
-          activeKey={currentGraphTab}
-          items={[
-            { key: 'main', label: '主画布', closable: false },
-            ...(queryResult.map(({ index, name }: QueryResultState, i: number) => {
-              let item = { key: i.toString(), label: `${name} 查询结果` };
-              if (_.get(queryStatus[index], 'loading')) {
-                Object.assign(item, {
-                  icon: <LoadingOutlined spin />
-                });
-              }
-              return item;
-            }))
-          ]}
-          onChange={selectTab}
-          onEdit={handleEditTab}
-        />
-      }
-      <Spin spinning={graphLoading}>
-        <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
-          <GraphToolbar theme={props.theme} />
-          <div ref={graphRef} className="graph" id="object-graph"></div>
-          <div
-            className='pdb-object-switch'
-            onClick={event => {
-              event.stopPropagation();
-              navigate(`/${routerParams.id}/template`);
-            }}
-          >
-            <div className='pdb-object-switch-img'>
-              <img
-                src={userId && routerParams?.id ? getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') : ''}
-                onError={(event: any) => {
-                  if (event.target.src !== appDefaultScreenshotPath) {
-                    event.target.src = appDefaultScreenshotPath;
-                    event.target.onerror = null;
-                  }
-                }} />
+    <div className='pdb-object-graph-container'>
+      <div className="pdb-graph pdb-object-graph">
+        {queryResult.length > 0 &&
+          <Tabs
+            type="editable-card"
+            hideAdd
+            activeKey={currentGraphTab}
+            items={[
+              { key: 'main', label: '主画布', closable: false },
+              ...(queryResult.map(({ index, name }: QueryResultState, i: number) => {
+                let item = { key: i.toString(), label: `${name} 查询结果` };
+                if (_.get(queryStatus[index], 'loading')) {
+                  Object.assign(item, {
+                    icon: <LoadingOutlined spin />
+                  });
+                }
+                return item;
+              }))
+            ]}
+            onChange={selectTab}
+            onEdit={handleEditTab}
+          />
+        }
+        <Spin spinning={graphLoading && !pageLoading}>
+          <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
+            <GraphToolbar theme={props.theme} />
+            <div ref={graphRef} className="graph" id="object-graph"></div>
+            <div
+              className='pdb-object-switch'
+              onClick={event => {
+                event.stopPropagation();
+                navigate(`/${routerParams.id}/template`);
+              }}
+            >
+              <div className='pdb-object-switch-img'>
+                <img
+                  src={userId && routerParams?.id ? getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') : ''}
+                  onError={(event: any) => {
+                    if (event.target.src !== appDefaultScreenshotPath) {
+                      event.target.src = appDefaultScreenshotPath;
+                      event.target.onerror = null;
+                    }
+                  }} />
+              </div>
+              <span className='pdb-object-switch-label'>类型模板</span>
             </div>
-            <span className='pdb-object-switch-label'>类型模板</span>
           </div>
-        </div>
-      </Spin>
-      {/* <Modal
+        </Spin>
+        {/* <Modal
         title={modalTile[modalOperate]}
         open={isModalOpen}
         className='pdb-object-modal'
@@ -636,6 +645,8 @@ export default function Editor(props: EditorProps) {
       >
         {renderModalContent(modalOperate)}
       </Modal> */}
+      </div>
+      <TemplateGraph theme={props.theme} />
     </div>
   );
 }

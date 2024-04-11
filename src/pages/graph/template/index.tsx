@@ -1,7 +1,7 @@
 import G6, { Edge } from '@antv/g6';
 import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useResizeDetector } from 'react-resize-detector';
 import _ from 'lodash';
 
@@ -17,6 +17,7 @@ import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
+import { Spin } from 'antd';
 
 let graph: any;
 
@@ -27,11 +28,13 @@ interface EditorProps {
 export default function Editor(props: EditorProps) {
   const graphRef = useRef(null),
     routerParams = useParams(),
-    navigate = useNavigate();
-  const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
-    userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
+    navigate = useNavigate(),
+    location = useLocation();
+  const userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data);
+    relations = useSelector((state: StoreState) => state.relation.data),
+    typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -42,12 +45,6 @@ export default function Editor(props: EditorProps) {
     onResize
   });
 
-  useEffect(() => {
-    const container: any = graphRef.current;
-    if (!container || !container.clientWidth || !container.clientHeight || !graph) return;
-    graph.changeSize(container.clientWidth, container.clientHeight);
-    graph.paint();
-  }, [currentEditModel?.id]);
 
   let isUpdateScreenshot = false;
   function saveScreenShoot() {
@@ -62,7 +59,7 @@ export default function Editor(props: EditorProps) {
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
-        });
+        }).catch(err => { });
       });
     }
   }
@@ -124,7 +121,7 @@ export default function Editor(props: EditorProps) {
     (window as any).PDR_GRAPH = graph;
 
     graph.get('canvas').set('localRefresh', false);
-    graph.data(JSON.parse(JSON.stringify(data)));
+    graph.data(data);
     graph.render();
     graph.on("afterrender", function () {
       saveScreenShoot();
@@ -141,12 +138,11 @@ export default function Editor(props: EditorProps) {
       });
     });
 
-    (window as any).PDB_GRAPH = graph;
   }
 
   useEffect(() => {
+    if (!graphRef || !graphRef.current || typeLoading || relationLoading) return;
     // 初始化画布信息
-    let resizeObserver: any;
     if (routerParams && routerParams.id) {
       const nodes: any[] = [], edges: any[] = [];
       // 初始化节点数据
@@ -168,6 +164,7 @@ export default function Editor(props: EditorProps) {
             stroke,
             fill
           },
+          icon,
           labelCfg: {
             style: {
               fill: getTextColor(fill)
@@ -180,31 +177,39 @@ export default function Editor(props: EditorProps) {
         const label = relation['r.type.label'],
           binds = relation['r.type.constraints']['r.binds'];
         binds.forEach(function (bind) {
-          const { source, target } = bind;
-          const edge = {
-            source,
-            target,
-            name: label,
-            label,
-            data: { ...relation },
-          };
-          if (source === target) {
-            Object.assign(edge, {
-              type: 'loop',
-              style: {
-                endArrow: {
-                  path: G6.Arrow.vee(5, 5),
-                  d: 0
-                },
-                startArrow: false,
-              }
-            });
+          const { source, target, override } = bind;
+          if (!override) {
+            const edge = {
+              source,
+              target,
+              name: label,
+              label,
+              data: { ...relation },
+            };
+            if (source === target) {
+              Object.assign(edge, {
+                type: 'loop',
+                style: {
+                  endArrow: {
+                    path: G6.Arrow.vee(5, 5),
+                    d: 0
+                  },
+                  startArrow: false,
+                }
+              });
+            }
+            edges.push(edge);
           }
-          edges.push(edge);
+
         });
       });
-      initG6('template');
-      initLayout({ nodes, edges });
+      if (graph) {
+        graph.data({ nodes, edges });
+        graph.render();
+      } else {
+        initG6('template');
+        initLayout({ nodes, edges });
+      }
     }
 
     return () => {
@@ -212,10 +217,10 @@ export default function Editor(props: EditorProps) {
       graph = null;
       (window as any).PDB_GRAPH = null;
     }
-  }, []);
+  }, [graphRef, typeLoading, relationLoading]);
 
   return (
-    <div className="pdb-graph">
+    <div className={"pdb-graph pdb-template-graph" + (location.pathname.endsWith('/template') ? ' visible' : '')}>
       <div ref={graphRef} className="graph" id="template-graph"></div>
       <div
         className='pdb-object-switch'

@@ -11,7 +11,7 @@ import { getRelationByGraphId } from '@/actions/relation';
 import { setGraphData } from '@/reducers/object';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setTypes } from '@/reducers/type';
-import { setTypeRelationMap } from '@/reducers/editor';
+import { setRelationLoading, setTypeLoading, setTypeRelationMap } from '@/reducers/editor';
 
 import PdbPanel from '@/components/Panel';
 import TypeList from './TypeList';
@@ -30,53 +30,7 @@ export default function Left() {
     getObjectData(id, (success: boolean, data: any) => {
       if (success) {
         dispatch(setGraphData(data));
-        getTypeByGraphId(id, null, (success: boolean, response: any) => {
-          if (success) {
-            dispatch(setTypes(response || []));
-          } else {
-            notification.error({
-              message: '获取对象类型列表失败',
-              description: response.message || response.msg
-            });
-          }
-        });
-        getRelationByGraphId(id, null, (success: boolean, response: any) => {
-          let typeRelationMap: any = {};
-          if (success) {
-            dispatch(setRelations(response || []));
-            (response || []).forEach(function (relation: RelationConfig) {
-              const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
-                relationId = relation['r.type.name'];
-              binds.forEach(function (bind) {
-                const { source, target } = bind;
-                if (typeRelationMap[source]) {
-                  if (typeRelationMap[source]['source']) {
-                    typeRelationMap[source]['source'].push(relationId);
-                  } else {
-                    Object.assign(typeRelationMap[source], { source: [relationId] });
-                  }
-                } else {
-                  Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
-                }
-                if (typeRelationMap[target]) {
-                  if (typeRelationMap[target]['target']) {
-                    typeRelationMap[target]['target'].push(relationId);
-                  } else {
-                    Object.assign(typeRelationMap[target], { target: [relationId] });
-                  }
-                } else {
-                  Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
-                }
-              });
-            });
-          } else {
-            notification.error({
-              message: '获取关系列表失败',
-              description: response.message || response.msg
-            });
-          }
-          dispatch(setTypeRelationMap(typeRelationMap));
-        });
+
       } else {
         notification.error({
           message: '获取项目信息失败',
@@ -84,6 +38,60 @@ export default function Left() {
         });
         dispatch(setTypeRelationMap({}));
       }
+    });
+
+    dispatch(setTypeLoading(true));
+    dispatch(setRelationLoading(true));
+    
+    getTypeByGraphId(id, null, (success: boolean, response: any) => {
+      if (success) {
+        dispatch(setTypes(response || []));
+      } else {
+        notification.error({
+          message: '获取对象类型列表失败',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(setTypeLoading(false));
+    });
+
+    getRelationByGraphId(id, null, (success: boolean, response: any) => {
+      let typeRelationMap: any = {};
+      if (success) {
+        dispatch(setRelations(response || []));
+        (response || []).forEach(function (relation: RelationConfig) {
+          const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
+            relationId = relation['r.type.name'];
+          binds.forEach(function (bind) {
+            const { source, target } = bind;
+            if (typeRelationMap[source]) {
+              if (typeRelationMap[source]['source']) {
+                typeRelationMap[source]['source'].push(relationId);
+              } else {
+                Object.assign(typeRelationMap[source], { source: [relationId] });
+              }
+            } else {
+              Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
+            }
+            if (typeRelationMap[target]) {
+              if (typeRelationMap[target]['target']) {
+                typeRelationMap[target]['target'].push(relationId);
+              } else {
+                Object.assign(typeRelationMap[target], { target: [relationId] });
+              }
+            } else {
+              Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
+            }
+          });
+        });
+      } else {
+        notification.error({
+          message: '获取关系列表失败',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(setRelationLoading(false));
+      dispatch(setTypeRelationMap(typeRelationMap));
     });
   }
 
