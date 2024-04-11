@@ -2,7 +2,7 @@ import { Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Select, Switc
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
-import { useImperativeHandle, useState } from "react";
+import { useEffect, useImperativeHandle, useState } from "react";
 
 import { commonOptionKeys, conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 
@@ -27,15 +27,27 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
     [editCondition, setEditCondition] = useState<any>(null),
     [isNew, setIsNew] = useState(false),
-    [editConditionIndex, setEditConditionIndex] = useState(-1);
-  const tagType: string = _.get(originType, 'type', ''),
-    data: any = _.get(originType, 'data');
-  let attrs = JSON.parse(JSON.stringify(data[tagType === 'type' ? "x.type.attrs" : "r.type.constraints"]));
-  if (tagType === 'relation') {
-    delete attrs['r.binds'];
-    delete attrs['r.constraints'];
-    attrs = Object.values(attrs);
-  }
+    [editConditionIndex, setEditConditionIndex] = useState(-1),
+    [tagType, setTagType] = useState(_.get(originType, 'type', '')),
+    [attrs, setAttrs] = useState([]);
+
+
+  useEffect(() => {
+    const tagType: string = _.get(originType, 'type', ''),
+      data: any = _.get(originType, 'data');
+    let attrs = JSON.parse(JSON.stringify(data[tagType === 'type' ? "x.type.attrs" : "r.type.constraints"]));
+    if (tagType === 'relation') {
+      delete attrs['r.binds'];
+      delete attrs['r.constraints'];
+      attrs = Object.values(attrs);
+    }
+    setFilterOption(_.get(originType, 'config.options', []));
+    setAttrs(attrs);
+    setTagType(tagType);
+    return () => {
+      setIsNew(false);
+    }
+  }, [originType]);
 
   //用useImperativeHandle暴露一些外部ref能访问的属性
   useImperativeHandle(props.onRef, () => {
