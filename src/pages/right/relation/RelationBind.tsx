@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import './index.less';
 import { StoreState } from "@/store";
 import { ObjectRelationConig } from "@/reducers/editor";
+import _ from "lodash";
 
 export default function RelationBind(props: any) {
   const allTypes = useSelector((state: StoreState) => state.type.data);
@@ -13,8 +14,9 @@ export default function RelationBind(props: any) {
     label: type['x.type.label']
   }));
   const [form] = Form.useForm();
-  const [binds, setBinds] = useState(props.data || []);
-  const [columns, setColumns] = useState([]);
+  const [binds, setBinds] = useState(props.data || []),
+    [bindMap, setBindMap] = useState({}),
+    [columns, setColumns] = useState([]);
 
   useEffect(() => {
     const newBinds = (props.data || []).filter((item: ObjectRelationConig) => !item.override)
@@ -26,11 +28,11 @@ export default function RelationBind(props: any) {
     let columns: any = [{
       title: '源对象类型',
       dataIndex: 'source',
-      render: (text: any, record: any, index: number) => renderColumn(index, 'source')
+      render: (text: any, record: any, index: number) => renderColumn(index, 'source', bindMap)
     }, {
       title: '目标对象类型',
       dataIndex: 'target',
-      render: (text: any, record: any, index: number) => renderColumn(index, 'target')
+      render: (text: any, record: any, index: number) => renderColumn(index, 'target', bindMap)
     }];
 
     if (!props.readOnly) {
@@ -42,7 +44,7 @@ export default function RelationBind(props: any) {
       });
     }
     setColumns(columns);
-  }, [props.readOnly]);
+  }, [props.readOnly, bindMap]);
 
   const addBind = function () {
     form.validateFields().then((values) => {
@@ -70,37 +72,49 @@ export default function RelationBind(props: any) {
       });
     }, 0);
   }
+  const allBinds = Form.useWatch('bind', form);
 
-  const renderColumn = (index: number, key: string) => (
-    <Form.Item
-      name={['bind', index, key]}
-      className='bind-item'
-      rules={[
-        { required: true, message: '' },
-        {
-          validator: async (_, value) => {
-            const allBinds = form.getFieldValue('bind');
-            const currentBind = allBinds[index];
-            if (currentBind && currentBind.source && currentBind.target) {
-              if (allBinds.findIndex((val: any, i: number) => val.source === currentBind.source && val.target === currentBind.target && index !== i) > -1) {
-                throw new Error('');
+  useEffect(() => {
+    const bindMap = {};
+    allBinds && allBinds.forEach(function ({ source, target }: any) {
+      if (source && target) {
+        Object.assign(bindMap, { [`${source}-${target}`]: { source, target } });
+      }
+    });
+    setBindMap(bindMap);
+  }, [allBinds]);
+
+  const renderColumn = (index: number, key: string, bindMap: any) => {
+    return (
+      <Form.Item shouldUpdate={(prevValues: any, curValues: any) => {
+        let _key = key === 'source' ? 'target' : 'source';
+        return _.get(prevValues, `bind.${index}.${_key}`) !== _.get(curValues, `bind.${index}.${_key}`)
+      }}>
+        {({ getFieldValue, setFieldValue }) => {
+          const source = getFieldValue(['bind', index, 'source']),
+            target = getFieldValue(['bind', index, 'target']);
+          return (<Form.Item
+            name={['bind', index, key]}
+            className='bind-item'
+            rules={[{ required: true, message: '' }]}
+          >
+            <Select
+              showSearch
+              filterOption={(input, option: any) =>
+              ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+                (option?.value ?? '').toString() === input)
               }
-            }
-          }
-        }
-      ]}
-    >
-      <Select
-        options={options}
-        showSearch
-        filterOption={(input, option: any) =>
-        ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
-          (option?.value ?? '').toString() === input)
-        }
-        disabled={props.readOnly}
-      ></Select>
-    </Form.Item>
-  )
+              disabled={props.readOnly}
+            >
+              {options.map(({ value, label }) => (
+                <Select.Option key={value} disabled={_.get(bindMap, key === 'source' ? `${value}-${target}` : `${source}-${value}`)}>{label}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>)
+        }}
+      </Form.Item>
+    );
+  }
 
   return (
     <div className='pdb-relation-bind-editor'>
