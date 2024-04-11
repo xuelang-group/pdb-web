@@ -11,6 +11,7 @@ interface ListState {
   systemInfo: systemInfoState
   collapsed: boolean
   catalog: any
+  pageLoading: boolean
 }
 
 const initialState: ListState = {
@@ -20,6 +21,7 @@ const initialState: ListState = {
     nodeId: "",
     graphId: null
   },
+  pageLoading: false,
   collapsed: true,
   catalog: [{ "id": 2, "label": "我的项目", "folder": true, "children": [] }],
 }
@@ -37,9 +39,12 @@ export const listSlice = createSlice({
     },
     setCatalog: (state, action: PayloadAction<any>) => {
       state.catalog = JSON.parse(JSON.stringify(action.payload));
-    }
+    },
+    setPageLoading: (state, action: PayloadAction<boolean>) => {
+      state.pageLoading = action.payload;
+    },
   }
 });
 
-export const { setCollapsed, setCatalog, setSystemInfo } = listSlice.actions;
+export const { setCollapsed, setCatalog, setSystemInfo, setPageLoading } = listSlice.actions;
 export default listSlice.reducer;

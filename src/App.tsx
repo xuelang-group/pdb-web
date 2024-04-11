@@ -10,7 +10,7 @@ import * as _Object from '@/reducers/object';
 import * as Relation from '@/reducers/relation';
 import * as Template from '@/reducers/template';
 import * as Type from '@/reducers/type';
-import { setCatalog, setSystemInfo } from '@/reducers/app';
+import { setCatalog, setPageLoading, setSystemInfo } from '@/reducers/app';
 
 import ObjectLeft from '@/pages/left/object';
 import ObjectGraph from '@/pages/graph/object';
@@ -36,10 +36,10 @@ function App(props: PdbConfig) {
   const dispatch = useDispatch(),
     navigate = useNavigate(),
     location = useLocation();
-  const catalog = useSelector((state: StoreState) => state.app.catalog);
-  const [pageLoading, setPageLoading] = useState(false);
+  const catalog = useSelector((state: StoreState) => state.app.catalog),
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
   useEffect(() => {
-    setPageLoading(true);
+    dispatch(setPageLoading(true));
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
@@ -52,7 +52,7 @@ function App(props: PdbConfig) {
           description: response.message || response.msg
         });
       }
-      setPageLoading(false);
+      dispatch(setPageLoading(false));
     });
     return () => {
       dispatch(Editor.reset());
@@ -98,8 +98,8 @@ function App(props: PdbConfig) {
           </Routes>
           <PdbContent>
             <Routes>
-              <Route path="/:id" element={<ObjectGraph theme={theme} />} />
-              <Route path="/:id/template" element={<TemplateGraph theme={theme} />} />
+              <Route path="/:id/template?" element={<ObjectGraph theme={theme} />} />
+              {/* <Route path="/:id/template" element={<TemplateGraph theme={theme} />} /> */}
               <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
             </Routes>
             <Routes>

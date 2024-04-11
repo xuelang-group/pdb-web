@@ -151,13 +151,18 @@
     display: flex;
     align-items: center;
     padding-bottom: .5rem;
+    margin-top: .3rem;
+    max-height: 11.5rem;
+    overflow: hidden;
 
-    span:nth-child(1) {
+    & > span:nth-child(1) {
       margin-right: .8rem;
     }
 
-    span:nth-child(2) {
+    & > span:nth-child(2) {
       flex: 1;
+      overflow: auto;
+      height: 100%;
 
       .pdb-ant-tag {
         margin-bottom: 3px;

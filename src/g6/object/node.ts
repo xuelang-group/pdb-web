@@ -187,6 +187,24 @@ export function registerNode() {
           symbol: function collapse(x: number, y: number, r: number) {
             return [['M', x - r, y], ['a', r, r, 0, 1, 0, r * 2, 0], ['a', r, r, 0, 1, 0, -r * 2, 0]];
           },
+          fill: "#f9fbfc",
+          stroke: "#f9fbfc",
+          lineWidth: 2,
+        },
+        name: 'search-circle',
+        draggable: false,
+        visible: false,
+        modelId: id
+      });
+      group.addShape('marker', {
+        attrs: {
+          r: 10,
+          x: width - 0.5,
+          y: -0.5,
+          cursor: 'pointer',
+          symbol: function collapse(x: number, y: number, r: number) {
+            return [['M', x - r, y], ['a', r, r, 0, 1, 0, r * 2, 0], ['a', r, r, 0, 1, 0, -r * 2, 0]];
+          },
           fill: nodeColor,
           stroke: "#f9fbfc",
           lineWidth: 2,
@@ -438,7 +456,8 @@ export function registerNode() {
       const outerCircle = item.getContainer().findAll(ele => ele.get('name') === 'outer-rect')[0];
       const currentSelected = item.hasState('selected');
       const outerNodeWidth = item.getOriginStyle()['node-rect'].width + 10;
-      const searchShape = item.getContainer().findAll(ele => ele.get('name') === 'search-shape')[0],
+      const searchCircle = item.getContainer().findAll(ele => ele.get('name') === 'search-circle')[0],
+        searchShape = item.getContainer().findAll(ele => ele.get('name') === 'search-shape')[0],
         searchIcon = item.getContainer().findAll(ele => ele.get('name') === 'search-icon')[0];
 
       if (!outerCircle) return;
@@ -460,9 +479,11 @@ export function registerNode() {
         }
       } else if (name === 'searchAround') {
         if (value) {
+          searchCircle.show();
           searchShape.show();
           searchIcon.show();
         } else {
+          searchCircle.hide();
           searchShape.hide();
           searchIcon.hide();
         }
