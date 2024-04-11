@@ -614,25 +614,27 @@ export default function Editor(props: EditorProps) {
           <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
             <GraphToolbar theme={props.theme} />
             <div ref={graphRef} className="graph" id="object-graph"></div>
-            <div
-              className='pdb-object-switch'
-              onClick={event => {
-                event.stopPropagation();
-                navigate(`/${routerParams.id}/template`);
-              }}
-            >
-              <div className='pdb-object-switch-img'>
-                <img
-                  src={userId && routerParams?.id ? getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') : ''}
-                  onError={(event: any) => {
-                    if (event.target.src !== appDefaultScreenshotPath) {
-                      event.target.src = appDefaultScreenshotPath;
-                      event.target.onerror = null;
-                    }
-                  }} />
+            {userId && routerParams?.id &&
+              <div
+                className='pdb-object-switch'
+                onClick={event => {
+                  event.stopPropagation();
+                  navigate(`/${routerParams.id}/template`);
+                }}
+              >
+                <div className='pdb-object-switch-img'>
+                  <img
+                    src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') + `&t=${Math.random()}`}
+                    onError={(event: any) => {
+                      if (event.target.src !== appDefaultScreenshotPath) {
+                        event.target.src = appDefaultScreenshotPath;
+                        event.target.onerror = null;
+                      }
+                    }} />
+                </div>
+                <span className='pdb-object-switch-label'>类型模板</span>
               </div>
-              <span className='pdb-object-switch-label'>类型模板</span>
-            </div>
+            }
           </div>
         </Spin>
         {/* <Modal
