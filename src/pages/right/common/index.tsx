@@ -837,7 +837,7 @@ export default function Right(props: RightProps) {
     const _default = attr.default;
     if (!typeMap[currentEditType]) return;
     const addonBefore = typeMap[currentEditType][type];
-    if (currentEditType === 'object') {
+    if (!location.pathname.endsWith("/edit")) {
       return renderEditorInput(type, _default, addonBefore, attr, index);
     }
     return renderReadOnlyInput(type, _default, addonBefore, attr);
@@ -908,7 +908,7 @@ export default function Right(props: RightProps) {
                         index={index}
                         attr={attr}
                         isActive={currentEditParam && currentEditParam.name === attr.name}
-                        canOperate={currentEditType !== 'object' && props.route !== 'template'}
+                        canOperate={location.pathname.endsWith("/edit")}
                         canDrag={currentEditType === 'type'}
                         moveParam={moveParam}
                         deleteParam={deleteTypeConfig}

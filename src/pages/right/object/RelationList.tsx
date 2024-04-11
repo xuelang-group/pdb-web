@@ -286,6 +286,18 @@ export default function RelationList(props: RelationListProps) {
         target: targetOption
       });
 
+      const relationConstrarints: any = _.get(relationMap[relation], 'r.type.constraints', {});
+      Object.keys(relationConstrarints).forEach((key: string) => {
+        if (key !== "r.binds") {
+          const defalutValue = _.get(relationConstrarints[key], 'default');
+          if (defalutValue || defalutValue === 0) {
+            Object.assign(targetOption, {
+              [`${relation}|${key}`]: defalutValue
+            });
+          }
+        }
+      });
+
       createObjectRelation([{
         uid: props.source.uid,
         [relation]: [targetOption]
