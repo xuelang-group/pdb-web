@@ -1,4 +1,4 @@
-import { Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Select, Switch, Tag } from "antd";
+import { Button, Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Select, Switch, Tag } from "antd";
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
@@ -98,23 +98,20 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
     onSave && onSave(_filterOption);
   }
 
-  const getExtra = (key: any, opt: any) => (
+  const getExtra = (key: any, opt: any) => activePanelKey[0] !== key && (
     <span>
       <i
-        className={"spicon " + (activePanelKey[0] === key ? "icon-baocun1" : "icon-shanchu2")}
-        onClick={() => (activePanelKey[0] === key ? handleSave() : hanldeDelete(key))}
+        className="spicon icon-shanchu2"
+        onClick={() => hanldeDelete(key)}
       ></i>
       <i
-        className={"spicon " + (activePanelKey[0] === key ? "icon-guanbi" : "icon-bianji")}
+        className="spicon icon-bianji"
         onClick={() => {
-          if (activePanelKey[0] === key) {
-            handleCancel();
-          } else {
-            configForm.setFieldsValue(opt);
-            setActivePanelKey([key]);
-            setEditCondition(opt);
-            setEditConditionIndex(key === "new" ? -1 : key);
-          }
+          configForm.setFieldsValue(opt);
+          setActivePanelKey([key]);
+          setEditCondition(opt);
+          setEditConditionIndex(key === "new" ? -1 : key);
+          if (key !== "new") setIsNew(false);
         }}></i>
     </span>
   );
@@ -262,9 +259,12 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             )
           }}
         </Form.Item>
-
-        <Form.Item name="isNot" label="不具备条件(NOT) :" className="pdb-explore-filter-isNot">
+        {/* <Form.Item name="isNot" label="不具备条件(NOT) :" className="pdb-explore-filter-isNot">
           <Switch />
+        </Form.Item> */}
+        <Form.Item>
+          <Button onClick={handleCancel} style={{ width: "calc((100% - 8px) / 2)" }}>取消</Button>
+          <Button type="primary" onClick={() => handleSave()} style={{ width: "calc((100% - 8px) / 2)", marginLeft: 8 }}>保存</Button>
         </Form.Item>
       </Form >
     )

@@ -316,7 +316,7 @@ export default function SearchAround() {
           <span className="pdb-search-around-card-label">过滤条件</span>
           <ExploreFilterContent
             onRef={childRef}
-            originType={{ data: option.data, type: "relation" }}
+            originType={{ data: option.data, type: "relation", config: { options: _.get(searchAroundOptions, `${tabIndex}.options.${index}.conditions`, []) } }}
             onSave={(value: any) => changeValue(tabIndex, index, 'conditions', value)}
             extraContent={(isNew: boolean, editConditionIndex: number, add: any) => (
               <Button
