@@ -226,16 +226,18 @@ export default function Editor(props: EditorProps) {
           navigate(`/${routerParams.id}`);
         }}
       >
-        <div className='pdb-object-switch-img'>
-          <img
-            src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/screen_shot.png') + `&t=${Math.random()}`}
-            onError={(event: any) => {
-              if (event.target.src !== appDefaultScreenshotPath) {
-                event.target.src = appDefaultScreenshotPath;
-                event.target.onerror = null;
-              }
-            }} />
-        </div>
+        {location.pathname.endsWith("/template") &&
+          <div className='pdb-object-switch-img'>
+            <img
+              src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/screen_shot.png') + `&t=${Math.random()}`}
+              onError={(event: any) => {
+                if (event.target.src !== appDefaultScreenshotPath) {
+                  event.target.src = appDefaultScreenshotPath;
+                  event.target.onerror = null;
+                }
+              }} />
+          </div>
+        }
         <span className='pdb-object-switch-label'>类型实例</span>
       </div>
     </div>

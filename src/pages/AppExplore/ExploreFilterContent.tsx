@@ -259,9 +259,9 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             )
           }}
         </Form.Item>
-        {/* <Form.Item name="isNot" label="不具备条件(NOT) :" className="pdb-explore-filter-isNot">
+        <Form.Item name="isNot" label="不具备条件(NOT) :" className="pdb-explore-filter-isNot">
           <Switch />
-        </Form.Item> */}
+        </Form.Item>
         <Form.Item>
           <Button onClick={handleCancel} style={{ width: "calc((100% - 8px) / 2)" }}>取消</Button>
           <Button type="primary" onClick={() => handleSave()} style={{ width: "calc((100% - 8px) / 2)", marginLeft: 8 }}>保存</Button>

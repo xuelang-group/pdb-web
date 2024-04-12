@@ -225,7 +225,8 @@ export default function SearchAround() {
           raw,
           name: attrValue,
           function: optionSymbolMap[condition] || "",
-          value: keywordValue
+          value: keywordValue,
+          not: opt.isNot
         });
         _conditions.push(conditionDetail);
       });

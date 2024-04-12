@@ -62,7 +62,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           raw,
           name: attrValue,
           function: optionSymbolMap[condition] || "",
-          value: keywordValue
+          value: keywordValue,
+          not: opt.isNot
         });
         conditions.push(conditionDetail);
         filterKey += raw;
