@@ -89,7 +89,6 @@ export default function ExportApi(props: ExportApiProps) {
         attrType: data[4]
       }
     });
-    console.log(header)
     return {
       attrName: showDisplayName,
       attrType: showAttrType,
@@ -175,13 +174,13 @@ export default function ExportApi(props: ExportApiProps) {
         }} ></i>
       </Tooltip>
       <Modal
-        title="复制接口"
+        title="复制接口参数"
         open={modalOpen}
         width={800}
         footer={[
           <Button onClick={onModalCancel}>关闭</Button>,
           <Button onClick={onPreview}>预览</Button>,
-          <Button onClick={onCopy} type="primary">复制接口</Button>
+          <Button onClick={onCopy} type="primary">复制</Button>
         ]}
         onCancel={onModalCancel}
         destroyOnClose
