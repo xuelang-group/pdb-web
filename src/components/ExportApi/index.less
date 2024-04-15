@@ -1,6 +1,9 @@
 .pdb-export-api {
 	&-modal {
 		&-content {
+			.pdb-ant-transfer {
+				width: 100%;
+			}
 			.pdb-ant-transfer-list-body {
 				overflow: auto;
 			}
@@ -9,6 +12,18 @@
 
 	&-condition {
 		display: flex;
+		margin-bottom: 1rem;
+		align-items: center;
+		
+		&>span {
+			color: var(--text-color2);
+
+			.spicon.icon-tishi {
+				font-size: 1.4rem;
+				margin-left: 3px;
+				cursor: pointer;
+			}
+		}
 
 		.pdb-ant-select {
 			flex: 1;

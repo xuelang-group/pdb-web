@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Input, Table, theme, Transfer, Tree } from 'antd';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Form, GetRef, Input, InputRef, Table, theme, Transfer, Tree } from 'antd';
 import type { GetProp, TransferProps, TreeDataNode } from 'antd';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -43,8 +43,87 @@ interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
   'data-row-key': string;
 }
 
+interface Item {
+  key: string;
+  name: string;
+  age: string;
+  address: string;
+}
+
+interface EditableCellProps {
+  title: React.ReactNode;
+  editable: boolean;
+  children: React.ReactNode;
+  dataIndex: keyof Item;
+  record: Item;
+  handleSave: (record: Item) => void;
+}
+type FormInstance<T> = GetRef<typeof Form<T>>;
+const EditableContext = React.createContext<FormInstance<any> | null>(null);
+const EditableCell: React.FC<EditableCellProps> = ({
+  title,
+  editable,
+  children,
+  dataIndex,
+  record,
+  handleSave,
+  ...restProps
+}) => {
+  const [editing, setEditing] = useState(false);
+  const inputRef = useRef<InputRef>(null);
+  const form = useContext(EditableContext)!;
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+    }
+  }, [editing]);
+
+  const toggleEdit = () => {
+    setEditing(!editing);
+    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+  };
+
+  const save = async () => {
+    try {
+      const values = await form.validateFields();
+
+      toggleEdit();
+      handleSave({ ...record, ...values });
+    } catch (errInfo) {
+      console.log('Save failed:', errInfo);
+    }
+  };
+
+  let childNode = children;
+
+  if (editable) {
+    childNode = editing ? (
+      <Form.Item
+        style={{ margin: 0 }}
+        name={dataIndex}
+        rules={[
+          {
+            required: true,
+            message: `${title} is required.`,
+          },
+        ]}
+      >
+        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+      </Form.Item>
+    ) : (
+      <div className="editable-cell-value-wrap" style={{ paddingRight: 24 }} onClick={toggleEdit}>
+        {children}
+      </div>
+    );
+  }
+
+  return <td {...restProps}>{childNode}</td>;
+};
+
 const Row = ({ children, ...props }: RowProps) => {
   const trRef = useRef<HTMLTableRowElement | null>(null);
+  const [form] = Form.useForm();
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, setActivatorNodeRef } = useSortable({
     id: props['data-row-key'],
@@ -63,38 +142,39 @@ const Row = ({ children, ...props }: RowProps) => {
   }, [isDragging]);
 
   return (
-    <tr
-      {...props}
-      ref={(ref) => {
-        trRef.current = ref;
-        setNodeRef(ref);
-      }}
-      style={style}
-      {...attributes}
-    >
-      {React.Children.map(children, (child) => {
-        if ((child as React.ReactElement).key === 'operation') {
-          return React.cloneElement(child as React.ReactElement, {
-            children: (<i className='spicon icon-shanchu2' style={{ cursor: 'cursor' }}></i>),
-          });
-        } else if ((child as React.ReactElement).key === 'sort') {
-          return React.cloneElement(child as React.ReactElement, {
-            children: (<i ref={setActivatorNodeRef} className='spicon icon-tuodong' style={{ cursor: 'move' }} {...listeners}></i>),
-          });
-        } else if ((child as React.ReactElement).key === 'display') {
-          return React.cloneElement(child as React.ReactElement, {
-            children: (<Input />),
-          });
-        } 
-        return child;
-      })}
-    </tr>);
+    <Form form={form} component={false}>
+      <EditableContext.Provider value={form}>
+        <tr
+          {...props}
+          ref={(ref) => {
+            trRef.current = ref;
+            setNodeRef(ref);
+          }}
+          style={style}
+          {...attributes}
+        >
+          {React.Children.map(children, (child) => {
+            if ((child as React.ReactElement).key === 'operation') {
+              return React.cloneElement(child as React.ReactElement, {
+                children: (<i className='spicon icon-shanchu2' style={{ cursor: 'cursor' }}></i>),
+              });
+            } else if ((child as React.ReactElement).key === 'sort') {
+              return React.cloneElement(child as React.ReactElement, {
+                children: (<i ref={setActivatorNodeRef} className='spicon icon-tuodong' style={{ cursor: 'move' }} {...listeners}></i>),
+              });
+            }
+            return child;
+          })}
+        </tr>
+      </EditableContext.Provider>
+    </Form>);
 };
 
 export const TreeTransfer: React.FC<TreeTransferProps> = ({
   dataSource,
   targetKeys = [],
   colDisplayMap,
+  onChangeDisplay,
   ...restProps
 }) => {
   const { token } = theme.useToken();
@@ -167,6 +247,7 @@ export const TreeTransfer: React.FC<TreeTransferProps> = ({
                   components={{
                     body: {
                       row: Row,
+                      cell: EditableCell
                     },
                   }}
                   rowKey="key"
@@ -176,14 +257,24 @@ export const TreeTransfer: React.FC<TreeTransferProps> = ({
                   }, {
                     dataIndex: 'attrTitle',
                     title: '属性',
+                    width: 100,
                   }, {
                     dataIndex: 'typeLabel',
                     title: '所属类型',
+                    width: 100,
                   }, {
                     title: '显示名称',
                     dataIndex: 'display',
-                    key: 'display',
-                    width: 100
+                    width: 100,
+                    onCell: (record: any) => ({
+                      record,
+                      editable: true,
+                      dataIndex: 'display',
+                      title: '显示名称',
+                      handleSave: ({ key, display }: any) => {
+                        onChangeDisplay({ ...colDisplayMap, [key]: display });
+                      },
+                    }),
                   }, {
                     key: 'operation',
                     title: '操作',

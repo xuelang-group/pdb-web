@@ -1,4 +1,4 @@
-import { Modal, Select, Tag, Tooltip, Transfer, TreeDataNode } from "antd";
+import { Button, Modal, Select, Switch, Tag, Tooltip, Transfer, TreeDataNode } from "antd";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import "./index.less";
@@ -15,7 +15,9 @@ export default function ExportApi(props: ExportApiProps) {
     [selectedCondition, setSelectedCondition] = useState([]),
     [attrTreeData, setAttrTreeData] = useState<TreeDataNode[]>([]),
     [targetKeys, setTargetKeys] = useState<TreeTransferProps['targetKeys']>([]),
-    [columnDisplayMap, setColDisplayMap] = useState({});
+    [columnDisplayMap, setColDisplayMap] = useState({}),
+    [showDisplayName, setShowDisplayName] = useState(false),
+    [showAttrType, setShowAttrType] = useState(false);
 
   useEffect(() => {
     const treeData: TreeDataNode[] = [];
@@ -74,20 +76,30 @@ export default function ExportApi(props: ExportApiProps) {
     setColDisplayMap(displayMap);
   };
 
+  const onPreview = function() {
+    
+  }
+
   const renderModalContent = function () {
     return (
       <div className="pdb-export-api-modal-content">
         <div className="pdb-export-api-condition">
           <span>过滤条件：</span>
           <Select
+            value={JSON.stringify(selectedCondition)}
             options={options.map((opt: any) => ({ value: JSON.stringify(opt), label: JSON.stringify(opt) }))}
             optionRender={(option: any) => option.value && renderSelectItem(option.value)}
             labelRender={(label: any) => renderSelectItem(label.value)}
-            onSelect={value => setSelectedCondition(JSON.parse(value))}
+            onChange={value => {
+              setSelectedCondition(JSON.parse(value));
+              setAttrTreeData([]);
+              setTargetKeys([]);
+              setColDisplayMap({});
+            }}
           ></Select>
         </div>
-        <div>
-          <div>字段选择：</div>
+        <div className="pdb-export-api-condition" style={{ flexDirection: "column", alignItems: "flex-start" }}>
+          <span style={{ marginBottom: 5 }}>字段选择：</span>
           <TreeTransfer
             dataSource={attrTreeData}
             targetKeys={targetKeys}
@@ -96,19 +108,49 @@ export default function ExportApi(props: ExportApiProps) {
             onChangeDisplay={(data: any) => setColDisplayMap(data)}
           />
         </div>
+        <div className="pdb-export-api-condition">
+          <span>包含显示名称<Tooltip title="返回数据中第一行为显示名称"><i className="spicon icon-tishi"></i></Tooltip>：</span>
+          <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultChecked />
+        </div>
+        <div className="pdb-export-api-condition">
+          <span>包含属性类型<Tooltip title="若包含显示名称，返回数据中第二行为属性类型；否则，第一行为属性类型"><i className="spicon icon-tishi"></i></Tooltip>：</span>
+          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+        </div>
       </div>
     )
+  }
+
+  const onModalCancel = function () {
+    setModalOpen(false);
+    setAttrTreeData([]);
+    setOptions([]);
+    setSelectedCondition([]);
+    setTargetKeys([]);
+    setColDisplayMap({});
   }
 
   return (
     <>
       <Tooltip title="复制接口">
         <i className="spicon icon-fuzhi" onClick={() => {
-          setOptions(clickCopy());
+          const options = clickCopy();
+          setOptions(options);
           setModalOpen(true);
+          if (options.length > 0 && !_.isEmpty(options[0])) setSelectedCondition(options[0] as any);
         }} ></i>
       </Tooltip>
-      <Modal open={modalOpen} title="复制接口" width={800} onCancel={() => setModalOpen(false)} destroyOnClose>
+      <Modal
+        title="复制接口"
+        open={modalOpen}
+        width={800}
+        footer={[
+          <Button onClick={onModalCancel}>关闭</Button>,
+          <Button onClick={onPreview}>预览</Button>,
+          <Button type="primary">复制接口</Button>
+        ]}
+        onCancel={onModalCancel}
+        destroyOnClose
+      >
         {renderModalContent()}
       </Modal>
     </>
