@@ -15,6 +15,7 @@ import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
 import moment from "moment";
+import ExportApi from "../ExportApi";
 
 let prevActiveTabIndex: string = "", __searchAroundOptions = {};
 export default function SearchAround() {
@@ -365,7 +366,47 @@ export default function SearchAround() {
     const btnDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
     return (
       <div className="pdb-search-around-item">
-        <Tooltip title="复制接口">
+        <ExportApi
+          clickCopy={() => {
+            const _data: any[][] = [[]];
+            const { start, options } = searchAroundOptions[tabIndex] as any;
+            const typeMap: any = {};
+            types.forEach(type => Object.assign(typeMap, { [type["x.type.name"]]: type }));
+            const typeId = start[0]["x.type.name"];
+            _data[0].push({
+              value: typeId,
+              label: _.get(typeMap[typeId], "x.type.label", ""),
+              type: "type",
+              attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
+            });
+            options.forEach(({ object, data }: any) => {
+              const relationAttrs = JSON.parse(JSON.stringify(data["r.type.constraints"]));
+              delete relationAttrs["r.binds"];
+              delete relationAttrs["r.constraints"];
+              _data[0].push({
+                value: data["r.type.name"],
+                label: data["r.type.label"],
+                type: "relation",
+                attrs: Object.values(relationAttrs)
+              });
+
+              _data[0].push({
+                value: object,
+                label: _.get(typeMap[object], "x.type.label", ""),
+                type: "type",
+                attrs: _.get(typeMap[object], "x.type.attrs", ""),
+              });
+            });
+
+            return _data;
+          }}
+          getParams={(csv: any) => {
+            const vertex = getVertexParams(tabIndex);
+            const graphId = routerParams.id;
+            return { api: api.vertex, params: { vertex, graphId, csv } }
+          }}
+        />
+        {/* <Tooltip title="复制接口">
           <i
             className="spicon icon-fuzhi"
             onClick={event => {
@@ -381,7 +422,7 @@ export default function SearchAround() {
               document.body.removeChild(textarea);
             }}
           ></i>
-        </Tooltip>
+        </Tooltip> */}
         <div className="pdb-search-around-card pdb-search-around-start">
           <span>起始对象</span>
           <span>
