@@ -1,3 +1,4 @@
+import axios from "@/utils/axios";
 import { Button, Modal, Select, Switch, Tag, Tooltip, Transfer, TreeDataNode } from "antd";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -6,32 +7,34 @@ import { TreeTransfer, TreeTransferProps } from "./TreeTransfer";
 
 interface ExportApiProps {
   // options: string[][]
+  getParams: Function
   clickCopy: () => { value: string, label: string }[][]
 }
 export default function ExportApi(props: ExportApiProps) {
-  const { clickCopy } = props;
+  const { clickCopy, getParams } = props;
   const [modalOpen, setModalOpen] = useState(false),
     [options, setOptions] = useState([] as any),
     [selectedCondition, setSelectedCondition] = useState([]),
     [attrTreeData, setAttrTreeData] = useState<TreeDataNode[]>([]),
     [targetKeys, setTargetKeys] = useState<TreeTransferProps['targetKeys']>([]),
     [columnDisplayMap, setColDisplayMap] = useState({}),
-    [showDisplayName, setShowDisplayName] = useState(false),
+    [showDisplayName, setShowDisplayName] = useState(true),
     [showAttrType, setShowAttrType] = useState(false);
 
   useEffect(() => {
     const treeData: TreeDataNode[] = [];
     selectedCondition.forEach(function (data: any) {
       const { label, attrs, value } = data;
+      const typeId = value.split("-")[0];
       const children: any[] = [];
-      attrs && attrs.forEach(function (attr: { name: string; display: string; }) {
+      attrs && attrs.forEach(function (attr: { type: string; name: string; display: string; }) {
         children.push({
-          key: `${value}|${label}|${attr.name}|${attr.display}`,
+          key: `${typeId}|${label}|${attr.name}|${attr.display}|${attr.type}`,
           title: attr.display,
         });
       });
       treeData.push({
-        key: value,
+        key: typeId,
         title: label,
         checkable: false,
         selectable: false,
@@ -76,10 +79,42 @@ export default function ExportApi(props: ExportApiProps) {
     setColDisplayMap(displayMap);
   };
 
-  const onPreview = function() {
-    
+  const getCsv = function () {
+    const header = targetKeys?.map(key => {
+      const data = key.split("|");
+      return {
+        typeId: data[0],
+        attrId: data[2],
+        display: _.get(columnDisplayMap, key, data[3]),
+        attrType: data[4]
+      }
+    });
+    console.log(header)
+    return {
+      attrName: showDisplayName,
+      attrType: showAttrType,
+      header
+    };
   }
 
+  const onCopy = function () {
+    let textarea: HTMLTextAreaElement = document.createElement('textarea');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = "0";
+    textarea.value = JSON.stringify(getParams(getCsv()));
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+
+  const onPreview = function () {
+    const { api, params } = getParams(getCsv());
+    axios.post(api, params).then(({ data }) => {
+      console.log(data)
+    }, (err) => {
+    });
+  }
   const renderModalContent = function () {
     return (
       <div className="pdb-export-api-modal-content">
@@ -110,11 +145,11 @@ export default function ExportApi(props: ExportApiProps) {
         </div>
         <div className="pdb-export-api-condition">
           <span>包含显示名称<Tooltip title="返回数据中第一行为显示名称"><i className="spicon icon-tishi"></i></Tooltip>：</span>
-          <Switch checkedChildren="开启" unCheckedChildren="关闭" defaultChecked />
+          <Switch value={showDisplayName} checkedChildren="开启" unCheckedChildren="关闭" onChange={checked => setShowDisplayName(checked)} />
         </div>
         <div className="pdb-export-api-condition">
           <span>包含属性类型<Tooltip title="若包含显示名称，返回数据中第二行为属性类型；否则，第一行为属性类型"><i className="spicon icon-tishi"></i></Tooltip>：</span>
-          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+          <Switch value={showAttrType} checkedChildren="开启" unCheckedChildren="关闭" onChange={checked => setShowAttrType(checked)} />
         </div>
       </div>
     )
@@ -146,7 +181,7 @@ export default function ExportApi(props: ExportApiProps) {
         footer={[
           <Button onClick={onModalCancel}>关闭</Button>,
           <Button onClick={onPreview}>预览</Button>,
-          <Button type="primary">复制接口</Button>
+          <Button onClick={onCopy} type="primary">复制接口</Button>
         ]}
         onCancel={onModalCancel}
         destroyOnClose
