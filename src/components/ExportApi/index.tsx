@@ -18,28 +18,30 @@ export default function ExportApi(props: ExportApiProps) {
     [attrTreeData, setAttrTreeData] = useState<TreeDataNode[]>([]),
     [targetKeys, setTargetKeys] = useState<TreeTransferProps['targetKeys']>([]),
     [columnDisplayMap, setColDisplayMap] = useState({}),
-    [showDisplayName, setShowDisplayName] = useState(true),
+    [showAttrName, setShowAttrName] = useState(true),
     [showAttrType, setShowAttrType] = useState(false);
 
   useEffect(() => {
     const treeData: TreeDataNode[] = [];
-    selectedCondition.forEach(function (data: any) {
+    selectedCondition.forEach(function (data: any, index) {
       const { label, attrs, value } = data;
       const typeId = value.split("-")[0];
       const children: any[] = [];
       attrs && attrs.forEach(function (attr: { type: string; name: string; display: string; }) {
         children.push({
-          key: `${typeId}|${label}|${attr.name}|${attr.display}|${attr.type}`,
+          key: `${typeId}|${label}|${attr.name}|${attr.display}|${attr.type}|${index}`,
           title: attr.display,
         });
       });
-      treeData.push({
-        key: typeId,
-        title: label,
-        checkable: false,
-        selectable: false,
-        children
-      });
+      if (!_.isEmpty(children)) {
+        treeData.push({
+          key: typeId,
+          title: label,
+          checkable: false,
+          selectable: false,
+          children
+        });
+      }
     });
     setAttrTreeData(treeData);
   }, [selectedCondition]);
@@ -82,16 +84,24 @@ export default function ExportApi(props: ExportApiProps) {
   const getCsv = function () {
     const header = targetKeys?.map(key => {
       const data = key.split("|");
-      return {
+      const config = {
         typeId: data[0],
         attrId: data[2],
-        display: _.get(columnDisplayMap, key, data[3]),
-        attrType: data[4]
+        index: Number(data[5])
+      };
+      if (showAttrName) {
+        Object.assign(config, {
+          attrName: _.get(columnDisplayMap, key, data[3]),
+        });
       }
+      if (showAttrType) {
+        Object.assign(config, {
+          attrType: data[4],
+        });
+      }
+      return config;
     });
     return {
-      attrName: showDisplayName,
-      attrType: showAttrType,
       header
     };
   }
@@ -144,7 +154,7 @@ export default function ExportApi(props: ExportApiProps) {
         </div>
         <div className="pdb-export-api-condition">
           <span>包含显示名称<Tooltip title="返回数据中第一行为显示名称"><i className="spicon icon-tishi"></i></Tooltip>：</span>
-          <Switch value={showDisplayName} checkedChildren="开启" unCheckedChildren="关闭" onChange={checked => setShowDisplayName(checked)} />
+          <Switch value={showAttrName} checkedChildren="开启" unCheckedChildren="关闭" onChange={checked => setShowAttrName(checked)} />
         </div>
         <div className="pdb-export-api-condition">
           <span>包含属性类型<Tooltip title="若包含显示名称，返回数据中第二行为属性类型；否则，第一行为属性类型"><i className="spicon icon-tishi"></i></Tooltip>：</span>
@@ -179,7 +189,6 @@ export default function ExportApi(props: ExportApiProps) {
         width={800}
         footer={[
           <Button onClick={onModalCancel}>关闭</Button>,
-          <Button onClick={onPreview}>预览</Button>,
           <Button onClick={onCopy} type="primary">复制</Button>
         ]}
         onCancel={onModalCancel}
