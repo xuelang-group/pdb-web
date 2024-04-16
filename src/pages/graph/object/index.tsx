@@ -329,7 +329,7 @@ export default function Editor(props: EditorProps) {
         type: 'step-line',
         labelCfg: {
           style: edgeLabelStyle(props.theme).default,
-        },
+        }
       },
       plugins: [tooltip, contextMenu]
       // plugins: [minimap],

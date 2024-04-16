@@ -160,6 +160,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           if ((targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) || (sourceIsRoot && targetIsRoot)) {
             edgeType = 'same-tree-relation-line';
           }
+
           const attrs = {};
           Object.keys(target).forEach(function (key) {
             if (key.startsWith(relation + "|")) {
@@ -211,6 +212,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             },
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
+          if (objectUid === target.uid) {
+            Object.assign(edgeOption.labelCfg.style, {
+              x: sourceItemModel.x,
+              y: sourceItemModel.y
+            })
+          }
           if (_showRelationLabel && relationMap[relation]) Object.assign(edgeOption, { label: relationMap[relation]['r.type.label'] });
           edgeItem = graph.addItem('edge', edgeOption);
           addEdge = true;

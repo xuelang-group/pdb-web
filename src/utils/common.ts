@@ -327,7 +327,7 @@ export const optionSymbolMap: any = {
   'ge': '>=',
   'gt': '>',
   'has': 'HAS',
-  'not eq': '!=',
+  'not eq': '<>',
   'anyofterms': 'ANYOFTERMS',
   'allofterms': 'ALLOFTERMS',
   'between': 'BETWEEN',

@@ -106,67 +106,110 @@ export function registerEdge() {
     }
   });
 
-  // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
-  G6.registerEdge('same-tree-relation-line', {
-    getPath(points: any) {
-      const { id, sourceIsRoot, targetIsRoot, targetWidth, sourceWidth } = this.mergeStyle;
-      const startPoint = points[0];
-      const endPoint = points[1];
-      const offset = 16;
-      if (sourceIsRoot && targetIsRoot) {
-        if (startPoint.x < endPoint.x) {
-          let newStartX = startPoint.x - sourceWidth + 15,
-            newEndX = endPoint.x + 15,
-            newStartY = startPoint.y - 23,
-            newEndY = endPoint.y - 23;
-          const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX);
-          return getPathWithBorderRadiusByPolyline([
-            { x: newStartX, y: newStartY },
-            { x: newStartX, y: middleY },
-            { x: newEndX, y: middleY },
-            { x: newEndX, y: newEndY }
-          ], 5);
-        }
-        let newStartX = startPoint.x + 15,
-          newEndX = endPoint.x - targetWidth + 15,
+  function getPoint(cfg: any) {
+    const { id, sourceIsRoot, targetIsRoot, targetWidth, sourceWidth, source, target, startPoint, endPoint } = cfg;
+    const offset = 16;
+    if (source === target) {
+      let newStartX = startPoint.x + 15,
+        newEndX = endPoint.x + sourceWidth - 15,
+        newStartY = startPoint.y - 23,
+        newEndY = endPoint.y - 23;
+      const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX, true);
+      return [
+        { x: newStartX, y: newStartY },
+        { x: newStartX, y: middleY },
+        { x: newEndX, y: middleY },
+        { x: newEndX, y: newEndY }
+      ];
+    }
+    if (sourceIsRoot && targetIsRoot) {
+      if (startPoint.x < endPoint.x) {
+        let newStartX = startPoint.x - sourceWidth + 15,
+          newEndX = endPoint.x + 15,
           newStartY = startPoint.y - 23,
           newEndY = endPoint.y - 23;
         const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX);
-        return getPathWithBorderRadiusByPolyline([
+        return [
           { x: newStartX, y: newStartY },
           { x: newStartX, y: middleY },
           { x: newEndX, y: middleY },
           { x: newEndX, y: newEndY }
-        ], 5);
+        ];
       }
-      if (startPoint.y < endPoint.y) {
-        const newStartX = startPoint.x + sourceWidth,
-          newEndX = endPoint.x + targetWidth;
-        const offsetStartX = newStartX + offset,
-          offsetEndX = newEndX + offset;
+      let newStartX = startPoint.x + 15,
+        newEndX = endPoint.x - targetWidth + 15,
+        newStartY = startPoint.y - 23,
+        newEndY = endPoint.y - 23;
+      const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX);
+      return [
+        { x: newStartX, y: newStartY },
+        { x: newStartX, y: middleY },
+        { x: newEndX, y: middleY },
+        { x: newEndX, y: newEndY }
+      ];
+    }
+    if (startPoint.y < endPoint.y) {
+      const newStartX = startPoint.x + sourceWidth,
+        newEndX = endPoint.x + targetWidth;
+      const offsetStartX = newStartX + offset,
+        offsetEndX = newEndX + offset;
 
-        let middleX = newStartX < newEndX ? offsetEndX : offsetStartX;
-        middleX = changeLineX(middleX, id, startPoint.y, endPoint.y - 5);
-        return getPathWithBorderRadiusByPolyline([
-          { x: newStartX, y: startPoint.y },
-          { x: middleX, y: startPoint.y },
-          { x: middleX, y: endPoint.y - 5 },
-          { x: newEndX, y: endPoint.y - 5 }
-        ], 5);
-      } else {
-        const offsetStartX = startPoint.x - offset,
-          offsetEndX = endPoint.x - offset;
-        let middleX = startPoint.x < endPoint.x ? offsetStartX : offsetEndX;
+      let middleX = newStartX < newEndX ? offsetEndX : offsetStartX;
+      middleX = changeLineX(middleX, id, startPoint.y, endPoint.y - 5);
+      return [
+        { x: newStartX, y: startPoint.y },
+        { x: middleX, y: startPoint.y },
+        { x: middleX, y: endPoint.y - 5 },
+        { x: newEndX, y: endPoint.y - 5 }
+      ];
+    } else {
+      const offsetStartX = startPoint.x - offset,
+        offsetEndX = endPoint.x - offset;
+      let middleX = startPoint.x < endPoint.x ? offsetStartX : offsetEndX;
 
-        middleX = changeLineX(middleX, id, startPoint.y, endPoint.y + 5);
-        return getPathWithBorderRadiusByPolyline([
-          startPoint,
-          { x: middleX, y: startPoint.y },
-          { x: middleX, y: endPoint.y + 5 },
-          { x: endPoint.x, y: endPoint.y + 5 }
-        ], 5);
+      middleX = changeLineX(middleX, id, startPoint.y, endPoint.y + 5);
+      return [
+        startPoint,
+        { x: middleX, y: startPoint.y },
+        { x: middleX, y: endPoint.y + 5 },
+        { x: endPoint.x, y: endPoint.y + 5 }
+      ];
+    }
+  }
+  // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
+  G6.registerEdge('same-tree-relation-line', {
+    getPath(points: any) {
+      return getPathWithBorderRadiusByPolyline(getPoint(this.mergeStyle), 5);
+    },
+    afterDraw(cfg: any, group: any) {
+      const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
+        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape'),
+        textBgWidth = textBgShape.getBBox().width,
+        textBgHeight = textBgShape.getBBox().height;
+      const { source, target } = cfg;
+      if (source === target && textShape) {
+        const points = getPoint(cfg),
+          x = (points[2].x - points[1].x) / 2 + points[1].x,
+          y = points[1].y;
+        textShape.attr({ x, y });
+        textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
       }
     },
+    afterUpdate(cfg: any, item: any) {
+      const group = item.get('group');
+      const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
+        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape'),
+        textBgWidth = textBgShape.getBBox().width,
+        textBgHeight = textBgShape.getBBox().height;
+      const { source, target } = cfg;
+      if (source === target && textShape) {
+        const points = getPoint(cfg),
+          x = (points[2].x - points[1].x) / 2 + points[1].x,
+          y = points[1].y;
+        textShape.attr({ x, y });
+        textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
+      }
+    }
   }, 'line');
 }
 
@@ -236,7 +279,7 @@ function changeLineX(sameX: number, id: string, startPointY: any, endPointY: any
 }
 
 export let yaxisMap: any = {};
-function changeLineY(sameY: number, id: string, startPointX: any, endPointX: any) {
+function changeLineY(sameY: number, id: string, startPointX: any, endPointX: any, isSelfEdge = false) {
   let currentSameY = sameY;
   if (yaxisMap[currentSameY]) {
     for (let i = 0; i < Object.keys(yaxisMap[sameY]).length; i++) {
@@ -252,18 +295,20 @@ function changeLineY(sameY: number, id: string, startPointX: any, endPointX: any
         }
       }
     }
-    if (yaxisMap[currentSameY]) {
-      Object.assign(yaxisMap[currentSameY], {
-        [id]: [startPointX, endPointX]
-      });
-    } else {
-      Object.assign(yaxisMap, {
-        [currentSameY]: {
+    if (!isSelfEdge) {
+      if (yaxisMap[currentSameY]) {
+        Object.assign(yaxisMap[currentSameY], {
           [id]: [startPointX, endPointX]
-        }
-      });
+        });
+      } else {
+        Object.assign(yaxisMap, {
+          [currentSameY]: {
+            [id]: [startPointX, endPointX]
+          }
+        });
+      }
     }
-  } else {
+  } else if (!isSelfEdge) {
     Object.assign(yaxisMap, {
       [currentSameY]: {
         [id]: [startPointX, endPointX]
