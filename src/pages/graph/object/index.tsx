@@ -13,7 +13,7 @@ import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions } from '@/g6/object/behavior';
-import { getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
@@ -570,12 +570,30 @@ export default function Editor(props: EditorProps) {
 
   const handleModalOk = function (currentEditModel: any, removeAll: boolean) {
     setModalLoading(true);
-    G6OperateFunctions.removeNode(currentEditModel?.id, {
-      uid: currentEditModel?.uid,
-      recurse: removeAll
-    }, graph, () => {
-      handleModalCancel();
-    });
+    if (currentEditModel.type === "pdbNode") {
+      G6OperateFunctions.removeNode(currentEditModel?.id, {
+        uid: currentEditModel?.uid,
+        recurse: removeAll
+      }, graph, () => {
+        handleModalCancel();
+      });
+    } else if (_.get(currentEditModel, "source")) {
+      const { id, relationName, source, target } = currentEditModel;
+      deleteObjectRelation([{
+        uid: source,
+        [relationName]: [{ uid: target }]
+      }], (success: boolean, response: any) => {
+        if (success) {
+          graph.removeItem(id);
+        } else {
+          notification.error({
+            message: '删除连线失败',
+            description: response.message || response.msg
+          });
+        }
+        handleModalCancel();
+      });
+    }
   }
 
   const handleModalCancel = function () {
