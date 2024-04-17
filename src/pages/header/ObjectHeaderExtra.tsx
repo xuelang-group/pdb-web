@@ -5,8 +5,8 @@ export default function ObjectHeaderExtra() {
   const location = useLocation();
 
   return (
-    <div className="pdb-header-object">
-      {!location.pathname.endsWith("/template") && <AppExplore />}
+    <div className="pdb-header-object" style={{ display: location.pathname.endsWith("/template") ? "none" : "flex" }}>
+      <AppExplore />
     </div>
   )
 }
