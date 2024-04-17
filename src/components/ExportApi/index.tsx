@@ -71,10 +71,11 @@ export default function ExportApi(props: ExportApiProps) {
     )
   }
 
-  const onChange: TreeTransferProps['onChange'] = (keys) => {
-    setTargetKeys(keys);
+  const onChange: TreeTransferProps['onChange'] = (keys, direction, moveKeys) => {
+    const _keys: any = _.isEmpty(moveKeys) ? keys : targetKeys?.concat(moveKeys);
+    setTargetKeys(_keys);
     const displayMap = {};
-    keys.forEach(function (key) {
+    _keys.forEach(function (key: string) {
       const data = key.split("|");
       Object.assign(displayMap, { [key]: _.get(columnDisplayMap, key, data[3]) })
     });

@@ -183,31 +183,35 @@ export function registerEdge() {
     },
     afterDraw(cfg: any, group: any) {
       const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
-        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape'),
-        textBgWidth = textBgShape.getBBox().width,
-        textBgHeight = textBgShape.getBBox().height;
+        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape');
       const { source, target } = cfg;
       if (source === target && textShape) {
         const points = getPoint(cfg),
           x = (points[2].x - points[1].x) / 2 + points[1].x,
           y = points[1].y;
         textShape.attr({ x, y });
-        textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
+        if (textBgShape) {
+          const textBgWidth = textBgShape.getBBox().width,
+            textBgHeight = textBgShape.getBBox().height;
+          textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
+        }
       }
     },
     afterUpdate(cfg: any, item: any) {
       const group = item.get('group');
       const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
-        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape'),
-        textBgWidth = textBgShape.getBBox().width,
-        textBgHeight = textBgShape.getBBox().height;
+        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape');
       const { source, target } = cfg;
       if (source === target && textShape) {
         const points = getPoint(cfg),
           x = (points[2].x - points[1].x) / 2 + points[1].x,
           y = points[1].y;
         textShape.attr({ x, y });
-        textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
+        if (textBgShape) {
+          const textBgWidth = textBgShape.getBBox().width,
+            textBgHeight = textBgShape.getBBox().height;
+          textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
+        }
       }
     }
   }, 'line');
