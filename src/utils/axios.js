@@ -20,7 +20,7 @@ export default {
         url: wrapUrl(url),
         data,
         headers: header,
-        timeout: 100000,
+        timeout: 0,
       }).then((res) => {
         resolve(res);
       }, (err) => {
@@ -40,7 +40,7 @@ export default {
         method: 'GET',
         url: wrapUrl(url),
         params,
-        timeout: 100000,
+        timeout: 0,
         headers: header,
         ...bufferParams,
       }).then(
@@ -66,7 +66,7 @@ export default {
         url: wrapUrl(url),
         data,
         headers: header,
-        timeout: 100000,
+        timeout: 0,
         transformRequest: [],
       }).then((res) => {
         resolve(res);
@@ -87,7 +87,7 @@ export default {
         method: 'HEAD',
         url: wrapUrl(url),
         headers: header,
-        timeout: 100000,
+        timeout: 0,
       }).then((res) => {
         resolve(res);
       },
@@ -108,7 +108,7 @@ export default {
         method: 'delete',
         url: wrapUrl(url),
         data,
-        timeout: 100000,
+        timeout: 0,
         headers: header,
       }).then(
         (response) => {
