@@ -16,6 +16,7 @@ import { convertResultData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
+import ExportApi from "@/components/ExportApi";
 
 
 export const typeLabelMap: any = {
@@ -578,7 +579,29 @@ export default function AppExplore() {
           }}
         ></i>
       </Tooltip>
-      <Tooltip title="复制接口">
+      <ExportApi
+        clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
+          const tagType = tag.startsWith("Type.") ? "type" : "relation";
+          let attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.constraints"), [])));
+          if (tagType === "relation" && !_.isEmpty(attrs)) {
+            delete attrs["r.binds"];
+            delete attrs["r.constraints"];
+            attrs = Object.values(attrs);
+          }
+          return {
+            value: tag,
+            label: _.get(searchTagMap[index][tag], "label", ""),
+            type: tagType,
+            attrs: attrs || []
+          }
+        }))}
+        getParams={(csv: any) => {
+          const { pql } = getPQL();
+          const graphId = routerParams.id;
+          return { api: api.pql, params: { pql, graphId, csv } }
+        }}
+      />
+      {/* <Tooltip title="复制接口">
         <i
           className="spicon icon-fuzhi"
           onClick={event => {
@@ -594,7 +617,7 @@ export default function AppExplore() {
             document.body.removeChild(textarea);
           }}
         ></i>
-      </Tooltip>
+      </Tooltip> */}
     </div>
   )
 }
