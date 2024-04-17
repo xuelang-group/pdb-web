@@ -265,14 +265,14 @@ export default function Right(props: RightProps) {
   }, [attrs]);
 
   // 更新属性列表
-  const updateAttrs = function (attrs: any) {
+  const updateAttrs = function (attrs: any, callback?: Function) {
     if (!currentEditDefaultData) return;
     if (currentEditType === 'type') {
       if (JSON.stringify(currentEditDefaultData['x.type.attrs']) !== JSON.stringify(attrs)) {
         updateItemData({
           ...currentEditDefaultData,
           'x.type.attrs': attrs
-        }, 'x.type.attrs');
+        }, callback, 'x.type.attrs');
       }
     } else {
       const constraints = currentEditDefaultData['r.type.constraints'];
@@ -287,7 +287,7 @@ export default function Right(props: RightProps) {
         updateItemData({
           ...currentEditDefaultData,
           'r.type.constraints': new_constraints
-        }, 'r.type.constraints');
+        }, callback, 'r.type.constraints');
       }
     }
   }
@@ -301,7 +301,7 @@ export default function Right(props: RightProps) {
         updateItemData({
           ...currentEditDefaultData,
           'r.type.constraints': constraints
-        }, 'r.type.constraints');
+        }, undefined, 'r.type.constraints');
       }
     }
   }
@@ -355,18 +355,18 @@ export default function Right(props: RightProps) {
   }
 
   // 更新当前编辑item
-  const updateItemData = function (data: any, key?: string, deleteConfig?: any) {
+  const updateItemData = function (data: any, callback?: Function, key?: string, deleteConfig?: any) {
     if (currentEditType === 'type') {
-      updateType(data);
+      updateType(data, callback);
     } else if (currentEditType === 'relation') {
-      updateRelation(data);
+      updateRelation(data, callback);
     } else {
-      updateObject(data, key, deleteConfig);
+      updateObject(data, key, deleteConfig, callback);
     }
   }
 
   // 更新对象类型
-  const updateType = (type: TypeConfig) => {
+  const updateType = (type: TypeConfig, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
@@ -397,11 +397,12 @@ export default function Right(props: RightProps) {
           description: response.message || response.msg
         });
       }
+      callback && callback(success, response);
     });
   }
 
   // 更新关系类型
-  const updateRelation = (relation: RelationConfig) => {
+  const updateRelation = (relation: RelationConfig, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const graph = (window as any).PDB_GRAPH;
     if (props.route === "object") {
@@ -431,11 +432,13 @@ export default function Right(props: RightProps) {
             description: response.message || response.msg
           });
         }
+        callback && callback(success, response);
       });
     } else {
       const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
       const timestamp = new Date();
 
+      if (JSON.stringify(currentEditDefaultData) === JSON.stringify(relation)) return;
       setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
         if (success) {
           const name = relation['r.type.name'],
@@ -461,12 +464,13 @@ export default function Right(props: RightProps) {
             description: response.message || response.msg
           });
         }
+        callback && callback(success, response);
       });
     }
   }
 
   // 更新对象
-  const updateObject = (object: CustomObjectConfig, key?: string, deleteConfig?: any) => {
+  const updateObject = (object: CustomObjectConfig, key?: string, deleteConfig?: any, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
@@ -520,6 +524,7 @@ export default function Right(props: RightProps) {
           description: response.message || response.msg
         });
       }
+      callback && callback(success, response);
     });
   }
 
@@ -595,7 +600,7 @@ export default function Right(props: RightProps) {
         updateItemData({
           ...currentEditDefaultData,
           [nameLabel]: name
-        }, 'name');
+        }, undefined, 'name');
       } else if (props.route === 'template') {
         const { tid } = graphData as TemplateGraphDataState;
         updateTemplate({ tid, name });
@@ -664,7 +669,7 @@ export default function Right(props: RightProps) {
     updateItemData({
       ...currentEditDefaultData,
       [metadataKey]: JSON.stringify(newMetadata)
-    }, metadataKey);
+    }, undefined, metadataKey);
   }
 
   // 添加类型属性
@@ -687,7 +692,11 @@ export default function Right(props: RightProps) {
         }
       });
       attrForm.setFieldsValue(attFormValue);
-      setAttrs(newAttrs);
+      updateAttrs(newAttrs, (success: boolean) => {
+        if (success) {
+          setAttrs(newAttrs);
+        }
+      });
     }
   }
 
@@ -704,7 +713,7 @@ export default function Right(props: RightProps) {
         delete newValues[attr.name];
         const newData = JSON.parse(JSON.stringify(currentEditDefaultData));
         delete newData[attr.name];
-        updateItemData(newData, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
+        updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
       } else {
         updateItemData({
           ...currentEditDefaultData,
