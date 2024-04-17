@@ -308,7 +308,7 @@ export default function Editor(props: EditorProps) {
         }
       },
       defaultNode: {
-        type: 'pbdNode',
+        type: 'pdbNode',
         style: {
           lineWidth: 2,
           stroke: '#94BFFF',

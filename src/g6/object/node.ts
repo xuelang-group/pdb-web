@@ -12,7 +12,7 @@ export function registerNode() {
    * @param {string} type 节点类型，外部引用指定必须，不要与已有布局类型重名
    * @param {object} node 节点方法
    */
-  G6.registerNode('pbdNode', {
+  G6.registerNode('pdbNode', {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode?.uid;
       const userId = store.getState().app.systemInfo.userId;
