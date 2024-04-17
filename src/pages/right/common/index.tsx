@@ -18,7 +18,7 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
-import { createObjectRelation, getObject, setObject, updateObjectInfo } from '@/actions/object';
+import { createObjectRelation, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
 import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
@@ -166,8 +166,8 @@ export default function Right(props: RightProps) {
     const formValues = {
       name: currentEditModel?.name,
       uid,
-      lastChange: _created ? moment(_created).format("YYYY-MM-DD HH:mm:ss") : '',
-      created: _lastChange ? moment(_lastChange).format("YYYY-MM-DD HH:mm:ss") : ''
+      lastChange: _lastChange ? moment(_lastChange).format("YYYY-MM-DD HH:mm:ss") : '',
+      created: _created ? moment(_created).format("YYYY-MM-DD HH:mm:ss") : ''
     };
 
     if (currentEditType === 'object') {
@@ -198,12 +198,19 @@ export default function Right(props: RightProps) {
     if (!currentEditModel) {
       if (!graphData) return;
       if (props.route === 'object') {
-        const { name, id, gmt_modified, gmt_create } = graphData as ObjectGraphDataState;
-        infoForm.setFieldsValue({
-          name,
-          uid: id,
-          lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
-          created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss")
+        getObjectData(graphData.id, (success: boolean, data: any) => {
+          let _graphData = JSON.parse(JSON.stringify(graphData));
+          if (success) {
+            _graphData = JSON.parse(JSON.stringify(data));
+            dispatch(setGraphData(data));
+          }
+          const { name, id, gmt_modified, gmt_create } = _graphData as ObjectGraphDataState;
+          infoForm.setFieldsValue({
+            name,
+            uid: id,
+            lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
+            created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss")
+          });
         });
       }
       return;
