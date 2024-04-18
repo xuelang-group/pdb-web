@@ -52,9 +52,7 @@ export default function Editor(props: EditorProps) {
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
-    typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
-    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
   const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -199,6 +197,12 @@ export default function Editor(props: EditorProps) {
 
     const contextMenu = new G6.Menu({
       getContent(evt: any) {
+        console.log(evt)
+        if (evt.item.getType() === "edge") {
+          return `<ul class="pdb-graph-node-contextmenu">
+            <li title="删除">删除</li>
+          </ul>`;
+        }
         return `<ul class="pdb-graph-node-contextmenu">
           <li title="探索">探索</li>
           <li title="删除">删除</li>
@@ -218,7 +222,7 @@ export default function Editor(props: EditorProps) {
       offsetX: 10,
       offsetY: 0,
       // 在哪些类型的元素上响应
-      itemTypes: ['node'],
+      itemTypes: ['node', 'edge'],
     });
 
     graph = new G6.Graph({
