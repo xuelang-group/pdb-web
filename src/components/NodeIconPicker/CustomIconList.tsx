@@ -38,6 +38,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
     // } else {
     const path = 'studio/' + userId + '/pdb/icons/',
       iconKey = path + file.name;
+    if (_.isEmpty(file)) return;
     uploadFile(iconKey, file)
       .then(() => { setIconKeys([...iconKeys, iconKey]) })
       .catch(err => message.error(file.name + '上传失败'));

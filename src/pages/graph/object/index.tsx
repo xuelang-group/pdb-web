@@ -495,6 +495,7 @@ export default function Editor(props: EditorProps) {
       const { userId } = store.getState().app.systemInfo;
       let shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
+        if (_.isEmpty(blob)) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
         }).catch(err => { });

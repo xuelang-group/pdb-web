@@ -197,7 +197,7 @@ export default function Right(props: RightProps) {
     setPanelTitle(panelTitle);
     if (!currentEditModel) {
       if (!graphData) return;
-      if (props.route === 'object') {
+      if (props.route === 'object' && graphData.id) {
         getObjectData(graphData.id, (success: boolean, data: any) => {
           let _graphData = JSON.parse(JSON.stringify(graphData));
           if (success) {

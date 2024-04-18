@@ -57,6 +57,7 @@ export default function Editor(props: EditorProps) {
       if (!id || !userId) return;
       const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
+        if (_.isEmpty(blob)) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
         }).catch(err => { });
