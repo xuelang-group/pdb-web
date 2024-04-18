@@ -333,12 +333,12 @@ export const optionSymbolMap: any = {
   'between': 'BETWEEN',
 };
 
-export const commonOptionKeys = ['eq', 'le', 'lt', 'ge', 'gt', 'not eq', 'has'];
+export const commonOptionKeys = ['eq', 'le', 'lt', 'ge', 'gt', 'between', 'has'];
 export const conditionOptionMap: any = {
-  'text': ['anyofterms', 'allofterms', ...commonOptionKeys],
-  'string': ['anyofterms', 'allofterms', ...commonOptionKeys],
+  'text': ['anyofterms', 'allofterms', 'eq', 'between', 'has'],
+  'string': ['anyofterms', 'allofterms', 'eq', 'between', 'has'],
   'int': commonOptionKeys,
   'float': commonOptionKeys,
-  'bool': ['eq', 'has', 'not has'],
+  'bool': ['eq'],
   'datetime': commonOptionKeys
 }
