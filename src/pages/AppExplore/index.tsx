@@ -86,8 +86,17 @@ export default function AppExplore() {
       return;
     }
     if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
+    const _tags: string[] = [];
+    for (let i = 0; i < newValue.length; i++) {
+      if (i === 0 && newValue[0].split(".")[0] !== "Type") break;
+      _tags.push(newValue[i]);
+      if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
+        || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
+        break;
+      }
+    }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
-    newSearchTags[index] = newValue;
+    newSearchTags[index] = _tags;
     setSearchTags(newSearchTags);
     if (_.isEmpty(newValue)) {
       handleClear(index);
@@ -477,7 +486,7 @@ export default function AppExplore() {
         onClose={onClose}
         style={{ marginRight: 3 }}
       >
-        <span style={{ display: "inline-flex", maxWidth: "15rem" }}>
+        <span style={{ display: "inline-flex" }}>
           <span>{label}</span>
           {!_.isEmpty(filterLabel) && <span> (</span>}
           {!_.isEmpty(filterLabel) && <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{filterLabel}</span>}
