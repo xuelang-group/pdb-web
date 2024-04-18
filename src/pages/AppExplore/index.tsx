@@ -1,6 +1,6 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Empty, message, notification, Popover, Select, Tag, Tooltip } from "antd";
+import { Divider, Empty, message, notification, Popover, Select, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -129,7 +129,7 @@ export default function AppExplore() {
       label: "回车换行",
       value: "__ENTER__"
     };
-    // 对象类型
+    //  对象类型
     if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
       let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
       if (prevSearchTagType === 'relation') {
@@ -138,7 +138,7 @@ export default function AppExplore() {
           sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
           targetTypeMap: any = {};
 
-        if (sourceType) {
+        if (sourceType && relationName !== "~x.parent" && relationName !== "x.parent") {
           relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
             if (bind.source === sourceType) {
               Object.assign(targetTypeMap, { [bind.target]: bind.target });
@@ -172,8 +172,30 @@ export default function AppExplore() {
       const _relations = Array.from(new Set(_.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', [])))
         .map((id: string) => relationMap[id]);
       const searchRelations = value ? _relations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : _relations;
+      relationOptions = [enterOption];
+      if ("所属父级".indexOf(value) > -1) {
+        relationOptions.push({
+          label: "所属父级",
+          value: "x.parent" + `-${currentTagLen}`,
+          key: "x.parent",
+          type: 'relation'
+        });
+      }
+      if ("包含子级".indexOf(value) > -1) {
+        relationOptions.push({
+          label: "包含子级",
+          value: "~x.parent" + `-${currentTagLen}`,
+          key: "~x.parent",
+          type: 'relation'
+        });
+      }
       if (searchRelations.length > 0) {
-        relationOptions.push(enterOption);
+        if (relationOptions.length > 1) {
+          relationOptions.push({
+            type: "divider",
+            disabled: true
+          });
+        }
         relationOptions = relationOptions.concat(searchRelations.map((val: RelationConfig, index: number) => ({
           label: val['r.type.label'],
           value: val['r.type.name'] + `-${currentTagLen}`,
@@ -310,14 +332,23 @@ export default function AppExplore() {
         let pqlItem: any = [];
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
-          const type = detail.type === "type" ? "object" : detail.type;
-          if (type === "relation") relationNames.push(detail.key);
           let option = {
-            type,
-            name: detail.label,
-            conditionRaw: _.get(detail, "config.key", ""),
-            conditions: _.get(detail, "config.conditions", []),
-            id: detail.key
+            name: detail.label
+          };
+          if (detail.key === "x.parent" || detail.key === "~x.parent") {
+            Object.assign(option, {
+              type: "relation",
+              id: detail.key,
+            });
+          } else {
+            const type = detail.type === "type" ? "object" : detail.type;
+            if (type === "relation") relationNames.push(detail.key);
+            Object.assign(option, {
+              type,
+              conditionRaw: _.get(detail, "config.key", ""),
+              conditions: _.get(detail, "config.conditions", []),
+              id: detail.key
+            });
           }
           pqlItem.push(option);
         });
@@ -418,7 +449,12 @@ export default function AppExplore() {
           <span style={{ flex: 1 }}>回车换行</span>
           <EnterOutlined />
         </span>
-      )
+      );
+    }
+    if (_.get(option, "data.type") === "divider") {
+      return (
+        <Divider />
+      );
     }
     if (!option.label) {
       const link = _.get(option, 'data.link', ''),
@@ -435,9 +471,10 @@ export default function AppExplore() {
           <i className="spicon icon-sousuo2" style={{ marginRight: 3 }}></i>
           <span style={{ flex: 1 }}>在 <strong>{linkLabel}</strong> 中查找更多</span>
           <span><i className="spicon icon-jiantou-you1"></i></span>
-        </span>)
+        </span>
+      );
     }
-    const { label, data, value } = option;
+    const { label, data, value, key } = option;
     const optionType = _.get(data, "type"),
       findIndex = label.toLowerCase().indexOf(currentSearchValue.toLowerCase()),
       prevLabel = label.slice(0, findIndex),
@@ -450,7 +487,7 @@ export default function AppExplore() {
           <span style={{ color: 'red' }}>{centerLabel}</span>
           <span>{lastLabel}</span>
         </span>
-        {optionType && <i className="spicon icon-shaixuan" onClick={() => showFilterPanel(value)}></i>}
+        {optionType && key !== "~x.parent" && key !== "x.parent" && <i className="spicon icon-shaixuan" onClick={() => showFilterPanel(value)}></i>}
       </>
     )
   }
@@ -504,7 +541,9 @@ export default function AppExplore() {
         <div className="pdb-explore-search-group">
           {searchTags.map((item, index) => (
             <Popover
-              open={currentFocusIndex === index && filterPanelOpenKey !== null && !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey))}
+              open={currentFocusIndex === index && filterPanelOpenKey !== null && !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey))
+                && !filterPanelOpenKey.startsWith("~x.parent-") && !filterPanelOpenKey.startsWith("x.parent-")
+              }
               rootClassName="pdb-explore-filter-popover"
               placement="bottomLeft"
               content={
