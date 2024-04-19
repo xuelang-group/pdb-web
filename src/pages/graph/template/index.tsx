@@ -204,7 +204,7 @@ export default function Editor(props: EditorProps) {
         graph.data({ nodes, edges });
         graph.render();
       } else {
-        initG6('template');
+        // initG6('template');
         initLayout({ nodes, edges });
       }
     }

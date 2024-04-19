@@ -1,5 +1,5 @@
-import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE } from '@antv/g6';
-import { addChildrenToGraphData, convertAllData } from '../../utils/objectGraph';
+import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig } from '@antv/g6';
+import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
@@ -139,15 +139,22 @@ export const G6OperateFunctions = {
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
-      getChildren({ uid: model.uid }, (success: boolean, data: any) => {
+      let params = { uid: model.uid };
+      if (Number(model.childLen) > 1000) {
+        Object.assign(params, { first: 1000, offset: 1 });
+      }
+      getChildren(params, (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+          let lastXidIndex = 0;
           const _data = data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
               currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === model.uid)[0],
-              _xid = xid + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index);
+              currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+              _xid = xid + '.' + currentXidIndex;
 
+            if (currentXidIndex > lastXidIndex) lastXidIndex = currentXidIndex;
             delete newValue['~x.parent'];
             delete newValue['~x.parent|x.index'];
 
@@ -190,7 +197,12 @@ export const G6OperateFunctions = {
           }));
           graph.expandCombo(comboId);
           const curentGraphData: any = graph.save();
-          const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+          const { nodes, edges, combos } = addChildrenToGraphData(model, [..._data, {
+            uid: model.uid + '-pagination-1-next',
+            id: model.uid + '-pagination-1-next',
+            'x.id': xid + '.' + (lastXidIndex + 1),
+            currentParent: { id }
+          }], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
           let newData: any[] = [];
           store.getState().object.data.forEach(function (obj: any) {
             if (obj['x.id'] === xid) {
@@ -529,6 +541,132 @@ export const G6OperateFunctions = {
         notification.error({
           message: '复制实例失败',
           description: response.message || response.msg
+        });
+      }
+      store.dispatch(setGraphLoading(false));
+    });
+  },
+  changePagination: function (graph: Graph, node: Item) {
+    const { name, parent } = node.get('model');
+    const config = name.split('-'),
+      btnType = config[3],
+      currentPage = Number(config[2]),
+      params = { uid: parent };
+    if (btnType === 'next') {
+      config[2] = currentPage + 1;
+    } else {
+      config[2] = currentPage - 1;
+    }
+    Object.assign(params, { first: 1000, offset: config[2] });
+    getChildren(params, (success: boolean, data: any) => {
+      if (success) {
+        const parentNode = graph.findById(parent),
+          parentModel = parentNode.get('model'),
+          { id, xid, childLen } = parentModel,
+          comboId = `${id}-combo`,
+          collapsed = false,
+          totalPage = childLen / 1000 > 1 ? (childLen / 1000 + 1) : 1;
+        const { toolbarConfig, currentGraphTab } = store.getState().editor;
+        const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+        let lastXidIndex = -1;
+        let _data: any[] = [];
+        if (config[2] > 1) {
+          _data.push({
+            uid: parent + `-pagination-${config[2]}-prev`,
+            id: parent + `-pagination-${config[2]}-prev`,
+            'x.id': xid + '.0',
+            currentParent: { id }
+          });
+          lastXidIndex = 0;
+        }
+        _data = _data.concat(data.map((value: any, index: number) => {
+          const newValue = JSON.parse(JSON.stringify(value)),
+            currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === parent)[0],
+            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (config[2] > 1 ? 1 : 0),
+            _xid = xid + '.' + currentXidIndex;
+
+          if (currentXidIndex > lastXidIndex) lastXidIndex = currentXidIndex;
+
+          delete newValue['~x.parent'];
+          delete newValue['~x.parent|x.index'];
+
+          // 获取对象关系列表数据
+          if (newValue['x.relation.name']) {
+            const relations: any[] = [];
+            newValue['x.relation.name'].forEach((relation: string) => {
+              if (isArray(newValue[relation])) {
+                newValue[relation].forEach((target: any) => {
+                  relations.push({
+                    relation,
+                    target
+                  });
+                });
+              } else {
+                relations.push({
+                  relation,
+                  target: newValue[relation]
+                });
+              }
+            });
+            Object.assign(relationLines, {
+              [newValue.uid]: relations
+            });
+          }
+
+          return {
+            ...newValue,
+            currentParent: {
+              ...currentParent,
+              id
+            },
+            'x.id': _xid,
+            id: newValue.uid
+          }
+        }));
+        store.dispatch(setToolbarConfig({
+          key: 'main',
+          config: { relationLines }
+        }));
+        graph.expandCombo(comboId);
+        const curentGraphData: any = graph.save();
+
+        if (config[2] < totalPage) {
+          _data.push({
+            uid: parent + `-pagination-${config[2]}-next`,
+            id: parent + `-pagination-${config[2]}-next`,
+            'x.id': xid + '.' + (lastXidIndex + 1),
+            currentParent: { id }
+          });
+        }
+        const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+        let newData: any[] = [];
+        store.getState().object.data.forEach(function (obj: any) {
+          if (obj['x.id'] === xid) {
+            newData.push({
+              ...obj,
+              collapsed
+            });
+            newData = newData.concat(_data);
+          } else {
+            newData.push(obj);
+          }
+        });
+        store.dispatch(setObjects(newData));
+        graph.changeData({
+          nodes,
+          edges,
+          combos
+        });
+        // node.update({
+        //   data: {
+        //     ...parentModel.data,
+        //     collapsed
+        //   }
+        // });
+      } else {
+        notification.error({
+          message: '获取子实例失败：',
+          description: data.message || data.msg
         });
       }
       store.dispatch(setGraphLoading(false));
@@ -1435,7 +1573,12 @@ export function registerBehavior() {
       const node = event.item; // 被点击的节点元素
       // const shape = event.target; // 被点击的图形，可根据该信息作出不同响应，以达到局部响应效果
       if (!node) return;
-      const model = node.get('model');
+      const model = node.get('model'),
+        nodeType = model.type;
+      if (nodeType === "paginationBtn") {
+        G6OperateFunctions.changePagination(graph, node);
+        return;
+      }
       (window as any).PDB_GRAPH = graph;
 
       if (event.originalEvent) {

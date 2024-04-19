@@ -20,6 +20,24 @@ export const LINE_SYTLE: { [k: string]: any } = {
   }
 }
 
+const paginationOption = {
+  type: "paginationBtn",
+  label: "下一页",
+  labelCfg: {
+    style: {
+      fontSize: 12,
+      fill: "#4C5A67"
+    }
+  },
+  style: {
+    stroke: "#C2C7CC",
+    fill: "#f9fbfc",
+    radius: 5,
+    cursor: 'pointer',
+  },
+  size: [NODE_WIDTH, 25]
+}
+
 // 判断节点名称是否超过节点宽度，超过显示省略号
 export const fittingString = (str: string, maxWidth: number = 0, fontSize: number = GLOBAL_FONT_SIZE) => {
   const ellipsis = '...';
@@ -130,13 +148,22 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       });
     }
 
+    const isPagination = id.indexOf("-pagination-") > -1;
+    if (isPagination) {
+      Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+    }
+
     nodes.push(node as NodeItemData);
 
     if (currentParent.uid !== rootId) {
-      if (index === 0) {
-        edges.push({ source: parentId, target: id });
-      } else {
-        edges.push({ source: nodes[index - 1].id, target: id });
+      // if (index === 0) {
+      //   edges.push({ source: parentId, target: id });
+      // } else {
+      //   edges.push({ source: nodes[index - 1].id, target: id });
+      // }
+      if (!isPagination) {
+        const prevIsPagination = index > 0 && nodes[index - 1].id.indexOf("-pagination-") > -1;
+        edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index -2].id: parentId): nodes[index - 1].id), target: id });
       }
     }
 
@@ -179,6 +206,50 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
   const newEdges = edges.concat(currentData.edges || []);
   const newCombos = combos.concat(currentData.combos?.map(({ id, parentId }) => ({ id, parentId })) || []);
+
+  return {
+    nodes: JSON.parse(JSON.stringify(newNodes)),
+    edges: JSON.parse(JSON.stringify(newEdges)),
+    combos: JSON.parse(JSON.stringify(newCombos)),
+  };
+}
+
+
+// 添加子节点
+export function replaceChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
+  const id = parent.id;
+
+  const sortData = data.sort((a, b) => {
+    const aIds: any = a['x.id'].split('.'),
+      bIds: any = b['x.id'].split('.');
+    for (let i = 1; i < aIds.length; i++) {
+      if (Number(aIds[i]) === Number(bIds[i])) continue;
+      return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
+    }
+
+    return 1;
+  });
+  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
+
+  const currentNodes: any = currentData.nodes,
+    removeIds: any = {};
+  const newNodes: NodeItemData[] = [];
+  for (let i = 0; i < currentNodes.length; i++) {
+    const node = currentNodes[i];
+    if (!node.xid.startsWith(parent.xid) || node.xid == parent.xid) {
+      newNodes.push(node);
+    } else {
+      Object.assign(removeIds, { [node.id]: node });
+    }
+    if (node.id === id) {
+      nodes.forEach((value) => {
+        newNodes.push(value);
+      });
+    }
+  }
+
+  const newEdges = edges.concat((currentData.edges || []).filter(({ source, target }: any) => !removeIds[source] && !removeIds[target]));
+  const newCombos = combos.concat((currentData.combos || []).filter(({ id }: any) => !removeIds[id.replace("-combo")]));
 
   return {
     nodes: JSON.parse(JSON.stringify(newNodes)),
@@ -267,10 +338,15 @@ export function convertResultData(
         });
       }
 
+      const isPagination = id.indexOf("-pagination-") > -1;
+      if (isPagination) {
+        Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+      }
+
       nodes.push(node);
 
       if (currentParentId !== rootId) {
-        if (currentParentId && edgeIdMap[currentParentId]) {
+        if (currentParentId && edgeIdMap[currentParentId] && !isPagination) {
           edges.push({ source: edgeIdMap[currentParentId], target: id });
         }
       }
@@ -367,11 +443,16 @@ export function convertAllData(data: CustomObjectConfig[]) {
       });
     }
 
+    const isPagination = id.indexOf("-pagination-") > -1;
+    if (isPagination) {
+      Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+    }
+
     nodes.push(node as NodeItemData);
 
     if (currentParent.id) {
       if (currentParent.uid !== rootId) {
-        if (edgeIdMap[currentParent.id]) {
+        if (edgeIdMap[currentParent.id] && !isPagination) {
           edges.push({ source: edgeIdMap[currentParent.id], target: id });
         }
       }

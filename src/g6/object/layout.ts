@@ -41,9 +41,9 @@ export function registerLayout() {
         nodeLeft = self.nodeLeftSep,
         nodeHeightSep = self.nodeHeightSep,
         nodeWidth = self.nodeWidth,
-        nodeHeight = self.nodeHeight,
-        nodeXMap = self.nodeXMap
-      let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null, currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0;
+        nodeXMap = self.nodeXMap;
+      let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null,
+        currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
       const rootId = store.getState().editor.rootNode?.uid;
       self.nodes.forEach((item: any, index: number) => {
         if (item.parent !== rootId) {
@@ -57,9 +57,15 @@ export function registerLayout() {
             return;
           }
           item.x = itemParentX.x + nodeLeft;
-          item.y = currentY + nodeHeightSep + nodeHeight;
+          item.y = currentY + nodeHeightSep + prevNodeHeight;
           currentY = item.y;
           currenNodeWidth = item.width;
+          if (item.type === "paginationBtn") {
+            item.x += NODE_WIDTH / 2;
+            prevNodeHeight = 10;
+          } else {
+            prevNodeHeight = self.nodeHeight;
+          }
         } else {
           // 顶层主节点
           if (rootIndex > -1) {
@@ -78,8 +84,9 @@ export function registerLayout() {
             prevRootMaxX = item.x;
           }
           currenNodeWidth = ROOT_NODE_WIDTH;
+          prevNodeHeight = self.nodeHeight;
         }
-        if (item.x > prevMaxX){ 
+        if (item.x > prevMaxX) {
           prevMaxX = item.x;
           prevMaxNodeWidth = currenNodeWidth;
         }

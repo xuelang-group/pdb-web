@@ -492,4 +492,7 @@ export function registerNode() {
   },
     'rect',
   );
+
+  G6.registerNode('paginationBtn', {
+  }, 'rect');
 }
