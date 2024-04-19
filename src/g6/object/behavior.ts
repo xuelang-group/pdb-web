@@ -9,7 +9,7 @@ import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 
-const FIRST_NUM = 10;
+export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {
@@ -141,9 +141,11 @@ export const G6OperateFunctions = {
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
+      const limit = Number(PAGE_SIZE());
       let params = { uid: model.uid };
-      if (Number(model.childLen) > FIRST_NUM) {
-        Object.assign(params, { first: FIRST_NUM, offset: 0 });
+
+      if (limit > 0 && Number(model.childLen) > limit) {
+        Object.assign(params, { first: limit, offset: 0 });
       }
       getChildren(params, (success: boolean, data: any) => {
         if (success) {
@@ -199,12 +201,17 @@ export const G6OperateFunctions = {
           }));
           graph.expandCombo(comboId);
           const curentGraphData: any = graph.save();
-          const { nodes, edges, combos } = addChildrenToGraphData(model, [..._data, {
-            uid: model.uid + '-pagination-1-next',
-            id: model.uid + '-pagination-1-next',
-            'x.id': xid + '.' + (lastXidIndex + 1),
-            currentParent: { id }
-          }], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+          if (params.hasOwnProperty("offset")) {
+            const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
+            _data.push({
+              uid: model.uid + '-pagination-0-next',
+              id: model.uid + '-pagination-0-next',
+              totalPage,
+              'x.id': xid + '.' + (lastXidIndex + 1),
+              currentParent: { id }
+            });
+          }
+          const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
           let newData: any[] = [];
           store.getState().object.data.forEach(function (obj: any) {
             if (obj['x.id'] === xid) {
@@ -554,13 +561,15 @@ export const G6OperateFunctions = {
       btnType = config[3],
       currentOffset = Number(config[2]),
       params = { uid: parent };
-      
+
+    const limit = Number(PAGE_SIZE());
+
     if (btnType === 'next') {
-      config[2] = currentOffset + FIRST_NUM;
+      config[2] = currentOffset + limit;
     } else {
-      config[2] = currentOffset - FIRST_NUM;
+      config[2] = currentOffset - limit;
     }
-    Object.assign(params, { first: FIRST_NUM, offset: config[2] });
+    Object.assign(params, { first: limit, offset: config[2] });
     store.dispatch(setGraphLoading(true));
     getChildren(params, (success: boolean, data: any) => {
       if (success) {
@@ -573,7 +582,7 @@ export const G6OperateFunctions = {
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         let lastXidIndex = -1;
         let _data: any[] = [];
-        if (config[2] > 1) {
+        if (config[2] > 0) {
           _data.push({
             uid: parent + `-pagination-${config[2]}-prev`,
             id: parent + `-pagination-${config[2]}-prev`,
@@ -585,7 +594,7 @@ export const G6OperateFunctions = {
         _data = _data.concat(data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
             currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === parent)[0],
-            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (config[2] > 1 ? 1 : 0),
+            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (config[2] > 0 ? 1 : 0),
             _xid = xid + '.' + currentXidIndex;
 
           if (currentXidIndex > lastXidIndex) lastXidIndex = currentXidIndex;
@@ -634,10 +643,13 @@ export const G6OperateFunctions = {
         const curentGraphData: any = graph.save();
 
         if ((config[2] + data.length) < childLen) {
+          const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
+
           _data.push({
             uid: parent + `-pagination-${config[2]}-next`,
             id: parent + `-pagination-${config[2]}-next`,
             'x.id': xid + '.' + (lastXidIndex + 1),
+            totalPage,
             currentParent: { id }
           });
         }

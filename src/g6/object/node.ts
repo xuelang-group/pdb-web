@@ -5,6 +5,7 @@ import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, ge
 import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
+import { PAGE_SIZE } from './behavior';
 
 export function registerNode() {
   /**
@@ -495,15 +496,32 @@ export function registerNode() {
 
   G6.registerNode('paginationBtn', {
     afterDraw(cfg: any, group: any, rst) {
-      console.log(cfg)
       const iconTextClassName = 'icon-text';
-      const startTextShape = group.addShape('text', {
+      const iconTextShape = group.addShape('text', {
         attrs: {
           ...cfg.icon
         },
         name: iconTextClassName
       });
-      group['shapeMap'][iconTextClassName] = startTextShape;
+      group['shapeMap'][iconTextClassName] = iconTextShape;
+
+      if (cfg.totalPage) {
+        const totalTextClassName = 'total-text';
+        const currentOffset = Number(cfg.id.split("-")[2]);
+        console.log(currentOffset)
+        const totalnTextShape = group.addShape('text', {
+          attrs: {
+            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE()) + 1) + " / " + cfg.totalPage,
+            fill: '#595959',
+            x: 15,
+            y: -2,
+            fontSize: 10,
+          },
+          name: totalTextClassName
+        });
+        group['shapeMap'][totalTextClassName] = totalnTextShape;
+
+      }
     },
     setState(name, value, item: any) {
       console.log(name, value)

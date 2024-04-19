@@ -1,12 +1,15 @@
-import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip } from "antd";
+import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { Item } from "@antv/g6";
 import _, { keys } from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setToolbarConfig } from "@/reducers/editor";
+import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { StoreState } from "@/store";
+import { Parent, setObjects } from "@/reducers/object";
+import { getChildren } from "@/actions/object";
+import { covertToGraphData } from "@/utils/objectGraph";
 
 const { Panel } = Collapse;
 const getRelationLabelCfg = (labelColor: string, showLabel: boolean, theme: string) => ({
@@ -38,6 +41,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x.name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
+    [pageSize, setPageSize] = useState<number | undefined>(undefined),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} });  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
 
@@ -81,7 +85,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     if (!toolbarConfig[currentGraphTab]) return;
     const _relationLines = toolbarConfig[currentGraphTab].relationLines,
       _showRelationLine = toolbarConfig[currentGraphTab].showRelationLine,
-      _showRelationLabel = toolbarConfig[currentGraphTab].showRelationLabel;
+      _showRelationLabel = toolbarConfig[currentGraphTab].showRelationLabel,
+      _pageSize = _.get(toolbarConfig[currentGraphTab], "pageSize");
     if (JSON.stringify(relationLines) !== JSON.stringify(_relationLines)) {
       setRelationLines(_relationLines);
     } if (currentGraphTab !== "main" && _showRelationLine) {
@@ -96,6 +101,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       setShowRelationLable(_showRelationLabel);
     }
 
+    if (_pageSize !== undefined && _pageSize !== pageSize) {
+      setPageSize(_pageSize);
+    }
   }, [toolbarConfig]);
 
   useEffect(() => {
@@ -295,6 +303,86 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }));
   }
 
+  function getRootsData() {
+    const graph = (window as any).PDR_GRAPH;
+
+    if (!rootId || !graph) return;
+    dispatch(setGraphLoading(true));
+    getChildren({ uid: rootId }, (success: boolean, data: any) => {
+      let newData = [];
+      if (success) {
+        const relationLines = {};
+        newData = data.map((value: any, index: number) => {
+          const newValue = JSON.parse(JSON.stringify(value)),
+            parents = newValue['x.parent'],
+            currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
+
+          delete newValue['~x.parent'];
+          delete newValue['~x.parent|x.index'];
+
+          // 获取对象关系列表数据
+          if (newValue['x.relation.name']) {
+            const relations: any[] = [];
+            newValue['x.relation.name'].forEach((relation: string) => {
+              if (_.isArray(newValue[relation])) {
+                newValue[relation].forEach((target: any) => {
+                  relations.push({
+                    relation,
+                    target
+                  });
+                });
+              } else {
+                relations.push({
+                  relation,
+                  target: newValue[relation]
+                });
+              }
+            });
+            Object.assign(relationLines, {
+              [newValue.uid]: relations
+            });
+          }
+
+          return {
+            ...newValue,
+            currentParent: {
+              ...currentParent,
+              id: rootId,
+            },
+            'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+            id: newValue.uid
+          };
+        });
+        let graphData: any = {};
+        if (newData) {
+          graphData = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
+        }
+        graph.data(JSON.parse(JSON.stringify(graphData)));
+        graph.render();
+        graph.zoom(1);
+        dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
+        dispatch(setObjects(newData));
+      } else {
+        notification.error({
+          message: '获取对象实例失败',
+          description: data.message || data.msg
+        });
+      }
+      dispatch(setGraphLoading(false));
+    });
+  }
+  const handleChangePageSize = function (event: any) {
+    const { value } = event.target;
+    setPageSize(value);
+    dispatch(setToolbarConfig({
+      key: currentGraphTab,
+      config: {
+        pageSize: value
+      }
+    }));
+    getRootsData();
+  }
+
   const filters = Form.useWatch('filter', filterForm);
   // 监听过滤条件
   useEffect(() => {
@@ -467,6 +555,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           <div className="pdb-setting-item">
             <span>展示关系名称：</span>
             <Switch checked={showRelationLabel} onChange={handleShowRelationName} size="small" />
+          </div>
+        }
+        {currentGraphTab === "main" &&
+          <div className="pdb-setting-item pdb-setting-pageSize">
+            <span>每层级显示节点数<Tooltip title="超过节点数，则显示分页按钮"><i className="spicon icon-tishi"></i></Tooltip>：</span>
+            <InputNumber min={0} step={1} value={pageSize} onBlur={handleChangePageSize} onPressEnter={handleChangePageSize} />
+            <span>（更改后，画布将重新渲染）</span>
           </div>
         }
       </div>

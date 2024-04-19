@@ -168,6 +168,9 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
     const isPagination = id.indexOf("-pagination-") > -1;
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+      if (item.totalPage) {
+        Object.assign(node, { totalPage: item.totalPage });
+      }
     }
 
     nodes.push(node as NodeItemData);
@@ -358,6 +361,9 @@ export function convertResultData(
       const isPagination = id.indexOf("-pagination-") > -1;
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+        if (item.totalPage) {
+          Object.assign(node, { totalPage: item.totalPage });
+        }
       }
 
       nodes.push(node);
@@ -463,6 +469,9 @@ export function convertAllData(data: CustomObjectConfig[]) {
     const isPagination = id.indexOf("-pagination-") > -1;
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+      if (item.totalPage) {
+        Object.assign(node, { totalPage: item.totalPage });
+      }
     }
 
     nodes.push(node as NodeItemData);

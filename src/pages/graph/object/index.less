@@ -3,9 +3,9 @@
   width: 0;
   height: 100%;
   position: relative;
-        display: flex;
-        flex-direction: column;
-        background: var(--fill-color4);
+  display: flex;
+  flex-direction: column;
+  background: var(--fill-color4);
 }
 
 .pdb-graph.pdb-object-graph {
@@ -15,17 +15,17 @@
     padding: 0px;
     border: none;
     box-shadow: var(--box-shadow);
-  
+
     .graph-contextmenu {
       list-style: none;
       margin: 0;
       padding: .5rem 0;
       box-shadow: none;
-  
+
       li {
         cursor: pointer;
         padding: 1rem 1.5rem;
-  
+
         &:hover {
           background-color: var(--fill-color4);
         }
@@ -289,6 +289,29 @@
           display: flex;
           align-items: center;
           margin-top: 1.6rem;
+        }
+
+        &-pageSize {
+          flex-direction: column;
+          align-items: flex-start;
+
+          .pdb-ant-input-number {
+            width: 100%;
+          }
+          &>span:nth-child(1) {
+            margin-bottom: .5rem;
+
+            .icon-tishi {
+              font-size: 1.4rem;
+              cursor: pointer;
+              margin-left: .2rem;
+              margin-top: .2rem;
+            }
+          }
+          &>span:nth-child(3) {
+            font-size: 1.2rem;
+            color: var(--text-color3);
+          }
         }
       }
     }

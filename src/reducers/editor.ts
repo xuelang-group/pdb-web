@@ -58,6 +58,7 @@ interface ToolbarItemConfig {
   showRelationLine: boolean
   showRelationLabel: boolean
   filters: Array<FilterConfig>
+  pageSize?: number
 }
 
 interface ToolbarConfig {
@@ -92,7 +93,8 @@ const initialState: EditorState = {
       relationLines: {},
       showRelationLine: false, // 显示类型连线
       showRelationLabel: false, // 显示类型名称
-      filters: []
+      filters: [],
+      pageSize: 1000
     },
     'explore': {
       relationLines: {},
