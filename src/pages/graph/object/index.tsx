@@ -187,13 +187,20 @@ export default function Editor(props: EditorProps) {
       offsetX: 10,
       offsetY: 10,
       // 允许出现 tooltip 的 item 类型
-      itemTypes: ['edge'],
+      itemTypes: ['edge', 'node'],
       // 是否允许 tooltip 出现
-      shouldBegin: (e: any) => e.item.get('currentShape') !== 'step-line',
+      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === 'paginationBtn',
       // 自定义 tooltip 内容
       getContent: (e: any) => {
-        const { relationName, id } = e.item.getModel();
-        return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || id;
+        const { relationName, id, type} = e.item.getModel();
+        console.log(type)
+        if (type === 'paginationBtn') {
+          return id.endsWith("-next") ? "下一页" : "上一页"
+        }
+        if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
+          return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || id;
+        }
+        return "";
       },
     });
 

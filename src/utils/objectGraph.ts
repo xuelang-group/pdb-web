@@ -4,7 +4,7 @@ import G6, { ComboConfig, EdgeConfig, GraphData, Item } from '@antv/g6';
 import _, { isArray } from 'lodash';
 import { NodeItemData } from '../reducers/editor';
 import { CustomObjectConfig } from '../reducers/object';
-import { defaultNodeColor, getTextColor } from './common';
+import { defaultNodeColor, getIcon, getTextColor } from './common';
 
 export const GLOBAL_FONT_SIZE = 12;
 export const ROOT_NODE_WIDTH = 320, // 主节点宽度
@@ -20,23 +20,40 @@ export const LINE_SYTLE: { [k: string]: any } = {
   }
 }
 
-const paginationOption = {
+const paginationIconMap: any = {
+  next: String.fromCodePoint(59272),
+  prev: String.fromCodePoint(60181)
+}
+export const paginationOption = (icon: string = "") => ({
   type: "paginationBtn",
-  label: "下一页",
+  icon: {
+    show: true,
+    fontFamily: 'iconfont',
+    text: paginationIconMap[icon],
+    fill: "#828D99",
+    textAlign: 'center',
+    fontSize: 22,
+    cursor: 'pointer',
+    // x: 0.5,
+    rotate: 90,
+    y: icon === "next" ? 2 : 10,
+  },
   labelCfg: {
     style: {
       fontSize: 12,
-      fill: "#4C5A67"
+      fill: "#4C5A67",
+      cursor: 'pointer'
     }
   },
   style: {
-    stroke: "#C2C7CC",
+    stroke: "#828D99",
     fill: "#f9fbfc",
-    radius: 5,
+    radius: 3,
     cursor: 'pointer',
+    lineWidth: 0
   },
-  size: [NODE_WIDTH, 25]
-}
+  size: [25, 10]
+});
 
 // 判断节点名称是否超过节点宽度，超过显示省略号
 export const fittingString = (str: string, maxWidth: number = 0, fontSize: number = GLOBAL_FONT_SIZE) => {
@@ -150,7 +167,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 
     const isPagination = id.indexOf("-pagination-") > -1;
     if (isPagination) {
-      Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+      Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
     }
 
     nodes.push(node as NodeItemData);
@@ -163,7 +180,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       // }
       if (!isPagination) {
         const prevIsPagination = index > 0 && nodes[index - 1].id.indexOf("-pagination-") > -1;
-        edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index -2].id: parentId): nodes[index - 1].id), target: id });
+        edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index - 2].id : parentId) : nodes[index - 1].id), target: id });
       }
     }
 
@@ -340,7 +357,7 @@ export function convertResultData(
 
       const isPagination = id.indexOf("-pagination-") > -1;
       if (isPagination) {
-        Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+        Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       }
 
       nodes.push(node);
@@ -445,7 +462,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
 
     const isPagination = id.indexOf("-pagination-") > -1;
     if (isPagination) {
-      Object.assign(node, { ...paginationOption, label: id.split("-")[3] === "prev" ? "上一页" : "下一页" });
+      Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
     }
 
     nodes.push(node as NodeItemData);

@@ -494,5 +494,28 @@ export function registerNode() {
   );
 
   G6.registerNode('paginationBtn', {
+    afterDraw(cfg: any, group: any, rst) {
+      console.log(cfg)
+      const iconTextClassName = 'icon-text';
+      const startTextShape = group.addShape('text', {
+        attrs: {
+          ...cfg.icon
+        },
+        name: iconTextClassName
+      });
+      group['shapeMap'][iconTextClassName] = startTextShape;
+    },
+    setState(name, value, item: any) {
+      console.log(name, value)
+      const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
+
+      if (name === "active") {
+        if (value) {
+          iconText.attr({ fill: "#0084FF" });
+        } else {
+          iconText.attr({ fill: "#828D99" });
+        }
+      }
+    }
   }, 'rect');
 }

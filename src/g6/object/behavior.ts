@@ -9,6 +9,8 @@ import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 
+const FIRST_NUM = 10;
+
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {
     let newData: any = { ...newObject };
@@ -140,8 +142,8 @@ export const G6OperateFunctions = {
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
       let params = { uid: model.uid };
-      if (Number(model.childLen) > 1000) {
-        Object.assign(params, { first: 1000, offset: 1 });
+      if (Number(model.childLen) > FIRST_NUM) {
+        Object.assign(params, { first: FIRST_NUM, offset: 0 });
       }
       getChildren(params, (success: boolean, data: any) => {
         if (success) {
@@ -550,22 +552,23 @@ export const G6OperateFunctions = {
     const { name, parent } = node.get('model');
     const config = name.split('-'),
       btnType = config[3],
-      currentPage = Number(config[2]),
+      currentOffset = Number(config[2]),
       params = { uid: parent };
+      
     if (btnType === 'next') {
-      config[2] = currentPage + 1;
+      config[2] = currentOffset + FIRST_NUM;
     } else {
-      config[2] = currentPage - 1;
+      config[2] = currentOffset - FIRST_NUM;
     }
-    Object.assign(params, { first: 1000, offset: config[2] });
+    Object.assign(params, { first: FIRST_NUM, offset: config[2] });
+    store.dispatch(setGraphLoading(true));
     getChildren(params, (success: boolean, data: any) => {
       if (success) {
         const parentNode = graph.findById(parent),
           parentModel = parentNode.get('model'),
           { id, xid, childLen } = parentModel,
           comboId = `${id}-combo`,
-          collapsed = false,
-          totalPage = childLen / 1000 > 1 ? (childLen / 1000 + 1) : 1;
+          collapsed = false;
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         let lastXidIndex = -1;
@@ -630,7 +633,7 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        if (config[2] < totalPage) {
+        if ((config[2] + data.length) < childLen) {
           _data.push({
             uid: parent + `-pagination-${config[2]}-next`,
             id: parent + `-pagination-${config[2]}-next`,
