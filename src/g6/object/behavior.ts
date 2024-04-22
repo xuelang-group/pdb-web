@@ -556,7 +556,8 @@ export const G6OperateFunctions = {
     });
   },
   changePagination: function (graph: Graph, node: Item) {
-    const { name, parent } = node.get('model');
+    const { name, parent, nextDisabled } = node.get('model');
+    if (nextDisabled) return;
     const config = name.split('-'),
       btnType = config[3],
       currentOffset = Number(config[2]),
@@ -642,7 +643,7 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        if ((config[2] + data.length) < childLen) {
+        // if ((config[2] + data.length) < childLen) {
           const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
 
           _data.push({
@@ -650,9 +651,10 @@ export const G6OperateFunctions = {
             id: parent + `-pagination-${config[2]}-next`,
             'x.id': xid + '.' + (lastXidIndex + 1),
             totalPage,
+            nextDisabled: (config[2] + data.length) >= childLen,
             currentParent: { id }
           });
-        }
+        // }
         const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
         let newData: any[] = [];
         store.getState().object.data.forEach(function (obj: any) {

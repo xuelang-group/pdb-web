@@ -192,13 +192,12 @@ export default function Editor(props: EditorProps) {
       shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === 'paginationBtn',
       // 自定义 tooltip 内容
       getContent: (e: any) => {
-        const { relationName, id, type} = e.item.getModel();
-        console.log(type)
+        const { relationName, id, type, name} = e.item.getModel();
         if (type === 'paginationBtn') {
-          return id.endsWith("-next") ? "下一页" : "上一页"
+          return id.endsWith("-next") ? "下一页" : "上一页";
         }
         if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
-          return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || id;
+          return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || name || id;
         }
         return "";
       },

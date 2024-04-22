@@ -30,7 +30,7 @@ export const paginationOption = (icon: string = "") => ({
     show: true,
     fontFamily: 'iconfont',
     text: paginationIconMap[icon],
-    fill: "#828D99",
+    fill: "#4C5A67",
     textAlign: 'center',
     fontSize: 22,
     cursor: 'pointer',
@@ -46,7 +46,7 @@ export const paginationOption = (icon: string = "") => ({
     }
   },
   style: {
-    stroke: "#828D99",
+    stroke: "#4C5A67",
     fill: "#f9fbfc",
     radius: 3,
     cursor: 'pointer',
@@ -169,7 +169,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {
-        Object.assign(node, { totalPage: item.totalPage });
+        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
       }
     }
 
@@ -362,7 +362,7 @@ export function convertResultData(
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
         if (item.totalPage) {
-          Object.assign(node, { totalPage: item.totalPage });
+          Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
         }
       }
 
@@ -470,7 +470,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {
-        Object.assign(node, { totalPage: item.totalPage });
+        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
       }
     }
 

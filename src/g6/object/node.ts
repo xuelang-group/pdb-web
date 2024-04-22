@@ -497,10 +497,15 @@ export function registerNode() {
   G6.registerNode('paginationBtn', {
     afterDraw(cfg: any, group: any, rst) {
       const iconTextClassName = 'icon-text';
+      const iconAttrs = {...cfg.icon};
+      if (cfg.nextDisabled) {
+        Object.assign(iconAttrs, {
+          fill: "#C2C7CC",
+          cursor: "auto"
+        });
+      }
       const iconTextShape = group.addShape('text', {
-        attrs: {
-          ...cfg.icon
-        },
+        attrs: iconAttrs,
         name: iconTextClassName
       });
       group['shapeMap'][iconTextClassName] = iconTextShape;
@@ -508,7 +513,6 @@ export function registerNode() {
       if (cfg.totalPage) {
         const totalTextClassName = 'total-text';
         const currentOffset = Number(cfg.id.split("-")[2]);
-        console.log(currentOffset)
         const totalnTextShape = group.addShape('text', {
           attrs: {
             text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE()) + 1) + " / " + cfg.totalPage,
@@ -520,18 +524,16 @@ export function registerNode() {
           name: totalTextClassName
         });
         group['shapeMap'][totalTextClassName] = totalnTextShape;
-
       }
     },
     setState(name, value, item: any) {
-      console.log(name, value)
       const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
-
+      const {nextDisabled} = item.getModel();
       if (name === "active") {
-        if (value) {
+        if (value && !nextDisabled ) {
           iconText.attr({ fill: "#0084FF" });
         } else {
-          iconText.attr({ fill: "#828D99" });
+          iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
         }
       }
     }
