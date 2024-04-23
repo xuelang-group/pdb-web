@@ -1115,17 +1115,21 @@ export default function Right(props: RightProps) {
       >
         <div className='pdb-info'>
           <div className='info-name'>
-            <div className='info-name-hidden'>{appName}</div>
             <Form.Item name='name' label='' rules={[
-              { required: true, message: '' },
+              { required: true, message: '名称不能为空' },
               {
                 validator: async (_, value) => {
+                  if (value.length > 50) {
+                    throw new Error('类型名称最多支持50个字符');
+                  }
+                  if (currentEditType === 'object') return;
                   const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
-                  if (value.length > 50 || (_types && _types.findIndex((_type: any, index: number) =>
+
+                  if (_types && _types.findIndex((_type: any, index: number) =>
                     _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
                     _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
-                  ) > -1)) {
-                    throw new Error('');
+                  ) > -1) {
+                    throw new Error('该名称已被使用');
                   }
                 }
               }
@@ -1138,6 +1142,7 @@ export default function Right(props: RightProps) {
                 disabled={(currentEditModel.data || {}).hasOwnProperty("r.type.name")}
               />
             </Form.Item>
+            <div className='info-name-hidden'>{appName}</div>
           </div>
           {showMore &&
             <>
