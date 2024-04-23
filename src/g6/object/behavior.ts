@@ -62,10 +62,10 @@ export const G6OperateFunctions = {
         const deleteModel: any = graph.findById(nodeId).getModel();
 
         const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
-          if (val.id === deleteModel.parent) {
+          if (val.id === deleteModel.parent || val.uid === deleteModel.parent) {
             val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
           }
-          return !removeIds.hasOwnProperty(val.id);
+          return !removeIds.hasOwnProperty(val.id || val.uid);
         });
         if (!_.isEmpty(response)) {
           const rootNode = store.getState().editor.rootNode;
@@ -1234,8 +1234,6 @@ export function registerBehavior() {
       if (!(this as any).shouldUpdate(event, collapsed, this)) {
         return;
       }
-
-
 
       const comboId = `${id}-combo`;
       item.update({
