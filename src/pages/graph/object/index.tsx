@@ -192,7 +192,7 @@ export default function Editor(props: EditorProps) {
       shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === 'paginationBtn',
       // 自定义 tooltip 内容
       getContent: (e: any) => {
-        const { relationName, id, type, name} = e.item.getModel();
+        const { relationName, id, type, name } = e.item.getModel();
         if (type === 'paginationBtn') {
           return id.endsWith("-next") ? "下一页" : "上一页";
         }
@@ -205,9 +205,22 @@ export default function Editor(props: EditorProps) {
 
     const contextMenu = new G6.Menu({
       getContent(evt: any) {
+        console.log(evt)
+        const itemType = evt.item.get("type"),
+          itemModel = evt.item.getModel();
+        if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
+
+        if (itemType === "edge") {
+          return `<ul class="pdb-graph-node-contextmenu">
+            <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          </ul>`;
+        }
         return `<ul class="pdb-graph-node-contextmenu">
           <li title="探索">探索</li>
-          <li title="删除">删除</li>
+          <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ""}
         </ul>`;
       },
       handleMenuClick: (target: any, item) => {
@@ -217,6 +230,10 @@ export default function Editor(props: EditorProps) {
           _searchAround.show = true;
           _searchAround.options.push({ start: [itemModel.data], options: [] });
           dispatch(setSearchAround(_searchAround));
+        } else if (target?.title === "复制") {
+          graphCopyItem = JSON.parse(JSON.stringify(itemModel));
+        } else if (target?.title === "粘贴") {
+          onPaste(itemModel);
         } else if (target?.title === "删除") {
           deleteConfirm(itemModel);
         }
@@ -224,7 +241,7 @@ export default function Editor(props: EditorProps) {
       offsetX: 10,
       offsetY: 0,
       // 在哪些类型的元素上响应
-      itemTypes: ['node'],
+      itemTypes: ['node', 'edge'],
     });
 
     graph = new G6.Graph({
@@ -373,6 +390,18 @@ export default function Editor(props: EditorProps) {
     });
   }
 
+
+  function onPaste(currentEditModel: any) {
+    if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
+      const item = graph.findById(currentEditModel.id);
+      G6OperateFunctions.expandNode(item, graph, () => {
+        G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+      });
+    } else {
+      G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+    }
+  }
+
   function initEvent() {
     if (!graph) return
     graph.on('node:mouseenter', (event: { item: any; }) => {
@@ -423,15 +452,8 @@ export default function Editor(props: EditorProps) {
           break;
         case 86:
           // ctrl + v
-          if (ctrlKey && graphCopyItem) {
-            if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
-              const item = graph.findById(currentEditModel.id);
-              G6OperateFunctions.expandNode(item, graph, () => {
-                G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
-              });
-            } else {
-              G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
-            }
+          if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
+            onPaste(currentEditModel);
           }
           break;
         default:

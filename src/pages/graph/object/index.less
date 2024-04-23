@@ -43,6 +43,18 @@
       padding: .8rem 1rem;
       cursor: pointer;
       color: var(--text-color1);
+      display: flex;
+      align-items: center;
+      span {
+        pointer-events: none;
+      }
+      span:nth-child(1) {
+        flex: 1;
+      }
+      span:nth-child(2) {
+        color: var(--text-color3);
+        font-size: 1rem;
+      }
 
       &:hover {
         background-color: var(--primary-selected-bg);
