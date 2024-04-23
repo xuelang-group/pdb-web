@@ -59,10 +59,11 @@ export const G6OperateFunctions = {
       if (success) {
         getRemoveIds(comboId);
 
-        const deleteModel: any = graph.findById(nodeId).getModel();
+        const deleteModel: any = graph.findById(nodeId).getModel(),
+          parentNodeId = deleteModel.parent;
 
         const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
-          if (val.id === deleteModel.parent || val.uid === deleteModel.parent) {
+          if (val.id === parentNodeId || val.uid === parentNodeId) {
             val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
           }
           return !removeIds.hasOwnProperty(val.id || val.uid);
@@ -79,7 +80,9 @@ export const G6OperateFunctions = {
               lastRootNodeIndex -= 1;
             }
             _data.forEach((val: any) => {
-              if (val.currentParent.uid === deleteModel.parent && val.currentParent['x.parent|x.index'] > deleteModel?.data.currentParent['x.parent|x.index']) {
+              if (!val.id.startsWith("pagination-") && val.currentParent.uid === deleteModel.parent &&
+                val.currentParent['x.parent|x.index'] > deleteModel?.data.currentParent['x.parent|x.index']
+              ) {
                 val.currentParent['x.parent|x.index'] -= 1;
                 val['x.parent'][0]['x.parent|x.index'] -= 1;
                 shouldUpdateObject.push({
@@ -122,6 +125,17 @@ export const G6OperateFunctions = {
         const graphData = convertAllData(_data);
         graph.changeData(graphData);
         graph.layout();
+
+        const parentCombo: any = graph.findById(parentNodeId + "-combo");
+        if (parentCombo) {
+          const comboLastNodes = parentCombo.getChildren().nodes || [],
+            comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+          if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
+            const { name } = comboLastNode.get('model');
+            const config = name.split('-');
+            G6OperateFunctions.changePagination(graph, comboLastNode, config[2]);
+          }
+        }
       } else {
         notification.error({
           message: '删除实例失败',
@@ -204,8 +218,8 @@ export const G6OperateFunctions = {
           if (params.hasOwnProperty("offset")) {
             const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
             _data.push({
-              uid: model.uid + '-pagination-0-next',
-              id: model.uid + '-pagination-0-next',
+              uid: 'pagination-' + model.uid + '-0-next',
+              id: 'pagination-' + model.uid + '-0-next',
               totalPage,
               'x.id': xid + '.' + (lastXidIndex + 1),
               currentParent: { id }
@@ -555,22 +569,13 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, node: Item) {
-    const { name, parent, nextDisabled } = node.get('model');
+  changePagination: function (graph: Graph, node: Item, offset: number) {
+    const { parent, nextDisabled } = node.get('model');
     if (nextDisabled) return;
-    const config = name.split('-'),
-      btnType = config[3],
-      currentOffset = Number(config[2]),
-      params = { uid: parent };
+    const params = { uid: parent };
 
     const limit = Number(PAGE_SIZE());
-
-    if (btnType === 'next') {
-      config[2] = currentOffset + limit;
-    } else {
-      config[2] = currentOffset - limit;
-    }
-    Object.assign(params, { first: limit, offset: config[2] });
+    Object.assign(params, { first: limit, offset });
     store.dispatch(setGraphLoading(true));
     getChildren(params, (success: boolean, data: any) => {
       if (success) {
@@ -583,10 +588,10 @@ export const G6OperateFunctions = {
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         let lastXidIndex = -1;
         let _data: any[] = [];
-        if (config[2] > 0) {
+        if (offset > 0) {
           _data.push({
-            uid: parent + `-pagination-${config[2]}-prev`,
-            id: parent + `-pagination-${config[2]}-prev`,
+            uid: 'pagination-' + parent + `-${offset}-prev`,
+            id: 'pagination-' + parent + `-${offset}-prev`,
             'x.id': xid + '.0',
             currentParent: { id }
           });
@@ -595,7 +600,7 @@ export const G6OperateFunctions = {
         _data = _data.concat(data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
             currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === parent)[0],
-            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (config[2] > 0 ? 1 : 0),
+            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (offset > 0 ? 1 : 0),
             _xid = xid + '.' + currentXidIndex;
 
           if (currentXidIndex > lastXidIndex) lastXidIndex = currentXidIndex;
@@ -644,16 +649,16 @@ export const G6OperateFunctions = {
         const curentGraphData: any = graph.save();
 
         // if ((config[2] + data.length) < childLen) {
-          const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
+        const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
 
-          _data.push({
-            uid: parent + `-pagination-${config[2]}-next`,
-            id: parent + `-pagination-${config[2]}-next`,
-            'x.id': xid + '.' + (lastXidIndex + 1),
-            totalPage,
-            nextDisabled: (config[2] + data.length) >= childLen,
-            currentParent: { id }
-          });
+        _data.push({
+          uid: 'pagination-' + parent + `-${offset}-next`,
+          id: 'pagination-' + parent + `-${offset}-next`,
+          'x.id': xid + '.' + (lastXidIndex + 1),
+          totalPage,
+          nextDisabled: (offset + data.length) >= childLen,
+          currentParent: { id }
+        });
         // }
         const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
         let newData: any[] = [];
@@ -730,7 +735,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
-    "x.name": parentNodeModel.name + '-' + xIndex,
+    "x.name": parentNodeModel.name,
     "x.parent": [newParent],
     "x.type.name": defaultTypeName,
     "x.metadata": typeMetadata,
@@ -847,6 +852,17 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
       });
     } else {
       updateGraph();
+    }
+
+    const parentCombo: any = graph.findById(parentNodeId + "-combo");
+    if (parentCombo) {
+      const comboLastNodes = parentCombo.getChildren().nodes || [],
+        comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+      if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
+        const { name } = comboLastNode.get('model');
+        const config = name.split('-');
+        G6OperateFunctions.changePagination(graph, comboLastNode, config[2]);
+      }
     }
   });
 }
@@ -1591,7 +1607,22 @@ export function registerBehavior() {
       const model = node.get('model'),
         nodeType = model.type;
       if (nodeType === "paginationBtn") {
-        G6OperateFunctions.changePagination(graph, node);
+        const { name, parent, nextDisabled } = node.get('model');
+        if (nextDisabled) return;
+        const config = name.split('-'),
+          btnType = config[3],
+          currentOffset = Number(config[2]),
+          params = { uid: parent };
+
+        const limit = Number(PAGE_SIZE());
+
+        if (btnType === 'next') {
+          config[2] = currentOffset + limit;
+        } else {
+          config[2] = currentOffset - limit;
+        }
+        Object.assign(params, { first: limit, offset: config[2] });
+        G6OperateFunctions.changePagination(graph, node, config[2]);
         return;
       }
       (window as any).PDB_GRAPH = graph;
