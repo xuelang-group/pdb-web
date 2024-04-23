@@ -365,48 +365,49 @@ export default function SearchAround() {
         .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
     const btnDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
     return (
-      <div className="pdb-search-around-item">
-        <ExportApi
-          clickCopy={() => {
-            const _data: any[][] = [[]];
-            const { start, options } = searchAroundOptions[tabIndex] as any;
-            const typeMap: any = {};
-            types.forEach(type => Object.assign(typeMap, { [type["x.type.name"]]: type }));
-            const typeId = start[0]["x.type.name"];
-            _data[0].push({
-              value: typeId,
-              label: _.get(typeMap[typeId], "x.type.label", ""),
-              type: "type",
-              attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
-            });
-            options.forEach(({ object, data }: any) => {
-              const relationAttrs = JSON.parse(JSON.stringify(data["r.type.constraints"]));
-              delete relationAttrs["r.binds"];
-              delete relationAttrs["r.constraints"];
+      <div className="pdb-search-around-content">
+        <div className="pdb-search-around-item">
+          <ExportApi
+            clickCopy={() => {
+              const _data: any[][] = [[]];
+              const { start, options } = searchAroundOptions[tabIndex] as any;
+              const typeMap: any = {};
+              types.forEach(type => Object.assign(typeMap, { [type["x.type.name"]]: type }));
+              const typeId = start[0]["x.type.name"];
               _data[0].push({
-                value: data["r.type.name"],
-                label: data["r.type.label"],
-                type: "relation",
-                attrs: Object.values(relationAttrs)
-              });
-
-              _data[0].push({
-                value: object,
-                label: _.get(typeMap[object], "x.type.label", ""),
+                value: typeId,
+                label: _.get(typeMap[typeId], "x.type.label", ""),
                 type: "type",
-                attrs: _.get(typeMap[object], "x.type.attrs", ""),
+                attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
               });
-            });
+              options.forEach(({ object, data }: any) => {
+                const relationAttrs = JSON.parse(JSON.stringify(data["r.type.constraints"]));
+                delete relationAttrs["r.binds"];
+                delete relationAttrs["r.constraints"];
+                _data[0].push({
+                  value: data["r.type.name"],
+                  label: data["r.type.label"],
+                  type: "relation",
+                  attrs: Object.values(relationAttrs)
+                });
 
-            return _data;
-          }}
-          getParams={(csv: any) => {
-            const vertex = getVertexParams(tabIndex);
-            const graphId = routerParams.id;
-            return { api: api.vertex, params: { vertex, graphId, csv } }
-          }}
-        />
-        {/* <Tooltip title="复制接口">
+                _data[0].push({
+                  value: object,
+                  label: _.get(typeMap[object], "x.type.label", ""),
+                  type: "type",
+                  attrs: _.get(typeMap[object], "x.type.attrs", ""),
+                });
+              });
+
+              return _data;
+            }}
+            getParams={(csv: any) => {
+              const vertex = getVertexParams(tabIndex);
+              const graphId = routerParams.id;
+              return { api: api.vertex, params: { vertex, graphId, csv } }
+            }}
+          />
+          {/* <Tooltip title="复制接口">
           <i
             className="spicon icon-fuzhi"
             onClick={event => {
@@ -423,43 +424,45 @@ export default function SearchAround() {
             }}
           ></i>
         </Tooltip> */}
-        <div className="pdb-search-around-card pdb-search-around-start">
-          <span>起始对象</span>
-          <span>
-            {start.map((item: ObjectConfig) => {
-              const metadata = JSON.parse(item['x.metadata'] || '{}'),
-                color = _.get(metadata, 'color', defaultNodeColor.fill);
-              return (
-                <Tag
-                  color={color}
-                  style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color), cursor: "pointer" }}
-                  onClick={() => onFocusItem(item["uid"])}
-                >{item["x.name"]}</Tag>
-              );
-            })
+          <div className="pdb-search-around-card pdb-search-around-start">
+            <span>起始对象</span>
+            <span>
+              {start.map((item: ObjectConfig) => {
+                const metadata = JSON.parse(item['x.metadata'] || '{}'),
+                  color = _.get(metadata, 'color', defaultNodeColor.fill);
+                return (
+                  <Tag
+                    color={color}
+                    style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color), cursor: "pointer" }}
+                    onClick={() => onFocusItem(item["uid"])}
+                  >{item["x.name"]}</Tag>
+                );
+              })
+              }
+            </span>
+          </div>
+          {options.map((opt: any, index: number) => {
+            let objectType = start[0]['x.type.name'];
+            if (index > 0) objectType = options[index - 1]['object'];
+            const relations = !objectType ? [] :
+              Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))
+                .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
+            return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
+          })}
+          <div>
+            {renderAddRelationBtn(relations, btnDisabled)}
+            {options.length > 0 &&
+              <Button
+                type="primary"
+                icon={<i className="spicon icon-sousuo2"></i>}
+                style={{ marginLeft: 8 }}
+                onClick={() => handleSearch(tabIndex, true)}
+                disabled={btnDisabled}
+              >搜索画布</Button>
             }
-          </span>
+          </div>
         </div>
-        {options.map((opt: any, index: number) => {
-          let objectType = start[0]['x.type.name'];
-          if (index > 0) objectType = options[index - 1]['object'];
-          const relations = !objectType ? [] :
-            Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))
-              .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
-          return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
-        })}
-        <div>
-          {renderAddRelationBtn(relations, btnDisabled)}
-          {options.length > 0 &&
-            <Button
-              type="primary"
-              icon={<i className="spicon icon-sousuo2"></i>}
-              style={{ marginLeft: 8 }}
-              onClick={() => handleSearch(tabIndex, true)}
-              disabled={btnDisabled}
-            >搜索画布</Button>
-          }
-        </div>
+        <Button type="primary" onClick={() => handleEditTabs(tabIndex.toString(), "remove")}>关闭</Button>
       </div>
     )
   }
