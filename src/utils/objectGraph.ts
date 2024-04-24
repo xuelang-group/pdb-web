@@ -165,7 +165,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       });
     }
 
-    const isPagination = id.indexOf("-pagination-") > -1;
+    const isPagination = id.startsWith("pagination-");
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {
@@ -182,7 +182,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       //   edges.push({ source: nodes[index - 1].id, target: id });
       // }
       if (!isPagination) {
-        const prevIsPagination = index > 0 && nodes[index - 1].id.indexOf("-pagination-") > -1;
+        const prevIsPagination = index > 0 && nodes[index - 1].id.startsWith("pagination-");
         edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index - 2].id : parentId) : nodes[index - 1].id), target: id });
       }
     }
@@ -202,6 +202,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   const id = parent.id;
 
   const sortData = data.sort((a, b) => {
+    if (!a['x.id'] || !b['x.id']) return 1;
     const aIds: any = a['x.id'].split('.'),
       bIds: any = b['x.id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
@@ -240,6 +241,8 @@ export function replaceChildrenToGraphData(parent: NodeItemData, data: CustomObj
   const id = parent.id;
 
   const sortData = data.sort((a, b) => {
+    if (!a['x.id'] || !b['x.id']) return 1;
+
     const aIds: any = a['x.id'].split('.'),
       bIds: any = b['x.id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
@@ -256,7 +259,7 @@ export function replaceChildrenToGraphData(parent: NodeItemData, data: CustomObj
   const newNodes: NodeItemData[] = [];
   for (let i = 0; i < currentNodes.length; i++) {
     const node = currentNodes[i];
-    if (!node.xid.startsWith(parent.xid) || node.xid == parent.xid) {
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
       newNodes.push(node);
     } else {
       Object.assign(removeIds, { [node.id]: node });
@@ -358,7 +361,7 @@ export function convertResultData(
         });
       }
 
-      const isPagination = id.indexOf("-pagination-") > -1;
+      const isPagination = id.startsWith("pagination-");
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
         if (item.totalPage) {
@@ -466,7 +469,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
       });
     }
 
-    const isPagination = id.indexOf("-pagination-") > -1;
+    const isPagination = id.startsWith("pagination-");
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {

@@ -88,7 +88,7 @@ export function registerNode() {
             fill: 'transparent',
             stroke: 'transparent',
             radius: 2,
-            y: -10
+            y: -12
           },
           name: 'top-rect'
         });

@@ -73,7 +73,7 @@ export const G6OperateFunctions = {
           if (!rootNode) return;
           const rootId = rootNode.uid;
           const children = graph.getComboChildren(`${rootId}-combo`);
-          let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
+          let lastRootNodeIndex = children && children.nodes ? children.nodes.filter(node => !node.getID().startsWith("pagintaion-")).length : 0;
           const shouldUpdateObject: any[] = [];
           if (deleteModel.parent === rootId) {
             if (lastRootNodeIndex > 0) {
@@ -128,7 +128,7 @@ export const G6OperateFunctions = {
 
         const parentCombo: any = graph.findById(parentNodeId + "-combo");
         if (parentCombo) {
-          const comboLastNodes = parentCombo.getChildren().nodes || [],
+          const comboLastNodes = (parentCombo.getChildren().nodes || []).filter((node: any) => node && !node.getID().startsWith("pagintaion-")),
             comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
           if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
             const { name } = comboLastNode.get('model');
@@ -221,7 +221,6 @@ export const G6OperateFunctions = {
               uid: 'pagination-' + model.uid + '-0-next',
               id: 'pagination-' + model.uid + '-0-next',
               totalPage,
-              'x.id': xid + '.' + (lastXidIndex + 1),
               currentParent: { id }
             });
           }
@@ -304,7 +303,7 @@ export const G6OperateFunctions = {
       const xid = value['x.id'],
         parent = value['currentParent'].id;
       if (!parent) return;
-      if (value.id === dragItemId || xid.startsWith(dragItemXid + '.')) {
+      if (value.id === dragItemId || xid && xid.startsWith(dragItemXid + '.')) {
         dragItems.push({ ...value });
       } else {
         if (parent === dragItemParent) {
@@ -453,7 +452,7 @@ export const G6OperateFunctions = {
           let dropItemIndex = -1;
           for (let i = newData.length - 1; i >= 0; i--) {
             const value = newData[i];
-            if (value['x.id'] === newDropItemXid || value['x.id'].startsWith(newDropItemXid + '.')) {
+            if (value['x.id'] && (value['x.id'] === newDropItemXid || value['x.id'].startsWith(newDropItemXid + '.'))) {
               dropItemIndex = i;
               break;
             }
@@ -527,7 +526,7 @@ export const G6OperateFunctions = {
     const parentXid = pasteItem ? pasteItem.xid : rootId;
 
     const children = graph.getComboChildren(parentUid + '-combo');
-    const childLen = children && children.nodes ? children.nodes.length : 0;
+    const childLen = children && children.nodes ? children.nodes.filter(node => !node.getID().startsWith("pagination-")).length : 0;
     const newXid = parentXid + '.' + childLen,
       newParent = {
         uid: parentUid,
@@ -592,7 +591,6 @@ export const G6OperateFunctions = {
           _data.push({
             uid: 'pagination-' + parent + `-${offset}-prev`,
             id: 'pagination-' + parent + `-${offset}-prev`,
-            'x.id': xid + '.0',
             currentParent: { id }
           });
           lastXidIndex = 0;
@@ -600,7 +598,7 @@ export const G6OperateFunctions = {
         _data = _data.concat(data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
             currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === parent)[0],
-            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index) + (offset > 0 ? 1 : 0),
+            currentXidIndex = Number(currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
             _xid = xid + '.' + currentXidIndex;
 
           if (currentXidIndex > lastXidIndex) lastXidIndex = currentXidIndex;
@@ -648,18 +646,16 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        // if ((config[2] + data.length) < childLen) {
         const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
 
         _data.push({
           uid: 'pagination-' + parent + `-${offset}-next`,
           id: 'pagination-' + parent + `-${offset}-next`,
-          'x.id': xid + '.' + (lastXidIndex + 1),
           totalPage,
           nextDisabled: (offset + data.length) >= childLen,
           currentParent: { id }
         });
-        // }
+
         const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
         let newData: any[] = [];
         store.getState().object.data.forEach(function (obj: any) {
@@ -1355,7 +1351,7 @@ export function registerBehavior() {
           currentDragParentChildrenIndex = 0;
 
         data.forEach(function (value) {
-          if (value['x.id'] !== dragItemXid && value['x.id'] !== dropItemXid && value['x.id'].startsWith(dragItemXid + '.')) {
+          if (value['x.id'] && value['x.id'] !== dragItemXid && value['x.id'] !== dropItemXid && value['x.id'].startsWith(dragItemXid + '.')) {
             originDragItems.push(value);
           }
         });
@@ -1378,6 +1374,10 @@ export function registerBehavior() {
             parentUid = parentModel.uid;
           }
 
+          if (!xid) {
+            newData.push(new_value);
+            return;
+          }
           if (xid.startsWith(dragItemXid + '.') || xid === dragItemXid) return;
           if (xid === dropItemXid) {
             // 节点xid等于dropItemXid时，先将dragItem数据推入data
