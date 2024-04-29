@@ -349,7 +349,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               ...currentParent,
               id: rootId,
             },
-            'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+            'x.id': rootId + '.' + index,
             id: newValue.uid
           };
         });

@@ -139,7 +139,7 @@ export default function Editor(props: EditorProps) {
                   ...currentParent,
                   id: rootId,
                 },
-                'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+                'x.id': rootId + '.' + index,
                 id: newValue.uid
               };
             });
