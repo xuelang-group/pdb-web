@@ -36,7 +36,7 @@ export function registerEdge() {
       let startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 - 3;
       if (targetModel['xid'] && targetModel['xid'] === (sourceModel['xid'] + '.0')) {
         startPointY = Number(startPoint?.y) + NODE_HEIGHT + COLLAPSE_SHAPE_R;
-      } else if (sourceModel['xid'].split(".").length === 2) {
+      } else if (sourceModel['xid'] && sourceModel['xid'].split(".").length === 2) {
         startPointY = Number(startPoint?.y) + NODE_HEIGHT;
       }
       const shape: any = group.addShape('path', {

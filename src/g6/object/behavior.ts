@@ -128,7 +128,7 @@ export const G6OperateFunctions = {
 
         const parentCombo: any = graph.findById(parentNodeId + "-combo");
         if (parentCombo) {
-          const comboLastNodes = (parentCombo.getChildren().nodes || []).filter((node: any) => node && !node.getID().startsWith("pagintaion-")),
+          const comboLastNodes = parentCombo.getChildren().nodes || [],
             comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
           if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
             const { name } = comboLastNode.get('model');
@@ -526,7 +526,13 @@ export const G6OperateFunctions = {
     const parentXid = pasteItem ? pasteItem.xid : rootId;
 
     const children = graph.getComboChildren(parentUid + '-combo');
-    const childLen = children && children.nodes ? children.nodes.filter(node => !node.getID().startsWith("pagination-")).length : 0;
+    let childLen = children && children.nodes ? children.nodes.length : 0;
+    if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
+      childLen -= 1;
+    }
+    if (childLen > 0 && children.nodes[childLen - 1].getID().startsWith("pagination-")) {
+      childLen -= 1;
+    }
     const newXid = parentXid + '.' + childLen,
       newParent = {
         uid: parentUid,
@@ -674,7 +680,7 @@ export const G6OperateFunctions = {
           nodes,
           edges,
           combos
-        });
+        }, false);
         // node.update({
         //   data: {
         //     ...parentModel.data,
@@ -988,8 +994,13 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
   const sourceNodeXid = sourceNode.xid;
 
   const children = graph.getComboChildren(sourceNodeId + '-combo');
-  const childLen = children && children.nodes ? children.nodes.length : 0;
-
+  let childLen = children && children.nodes ? children.nodes.length : 0;
+  if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
+    childLen -= 1;
+  }
+  if (childLen > 0 && children.nodes[childLen - 1].getID().startsWith("pagination-")) {
+    childLen -= 1;
+  }
   const newXid = sourceNodeXid + '.' + childLen;
 
   const newParent = {
@@ -1069,7 +1080,13 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   if (!rootNode) return;
   const rootId = rootNode.uid;
   const children = graph.getComboChildren(`${rootId}-combo`);
-  const childLen = children && children.nodes ? children.nodes.length : 0;
+  let childLen = children && children.nodes ? children.nodes.length : 0;
+  if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
+    childLen -= 1;
+  }
+  if (childLen > 0 && children.nodes[childLen - 1].getID().startsWith("pagination-")) {
+    childLen -= 1;
+  }
 
   const newXid = rootId + '.' + childLen;
 
