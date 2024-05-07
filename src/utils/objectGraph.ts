@@ -237,8 +237,9 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
 
 // 添加子节点
-export function replaceChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
+export function replaceChildrenToGraphData(parent: { id: string, xid: string }, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
   const id = parent.id;
+  const rootId = store.getState().editor.rootNode?.uid;
 
   const sortData = data.sort((a, b) => {
     if (!a['x.id'] || !b['x.id']) return 1;
@@ -256,26 +257,44 @@ export function replaceChildrenToGraphData(parent: NodeItemData, data: CustomObj
 
   const currentNodes: any = currentData.nodes,
     removeIds: any = {};
-  const newNodes: NodeItemData[] = [];
+  let newNodes: NodeItemData[] = [];
+  if (id === rootId) {
+    newNodes = newNodes.concat(nodes);
+  }
+  const shoudldRemoveXidLen = parent.xid.split(".").length + 1;
   for (let i = 0; i < currentNodes.length; i++) {
     const node = currentNodes[i];
-    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
+    if ((!node.xid.startsWith(parent.xid) || node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
       newNodes.push(node);
     } else {
       Object.assign(removeIds, { [node.id]: node });
     }
     if (node.id === id) {
-      nodes.forEach((value) => {
-        newNodes.push(value);
-      });
+      newNodes = newNodes.concat(nodes);
     }
   }
 
+  let newCombos = combos.filter(function (combo: any) {
+    const parentId = combo.id.replace("-combo");
+    return !removeIds[parentId];
+  });
+
   const newEdges = edges.concat((currentData.edges || []).filter(({ source, target }: any) => !removeIds[source] && !removeIds[target]));
-  const newCombos = combos.concat((currentData.combos || []).filter(({ id }: any) => !removeIds[id.replace("-combo", "")]));
+  newCombos = combos.concat((currentData.combos || []));
 
   return {
-    nodes: JSON.parse(JSON.stringify(newNodes)),
+    nodes: JSON.parse(JSON.stringify(newNodes.sort((a, b) => {
+      if (!a['xid'] || !b['xid']) return 1;
+
+      const aIds: any = a['xid'].split('.'),
+        bIds: any = b['xid'].split('.');
+      for (let i = 1; i < aIds.length; i++) {
+        if (Number(aIds[i]) === Number(bIds[i])) continue;
+        return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
+      }
+
+      return 1;
+    }))),
     edges: JSON.parse(JSON.stringify(newEdges)),
     combos: JSON.parse(JSON.stringify(newCombos)),
   };

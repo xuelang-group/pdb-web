@@ -12,7 +12,8 @@ const api = {
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
   count: `${objectApiPrefix}/count`,
-  search: apiPrefix + '/search'
+  search: apiPrefix + '/search',
+  rearrange: `${objectApiPrefix}/children/rearrange`,
 };
 
 const commonParams = {
@@ -148,6 +149,17 @@ export const copyObject = (params, callback) => {
 // 移动对象
 export const moveObject = (params, callback) => {
   return axios.post(api['move'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
+export const rearrangeChildren = (params, callback) => {
+  return axios.post(api['rearrange'], {
     ...commonParams,
     ...params
   }).then(({ data }) => {

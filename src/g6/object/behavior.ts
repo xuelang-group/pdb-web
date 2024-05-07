@@ -3,7 +3,7 @@ import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } fr
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, setObject } from '@/actions/object';
+import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
@@ -140,9 +140,9 @@ export const G6OperateFunctions = {
           const comboLastNodes = parentCombo.getChildren().nodes || [],
             comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
           if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-            const { name } = comboLastNode.get('model');
+            const { name, parent, nextDisabled } = comboLastNode.get('model');
             const config = name.split('-');
-            G6OperateFunctions.changePagination(graph, comboLastNode, config[2]);
+            G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
           }
         }
       } else {
@@ -555,13 +555,14 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, node: Item, offset: number) {
-    const { parent, nextDisabled } = node.get('model');
+  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number) {
     if (nextDisabled) return;
     const params = { uid: parent };
 
     const limit = Number(PAGE_SIZE());
-    Object.assign(params, { first: limit, offset });
+    if (offset > 0) {
+      Object.assign(params, { first: limit, offset });
+    }
     store.dispatch(setGraphLoading(true));
     getChildren(params, (success: boolean, data: any) => {
       if (success) {
@@ -628,18 +629,20 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
-
-        _data.push({
-          uid: 'pagination-' + parent + `-${offset}-next`,
-          id: 'pagination-' + parent + `-${offset}-next`,
-          totalPage,
-          nextDisabled: (offset + data.length) >= childLen,
-          currentParent: { id }
-        });
+        if (offset > 0) {
+          const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
+          _data.push({
+            uid: 'pagination-' + parent + `-${offset}-next`,
+            id: 'pagination-' + parent + `-${offset}-next`,
+            totalPage,
+            nextDisabled: (offset + data.length) >= childLen,
+            currentParent: { id }
+          });
+        }
 
         const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
         let newData: any[] = [];
+        const xidLen = xid.split(".").length + 1;
         store.getState().object.data.forEach(function (obj: any) {
           if (obj['x.id'] === xid) {
             newData.push({
@@ -647,7 +650,7 @@ export const G6OperateFunctions = {
               collapsed
             });
             newData = newData.concat(_data);
-          } else {
+          } else if (!obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen) {
             newData.push(obj);
           }
         });
@@ -710,9 +713,10 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
   });
   const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : 0;
   const sourceNodeXIndex = sourceNodeModel.data.currentParent['x.parent|x.index'];
+  const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
     "uid": parentNodeModel.uid,
-    "x.parent|x.index": sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2),
+    "x.parent|x.index": newParentIndex,
   };
 
   store.dispatch(setGraphLoading(true));
@@ -724,103 +728,130 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const newObj = {
-      ...newData,
-      "x.id": newXid,
-      currentParent: {
-        ...newParent,
-        "x.name": parentNodeModel.name,
-        id: parentNodeId
+    const updateGraphData = function () {
+      const updateGraph = () => {
+        store.dispatch(setObjects(_data));
+
+        const graphData = convertAllData(_data);
+        graph.changeData(graphData);
+        graph.layout();
+        store.dispatch(setGraphLoading(false));
+
+        const item = graph.findById(newObj.id);
+        if (!item) return;
+        graph.emit('node:click', {
+          item: item,
+          shape: item.get('keyShape')
+        });
       }
-    };
+      const newObj = {
+        ...newData,
+        "x.id": newXid,
+        currentParent: {
+          ...newParent,
+          "x.name": parentNodeModel.name,
+          id: parentNodeId
+        }
+      };
 
-    const objectState = store.getState().object;
-    const { data } = objectState;
-    const _data: CustomObjectConfig[] = [];
+      const objectState = store.getState().object;
+      const { data } = objectState;
+      const _data: CustomObjectConfig[] = [];
 
-    let hasAdd = false, currentIndex = 0, modifyIdMaps: any = {};
-    let prevIsSource = false;
-    for (let i = 0; i < data.length; i++) {
-      const obj = data[i],
-        xid = obj['x.id'],
-        parentId = obj['currentParent'].id;
-      if (!parentId) return;
-      if (!hasAdd) {
-        if (prev) {
-          if (xid === sourceNodeXid) {
+      let hasAdd = false, currentIndex = 0, modifyIdMaps: any = {};
+      let prevIsSource = false;
+      for (let i = 0; i < data.length; i++) {
+        const obj = data[i],
+          xid = obj['x.id'],
+          parentId = obj['currentParent'].id;
+        if (!parentId) return;
+        if (!hasAdd) {
+          if (prev) {
+            if (xid === sourceNodeXid) {
+              _data.push(newObj);
+              hasAdd = true;
+              currentIndex++;
+            }
+          } else if (prevIsSource && !xid.startsWith(sourceNodeXid)) {
             _data.push(newObj);
             hasAdd = true;
             currentIndex++;
           }
-        } else if (prevIsSource && !xid.startsWith(sourceNodeXid)) {
-          _data.push(newObj);
-          hasAdd = true;
+        }
+        prevIsSource = xid.startsWith(sourceNodeXid);
+
+        if (parentId === parentNodeId) {
+          const newId = parentNodeXid + '.' + currentIndex;
+          if (newId !== xid) {
+            const newObj = {
+              ...obj,
+              'x.id': newId,
+            };
+
+            _data.push(newObj);
+            Object.assign(modifyIdMaps, {
+              [obj.id]: {
+                new: newId,
+                old: xid
+              }
+            });
+          } else {
+            _data.push(obj);
+          }
           currentIndex++;
+          continue;
         }
-      }
-      prevIsSource = xid.startsWith(sourceNodeXid);
 
-      if (parentId === parentNodeId) {
-        const newId = parentNodeXid + '.' + currentIndex;
-        if (newId !== xid) {
-          const newObj = {
-            ...obj,
-            'x.id': newId,
-          };
-
+        if (modifyIdMaps[parentId]) {
+          const modifyId = modifyIdMaps[parentId];
+          const newId = xid.replace(modifyId.old, modifyId.new);
+          const newObj = { ...obj, 'x.id': newId };
           _data.push(newObj);
-          Object.assign(modifyIdMaps, {
-            [obj.id]: {
-              new: newId,
-              old: xid
-            }
-          });
-        } else {
-          _data.push(obj);
+          continue;
         }
-        currentIndex++;
-        continue;
-      }
 
-      if (modifyIdMaps[parentId]) {
-        const modifyId = modifyIdMaps[parentId];
-        const newId = xid.replace(modifyId.old, modifyId.new);
-        const newObj = { ...obj, 'x.id': newId };
+        _data.push(obj);
+      }
+      if (!hasAdd) {
         _data.push(newObj);
-        continue;
       }
 
-      _data.push(obj);
-    }
-    if (!hasAdd) {
-      _data.push(newObj);
-    }
-    const updateGraph = () => {
-      store.dispatch(setObjects(_data));
+      updateGraph();
 
-      const graphData = convertAllData(_data);
-      graph.changeData(graphData);
-      graph.layout();
-      store.dispatch(setGraphLoading(false));
-
-      const item = graph.findById(newObj.id);
-      if (!item) return;
-      graph.emit('node:click', {
-        item: item,
-        shape: item.get('keyShape')
+      const parentCombo: any = graph.findById(parentNodeId + "-combo");
+      if (parentCombo) {
+        const comboLastNodes = parentCombo.getChildren().nodes || [],
+          comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+        if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
+          const { name, parent, nextDisabled } = comboLastNode.get('model');
+          const config = name.split('-');
+          G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+        }
+      }
+    }
+    if (Number.isInteger(newParentIndex)) {
+      updateGraphData();
+    } else {
+      rearrangeChildren({ uid: parentNodeModel.uid }, (success: boolean, response: any) => {
+        if (success) {
+          const parentCombo: any = graph.findById(parentNodeId + "-combo");
+          if (parentCombo) {
+            const comboLastNodes = parentCombo.getChildren().nodes || [],
+              comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+            if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
+              const { name, parent, nextDisabled } = comboLastNode.get('model');
+              const config = name.split('-');
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+            } else {
+              G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
+            }
+          } else {
+            G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
+          }
+        } else {
+          updateGraphData();
+        }
       });
-    }
-    updateGraph();
-
-    const parentCombo: any = graph.findById(parentNodeId + "-combo");
-    if (parentCombo) {
-      const comboLastNodes = parentCombo.getChildren().nodes || [],
-        comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
-      if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-        const { name } = comboLastNode.get('model');
-        const config = name.split('-');
-        G6OperateFunctions.changePagination(graph, comboLastNode, config[2]);
-      }
     }
   });
 }
@@ -1106,12 +1137,19 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   const dropPrevItemXid = dropItemIndex > 1 ? (rootId + "." + (dropItemIndex - 1)) : "";
   let currentIndex = dropItemIndex, dropItemDataIndex = -1;
   const newObjData = JSON.parse(JSON.stringify(data));
+  let newParentIndex: any;
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
 
     if (item['x.id'] === dropPrevItemXid) {
       const dropPrevItemXindex: number = Number(item.currentParent['x.parent|x.index']);
+      newParentIndex = dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x.parent|x.index']) - dropPrevItemXindex) / 2;
       Object.assign(newParent, {
-        "x.parent|x.index": dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x.parent|x.index']) - dropPrevItemXindex) / 2
+        "x.parent|x.index": newParentIndex
+      });
+    } else if (dropItemIndex === 0 && index === 0) {
+      newParentIndex = Number(dropItemModel.data.currentParent['x.parent|x.index']) / 2;
+      Object.assign(newParent, {
+        "x.parent|x.index": newParentIndex
       });
     }
 
@@ -1165,7 +1203,95 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
         graph.focusItem(item, true);
       }, 0);
     }
-    updateGraphData();
+    if (newParentIndex > 12288) {
+      updateGraphData();
+    } else {
+      const parentUid = newParent.uid;
+
+      rearrangeChildren({ uid: parentUid }, (success: boolean, response: any) => {
+        if (success) {
+          getChildren({ uid: parentUid }, (success: boolean, data: any) => {
+            if (success) {
+
+              const { toolbarConfig, currentGraphTab } = store.getState().editor;
+              const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+              let _data: any[] = [];
+
+              _data = _data.concat(data.map((value: any, index: number) => {
+                const newValue = JSON.parse(JSON.stringify(value)),
+                  parents = newValue['x.parent'],
+                  currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
+  
+                delete newValue['~x.parent'];
+                delete newValue['~x.parent|x.index'];
+  
+                // 获取对象关系列表数据
+                if (newValue['x.relation.name']) {
+                  const relations: any[] = [];
+                  newValue['x.relation.name'].forEach((relation: string) => {
+                    if (_.isArray(newValue[relation])) {
+                      newValue[relation].forEach((target: any) => {
+                        relations.push({
+                          relation,
+                          target
+                        });
+                      });
+                    } else {
+                      relations.push({
+                        relation,
+                        target: newValue[relation]
+                      });
+                    }
+                  });
+                  Object.assign(relationLines, {
+                    [newValue.uid]: relations
+                  });
+                }
+  
+                return {
+                  ...newValue,
+                  currentParent: {
+                    ...currentParent,
+                    id: rootId,
+                  },
+                  'x.id': rootId + '.' + index,
+                  id: newValue.uid
+                };
+              }));
+              
+              store.dispatch(setToolbarConfig({
+                key: 'main',
+                config: { relationLines }
+              }));
+              const curentGraphData: any = graph.save();
+
+              const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentUid, xid: parentUid }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+              let newData: any[] = _data;
+
+              store.getState().object.data.forEach(function (obj: any) {
+                if (obj['x.id'].split(".").length > 2) {
+                  newData.push(obj);
+                }
+              });
+              store.dispatch(setObjects(newData));
+              graph.changeData({
+                nodes,
+                edges,
+                combos
+              }, false);
+            } else {
+              notification.error({
+                message: '获取子实例失败：',
+                description: data.message || data.msg
+              });
+            }
+            store.dispatch(setGraphLoading(false));
+          });
+        } else {
+          updateGraphData();
+        }
+      });
+    }
   });
 }
 
@@ -1349,7 +1475,7 @@ export function registerBehavior() {
             const newId = dropItemIds.join('.');
 
             const ids = JSON.parse(JSON.stringify(dropItemIds)),
-            lastIndex = Number(ids.pop());
+              lastIndex = Number(ids.pop());
             ids.push(lastIndex - 1);
             const dropPrevXid = ids.join(".");
             const dropPrevNodeItem = graph.find("node", function (item, index) {
@@ -1561,7 +1687,7 @@ export function registerBehavior() {
           config[2] = currentOffset - limit;
         }
         Object.assign(params, { first: limit, offset: config[2] });
-        G6OperateFunctions.changePagination(graph, node, config[2]);
+        G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
         return;
       }
       (window as any).PDB_GRAPH = graph;
