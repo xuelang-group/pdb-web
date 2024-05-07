@@ -10,7 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
 import { useLocation, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
-import _ from 'lodash';
+import _, { isArray } from 'lodash';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
@@ -23,7 +23,7 @@ import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectGraphDataState, setObjectDetail } from '@/reducers/object';
-import { NodeItemData, setCurrentEditModel } from '@/reducers/editor';
+import { NodeItemData, setCurrentEditModel, setToolbarConfig } from '@/reducers/editor';
 import { TemplateGraphDataState, setGraphData } from '@/reducers/template';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -54,7 +54,10 @@ export default function Right(props: RightProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data);
+    relations = useSelector((state: StoreState) => state.relation.data),
+    toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
+
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -310,8 +313,36 @@ export default function Right(props: RightProps) {
     setAttrLoading(true);
     getObject({ uid }, (success: boolean, response: any) => {
       if (success && response && response[0]) {
-        setCurrentEditDefaultData(response[0]);
-        const filedValue = response[0];
+        const objectData = response[0];
+        const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+        // 获取对象关系列表数据
+        if (objectData['x.relation.name']) {
+          const relations: any[] = [];
+          objectData['x.relation.name'].forEach((relation: string) => {
+            if (isArray(objectData[relation])) {
+              objectData[relation].forEach((target: any) => {
+                relations.push({
+                  relation,
+                  target
+                });
+              });
+            } else {
+              relations.push({
+                relation,
+                target: objectData[relation]
+              });
+            }
+          });
+          Object.assign(relationLines, {
+            [objectData.uid]: relations
+          });
+        }
+        dispatch(setToolbarConfig({
+          key: currentGraphTab,
+          config: { relationLines }
+        }));
+        setCurrentEditDefaultData(objectData);
+        const filedValue = objectData;
         const attFormValue = {};
         attrs && attrs.forEach((attr: AttrConfig) => {
           const { datetimeFormat, type, name } = attr;
