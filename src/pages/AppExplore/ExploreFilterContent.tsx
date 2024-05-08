@@ -4,7 +4,7 @@ import 'dayjs/locale/zh-cn';
 import _ from "lodash";
 import { useEffect, useImperativeHandle, useState } from "react";
 
-import { commonOptionKeys, conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
+import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 
 interface ExploreFilterProps {
   originType: any
@@ -156,7 +156,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           {({ getFieldValue, setFieldValue }) => {
             const condition = getFieldValue(["condition", "value"]),
               attrType = _.get(editCondition, 'attr.data.type', '');
-            let conditionOptions = _.get(conditionOptionMap, attrType, commonOptionKeys);
+            let conditionOptions = _.get(conditionOptionMap, attrType, ['eq']);
             if (tagType === "relation") {
               conditionOptions = conditionOptions.filter((val: string) => val.indexOf("has") === -1)
             }

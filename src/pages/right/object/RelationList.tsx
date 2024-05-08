@@ -11,6 +11,7 @@ import './index.less';
 
 interface RelationListProps {
   source: NodeItemData
+  loading?: boolean
 }
 
 export default function RelationList(props: RelationListProps) {
@@ -29,13 +30,13 @@ export default function RelationList(props: RelationListProps) {
   const [targetList, setTargetList] = useState([]);
   const [targetMap, setTargetMap] = useState({} as any)
 
-  const [getTargetLoading, setTargetLoading] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
 
   useEffect(() => {
     if (!props.source) return;
     const _relations: any = [], _relationMap: any = {}, _targetList: any = [];
     const usedTargetMap: any = {};
+    setTableLoading(true);
     _.get(relationLines, props.source.uid, []).forEach((item: ObjectRelationConig) => {
       const { relation, target } = item;
       const relationId = _.get(relationMap[relation], 'r.type.name', ''),
@@ -68,15 +69,15 @@ export default function RelationList(props: RelationListProps) {
     setCurrentRelationMap(_relationMap);
     setTargetList(_targetList);
     form.setFieldValue('relation', _relations);
+    setTableLoading(false);
 
     return () => {
       form.resetFields();
       setRelations([]);
       setCurrentRelationMap({});
-      setRelationList([]);
       setTargetList([]);
     }
-  }, [props.source]);
+  }, [props.source, relationLines]);
 
   useEffect(() => {
     currentEditModel && updateRelationList(currentEditModel.data['x.type.name']);
@@ -391,7 +392,6 @@ export default function RelationList(props: RelationListProps) {
       {key === 'relation' ?
         <Select
           options={relationList}
-          loading={getTargetLoading}
           showSearch
           filterOption={(input, option: any) =>
           ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
@@ -401,7 +401,6 @@ export default function RelationList(props: RelationListProps) {
         </Select> :
         <Select
           options={targetList}
-          loading={getTargetLoading}
           showSearch
           filterOption={(input, option: any) =>
           ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
@@ -422,7 +421,7 @@ export default function RelationList(props: RelationListProps) {
       </div>
       <Form form={form}>
         <Table
-          loading={tableLoading}
+          loading={tableLoading || props.loading}
           columns={columns}
           dataSource={relations}
           pagination={false}

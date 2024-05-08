@@ -216,7 +216,7 @@ export const G6OperateFunctions = {
             }
           });
           store.dispatch(setToolbarConfig({
-            key: 'main',
+            key: currentGraphTab,
             config: { relationLines }
           }));
           graph.expandCombo(comboId);

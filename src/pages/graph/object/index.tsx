@@ -52,9 +52,7 @@ export default function Editor(props: EditorProps) {
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
-    typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
-    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
   const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -523,6 +521,7 @@ export default function Editor(props: EditorProps) {
       const { userId } = store.getState().app.systemInfo;
       let shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
+        if (_.isEmpty(blob)) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
         }).catch(err => { });
