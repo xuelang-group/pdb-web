@@ -36,6 +36,7 @@ import ConstraintList from '../constraint/ConstraintList';
 
 import './index.less';
 import SearchAround from '@/components/SearchAround';
+import store from '@/store';
 
 
 const { Option } = Select;
@@ -54,10 +55,7 @@ export default function Right(props: RightProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data),
-    toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
-    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
-
+    relations = useSelector((state: StoreState) => state.relation.data);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -314,6 +312,7 @@ export default function Right(props: RightProps) {
     getObject({ uid }, (success: boolean, response: any) => {
       if (success && response && response[0]) {
         const objectData = response[0];
+        const { toolbarConfig, currentGraphTab } = store.getState().editor;
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         // 获取对象关系列表数据
         if (objectData['x.relation.name']) {
@@ -1065,7 +1064,7 @@ export default function Right(props: RightProps) {
     rightPanelTabs.push({
       key: 'relation',
       label: '关系列表',
-      children: (<RelationList source={currentEditModel as NodeItemData} />)
+      children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
   } else if (props.route === 'template') {
     rightPanelTabs.push({
