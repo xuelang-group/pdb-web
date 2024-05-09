@@ -6,6 +6,7 @@ export interface Parent {
   id?: string
   'x.parent|x.index'?: number
   'x.name'?: string
+  'x.children'?: number
 }
 
 export interface ObjectConfig {

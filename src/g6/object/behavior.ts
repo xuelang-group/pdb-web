@@ -452,9 +452,9 @@ export const G6OperateFunctions = {
           store.dispatch(setObjects(newData));
           const graphData = convertAllData(newData);
           graph.changeData(graphData);
-          // graph.layout();
+          graph.layout();
           store.dispatch(setGraphLoading(false));
-          
+
           const limit = Number(PAGE_SIZE());
           const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
           if (prevParentCombo) {
@@ -553,7 +553,8 @@ export const G6OperateFunctions = {
     const newXid = parentXid + '.' + childLen,
       newParent = {
         uid: parentUid,
-        'x.parent|x.index': (childLen + 1) * 1024
+        'x.parent|x.index': (childLen + 1) * 1024,
+        'x.children': childLen + 1
       };
     store.dispatch(setGraphLoading(true));
     copyObject({
@@ -569,10 +570,9 @@ export const G6OperateFunctions = {
           "x.id": newXid,
           "x.parent": [newParent],
           currentParent: {
+            ...newParent,
             id: parentId,
-            uid: parentUid,
-            "x.name": parentName,
-            "x.parent|x.index": (childLen + 1) * 1024
+            "x.name": parentName
           },
           collapsed: true
         };
@@ -748,8 +748,8 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
     return item.getModel().xid === (parentNodeXid + '.' + (xIndex - 1));
   });
-  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : sourceNodeIndex - 1;
   const sourceNodeXIndex = sourceNodeModel.data.currentParent['x.parent|x.index'];
+  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : sourceNodeXIndex - 1;
   const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
     "uid": parentNodeModel.uid,
@@ -912,7 +912,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
 
 // 在节点尾部增加子节点
 function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, graph: Graph) {
-  const childLen = newObj.currentParent['x.parent|x.index'];
+  const childLen = newObj.currentParent['x.children'];
   if (childLen === undefined) return;
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
@@ -933,7 +933,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
     const parent = obj['currentParent'].id,
       xid = obj['x.id'];
 
-    if (!hasAdd && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x.id'] === sourceNodeXid)) {
+    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x.id'] === sourceNodeXid)) {
       _data.unshift(newObj);
       hasAdd = true;
     }
@@ -945,15 +945,23 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   for (let i = 0; i < curentGraphData.nodes.length; i++) {
     const node = curentGraphData.nodes[i];
     if (node.id === sourceNodeId) {
+      const childLen = Number(node.childLen) + 1;
       Object.assign(node, {
         ...node,
-        childLen: Number(node.childLen) + 1,
+        childLen: childLen,
         data: {
           ...node.data,
-          'x.children': Number(node.childLen) + 1,
+          'x.children': childLen,
           collapsed: false
         }
       });
+      store.dispatch(setObjectDetail({
+        uid: sourceNodeId,
+        options: {
+          'x.children': childLen,
+          collapsed: false
+        }
+      }));
       break;
     }
   }
@@ -964,8 +972,22 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
     edges,
     combos
   });
-
   graph.layout();
+
+  const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE());
+  if (sourceNodeCombo) {
+    const comboLastNodes = sourceNodeCombo.getChildren().nodes || [],
+      comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+    if (comboLastNode) {
+      let offset = 0;
+      const { name, parent } = comboLastNode.get('model');
+      if (comboLastNode.get("id").startsWith("pagination-" + sourceNodeId) && comboLastNode.get("id").endsWith("-next")) {
+        const config = name.split('-');
+        offset = Number(config[2]) - limit;
+      }
+      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+    }
+  }
 }
 
 // 增加根节点
@@ -1034,19 +1056,14 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
 
   const sourceNodeXid = sourceNode.xid;
 
-  const children = graph.getComboChildren(sourceNodeId + '-combo');
-  let childLen = children && children.nodes ? children.nodes.length : 0;
-  if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
-    childLen -= 1;
-  }
-  if (childLen > 0 && children.nodes[childLen - 1].getID().startsWith("pagination-")) {
-    childLen -= 1;
-  }
+  const childLen = sourceNode.data['x.children'];
+
   const newXid = sourceNodeXid + '.' + childLen;
 
   const newParent = {
     "uid": sourceNode.uid,
     "x.parent|x.index": (childLen + 1) * 1024,
+    "x.children": childLen + 1
   };
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
@@ -1056,24 +1073,6 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const parentNode = graph.findById(sourceNodeId),
-      parentNodeModel: any = parentNode.getModel();
-    parentNode.update({
-      childLen: childLen + 1,
-      data: {
-        ...(parentNodeModel?.data),
-        'x.children': childLen + 1,
-        collapsed: false
-      }
-    });
-    store.dispatch(setObjectDetail({
-      uid: sourceNodeId,
-      options: {
-        'x.children': childLen + 1,
-        collapsed: false
-      }
-    }));
-
     const id = newData.uid;
     const newObj = {
       ...newData,
@@ -1544,8 +1543,8 @@ export function registerBehavior() {
             const dropPrevNodeItem = graph.find("node", function (item, index) {
               return item.getModel().xid === dropPrevXid;
             });
-            const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : 0;
             const droNodeXIndex = dropItemModel.data.currentParent['x.parent|x.index'];
+            const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : droNodeXIndex - 1;
             const newParent = {
               uid: parentUid,
               'x.parent|x.index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2),
