@@ -1,5 +1,5 @@
 import G6, { Edge } from '@antv/g6';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useResizeDetector } from 'react-resize-detector';
@@ -18,6 +18,7 @@ import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import { Spin } from 'antd';
+import { setTScreenShootTimestamp } from '@/reducers/editor';
 
 let graph: any;
 
@@ -29,12 +30,14 @@ export default function Editor(props: EditorProps) {
   const graphRef = useRef(null),
     routerParams = useParams(),
     navigate = useNavigate(),
-    location = useLocation();
+    location = useLocation(),
+    dispatch = useDispatch();
   const userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data),
     typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
-    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading),
+    screenShootTimestamp = useSelector((state: StoreState) => state.editor.screenShootTimestamp);
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -57,9 +60,10 @@ export default function Editor(props: EditorProps) {
       if (!id || !userId) return;
       const shotPath = 'studio/' + userId + '/pdb/' + id + '/template_screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        if (_.isEmpty(blob)) return;
+        if (!blob) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
+          dispatch(setTScreenShootTimestamp(new Date().getTime()));
         }).catch(err => { });
       });
     }
@@ -230,7 +234,7 @@ export default function Editor(props: EditorProps) {
         {location.pathname.endsWith("/template") &&
           <div className='pdb-object-switch-img'>
             <img
-              src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/screen_shot.png') + `&t=${Math.random()}`}
+              src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/screen_shot.png') + `&t=${screenShootTimestamp}`}
               onError={(event: any) => {
                 if (event.target.src !== appDefaultScreenshotPath) {
                   event.target.src = appDefaultScreenshotPath;

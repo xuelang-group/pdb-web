@@ -17,7 +17,7 @@ import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading } from '@/reducers/editor';
+import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading, setScreenShootTimestamp } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import TemplateGraph from '@/pages/graph/template/index';
@@ -52,7 +52,8 @@ export default function Editor(props: EditorProps) {
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
+    templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -521,9 +522,10 @@ export default function Editor(props: EditorProps) {
       const { userId } = store.getState().app.systemInfo;
       let shotPath = 'studio/' + userId + '/pdb/' + id + '/screen_shot.png';
       (graphRef.current as any).childNodes[0].toBlob(function (blob: any) {
-        if (_.isEmpty(blob)) return;
+        if (!blob) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
+          dispatch(setScreenShootTimestamp(new Date().getTime()));
         }).catch(err => { });
       });
     }
@@ -670,7 +672,7 @@ export default function Editor(props: EditorProps) {
                 {!location.pathname.endsWith("/template") &&
                   <div className='pdb-object-switch-img'>
                     <img
-                      src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') + `&t=${Math.random()}`}
+                      src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') + `&t=${templateScreenShootTimestamp}`}
                       onError={(event: any) => {
                         if (event.target.src !== appDefaultScreenshotPath) {
                           event.target.src = appDefaultScreenshotPath;
