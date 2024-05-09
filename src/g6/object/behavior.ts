@@ -294,15 +294,14 @@ export const G6OperateFunctions = {
     if (!rootNode) return;
     const rootId = rootNode.uid;
 
-    let dragItemParentUid: any, dragItemParentName = '';
+    let dragItemParentUid: any;
     if (dragItemParent === rootId) {
       dragItemParentUid = rootId;
-      dragItemParentName = 'root';
     } else {
       let dragItemParentModel = graph.findById(dragItemParent).get('model');
       dragItemParentUid = dragItemParentModel.uid;
-      dragItemParentName = dragItemParentModel.name;
     }
+
     const lastChangeTime = new Date();
 
     let dragItems: CustomObjectConfig[] = [];
@@ -389,7 +388,7 @@ export const G6OperateFunctions = {
         }
       }
 
-      if (value.id === dropItemId || xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
+      if (value.id === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
       }
     });
@@ -434,6 +433,7 @@ export const G6OperateFunctions = {
             store.dispatch(setGraphLoading(false));
             return;
           }
+
           const newDropItemXid = (modifyIdMaps[dropItemId]?.new || dropItemXid);
           let dropItemIndex = -1;
           for (let i = newData.length - 1; i >= 0; i--) {
@@ -452,13 +452,44 @@ export const G6OperateFunctions = {
           store.dispatch(setObjects(newData));
           const graphData = convertAllData(newData);
           graph.changeData(graphData);
-          graph.layout();
+          // graph.layout();
           store.dispatch(setGraphLoading(false));
+          
+          const limit = Number(PAGE_SIZE());
+          const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
+          if (prevParentCombo) {
+            const comboLastNodes = prevParentCombo.getChildren().nodes || [],
+              comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+            if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
+              const { name, parent } = comboLastNode.get('model');
+              const config = name.split('-');
+              let offset = Number(config[2]) - limit;
+              if (comboLastNodes.length === 2 && comboLastNodes[0].get("id").endsWith("-prev")) {
+                offset -= limit;
+              }
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+            }
+          }
+
+          const currentParentCombo: any = graph.findById(dropItemId + "-combo");
+          if (currentParentCombo) {
+            const comboLastNodes = currentParentCombo.getChildren().nodes || [],
+              comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+            if (comboLastNode) {
+              const { name, parent } = comboLastNode.get('model');
+              let offset = 0;
+              if (comboLastNode.get("id").startsWith("pagination-" + dropItemId) && comboLastNode.get("id").endsWith("-next")) {
+                const config = name.split('-');
+                offset = Number(config[2]) - limit;
+              }
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+            }
+          }
 
           const currentEditModel = store.getState().editor.currentEditModel;
           if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
             const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
-            store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
+            graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
           }
         });
       } else {
@@ -1474,6 +1505,15 @@ export function registerBehavior() {
           Object.assign(new_value, {
             'x.last_change': lastChangeTime
           });
+          if (value.uid === dragItemParentUid) {
+            Object.assign(new_value, {
+              "x.children": new_value["x.children"] - 1
+            });
+          } else if (value.uid === dropItemParentUid) {
+            Object.assign(new_value, {
+              "x.children": new_value["x.children"] + 1
+            });
+          }
           const xid = value['x.id'],
             parentId = value['currentParent'].id;
           if (parentId !== rootId && !graph.findById(parentId)) {
@@ -1596,7 +1636,40 @@ export function registerBehavior() {
                 const currentEditModel = store.getState().editor.currentEditModel;
                 if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
                   const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
-                  store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
+                  graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
+                }
+
+                const limit = Number(PAGE_SIZE());
+                if (dragItemParentUid !== dropItemParentUid) {
+                  const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
+                  if (prevParentCombo) {
+                    const comboLastNodes = prevParentCombo.getChildren().nodes || [],
+                      comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+                    if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
+                      const { name, parent } = comboLastNode.get('model');
+                      const config = name.split('-');
+                      let offset = Number(config[2]) - limit;
+                      if (comboLastNodes.length === 2 && comboLastNodes[0].get("id").endsWith("-prev")) {
+                        offset -= limit;
+                      }
+                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+                    }
+                  }
+
+                  const currentParentCombo: any = graph.findById(dropItemParentUid + "-combo");
+                  if (currentParentCombo) {
+                    const comboLastNodes = currentParentCombo.getChildren().nodes || [],
+                      comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+                    if (comboLastNode) {
+                      const { name, parent } = comboLastNode.get('model');
+                      let offset = 0;
+                      if (comboLastNode.get("id").startsWith("pagination-" + dropItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
+                        const config = name.split('-');
+                        offset = Number(config[2]) - limit;
+                      }
+                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+                    }
+                  }
                 }
               } else {
                 notification.error({
