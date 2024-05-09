@@ -283,18 +283,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   newCombos = combos.concat((currentData.combos || []));
 
   return {
-    nodes: JSON.parse(JSON.stringify(newNodes.sort((a, b) => {
-      if (!a['xid'] || !b['xid']) return 1;
-
-      const aIds: any = a['xid'].split('.'),
-        bIds: any = b['xid'].split('.');
-      for (let i = 1; i < aIds.length; i++) {
-        if (Number(aIds[i]) === Number(bIds[i])) continue;
-        return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
-      }
-
-      return 1;
-    }))),
+    nodes: JSON.parse(JSON.stringify(newNodes)),
     edges: JSON.parse(JSON.stringify(newEdges)),
     combos: JSON.parse(JSON.stringify(newCombos)),
   };

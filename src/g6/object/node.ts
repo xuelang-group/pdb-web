@@ -497,7 +497,7 @@ export function registerNode() {
   G6.registerNode('paginationBtn', {
     afterDraw(cfg: any, group: any, rst) {
       const iconTextClassName = 'icon-text';
-      const iconAttrs = {...cfg.icon};
+      const iconAttrs = { ...cfg.icon };
       if (cfg.nextDisabled) {
         Object.assign(iconAttrs, {
           fill: "#C2C7CC",
@@ -515,7 +515,7 @@ export function registerNode() {
         const currentOffset = Number(cfg.id.split("-")[2]);
         const totalnTextShape = group.addShape('text', {
           attrs: {
-            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE()) + 1) + " / " + cfg.totalPage,
+            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage,
             fill: '#595959',
             x: 15,
             y: -2,
@@ -528,13 +528,23 @@ export function registerNode() {
     },
     setState(name, value, item: any) {
       const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
-      const {nextDisabled} = item.getModel();
+      const { nextDisabled } = item.getModel();
       if (name === "active") {
-        if (value && !nextDisabled ) {
+        if (value && !nextDisabled) {
           iconText.attr({ fill: "#0084FF" });
         } else {
           iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
         }
+      }
+    },
+    afterUpdate(cfg: any, item: any) {
+      const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
+      const { nextDisabled, totalPage } = cfg;
+      iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
+      if (totalPage) {
+        const totalText = item.getContainer().findAll((ele: any) => ele.get('name') === 'total-text')[0];
+        const currentOffset = Number(cfg.id.split("-")[2]);
+        totalText.attr({ text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage });
       }
     }
   }, 'rect');

@@ -68,7 +68,7 @@ export const G6OperateFunctions = {
             val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
           }
           const shouldRemove = !removeIds.hasOwnProperty(val.id || val.uid);
-          if (val.currentParent.id === parentNodeId && shouldRemove) {
+          if (val.currentParent.id === parentNodeId && shouldRemove && val['x.id']) {
             const xid = val['x.id'].split(".");
             xid.pop();
             xid.push(newIndex);
@@ -224,8 +224,8 @@ export const G6OperateFunctions = {
           if (params.hasOwnProperty("offset")) {
             const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
             _data.push({
-              uid: 'pagination-' + model.uid + '-0-next',
-              id: 'pagination-' + model.uid + '-0-next',
+              uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
+              id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
               totalPage,
               currentParent: { id }
             });
@@ -559,9 +559,10 @@ export const G6OperateFunctions = {
     if (nextDisabled) return;
     const params = { uid: parent };
 
-    const limit = Number(PAGE_SIZE());
-    if (offset > 0) {
-      Object.assign(params, { first: limit, offset });
+    const limit = Number(PAGE_SIZE()),
+    _offset = Number(offset);
+    if (_offset >= 0) {
+      Object.assign(params, { first: limit, offset: _offset });
     }
     store.dispatch(setGraphLoading(true));
     getChildren(params, (success: boolean, data: any) => {
@@ -574,10 +575,10 @@ export const G6OperateFunctions = {
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         let _data: any[] = [];
-        if (offset > 0) {
+        if (_offset > 0) {
           _data.push({
-            uid: 'pagination-' + parent + `-${offset}-prev`,
-            id: 'pagination-' + parent + `-${offset}-prev`,
+            uid: 'pagination-' + parent + `-${_offset - limit}-prev`,
+            id: 'pagination-' + parent + `-${_offset - limit}-prev`,
             currentParent: { id }
           });
         }
@@ -629,13 +630,13 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        if (offset > 0) {
+        if (_offset >= 0) {
           const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
           _data.push({
-            uid: 'pagination-' + parent + `-${offset}-next`,
-            id: 'pagination-' + parent + `-${offset}-next`,
+            uid: 'pagination-' + parent + `-${_offset + limit}-next`,
+            id: 'pagination-' + parent + `-${_offset + limit}-next`,
             totalPage,
-            nextDisabled: (offset + data.length) >= childLen,
+            nextDisabled: (_offset + data.length) >= childLen,
             currentParent: { id }
           });
         }
@@ -650,7 +651,7 @@ export const G6OperateFunctions = {
               collapsed
             });
             newData = newData.concat(_data);
-          } else if (!obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen) {
+          } else if (!obj['x.id'] || !obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen) {
             newData.push(obj);
           }
         });
@@ -711,7 +712,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
     return item.getModel().xid === (parentNodeXid + '.' + (xIndex - 1));
   });
-  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : 0;
+  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : sourceNodeIndex - 1;
   const sourceNodeXIndex = sourceNodeModel.data.currentParent['x.parent|x.index'];
   const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
@@ -728,6 +729,23 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
+    const childLen = parentNodeModel.data['x.children'];
+    parentNode.update({
+      childLen: childLen + 1,
+      data: {
+        ...(parentNodeModel?.data),
+        'x.children': childLen + 1,
+        collapsed: false
+      }
+    });
+    store.dispatch(setObjectDetail({
+      uid: parentNodeId,
+      options: {
+        'x.children': childLen + 1,
+        collapsed: false
+      }
+    }));
+
     const updateGraphData = function () {
       const updateGraph = () => {
         store.dispatch(setObjects(_data));
@@ -759,7 +777,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
       const _data: CustomObjectConfig[] = [];
 
       let hasAdd = false, currentIndex = 0, modifyIdMaps: any = {};
-      let prevIsSource = false;
+      let prevIsSource: any = false;
       for (let i = 0; i < data.length; i++) {
         const obj = data[i],
           xid = obj['x.id'],
@@ -772,13 +790,13 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
               hasAdd = true;
               currentIndex++;
             }
-          } else if (prevIsSource && !xid.startsWith(sourceNodeXid)) {
+          } else if (prevIsSource && xid && !xid.startsWith(sourceNodeXid)) {
             _data.push(newObj);
             hasAdd = true;
             currentIndex++;
           }
         }
-        prevIsSource = xid.startsWith(sourceNodeXid);
+        prevIsSource = xid && xid.startsWith(sourceNodeXid);
 
         if (parentId === parentNodeId) {
           const newId = parentNodeXid + '.' + currentIndex;
@@ -829,7 +847,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
         }
       }
     }
-    if (Number.isInteger(newParentIndex)) {
+    if (Number.isInteger(newParentIndex) && newParentIndex < 1024) {
       updateGraphData();
     } else {
       rearrangeChildren({ uid: parentNodeModel.uid }, (success: boolean, response: any) => {
@@ -839,9 +857,9 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
             const comboLastNodes = parentCombo.getChildren().nodes || [],
               comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-              const { name, parent, nextDisabled } = comboLastNode.get('model');
+              const { name, parent } = comboLastNode.get('model');
               const config = name.split('-');
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE()));
             } else {
               G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
             }
@@ -1221,10 +1239,10 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                 const newValue = JSON.parse(JSON.stringify(value)),
                   parents = newValue['x.parent'],
                   currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
-  
+
                 delete newValue['~x.parent'];
                 delete newValue['~x.parent|x.index'];
-  
+
                 // 获取对象关系列表数据
                 if (newValue['x.relation.name']) {
                   const relations: any[] = [];
@@ -1247,7 +1265,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                     [newValue.uid]: relations
                   });
                 }
-  
+
                 return {
                   ...newValue,
                   currentParent: {
@@ -1258,7 +1276,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                   id: newValue.uid
                 };
               }));
-              
+
               store.dispatch(setToolbarConfig({
                 key: 'main',
                 config: { relationLines }
@@ -1269,7 +1287,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               let newData: any[] = _data;
 
               store.getState().object.data.forEach(function (obj: any) {
-                if (obj['x.id'].split(".").length > 2) {
+                if (!obj['x.id'] || obj['x.id'].split(".").length > 2) {
                   newData.push(obj);
                 }
               });
@@ -1675,17 +1693,9 @@ export function registerBehavior() {
         const { name, parent, nextDisabled } = node.get('model');
         if (nextDisabled) return;
         const config = name.split('-'),
-          btnType = config[3],
-          currentOffset = Number(config[2]),
           params = { uid: parent };
 
         const limit = Number(PAGE_SIZE());
-
-        if (btnType === 'next') {
-          config[2] = currentOffset + limit;
-        } else {
-          config[2] = currentOffset - limit;
-        }
         Object.assign(params, { first: limit, offset: config[2] });
         G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
         return;
