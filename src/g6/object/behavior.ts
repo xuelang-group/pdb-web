@@ -141,8 +141,13 @@ export const G6OperateFunctions = {
             comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
           if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
             const { name, parent, nextDisabled } = comboLastNode.get('model');
-            const config = name.split('-');
-            G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+            const config = name.split('-'), limit = Number(PAGE_SIZE());
+            let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
+            if (comboLastNodes.length === 2 && comboLastNodes[0].get("id").endsWith("-prev")) {
+              offset -= limit;
+              _nextDisabled = false;
+            }
+            G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset);
           }
         }
       } else {
@@ -560,7 +565,7 @@ export const G6OperateFunctions = {
     const params = { uid: parent };
 
     const limit = Number(PAGE_SIZE()),
-    _offset = Number(offset);
+      _offset = Number(offset);
     if (_offset >= 0) {
       Object.assign(params, { first: limit, offset: _offset });
     }
@@ -651,7 +656,7 @@ export const G6OperateFunctions = {
               collapsed
             });
             newData = newData.concat(_data);
-          } else if (!obj['x.id'] || !obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen) {
+          } else if (!obj['x.id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x.id'] && (!obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen)) {
             newData.push(obj);
           }
         });
