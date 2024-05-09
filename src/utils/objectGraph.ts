@@ -275,7 +275,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   }
 
   let newCombos = combos.filter(function (combo: any) {
-    const parentId = combo.id.replace("-combo");
+    const parentId = combo.id.replace("-combo", "");
     return !removeIds[parentId];
   });
 

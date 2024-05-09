@@ -635,7 +635,7 @@ export const G6OperateFunctions = {
         graph.expandCombo(comboId);
         const curentGraphData: any = graph.save();
 
-        if (_offset >= 0) {
+        if (_offset >= 0 && childLen > limit) {
           const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
           _data.push({
             uid: 'pagination-' + parent + `-${_offset + limit}-next`,
@@ -848,11 +848,11 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
           const { name, parent, nextDisabled } = comboLastNode.get('model');
           const config = name.split('-');
-          G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2]);
         }
       }
     }
-    if (Number.isInteger(newParentIndex) && newParentIndex < 1024) {
+    if (Number.isInteger(newParentIndex)) {
       updateGraphData();
     } else {
       rearrangeChildren({ uid: parentNodeModel.uid }, (success: boolean, response: any) => {
@@ -1178,11 +1178,11 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
     if (dropItemDataIndex === -1 && item['x.id'] === dropItemXid) dropItemDataIndex = index;
 
-    if (item['x.id'].startsWith(rootId + '.' + (currentIndex + 1))) {
+    if (item['x.id'] && item['x.id'].startsWith(rootId + '.' + (currentIndex + 1))) {
       currentIndex += 1;
     }
 
-    if (item['x.id'].startsWith(rootId + '.' + currentIndex)) {
+    if (item['x.id'] && item['x.id'].startsWith(rootId + '.' + currentIndex)) {
       const newIndex = currentIndex + 1;
       item['x.id'] = item['x.id'].replace(rootId + '.' + currentIndex, rootId + '.' + newIndex);
     }
@@ -1226,7 +1226,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
         graph.focusItem(item, true);
       }, 0);
     }
-    if (newParentIndex > 12288) {
+    if (Number.isInteger(newParentIndex)) {
       updateGraphData();
     } else {
       const parentUid = newParent.uid;
