@@ -105,7 +105,7 @@ export default function AppExplore() {
 
   // 文本框值变化时回调	
   const handleSearch = function (value: any, index: number) {
-    if (index < 0) return;
+    if (index < 0 || !searchTags[index]) return;
     setFilterLoading(true);
 
     let prevSearchTag = null, prevSearchTagType = "";
@@ -649,6 +649,17 @@ export default function AppExplore() {
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
       />
+      <Tooltip title="清空">
+        <i
+          className="spicon icon-shibai"
+          onClick={event => {
+            event.stopPropagation();
+            setSearchTags([[]]);
+            setSearchTagMap([{}]);
+            setCurrentFocusIndex(0);
+          }}
+        ></i>
+      </Tooltip>
       {/* <Tooltip title="复制接口">
         <i
           className="spicon icon-fuzhi"
