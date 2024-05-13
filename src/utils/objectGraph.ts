@@ -280,10 +280,14 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   });
 
   const newEdges = edges.concat((currentData.edges || []).filter(({ source, target }: any) => !removeIds[source] && !removeIds[target]));
-  newCombos = combos.concat((currentData.combos || []).filter(({ id }: any) => {
-    const parentId = id.replace("-combo", "");
-    return !removeIds[parentId];
-  }));
+  const prevCombos: any[] = [];
+  (currentData.combos || []).map(({ id, parentId, collapsed }: any) => {
+    const _id = id.replace("-combo", "");
+    if (!removeIds[_id]) {
+      prevCombos.push({ id, parentId, collapsed });
+    }
+  });
+  newCombos = combos.concat(prevCombos);
 
   return {
     nodes: JSON.parse(JSON.stringify(newNodes)),
