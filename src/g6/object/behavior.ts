@@ -401,7 +401,7 @@ export const G6OperateFunctions = {
         value['x.parent'] = value['x.parent'].filter(val => val.uid !== dragItemParentUid);
         const newParent = {
           uid: dropItemModel.uid,
-          'x.parent|x.index': (dropItemLastChildrenIndex + 1) * 1024
+          'x.parent|x.index': (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024
         }
         value['x.parent'].push(newParent);
         Object.assign(value, {
@@ -678,20 +678,59 @@ export const G6OperateFunctions = {
           });
         }
 
-        const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
         let newData: any[] = [];
         const xidLen = xid.split(".").length + 1;
-        store.getState().object.data.forEach(function (obj: any) {
+        let concatIndex = -1, removeMap:any = {}, removeChildren: any[] = [];
+        const allData = store.getState().object.data;
+        allData.forEach(function (obj: any, index: number) {
           if (obj['x.id'] === xid) {
             newData.push({
               ...obj,
               collapsed
             });
-            newData = newData.concat(_data);
-          } else if (!obj['x.id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x.id'] && (!obj['x.id'].startsWith(xid) || obj['x.id'].split(".").length > xidLen)) {
+            // newData = newData.concat(_data);
+            concatIndex = newData.length;
+          }
+          if (!obj['x.id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x.id'] && !obj['x.id'].startsWith(xid)) {
             newData.push(obj);
+          } else {
+            if (obj['x.id'] && obj['x.id'].startsWith(xid) && obj['x.id'].split(".").length > xidLen) {
+              removeChildren.push(obj);
+            }
+            Object.assign(removeMap, { [obj['x.id']]: obj.collapsed });
           }
         });
+        let concatData = [];
+        _data = _data.map(item => ({...item, collapsed: removeMap[item['x.id']]}));
+
+        if (removeChildren.length > 0) {
+          let newRemoveChildren: any[] = [];
+          _data.forEach(function(val) {
+            const nodeXid = val['x.id'];
+            concatData.push(val);
+            if (nodeXid) {
+              for (let i = 0; i < removeChildren.length; i++) {
+                const item = removeChildren[i];
+                const itemXid = item['x.id'];
+                if (itemXid && itemXid.startsWith(nodeXid)) {
+                  concatData.push(item);
+                } else {
+                  newRemoveChildren.push(item);
+                }
+              }
+              removeChildren = JSON.parse(JSON.stringify(newRemoveChildren));
+              newRemoveChildren = [];
+            }
+          });
+        } else  {
+          concatData = _data;
+        }
+
+        const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+        
+        if (concatIndex > -1) {
+          newData.splice(concatIndex, 0, ...concatData);
+        }
         store.dispatch(setObjects(newData));
         graph.changeData({
           nodes,

@@ -1,7 +1,7 @@
 import { nodeStateStyle } from '@/g6/type/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData, Item } from '@antv/g6';
-import _, { isArray } from 'lodash';
+import _, { isArray, remove } from 'lodash';
 import { NodeItemData } from '../reducers/editor';
 import { CustomObjectConfig } from '../reducers/object';
 import { defaultNodeColor, getIcon, getTextColor } from './common';
@@ -137,7 +137,6 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       name,
       data: item,
       childLen,
-      collapsed,
       icon: iconKey,
       isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.name'] || ''),
       style: {
@@ -262,22 +261,51 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
     newNodes = newNodes.concat(nodes);
   }
   const shoudldRemoveXidLen = parent.xid.split(".").length + 1;
+  let removeIdChildren: any[] = [], concatIndex = -1;
   for (let i = 0; i < currentNodes.length; i++) {
     const node = currentNodes[i];
-    if ((!node.xid.startsWith(parent.xid) || node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
       newNodes.push(node);
+    } else if (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen) {
+      removeIdChildren.push(node);
     } else {
       Object.assign(removeIds, { [node.id]: node });
     }
     if (node.id === id) {
-      newNodes = newNodes.concat(nodes);
+      concatIndex = newNodes.length;
     }
   }
 
-  let newCombos = combos.filter(function (combo: any) {
-    const parentId = combo.id.replace("-combo", "");
-    return !removeIds[parentId];
-  });
+  let concatNodes: NodeItemData[] = [];
+  if (removeIdChildren.length > 0) {
+    let newRemoveIdChildren: any[] = [];
+    nodes.forEach(function (node) {
+      const nodeXid = node.xid;
+      concatNodes.push(node);
+      if (nodeXid) {
+        for (let i = 0; i < removeIdChildren.length; i++) {
+          const item = removeIdChildren[i];
+          const itemXid = item.xid;
+          if (itemXid && itemXid.startsWith(nodeXid)) {
+            concatNodes.push(item);
+            if (nodeXid.split(".").length + 1 === itemXid.split(".").length) {
+              edges.push({ source: node.id, target: item.id });
+            }
+          } else {
+            newRemoveIdChildren.push(item);
+          }
+        }
+        removeIdChildren = JSON.parse(JSON.stringify(newRemoveIdChildren));
+        newRemoveIdChildren = [];
+      }
+    });
+  } else {
+    concatNodes = nodes;
+  }
+
+  if (concatIndex > -1) {
+    newNodes.splice(concatIndex, 0, ...concatNodes);
+  }
 
   const newEdges = edges.concat((currentData.edges || []).filter(({ source, target }: any) => !removeIds[source] && !removeIds[target]));
   const prevCombos: any[] = [];
@@ -287,7 +315,17 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
       prevCombos.push({ id, parentId, collapsed });
     }
   });
-  newCombos = combos.concat(prevCombos);
+
+  const newCombos = combos.map(function(data) {
+    const _id = data.id.replace("-combo", "");
+    if (removeIds[_id]) {
+      return {
+        ...data,
+        collapsed: _.get(removeIds[_id], "data.collapsed", true)
+      }
+    }
+    return data;
+  }).concat(prevCombos);
 
   return {
     nodes: JSON.parse(JSON.stringify(newNodes)),
