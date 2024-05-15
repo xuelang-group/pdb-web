@@ -242,7 +242,7 @@ export function registerNode() {
         leftRect = group?.find(child => child.get('name') === 'left-rect');
       if (topRect) {
         topRect.on('dragenter', () => {
-          topRect.attr('fill', '#E8F3FF');
+          topRect.attr('fill', '#0084FF');
         });
         topRect.on('dragleave', () => {
           topRect.attr('fill', 'transparent');
@@ -255,7 +255,7 @@ export function registerNode() {
 
       if (leftRect) {
         leftRect.on('dragenter', () => {
-          leftRect.attr('fill', '#E8F3FF');
+          leftRect.attr('fill', '#0084FF');
         });
         leftRect.on('dragleave', () => {
           leftRect.attr('fill', 'transparent');

@@ -305,7 +305,7 @@ export const G6OperateFunctions = {
     const lastChangeTime = new Date();
 
     let dragItems: CustomObjectConfig[] = [];
-    let newData: CustomObjectConfig[] = [], sameParentWithDrag = 0, dropItemLastChildrenIndex = -1, modifyIdMaps: any = {};
+    let newData: CustomObjectConfig[] = [], sameParentWithDrag = 0, dropItemLastChildrenIndex = -1, modifyIdMaps: any = {}, dropItemLastChildrenXIndex: any = 0;
 
     let shouldUpdateObject: ObjectConfig[] = [];
 
@@ -390,6 +390,7 @@ export const G6OperateFunctions = {
 
       if (value.id === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
+        dropItemLastChildrenXIndex = value?.currentParent['x.parent|x.index'];
       }
     });
 
@@ -1656,7 +1657,7 @@ export function registerBehavior() {
                   }
 
                   const currentParentCombo: any = graph.findById(dropItemParentUid + "-combo");
-                  if (currentParentCombo) {
+                  if (currentParentCombo && dropItemParentUid !== rootId) {
                     const comboLastNodes = currentParentCombo.getChildren().nodes || [],
                       comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
                     if (comboLastNode) {
