@@ -88,18 +88,6 @@ export const G6OperateFunctions = {
             if (lastRootNodeIndex > 0) {
               lastRootNodeIndex -= 1;
             }
-            // _data.forEach((val: any) => {
-            //   if (!val.id.startsWith("pagination-") && val.currentParent.uid === deleteModel.parent &&
-            //     val.currentParent['x.parent|x.index'] > deleteModel?.data.currentParent['x.parent|x.index']
-            //   ) {
-            //     val.currentParent['x.parent|x.index'] -= 1;
-            //     val['x.parent'][0]['x.parent|x.index'] -= 1;
-            //     shouldUpdateObject.push({
-            //       uid: val.uid,
-            //       'x.parent': val['x.parent']
-            //     });
-            //   }
-            // });
           }
           response.map((item: ObjectConfig) => {
             const newXid = rootId + '.' + lastRootNodeIndex;
@@ -129,12 +117,9 @@ export const G6OperateFunctions = {
             setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => { });
           }
         }
-        store.dispatch(setObjects(_data));
-        store.dispatch(setCurrentEditModel(null));
-        const graphData = convertAllData(_data);
-        graph.changeData(graphData);
-        graph.layout();
 
+        let shouldUpdate = true;
+        const graphData = convertAllData(_data);
         const parentCombo: any = graph.findById(parentNodeId + "-combo");
         if (parentCombo) {
           const comboLastNodes = parentCombo.getChildren().nodes || [],
@@ -147,8 +132,15 @@ export const G6OperateFunctions = {
               offset -= limit;
               _nextDisabled = false;
             }
-            G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset);
+            G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset, graphData, _data);
+            shouldUpdate = false;
           }
+        }
+        store.dispatch(setCurrentEditModel(null));
+        if (shouldUpdate) {
+          store.dispatch(setObjects(_data));
+          graph.changeData(graphData);
+          graph.layout();
         }
       } else {
         notification.error({
@@ -345,7 +337,7 @@ export const G6OperateFunctions = {
           newData.push(obj);
           sameParentWithDrag++;
         } else {
-          if (modifyIdMaps[parent]) {
+          if (modifyIdMaps[parent] && xid) {
             const newId = xid.replace(modifyIdMaps[parent].old, modifyIdMaps[parent].new);
             const data = {
               ...value,
@@ -450,12 +442,10 @@ export const G6OperateFunctions = {
             newData = newData.concat(dragItems);
           }
 
-          store.dispatch(setObjects(newData));
-          const graphData = convertAllData(newData);
-          graph.changeData(graphData);
-          graph.layout();
-          store.dispatch(setGraphLoading(false));
 
+          const graphData = convertAllData(newData);
+
+          let shouldUpdate = true;
           const limit = Number(PAGE_SIZE());
           const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
           if (prevParentCombo) {
@@ -468,7 +458,8 @@ export const G6OperateFunctions = {
               if (comboLastNodes.length === 2 && comboLastNodes[0].get("id").endsWith("-prev")) {
                 offset -= limit;
               }
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+              shouldUpdate = false;
             }
           }
 
@@ -483,8 +474,14 @@ export const G6OperateFunctions = {
                 const config = name.split('-');
                 offset = Number(config[2]) - limit;
               }
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+              shouldUpdate = false;
             }
+          }
+          if (shouldUpdate) {
+            store.dispatch(setObjects(newData));
+            graph.changeData(graphData);
+            graph.layout();
           }
 
           const currentEditModel = store.getState().editor.currentEditModel;
@@ -492,6 +489,7 @@ export const G6OperateFunctions = {
             const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
             graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
           }
+          store.dispatch(setGraphLoading(false));
         });
       } else {
         store.dispatch(setGraphLoading(false));
@@ -592,7 +590,7 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number) {
+  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number, curentGraphData?: any, objectData?: any) {
     if (nextDisabled) return;
     const params = { uid: parent };
 
@@ -606,7 +604,7 @@ export const G6OperateFunctions = {
       if (success) {
         const parentNode = graph.findById(parent),
           parentModel = parentNode.get('model'),
-          { id, xid, childLen } = parentModel,
+          { id, xid, chilLen } = parentModel,
           comboId = `${id}-combo`,
           collapsed = false;
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
@@ -665,24 +663,15 @@ export const G6OperateFunctions = {
           config: { relationLines }
         }));
         graph.expandCombo(comboId);
-        const curentGraphData: any = graph.save();
-
-        if (_offset >= 0 && childLen > limit) {
-          const totalPage = childLen ? Math.ceil(childLen / limit) : 1;
-          _data.push({
-            uid: 'pagination-' + parent + `-${_offset + limit}-next`,
-            id: 'pagination-' + parent + `-${_offset + limit}-next`,
-            totalPage,
-            nextDisabled: (_offset + data.length) >= childLen,
-            currentParent: { id }
-          });
-        }
 
         let newData: any[] = [];
         const xidLen = xid.split(".").length + 1;
-        let concatIndex = -1, removeMap:any = {}, removeChildren: any[] = [];
-        const allData = store.getState().object.data;
+        let concatIndex = -1, removeMap: any = {}, removeChildren: any[] = [], parentChildLen = chilLen;
+        const allData = objectData || store.getState().object.data;
         allData.forEach(function (obj: any, index: number) {
+          if (obj.id === parent) {
+            parentChildLen = obj['x.children'];
+          }
           if (obj['x.id'] === xid) {
             newData.push({
               ...obj,
@@ -700,12 +689,24 @@ export const G6OperateFunctions = {
             Object.assign(removeMap, { [obj['x.id']]: obj.collapsed });
           }
         });
+        
         let concatData = [];
-        _data = _data.map(item => ({...item, collapsed: removeMap[item['x.id']]}));
+        _data = _data.map(item => ({ ...item, collapsed: removeMap[item['x.id']] }));
+
+        if (_offset >= 0 && parentChildLen > limit) {
+          const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
+          _data.push({
+            uid: 'pagination-' + parent + `-${_offset + limit}-next`,
+            id: 'pagination-' + parent + `-${_offset + limit}-next`,
+            totalPage,
+            nextDisabled: (_offset + data.length) >= parentChildLen,
+            currentParent: { id }
+          });
+        }
 
         if (removeChildren.length > 0) {
           let newRemoveChildren: any[] = [];
-          _data.forEach(function(val) {
+          _data.forEach(function (val) {
             const nodeXid = val['x.id'];
             concatData.push(val);
             if (nodeXid) {
@@ -722,12 +723,12 @@ export const G6OperateFunctions = {
               newRemoveChildren = [];
             }
           });
-        } else  {
+        } else {
           concatData = _data;
         }
 
-        const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
-        
+        const { nodes, edges, combos } = replaceChildrenToGraphData(parentModel, _data, curentGraphData || graph.save(), _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+
         if (concatIndex > -1) {
           newData.splice(concatIndex, 0, ...concatData);
         }
@@ -823,21 +824,6 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     }));
 
     const updateGraphData = function () {
-      const updateGraph = () => {
-        store.dispatch(setObjects(_data));
-
-        const graphData = convertAllData(_data);
-        graph.changeData(graphData);
-        graph.layout();
-        store.dispatch(setGraphLoading(false));
-
-        const item = graph.findById(newObj.id);
-        if (!item) return;
-        graph.emit('node:click', {
-          item: item,
-          shape: item.get('keyShape')
-        });
-      }
       const newObj = {
         ...newData,
         "x.id": newXid,
@@ -896,7 +882,7 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
           continue;
         }
 
-        if (modifyIdMaps[parentId]) {
+        if (modifyIdMaps[parentId] && xid) {
           const modifyId = modifyIdMaps[parentId];
           const newId = xid.replace(modifyId.old, modifyId.new);
           const newObj = { ...obj, 'x.id': newId };
@@ -910,16 +896,32 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
         _data.push(newObj);
       }
 
-      updateGraph();
-
+      let shouldUpdate = true;
+      const graphData = convertAllData(_data);
       const parentCombo: any = graph.findById(parentNodeId + "-combo");
       if (parentCombo) {
         const comboLastNodes = parentCombo.getChildren().nodes || [],
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-          const { name, parent, nextDisabled } = comboLastNode.get('model');
+          const { name, parent } = comboLastNode.get('model');
           const config = name.split('-');
-          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2]);
+          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2], graphData, _data);
+          shouldUpdate = false;
+        }
+      }
+
+      store.dispatch(setGraphLoading(false));
+      if (shouldUpdate) {
+        store.dispatch(setObjects(_data));
+        graph.changeData(graphData);
+        graph.layout();
+
+        const item = graph.findById(newObj.id);
+        if (item) {
+          graph.emit('node:click', {
+            item: item,
+            shape: item.get('keyShape')
+          });
         }
       }
     }
@@ -979,7 +981,6 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
     }
     _data.unshift(obj);
   }
-  store.dispatch(setObjects(_data));
 
   const curentGraphData: any = graph.save();
   for (let i = 0; i < curentGraphData.nodes.length; i++) {
@@ -1006,14 +1007,9 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
     }
   }
   const { toolbarConfig, currentGraphTab } = store.getState().editor;
-  const { nodes, edges, combos } = addChildrenToGraphData(sourceNode, [newObj], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
-  graph.changeData({
-    nodes,
-    edges,
-    combos
-  });
-  graph.layout();
+  const graphData = addChildrenToGraphData(sourceNode, [newObj], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
 
+  let shouldUpdate = true;
   const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE());
   if (sourceNodeCombo) {
     const comboLastNodes = sourceNodeCombo.getChildren().nodes || [],
@@ -1025,8 +1021,14 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
         const config = name.split('-');
         offset = Number(config[2]) - limit;
       }
-      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, _data);
+      shouldUpdate = false;
     }
+  }
+  if (shouldUpdate) {
+    graph.changeData(graphData);
+    graph.layout();
+    store.dispatch(setObjects(_data));
   }
 }
 
@@ -1649,7 +1651,7 @@ export function registerBehavior() {
             currentDragParentChildrenIndex++;
           }
 
-          if (modifyIdMaps[parentUid]) {
+          if (modifyIdMaps[parentUid] && xid) {
             const modifyId = modifyIdMaps[parentUid];
             new_value['x.id'] = xid.replace(modifyId.old, modifyId.new);
             Object.assign(modifyIdMaps, {
@@ -1667,17 +1669,9 @@ export function registerBehavior() {
           if (shouldUpdateObject.length > 0) {
             setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => {
               if (success) {
-                store.dispatch(setObjects(newData));
                 const graphData = convertAllData(newData);
-                graph.changeData(JSON.parse(JSON.stringify(graphData)));
-                graph.layout();
-
-                const currentEditModel = store.getState().editor.currentEditModel;
-                if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
-                  const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
-                  graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
-                }
-
+                let shouldUpdate = true;
+                
                 const limit = Number(PAGE_SIZE());
                 if (dragItemParentUid !== dropItemParentUid) {
                   const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
@@ -1691,7 +1685,8 @@ export function registerBehavior() {
                       if (comboLastNodes.length === 2 && comboLastNodes[0].get("id").endsWith("-prev")) {
                         offset -= limit;
                       }
-                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+                      shouldUpdate = false;
                     }
                   }
 
@@ -1706,9 +1701,21 @@ export function registerBehavior() {
                         const config = name.split('-');
                         offset = Number(config[2]) - limit;
                       }
-                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset);
+                      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+                      shouldUpdate = false;
                     }
                   }
+                }
+                if (shouldUpdate) {
+                  store.dispatch(setObjects(newData));
+                  graph.changeData(JSON.parse(JSON.stringify(graphData)));
+                  graph.layout();
+                }
+
+                const currentEditModel = store.getState().editor.currentEditModel;
+                if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
+                  const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
+                  graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
                 }
               } else {
                 notification.error({
