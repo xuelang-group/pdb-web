@@ -285,7 +285,8 @@ export function registerNode() {
         nodeRect = group?.find(ele => ele.get('name') === 'node-rect');
       const searchShape = group?.find(ele => ele.get('name') === 'search-shape'),
         searchIcon = group?.find(ele => ele.get('name') === 'search-icon');
-      let leftRect = group?.find(ele => ele.get('name') === 'left-rect');
+      let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
+        topRect = group?.find(child => child.get('name') === 'top-rect');
 
       if (parent === rootId && !leftRect) {
         leftRect = group.addShape('rect', {
@@ -330,7 +331,7 @@ export function registerNode() {
       nodeText.attr({ text });
 
       const textWidth = nodeText.getBBox().width;
-      let width = isRootNode ? ROOT_NODE_WIDTH : (textWidth + 43);
+      const width = isRootNode ? ROOT_NODE_WIDTH : (textWidth + 43);
       const textX = (width - textWidth + (iconName ? 20 : 0)) / 2,
         iconX = (width - textWidth - 25) / 2;
 
@@ -450,6 +451,58 @@ export function registerNode() {
       const { currentEditModel } = store.getState().editor;
       if (currentEditModel && currentEditModel.id === id) {
         item.setState('selected', true);
+      }
+
+      if (isRootNode) {
+        if (!leftRect) {
+          const _leftRect = group.addShape('rect', {
+            attrs: {
+              width: 40,
+              height: NODE_HEIGHT,
+              fill: 'transparent',
+              stroke: 'transparent',
+              radius: 2,
+              x: -40
+            },
+            name: 'left-rect'
+          });
+          _leftRect.on('dragenter', () => {
+            _leftRect.attr('fill', '#0084FF');
+          });
+          _leftRect.on('dragleave', () => {
+            _leftRect.attr('fill', 'transparent');
+          });
+
+          _leftRect.on('drop', () => {
+            _leftRect.attr('fill', 'transparent');
+          });
+        }
+        if (topRect) topRect.remove();
+      } else {
+        if (!topRect) {
+          const _topRect = group.addShape('rect', {
+            attrs: {
+              width,
+              height: 10,
+              fill: 'transparent',
+              stroke: 'transparent',
+              radius: 2,
+              y: -12
+            },
+            name: 'top-rect'
+          });
+
+          _topRect.on('dragenter', () => {
+            _topRect.attr('fill', '#0084FF');
+          });
+          _topRect.on('dragleave', () => {
+            _topRect.attr('fill', 'transparent');
+          });
+          _topRect.on('drop', () => {
+            _topRect.attr('fill', 'transparent');
+          });
+        }
+        if (leftRect) leftRect.remove();
       }
     },
     setState(name, value, item) {
