@@ -568,7 +568,7 @@ export default function AppExplore() {
                 className="pdb-explore-search"
                 value={searchTags[index]}
                 searchValue={currentFocusIndex === index ? currentSearchValue : ""}
-                placeholder={index > 0 ? "" : "输入关键词搜索（Ctrl + S）"}
+                placeholder={index > 0 ? "" : "输入类型搜索（Ctrl + S）"}
                 mode="multiple"
                 showSearch
                 loading={filterLoading}

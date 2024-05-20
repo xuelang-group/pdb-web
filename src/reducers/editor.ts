@@ -58,6 +58,7 @@ interface ToolbarItemConfig {
   showRelationLine: boolean
   showRelationLabel: boolean
   filters: Array<FilterConfig>
+  pageSize?: number
 }
 
 interface ToolbarConfig {
@@ -78,6 +79,8 @@ interface EditorState {
   typeLoading: boolean
   relationLoading: boolean
   searchAround: any
+  screenShootTimestamp: number
+  templateScreenShootTimestamp: number
 }
 
 // 使用该类型定义初始 state
@@ -92,7 +95,8 @@ const initialState: EditorState = {
       relationLines: {},
       showRelationLine: false, // 显示类型连线
       showRelationLabel: false, // 显示类型名称
-      filters: []
+      filters: [],
+      pageSize: 1000
     },
     'explore': {
       relationLines: {},
@@ -116,7 +120,9 @@ const initialState: EditorState = {
   searchAround: {
     show: false,
     options: []
-  }
+  },
+  screenShootTimestamp: 0,
+  templateScreenShootTimestamp: 0
 }
 
 export const editorSlice = createSlice({
@@ -188,6 +194,12 @@ export const editorSlice = createSlice({
     setSearchAround: (state, action: PayloadAction<any>) => {
       state.searchAround = action.payload;
     },
+    setScreenShootTimestamp: (state, action: PayloadAction<number>) => {
+      state.screenShootTimestamp = action.payload;
+    },
+    setTScreenShootTimestamp: (state, action: PayloadAction<number>) => {
+      state.templateScreenShootTimestamp = action.payload;
+    },
     // setRelationLines: (state, action: PayloadAction<RelationsConfig>) => {
     //   state.relationLines = JSON.parse(JSON.stringify(action.payload));
     // },
@@ -202,6 +214,6 @@ export const editorSlice = createSlice({
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
   addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, 
-  setRelationLoading, setTypeLoading, setGraphDataMap
+  setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp
 } = editorSlice.actions
 export default editorSlice.reducer

@@ -1,10 +1,10 @@
 import { nodeStateStyle } from '@/g6/type/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData, Item } from '@antv/g6';
-import _, { isArray } from 'lodash';
+import _, { isArray, remove } from 'lodash';
 import { NodeItemData } from '../reducers/editor';
 import { CustomObjectConfig } from '../reducers/object';
-import { defaultNodeColor, getTextColor } from './common';
+import { defaultNodeColor, getIcon, getTextColor } from './common';
 
 export const GLOBAL_FONT_SIZE = 12;
 export const ROOT_NODE_WIDTH = 320, // 主节点宽度
@@ -19,6 +19,41 @@ export const LINE_SYTLE: { [k: string]: any } = {
     stroke: '#c8ced5'
   }
 }
+
+const paginationIconMap: any = {
+  next: String.fromCodePoint(59272),
+  prev: String.fromCodePoint(60181)
+}
+export const paginationOption = (icon: string = "") => ({
+  type: "paginationBtn",
+  icon: {
+    show: true,
+    fontFamily: 'iconfont',
+    text: paginationIconMap[icon],
+    fill: "#4C5A67",
+    textAlign: 'center',
+    fontSize: 22,
+    cursor: 'pointer',
+    // x: 0.5,
+    rotate: 90,
+    y: icon === "next" ? 2 : 10,
+  },
+  labelCfg: {
+    style: {
+      fontSize: 12,
+      fill: "#4C5A67",
+      cursor: 'pointer'
+    }
+  },
+  style: {
+    stroke: "#4C5A67",
+    fill: "#f9fbfc",
+    radius: 3,
+    cursor: 'pointer',
+    lineWidth: 0
+  },
+  size: [25, 10]
+});
 
 // 判断节点名称是否超过节点宽度，超过显示省略号
 export const fittingString = (str: string, maxWidth: number = 0, fontSize: number = GLOBAL_FONT_SIZE) => {
@@ -102,7 +137,6 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       name,
       data: item,
       childLen,
-      collapsed,
       icon: iconKey,
       isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.name'] || ''),
       style: {
@@ -130,13 +164,25 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       });
     }
 
+    const isPagination = id.startsWith("pagination-");
+    if (isPagination) {
+      Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+      if (item.totalPage) {
+        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+      }
+    }
+
     nodes.push(node as NodeItemData);
 
     if (currentParent.uid !== rootId) {
-      if (index === 0) {
-        edges.push({ source: parentId, target: id });
-      } else {
-        edges.push({ source: nodes[index - 1].id, target: id });
+      // if (index === 0) {
+      //   edges.push({ source: parentId, target: id });
+      // } else {
+      //   edges.push({ source: nodes[index - 1].id, target: id });
+      // }
+      if (!isPagination) {
+        const prevIsPagination = index > 0 && nodes[index - 1].id.startsWith("pagination-");
+        edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index - 2].id : parentId) : nodes[index - 1].id), target: id });
       }
     }
 
@@ -155,6 +201,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   const id = parent.id;
 
   const sortData = data.sort((a, b) => {
+    if (!a['x.id'] || !b['x.id']) return 1;
     const aIds: any = a['x.id'].split('.'),
       bIds: any = b['x.id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
@@ -179,6 +226,120 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
   const newEdges = edges.concat(currentData.edges || []);
   const newCombos = combos.concat(currentData.combos?.map(({ id, parentId }) => ({ id, parentId })) || []);
+
+  return {
+    nodes: JSON.parse(JSON.stringify(newNodes)),
+    edges: JSON.parse(JSON.stringify(newEdges)),
+    combos: JSON.parse(JSON.stringify(newCombos)),
+  };
+}
+
+
+// 添加子节点
+export function replaceChildrenToGraphData(parent: { id: string, xid: string }, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
+  const id = parent.id;
+  const rootId = store.getState().editor.rootNode?.uid;
+
+  const newDataIdMap: any = {};
+  const sortData = data.sort((a, b) => {
+    if (!a['x.id'] || !b['x.id']) return 1;
+
+    Object.assign(newDataIdMap, {
+      [a.id]: a,
+      [b.id]: b
+    });
+    const aIds: any = a['x.id'].split('.'),
+      bIds: any = b['x.id'].split('.');
+    for (let i = 1; i < aIds.length; i++) {
+      if (Number(aIds[i]) === Number(bIds[i])) continue;
+      return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
+    }
+
+    return 1;
+  });
+  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
+
+  const currentNodes: any = currentData.nodes,
+    removeIds: any = {};
+  let newNodes: NodeItemData[] = [];
+  if (id === rootId) {
+    newNodes = newNodes.concat(nodes);
+  }
+  const shoudldRemoveXidLen = parent.xid.split(".").length + 1;
+  let removeIdChildren: any[] = [], removeIdChildrenMap: any = {}, concatIndex = -1;
+  for (let i = 0; i < currentNodes.length; i++) {
+    const node = currentNodes[i];
+    if (node.xid && node.xid.startsWith(parent.xid) && node.xid.split(".").length === shoudldRemoveXidLen) {
+      Object.assign(removeIdChildrenMap, { [node.id]: node });
+    }
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent]) {
+      newNodes.push(node);
+    } else if (newDataIdMap[node.parent] && (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.parent && removeIdChildrenMap[node.parent])) {
+      removeIdChildren.push(node);
+      Object.assign(removeIdChildrenMap, { [node.id]: node });
+    } else {
+      Object.assign(removeIds, { [node.id]: node });
+    }
+    if (node.id === id) {
+      concatIndex = newNodes.length;
+    }
+  }
+
+  let concatNodes: NodeItemData[] = [];
+  if (removeIdChildren.length > 0) {
+    let newRemoveIdChildren: any[] = [];
+    nodes.forEach(function (node) {
+      const nodeXid = node.xid;
+      concatNodes.push(node);
+      if (nodeXid) {
+        for (let i = 0; i < removeIdChildren.length; i++) {
+          const item = removeIdChildren[i];
+          const itemXid = item.xid;
+          if (itemXid && itemXid.startsWith(nodeXid)) {
+            if (itemXid.split(".").length === nodeXid.split(".").length + 1 && item.parent !== node.id) {
+              break;
+            }
+            concatNodes.push(item);
+            if (nodeXid.split(".").length + 1 === itemXid.split(".").length) {
+              edges.push({ source: node.id, target: item.id });
+            }
+          } else if (item.id.startsWith("pagination-" + node.id)) {
+            concatNodes.push(item);
+          } else {
+            newRemoveIdChildren.push(item);
+          }
+        }
+        removeIdChildren = JSON.parse(JSON.stringify(newRemoveIdChildren));
+        newRemoveIdChildren = [];
+      }
+    });
+  } else {
+    concatNodes = nodes;
+  }
+
+  if (concatIndex > -1) {
+    newNodes.splice(concatIndex, 0, ...concatNodes);
+  }
+
+  const newEdges = edges.concat((currentData.edges || []).filter(({ source, target }: any) => !removeIds[source] && !removeIds[target]));
+  const prevCombos: any[] = [];
+  (currentData.combos || []).map(({ id, parentId, collapsed }: any) => {
+    const _id = id.replace("-combo", "");
+    if (!removeIds[_id]) {
+      prevCombos.push({ id, parentId, collapsed });
+    }
+  });
+
+  const newCombos = combos.map(function (data) {
+    const _id = data.id.replace("-combo", "");
+    if (removeIds[_id]) {
+      return {
+        ...data,
+        collapsed: _.get(removeIds[_id], "data.collapsed", true)
+      }
+    }
+    return data;
+  }).concat(prevCombos);
 
   return {
     nodes: JSON.parse(JSON.stringify(newNodes)),
@@ -267,10 +428,18 @@ export function convertResultData(
         });
       }
 
+      const isPagination = id.startsWith("pagination-");
+      if (isPagination) {
+        Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+        if (item.totalPage) {
+          Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+        }
+      }
+
       nodes.push(node);
 
       if (currentParentId !== rootId) {
-        if (currentParentId && edgeIdMap[currentParentId]) {
+        if (currentParentId && edgeIdMap[currentParentId] && !isPagination) {
           edges.push({ source: edgeIdMap[currentParentId], target: id });
         }
       }
@@ -367,11 +536,19 @@ export function convertAllData(data: CustomObjectConfig[]) {
       });
     }
 
+    const isPagination = id.startsWith("pagination-");
+    if (isPagination) {
+      Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
+      if (item.totalPage) {
+        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+      }
+    }
+
     nodes.push(node as NodeItemData);
 
     if (currentParent.id) {
       if (currentParent.uid !== rootId) {
-        if (edgeIdMap[currentParent.id]) {
+        if (edgeIdMap[currentParent.id] && !isPagination) {
           edges.push({ source: edgeIdMap[currentParent.id], target: id });
         }
       }

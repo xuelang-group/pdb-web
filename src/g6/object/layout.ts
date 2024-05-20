@@ -1,5 +1,5 @@
 import G6, { Util } from '@antv/g6';
-import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP } from '../../utils/objectGraph';
+import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, paginationOption } from '../../utils/objectGraph';
 import store from '@/store';
 
 export function registerLayout() {
@@ -41,9 +41,9 @@ export function registerLayout() {
         nodeLeft = self.nodeLeftSep,
         nodeHeightSep = self.nodeHeightSep,
         nodeWidth = self.nodeWidth,
-        nodeHeight = self.nodeHeight,
-        nodeXMap = self.nodeXMap
-      let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null, currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0;
+        nodeXMap = self.nodeXMap;
+      let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null,
+        currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
       const rootId = store.getState().editor.rootNode?.uid;
       self.nodes.forEach((item: any, index: number) => {
         if (item.parent !== rootId) {
@@ -57,9 +57,24 @@ export function registerLayout() {
             return;
           }
           item.x = itemParentX.x + nodeLeft;
-          item.y = currentY + nodeHeightSep + nodeHeight;
-          currentY = item.y;
+          item.y = currentY + nodeHeightSep + prevNodeHeight;
           currenNodeWidth = item.width;
+          const prevNode = index > 0 ? self.nodes[index - 1] : null;
+          if (item.type === "paginationBtn") {
+            item.x += paginationOption().size[0] / 2;
+            prevNodeHeight = 10;
+            
+            if (prevNode && Number(prevNode.childLen) > 0) {
+              item.y += 5;
+            }
+          } else {
+            prevNodeHeight = self.nodeHeight;
+
+            if (prevNode && prevNode.type === "paginationBtn" && prevNode.id.endsWith("-prev")) {
+              item.y -= 20;
+            }
+          }
+          currentY = item.y;
         } else {
           // 顶层主节点
           if (rootIndex > -1) {
@@ -78,8 +93,9 @@ export function registerLayout() {
             prevRootMaxX = item.x;
           }
           currenNodeWidth = ROOT_NODE_WIDTH;
+          prevNodeHeight = self.nodeHeight;
         }
-        if (item.x > prevMaxX){ 
+        if (item.x > prevMaxX) {
           prevMaxX = item.x;
           prevMaxNodeWidth = currenNodeWidth;
         }

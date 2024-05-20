@@ -17,7 +17,7 @@ import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading } from '@/reducers/editor';
+import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading, setScreenShootTimestamp } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import TemplateGraph from '@/pages/graph/template/index';
@@ -52,7 +52,8 @@ export default function Editor(props: EditorProps) {
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
+    templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -137,7 +138,7 @@ export default function Editor(props: EditorProps) {
                   ...currentParent,
                   id: rootId,
                 },
-                'x.id': rootId + '.' + (currentParent['x.parent|x.index'] >= 0 ? currentParent['x.parent|x.index'] : index),
+                'x.id': rootId + '.' + index,
                 id: newValue.uid
               };
             });
@@ -185,27 +186,40 @@ export default function Editor(props: EditorProps) {
       offsetX: 10,
       offsetY: 10,
       // 允许出现 tooltip 的 item 类型
-      itemTypes: ['edge'],
+      itemTypes: ['edge', 'node'],
       // 是否允许 tooltip 出现
-      shouldBegin: (e: any) => e.item.get('currentShape') !== 'step-line',
+      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === 'paginationBtn',
       // 自定义 tooltip 内容
       getContent: (e: any) => {
-        const { relationName, id } = e.item.getModel();
-        return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || id;
+        const { relationName, id, type, name } = e.item.getModel();
+        if (type === 'paginationBtn') {
+          return id.endsWith("-next") ? "下一页" : "上一页";
+        }
+        if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
+          return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || name || id;
+        }
+        return "";
       },
     });
 
     const contextMenu = new G6.Menu({
       getContent(evt: any) {
         console.log(evt)
-        if (evt.item.getType() === "edge") {
+        const itemType = evt.item.get("type"),
+          itemModel = evt.item.getModel();
+        if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
+
+        if (itemType === "edge") {
           return `<ul class="pdb-graph-node-contextmenu">
-            <li title="删除">删除</li>
+            <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         }
         return `<ul class="pdb-graph-node-contextmenu">
           <li title="探索">探索</li>
-          <li title="删除">删除</li>
+          <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ""}
         </ul>`;
       },
       handleMenuClick: (target: any, item) => {
@@ -215,6 +229,10 @@ export default function Editor(props: EditorProps) {
           _searchAround.show = true;
           _searchAround.options.push({ start: [itemModel.data], options: [] });
           dispatch(setSearchAround(_searchAround));
+        } else if (target?.title === "复制") {
+          graphCopyItem = JSON.parse(JSON.stringify(itemModel));
+        } else if (target?.title === "粘贴") {
+          onPaste(itemModel);
         } else if (target?.title === "删除") {
           deleteConfirm(itemModel);
         }
@@ -371,6 +389,18 @@ export default function Editor(props: EditorProps) {
     });
   }
 
+
+  function onPaste(currentEditModel: any) {
+    if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
+      const item = graph.findById(currentEditModel.id);
+      G6OperateFunctions.expandNode(item, graph, () => {
+        G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+      });
+    } else {
+      G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+    }
+  }
+
   function initEvent() {
     if (!graph) return
     graph.on('node:mouseenter', (event: { item: any; }) => {
@@ -421,15 +451,8 @@ export default function Editor(props: EditorProps) {
           break;
         case 86:
           // ctrl + v
-          if (ctrlKey && graphCopyItem) {
-            if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
-              const item = graph.findById(currentEditModel.id);
-              G6OperateFunctions.expandNode(item, graph, () => {
-                G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
-              });
-            } else {
-              G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
-            }
+          if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
+            onPaste(currentEditModel);
           }
           break;
         default:
@@ -502,6 +525,7 @@ export default function Editor(props: EditorProps) {
         if (!blob) return;
         uploadFile(shotPath, blob).finally(() => {
           isUpdateScreenshot = false;
+          dispatch(setScreenShootTimestamp(new Date().getTime()));
         }).catch(err => { });
       });
     }
@@ -648,7 +672,7 @@ export default function Editor(props: EditorProps) {
                 {!location.pathname.endsWith("/template") &&
                   <div className='pdb-object-switch-img'>
                     <img
-                      src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') + `&t=${Math.random()}`}
+                      src={getImagePath('studio/' + userId + '/pdb/' + routerParams?.id + '/template_screen_shot.png') + `&t=${templateScreenShootTimestamp}`}
                       onError={(event: any) => {
                         if (event.target.src !== appDefaultScreenshotPath) {
                           event.target.src = appDefaultScreenshotPath;

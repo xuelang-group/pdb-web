@@ -83,7 +83,7 @@ export default function Editor(props: any) {
 
   useEffect(() => {
     initLayout([]);
-    initG6('type');
+    // initG6('type');
 
     return () => {
       graph?.destroy();

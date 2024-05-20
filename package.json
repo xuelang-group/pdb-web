@@ -1,6 +1,6 @@
 {
   "name": "pdb-web",
-  "version": "0.0.12",
+  "version": "0.0.13-test",
   "private": true,
   "dependencies": {
     "@antv/g6": "^4.8.23",

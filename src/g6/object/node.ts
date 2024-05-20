@@ -5,6 +5,7 @@ import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, ge
 import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
+import { PAGE_SIZE } from './behavior';
 
 export function registerNode() {
   /**
@@ -87,7 +88,7 @@ export function registerNode() {
             fill: 'transparent',
             stroke: 'transparent',
             radius: 2,
-            y: -10
+            y: -12
           },
           name: 'top-rect'
         });
@@ -241,7 +242,7 @@ export function registerNode() {
         leftRect = group?.find(child => child.get('name') === 'left-rect');
       if (topRect) {
         topRect.on('dragenter', () => {
-          topRect.attr('fill', '#E8F3FF');
+          topRect.attr('fill', '#0084FF');
         });
         topRect.on('dragleave', () => {
           topRect.attr('fill', 'transparent');
@@ -254,7 +255,7 @@ export function registerNode() {
 
       if (leftRect) {
         leftRect.on('dragenter', () => {
-          leftRect.attr('fill', '#E8F3FF');
+          leftRect.attr('fill', '#0084FF');
         });
         leftRect.on('dragleave', () => {
           leftRect.attr('fill', 'transparent');
@@ -284,7 +285,8 @@ export function registerNode() {
         nodeRect = group?.find(ele => ele.get('name') === 'node-rect');
       const searchShape = group?.find(ele => ele.get('name') === 'search-shape'),
         searchIcon = group?.find(ele => ele.get('name') === 'search-icon');
-      let leftRect = group?.find(ele => ele.get('name') === 'left-rect');
+      let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
+        topRect = group?.find(child => child.get('name') === 'top-rect');
 
       if (parent === rootId && !leftRect) {
         leftRect = group.addShape('rect', {
@@ -329,7 +331,7 @@ export function registerNode() {
       nodeText.attr({ text });
 
       const textWidth = nodeText.getBBox().width;
-      let width = isRootNode ? ROOT_NODE_WIDTH : (textWidth + 43);
+      const width = isRootNode ? ROOT_NODE_WIDTH : (textWidth + 43);
       const textX = (width - textWidth + (iconName ? 20 : 0)) / 2,
         iconX = (width - textWidth - 25) / 2;
 
@@ -450,6 +452,58 @@ export function registerNode() {
       if (currentEditModel && currentEditModel.id === id) {
         item.setState('selected', true);
       }
+
+      if (isRootNode) {
+        if (!leftRect) {
+          const _leftRect = group.addShape('rect', {
+            attrs: {
+              width: 40,
+              height: NODE_HEIGHT,
+              fill: 'transparent',
+              stroke: 'transparent',
+              radius: 2,
+              x: -40
+            },
+            name: 'left-rect'
+          });
+          _leftRect.on('dragenter', () => {
+            _leftRect.attr('fill', '#0084FF');
+          });
+          _leftRect.on('dragleave', () => {
+            _leftRect.attr('fill', 'transparent');
+          });
+
+          _leftRect.on('drop', () => {
+            _leftRect.attr('fill', 'transparent');
+          });
+        }
+        if (topRect) topRect.remove();
+      } else {
+        if (!topRect) {
+          const _topRect = group.addShape('rect', {
+            attrs: {
+              width,
+              height: 10,
+              fill: 'transparent',
+              stroke: 'transparent',
+              radius: 2,
+              y: -12
+            },
+            name: 'top-rect'
+          });
+
+          _topRect.on('dragenter', () => {
+            _topRect.attr('fill', '#0084FF');
+          });
+          _topRect.on('dragleave', () => {
+            _topRect.attr('fill', 'transparent');
+          });
+          _topRect.on('drop', () => {
+            _topRect.attr('fill', 'transparent');
+          });
+        }
+        if (leftRect) leftRect.remove();
+      }
     },
     setState(name, value, item) {
       if (!item) return;
@@ -492,4 +546,59 @@ export function registerNode() {
   },
     'rect',
   );
+
+  G6.registerNode('paginationBtn', {
+    afterDraw(cfg: any, group: any, rst) {
+      const iconTextClassName = 'icon-text';
+      const iconAttrs = { ...cfg.icon };
+      if (cfg.nextDisabled) {
+        Object.assign(iconAttrs, {
+          fill: "#C2C7CC",
+          cursor: "auto"
+        });
+      }
+      const iconTextShape = group.addShape('text', {
+        attrs: iconAttrs,
+        name: iconTextClassName
+      });
+      group['shapeMap'][iconTextClassName] = iconTextShape;
+
+      if (cfg.totalPage) {
+        const totalTextClassName = 'total-text';
+        const currentOffset = Number(cfg.id.split("-")[2]);
+        const totalnTextShape = group.addShape('text', {
+          attrs: {
+            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage,
+            fill: '#595959',
+            x: 15,
+            y: -2,
+            fontSize: 10,
+          },
+          name: totalTextClassName
+        });
+        group['shapeMap'][totalTextClassName] = totalnTextShape;
+      }
+    },
+    setState(name, value, item: any) {
+      const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
+      const { nextDisabled } = item.getModel();
+      if (name === "active") {
+        if (value && !nextDisabled) {
+          iconText.attr({ fill: "#0084FF" });
+        } else {
+          iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
+        }
+      }
+    },
+    afterUpdate(cfg: any, item: any) {
+      const iconText = item.getContainer().findAll((ele: any) => ele.get('name') === 'icon-text')[0];
+      const { nextDisabled, totalPage } = cfg;
+      iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
+      if (totalPage) {
+        const totalText = item.getContainer().findAll((ele: any) => ele.get('name') === 'total-text')[0];
+        const currentOffset = Number(cfg.id.split("-")[2]);
+        totalText.attr({ text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage });
+      }
+    }
+  }, 'rect');
 }
