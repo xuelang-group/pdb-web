@@ -240,9 +240,14 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   const id = parent.id;
   const rootId = store.getState().editor.rootNode?.uid;
 
+  const newDataIdMap: any = {};
   const sortData = data.sort((a, b) => {
     if (!a['x.id'] || !b['x.id']) return 1;
 
+    Object.assign(newDataIdMap, {
+      [a.id]: a,
+      [b.id]: b
+    });
     const aIds: any = a['x.id'].split('.'),
       bIds: any = b['x.id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
@@ -261,13 +266,17 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
     newNodes = newNodes.concat(nodes);
   }
   const shoudldRemoveXidLen = parent.xid.split(".").length + 1;
-  let removeIdChildren: any[] = [], concatIndex = -1;
+  let removeIdChildren: any[] = [], removeIdChildrenMap: any = {}, concatIndex = -1;
   for (let i = 0; i < currentNodes.length; i++) {
     const node = currentNodes[i];
-    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id)) {
+    if (node.xid && node.xid.startsWith(parent.xid) && node.xid.split(".").length === shoudldRemoveXidLen) {
+      Object.assign(removeIdChildrenMap, { [node.id]: node });
+    }
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent]) {
       newNodes.push(node);
-    } else if (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen) {
+    } else if (newDataIdMap[node.parent] && (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.parent && removeIdChildrenMap[node.parent])) {
       removeIdChildren.push(node);
+      Object.assign(removeIdChildrenMap, { [node.id]: node });
     } else {
       Object.assign(removeIds, { [node.id]: node });
     }
@@ -287,10 +296,15 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
           const item = removeIdChildren[i];
           const itemXid = item.xid;
           if (itemXid && itemXid.startsWith(nodeXid)) {
+            if (itemXid.split(".").length === nodeXid.split(".").length + 1 && item.parent !== node.id) {
+              break;
+            }
             concatNodes.push(item);
             if (nodeXid.split(".").length + 1 === itemXid.split(".").length) {
               edges.push({ source: node.id, target: item.id });
             }
+          } else if (item.id.startsWith("pagination-" + node.id)) {
+            concatNodes.push(item);
           } else {
             newRemoveIdChildren.push(item);
           }
@@ -316,7 +330,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
     }
   });
 
-  const newCombos = combos.map(function(data) {
+  const newCombos = combos.map(function (data) {
     const _id = data.id.replace("-combo", "");
     if (removeIds[_id]) {
       return {
