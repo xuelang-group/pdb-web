@@ -1499,6 +1499,7 @@ export function registerBehavior() {
         'node:dragend': 'dragend',
         'node:drop': 'drop',
         'canvas:drop': 'drop',
+        'combo:drop': 'drop'
         // 'node:dragenter': 'dragenter',
         // 'node:dragleave': 'dragleave',
       };
