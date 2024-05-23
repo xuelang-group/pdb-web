@@ -96,7 +96,7 @@ const initialState: EditorState = {
       showRelationLine: false, // 显示类型连线
       showRelationLabel: false, // 显示类型名称
       filters: [],
-      pageSize: 1000
+      pageSize: undefined
     },
     'explore': {
       relationLines: {},
