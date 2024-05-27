@@ -1231,7 +1231,7 @@ export default function Right(props: RightProps) {
           <MultiModelParamEditor /> :
           <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>
             {renderPanelForm()}
-            {currentEditType === 'type' &&
+            {currentEditDefaultData &&
               <div className='pdb-node-metadata'>
                 <NodeIconPicker changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} />
                 <Divider type='vertical' />
