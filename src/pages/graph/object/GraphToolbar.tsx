@@ -151,7 +151,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           // 当前边不存在，sourc和target节点存在，则创建该边
           const sourceItemModel = sourceItem.get('model');
           const targetItemModel = targetItem.get('model');
-          let lineColor = '#F77234', labelColor = labelThemeStyle[props.theme].fill; // 亮化颜色
+          let lineColor = '#eca144', labelColor = labelThemeStyle[props.theme].fill; // 亮化颜色
           if (!_.isEmpty(filterMap.relation) && !_.get(filterMap.relation, relation)) {
             // 有过滤配置，且不在过滤项里的，灰化处理
             lineColor = '#EAECEF';
@@ -159,7 +159,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           }
 
           // 默认边类型
-          let edgeType = 'quadratic';
+          let edgeType = 'cubic-horizontal';
           const sourceIsRoot = sourceItemModel.parent === rootId,
             targetIsRoot = targetItemModel.parent === rootId,
             sourceWidth = sourceItemModel.width,
@@ -191,6 +191,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             style: {
               stroke: lineColor,
               lineWidth: 1.5,
+              // shadowColor: '#ffe2ba',
+              // shadowBlur: 3,
+              // shadowOffsetX:0,
+              // shadowOffsetY: 1,
               endArrow: {
                 path: G6.Arrow.triangle(5, 5, 1),
                 fill: lineColor,
@@ -239,15 +243,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (!addEdge) return;
 
-    const edges: any = graph.save().edges.filter((val: any) => val.type !== 'step-line' && val.type !== 'same-tree-relation-line');
-    // 节点节点之间存在多条quadratic类型边, 处理平行边
-    G6.Util.processParallelEdges(edges, 15);
-    edges.forEach((edge: any, i: number) => {
-      graph.updateItem(edge.id, {
-        curveOffset: edges[i].curveOffset,
-        curvePosition: edges[i].curvePosition,
-      });
-    });
+    // const edges: any = graph.save().edges.filter((val: any) => val.type !== 'step-line' && val.type !== 'same-tree-relation-line');
+    // // 节点节点之间存在多条quadratic类型边, 处理平行边
+    // G6.Util.processParallelEdges(edges, 15);
+    // edges.forEach((edge: any, i: number) => {
+    //   graph.updateItem(edge.id, {
+    //     curveOffset: edges[i].curveOffset,
+    //     curvePosition: edges[i].curvePosition,
+    //   });
+    // });
   }
 
   // 隐藏关系连线
