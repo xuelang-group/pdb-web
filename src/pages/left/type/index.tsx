@@ -9,9 +9,9 @@ import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
-import { StoreState } from '@/store';
+import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
-import { defaultNodeColor, getBorderColor, getTextColor, uuid } from '@/utils/common';
+import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
 import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
@@ -233,6 +233,7 @@ export default function Left(props: any) {
         notification.success({
           message: '删除对象成功',
         });
+        const currentEditModel = store.getState().editor.currentEditModel;
         if (currentEditModel && currentEditModel.data[nameLabel] === typeName) {
           dispatch(setCurrentEditModel(null));
           (window as any).PDB_GRAPH.clear();
@@ -283,6 +284,7 @@ export default function Left(props: any) {
         notification.success({
           message: '删除关系成功',
         });
+        const currentEditModel = store.getState().editor.currentEditModel;
         if (currentEditModel && currentEditModel.data[nameLabel] === typeName) {
           dispatch(setCurrentEditModel(null));
           (window as any).PDB_GRAPH.clear();
@@ -619,6 +621,11 @@ export default function Left(props: any) {
         }
         if (modalType === 'copy') {
           Object.assign(newType, { 'x.type.attrs': item['x.type.attrs'] || [] });
+        } else if (modalType === 'add') {
+          const colors = Object.keys(nodeColorList);
+          Object.assign(newType, {
+            'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] })
+          });
         } else if (prototype) {
           Object.assign(newType, { 'x.type.prototype': [prototype] });
           const new_attrs = JSON.parse(JSON.stringify(item['x.type.attrs'] || []));
