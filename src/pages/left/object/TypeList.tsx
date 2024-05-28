@@ -56,7 +56,7 @@ export default function TypeList() {
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
-      if (type['x.type.prototype'] && type['x.type.prototype'].length === 0) {
+      if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
         const typeName = type['x.type.name'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
