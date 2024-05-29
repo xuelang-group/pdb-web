@@ -1,15 +1,23 @@
-import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification } from "antd";
+import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message } from "antd";
+import type { UploadProps } from 'antd';
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { Item } from "@antv/g6";
-import _, { keys } from "lodash";
+import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import * as XLSX from 'xlsx';
 
-import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { StoreState } from "@/store";
+import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setRelationLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
+import store, { StoreState } from "@/store";
 import { Parent, setObjects } from "@/reducers/object";
 import { getChildren } from "@/actions/object";
 import { covertToGraphData } from "@/utils/objectGraph";
+import { useLocation, useParams } from "react-router";
+import { typeLabelMap, uuid } from "@/utils/common";
+import { addRelationByGraphId } from "@/actions/relation";
+import { setRelations } from "@/reducers/relation";
+import { addTypeByGraphId } from "@/actions/type";
+import { setTypes } from "@/reducers/type";
 
 const { Panel } = Collapse;
 const getRelationLabelCfg = (labelColor: string, showLabel: boolean, theme: string) => ({
@@ -29,7 +37,9 @@ interface GraphToolbarProps {
 }
 
 export default function GraphToolbar(props: GraphToolbarProps) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(),
+    location = useLocation(),
+    routerParams = useParams();
   const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
@@ -43,8 +53,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(undefined),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [filterMap, setFilterMap] = useState({ type: {}, relation: {} });  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
-
+    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
+    [uploading, setUploading] = useState(false); // 上传xlsx文件中
   const [filterForm] = Form.useForm();
 
   const tabs = [{
@@ -571,59 +581,252 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       </div>
     )
   }
+
+  // 读取 XLSX 文件并获取数据
+  function readXlsxData(file: any) {
+    const reader = new FileReader();
+    reader.onload = (event: any) => {
+      setUploading(true);
+      const workbook = XLSX.read(event.target.result, { type: 'binary' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet: any = workbook.Sheets[sheetName];
+
+      const objectTypes: any[] = [], objectTypeMap: any = {}, relationTypes: any[] = [];
+      const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const HEADERS = 2; // 标题行数
+
+      function saveType() {
+        if (!_.isEmpty(newType)) {
+          if (currentType === 'object') {
+            Object.assign(newType, {
+              'x.type.attrs': Object.values(newTypeAttrs)
+            });
+            objectTypes.push(newType);
+          } else {
+            Object.assign(newType, {
+              'r.type.constraints': {
+                ...newTypeAttrs,
+                'r.binds': binds
+              }
+            });
+            relationTypes.push(newType);
+          }
+          newType = {};
+          newTypeAttrs = {};
+          currentType = '';
+          binds = [];
+        }
+      }
+
+      // process the rest of the rows
+      let newType = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [];
+      for (let R = HEADERS; R < data.length; ++R) {
+        const row = data[R];
+        // 类型名称是否为空
+        if (row[0] !== undefined) {
+          saveType();
+          if (row[1] === undefined || row[1] === '对象类型') {
+            const _uuid = 'Type.' + uuid();
+            currentType = 'object';
+            Object.assign(objectTypeMap, { [row[0]]: _uuid });
+            Object.assign(newType, {
+              'x.type.name': _uuid,
+              'x.type.label': row[0],
+              'x.type.prototype': []
+            });
+          } else {
+            const _uuid = 'Relation.' + uuid();
+            currentType = 'relation';
+            Object.assign(newType, {
+              'r.type.name': _uuid,
+              'r.type.label': row[0],
+              'r.type.prototype': []
+            });
+          }
+        }
+
+        // 属性名称是否为空
+        if (row[2] !== undefined) {
+          const attrName = row[2];
+          const attrType = typeLabelMap[row[4] || '单行文本'] || 'string';
+          let newAttr = {
+            name: attrName,
+            display: row[3] || attrName,
+            type: attrType,
+            required: false
+          };
+          // 默认值
+          if (row[5] !== undefined) {
+            let defaultVal = row[5];
+            if (attrType === 'int' || attrType === 'float') {
+              defaultVal = Number(row[5]);
+            } else if (attrType === 'boolean') {
+              defaultVal = Boolean(row[5]);
+            }
+            Object.assign(newAttr, { default: defaultVal });
+          }
+
+          if (attrType === 'date') {
+            Object.assign(newAttr, { datetimeFormat: row[6] || 'YYYY-MM-DD' });
+          }
+
+          Object.assign(newTypeAttrs, { [attrName]: newAttr });
+        }
+
+        if (currentType === 'relation' && row[7] && row[8]) {
+          binds.push({
+            source: row[7],
+            target: row[8]
+          });
+        }
+      }
+      saveType();
+
+      relationTypes.forEach(function (type) {
+        const binds = type['r.type.constraints']['r.binds'].filter(function (bind: { source: string; target: string; }) {
+          const { source, target } = bind;
+          if (objectTypeMap[source] && objectTypeMap[target]) {
+            Object.assign(bind, { source: objectTypeMap[source], target: objectTypeMap[target] })
+            return true;
+          }
+          return false;
+        });
+        Object.assign(type['r.type.constraints'], {
+          'r.binds': binds
+        });
+      });
+
+      function postRelations() {
+        if (!store.getState().editor.typeLoading) setTypeLoading(true);
+        addRelationByGraphId(routerParams?.id, relationTypes, (success: boolean, response: any) => {
+          if (success) {
+            let newRelations = relationList.concat(response);
+            dispatch(setRelations(newRelations));
+            notification.success({
+              message: '导入成功',
+            });
+          } else {
+            notification.error({
+              message: '导入失败，请重新刷新页面',
+              description: response.message || response.msg
+            });
+          }
+          setUploading(false);
+          dispatch(setTypeLoading(false));
+        });
+      }
+      if (objectTypes.length > 0) {
+        dispatch(setTypeLoading(true));
+        addTypeByGraphId(routerParams?.id, objectTypes, (success: boolean, response: any) => {
+          if (success) {
+            let newTypes = typeList.concat(response);
+            dispatch(setTypes(newTypes));
+
+            if (relationTypes.length > 0) {
+              postRelations();
+            } else {
+              setUploading(false);
+              dispatch(setTypeLoading(false));
+              notification.success({
+                message: '导入成功',
+              });
+            }
+          } else {
+            setUploading(false);
+            notification.error({
+              message: '导入失败，请重新刷新页面',
+              description: response.message || response.msg
+            });
+            dispatch(setTypeLoading(false));
+          }
+        });
+      } else if (relationTypes.length > 0) {
+        postRelations();
+      } else {
+        setUploading(false);
+      }
+    };
+    reader.readAsBinaryString(file);
+  }
+
+  const uploadProps: UploadProps = {
+    fileList: [],
+    accept: ".xlsx",
+    beforeUpload: (file) => {
+      if (!file.name.endsWith(".xlsx")) {
+        message.warning("上传文件类型错误，请上传xlsx文件！");
+        return false;
+      }
+
+      readXlsxData(file);
+      return false;
+    },
+  };
+
   return (
     <>
       <div className='pdb-graph-toolbar'>
-        {tabs.map((tab) => (
-          <Popover
-            visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
-            placement="right"
-            trigger="click"
-            content={
-              _.get(tab, 'key', '') === 'setting' ?
-                renderSettingPanel() :
-                renderFilterPanel()
-            }
-            title={_.get(tab, 'key', '') === 'filter' ? (
-              <>
-                <span>视图过滤</span>
-                <span>
-                  <Tooltip title="清空">
-                    <i
-                      className="operation-icon spicon icon-qingkonghuabu"
-                      style={{ marginRight: 5 }}
-                      onClick={clearFilter}
-                    />
-                  </Tooltip>
-                  <i className="operation-icon spicon icon-guanbi" onClick={() => setSelectedTab(null)} />
-                </span>
-              </>
-            ) : ''}
-            rootClassName={_.get(tab, 'key', '') === 'filter' ? 'pdb-graph-toolbar-panel edit_tools pdb-param-editor' : ''}
-            getPopupContainer={() => document.getElementsByClassName('pdb-object-graph-content')[0] as HTMLElement}
-            arrow={false}
-            onVisibleChange={(visible: boolean) => {
-              if (!visible) setSelectedTab(null);
-            }}
-          >
-            <Tooltip title={tab.label} placement="right">
-              <div
-                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && currentGraphTab === 'main' ? 'disabled' : ''}`}
-                onClick={() => {
-                  if (tab.key === 'reset' && currentGraphTab === 'main') return;
-                  if (tab.popover) {
-                    setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab);
-                  }
-                  tab.onClick && tab.onClick();
-                }}
-              >
+        {location.pathname.endsWith("/template") ?
+          <Tooltip title="导入xlsx模板数据" placement="right">
+            <Upload {...uploadProps} disabled={uploading}>
+              <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} >
                 <div className="pdb-graph-toolbar-icon">
-                  <i className={`operation-icon spicon ${tab.icon}`}></i>
+                  <i className="operation-icon spicon icon-shangchuan"></i>
                 </div>
               </div>
-            </Tooltip>
-          </Popover>
-        ))}
+            </Upload>
+          </Tooltip>
+          :
+          tabs.map((tab) => (
+            <Popover
+              visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
+              placement="right"
+              trigger="click"
+              content={
+                _.get(tab, 'key', '') === 'setting' ?
+                  renderSettingPanel() :
+                  renderFilterPanel()
+              }
+              title={_.get(tab, 'key', '') === 'filter' ? (
+                <>
+                  <span>视图过滤</span>
+                  <span>
+                    <Tooltip title="清空">
+                      <i
+                        className="operation-icon spicon icon-qingkonghuabu"
+                        style={{ marginRight: 5 }}
+                        onClick={clearFilter}
+                      />
+                    </Tooltip>
+                    <i className="operation-icon spicon icon-guanbi" onClick={() => setSelectedTab(null)} />
+                  </span>
+                </>
+              ) : ''}
+              rootClassName={_.get(tab, 'key', '') === 'filter' ? 'pdb-graph-toolbar-panel edit_tools pdb-param-editor' : ''}
+              getPopupContainer={() => document.getElementsByClassName('pdb-object-graph-content')[0] as HTMLElement}
+              arrow={false}
+              onVisibleChange={(visible: boolean) => {
+                if (!visible) setSelectedTab(null);
+              }}
+            >
+              <Tooltip title={tab.label} placement="right">
+                <div
+                  className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && currentGraphTab === 'main' ? 'disabled' : ''}`}
+                  onClick={() => {
+                    if (tab.key === 'reset' && currentGraphTab === 'main') return;
+                    if (tab.popover) {
+                      setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab);
+                    }
+                    tab.onClick && tab.onClick();
+                  }}
+                >
+                  <div className="pdb-graph-toolbar-icon">
+                    <i className={`operation-icon spicon ${tab.icon}`}></i>
+                  </div>
+                </div>
+              </Tooltip>
+            </Popover>
+          ))}
       </div>
       {/* {_.get(selectedTab, 'key') && (_.get(selectedTab, 'key', '') === 'setting' ?
         renderSettingPanel() :

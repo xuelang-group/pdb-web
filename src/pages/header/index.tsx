@@ -20,8 +20,8 @@ interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const { route, headerEXtraWidth, centerContent } = props;
-  const graphData = useSelector((store: any) => store[route].graphData);
-  const graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
+  const graphData = useSelector((store: any) => store[route].graphData),
+    graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
   const dispatch = useDispatch();
 
   let timer: any,
@@ -72,7 +72,7 @@ export default function Header(props: HeaderProps) {
     drawCircle();
   }, [graphSavedMsg?.status]);
 
-  const handleCollapsed = function() {
+  const handleCollapsed = function () {
     dispatch(setCollapsed(false));
   }
   
@@ -102,7 +102,7 @@ export default function Header(props: HeaderProps) {
           }
         </div>
       </div>
-      <div  className="pdb-header-center">{centerContent}</div>
+      <div className="pdb-header-center">{centerContent}</div>
       <div className="pdb-header-right" style={{ marginRight: headerEXtraWidth || 0 }}>
         {/* <div className="pdb-header-toolbar">
           <div className="pdb-header-toolbar-item">
