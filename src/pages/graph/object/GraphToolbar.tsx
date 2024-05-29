@@ -12,10 +12,10 @@ import { Parent, setObjects } from "@/reducers/object";
 import { getChildren } from "@/actions/object";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
-import { typeLabelMap, uuid } from "@/utils/common";
+import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
 import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
 import { setRelations } from "@/reducers/relation";
-import { addTypeByGraphId, deleteTypeByGraphId } from "@/actions/type";
+import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/type";
 import { setTypes } from "@/reducers/type";
 import "./index.less";
 
@@ -56,6 +56,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
     [uploading, setUploading] = useState(false); // 上传xlsx文件中
   const [filterForm] = Form.useForm();
+  let uploadCofirm: any;
 
   const tabs = [{
     key: 'setting',
@@ -585,7 +586,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function postRelations(relationTypes: any[], _relationList: any[]) {
     if (!store.getState().editor.typeLoading) setTypeLoading(true);
     addRelationByGraphId(routerParams?.id, relationTypes, (success: boolean, response: any) => {
+      message.destroy("upload");
       if (success) {
+        resetSchema(routerParams.id, () => { });
         let newRelations = _relationList.concat(response);
         dispatch(setRelations(newRelations));
         notification.success({
@@ -613,13 +616,16 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           if (relationTypes.length > 0) {
             postRelations(relationTypes, _relationList);
           } else {
+            message.destroy("upload");
             setUploading(false);
             dispatch(setTypeLoading(false));
             notification.success({
               message: '导入成功',
             });
+            resetSchema(routerParams.id, () => { });
           }
         } else {
+          message.destroy("upload");
           setUploading(false);
           notification.error({
             message: '导入失败，请重新刷新页面',
@@ -631,6 +637,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     } else if (relationTypes.length > 0) {
       postRelations(relationTypes, _relationList);
     } else {
+      message.destroy("upload");
       setUploading(false);
     }
   }
@@ -640,6 +647,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (success) {
         createModelData(objectTypes, relationTypes, [], []);
       } else {
+        message.destroy("upload");
         notification.error({
           message: '导入失败，请重新刷新页面',
           description: response.message || response.msg
@@ -653,6 +661,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function readXlsxData(file: any, override: boolean) {
     const reader = new FileReader();
     reader.onload = (event: any) => {
+      message.loading({
+        key: "upload",
+        content: "导入中",
+        duration: 0
+      });
       setUploading(true);
       const workbook = XLSX.read(event.target.result, { type: 'binary' });
       const sheetName = workbook.SheetNames[0];
@@ -661,6 +674,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const objectTypes: any[] = [], objectTypeMap: any = {}, relationTypes: any[] = [];
       const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const HEADERS = 2; // 标题行数
+      const colors = Object.keys(nodeColorList);
 
       function saveType() {
         if (!_.isEmpty(newType)) {
@@ -686,7 +700,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       }
 
       // process the rest of the rows
-      let newType = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [];
+      let newType = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [], colorIndex = 0;
       for (let R = HEADERS; R < data.length; ++R) {
         const row = data[R];
         // 类型名称是否为空
@@ -699,8 +713,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             Object.assign(newType, {
               'x.type.name': _uuid,
               'x.type.label': row[0],
-              'x.type.prototype': []
+              'x.type.prototype': [],
+              'x.type.metadata': JSON.stringify({ color: colors[colorIndex]})
             });
+            colorIndex++;
+            if (colorIndex === colors.length) colorIndex = 0;
           } else {
             const _uuid = 'Relation.' + uuid();
             currentType = 'relation';
@@ -773,6 +790,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                 createModelData(objectTypes, relationTypes, [], []);
               }
             } else {
+              message.destroy("upload");
               notification.error({
                 message: '导入失败，请重新刷新页面',
                 description: response.message || response.msg
@@ -790,7 +808,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     reader.readAsBinaryString(file);
   }
 
-  let uploadCofirm: any;
   const uploadProps = (override = false) => ({
     fileList: [],
     accept: ".xlsx",
@@ -811,7 +828,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     let title = "当前已存在对象实例，上传数据无法覆盖当前模板数据，只能新增，是否继续上传？";
     let footer = [
       <Button
-        style={{ marginLeft: "16rem" }}
+        style={{ marginLeft: allObjects.length === 0 ? "16rem" : "23.2rem" }}
         onClick={() => { uploadCofirm && uploadCofirm.destroy(); }}
       >取消</Button>,
       <Upload {...uploadProps()}><Button type="primary">新增</Button></Upload>
