@@ -398,16 +398,15 @@ export default function Right(props: RightProps) {
   // 更新对象类型
   const updateType = (type: TypeConfig, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
-    const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
 
     setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       if (success) {
         const label = type['x.type.label'],
           name = type['x.type.name'];
-        if (name !== currentEditModel.name) {
+        if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== currentEditModel.data['x.type.metadata'])) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
-          (window as any).PDB_GRAPH?.updateItem(item, {
+          (window as any).PDB_GRAPH?.updateItem(currentEditModel?.id, {
             icon: icon,
             data: type,
             name: label
