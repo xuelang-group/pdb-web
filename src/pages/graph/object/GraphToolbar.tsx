@@ -714,7 +714,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               'x.type.name': _uuid,
               'x.type.label': row[0],
               'x.type.prototype': [],
-              'x.type.metadata': JSON.stringify({ color: colors[colorIndex]})
+              'x.type.metadata': JSON.stringify({ color: colors[colorIndex] })
             });
             colorIndex++;
             if (colorIndex === colors.length) colorIndex = 0;
@@ -844,11 +844,24 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     });
   }
 
+  const handleDownload = function () {
+    // 创建工作簿
+    const workbook = XLSX.utils.book_new();
+
+    // 创建工作表
+    const worksheet = XLSX.utils.json_to_sheet([]);
+    Object.assign(worksheet, {"!ref":"A1:I10","A1":{"t":"s","v":"名称（唯一标识）","r":"<t>名称（唯一标识）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"名称（唯一标识）","w":"名称（唯一标识）"},"B1":{"t":"s","v":"类型（默认对象类型）","r":"<t>类型（默认对象类型）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"类型（默认对象类型）","w":"类型（默认对象类型）"},"C1":{"t":"s","v":"属性设置","r":"<t>属性设置</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"属性设置","w":"属性设置"},"H1":{"t":"s","v":"连接对象（仅关系类型）","r":"<t>连接对象（仅关系类型）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"连接对象（仅关系类型）","w":"连接对象（仅关系类型）"},"C2":{"t":"s","v":"属性名称（唯一标识）","r":"<t>属性名称（唯一标识）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"属性名称（唯一标识）","w":"属性名称（唯一标识）"},"D2":{"t":"s","v":"属性展示名称","r":"<t>属性展示名称</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"属性展示名称","w":"属性展示名称"},"E2":{"t":"s","v":"属性类型","r":"<t>属性类型</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"属性类型","w":"属性类型"},"F2":{"t":"s","v":"默认值","r":"<t>默认值</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"默认值","w":"默认值"},"G2":{"t":"s","v":"日期类型格式（默认YYYY-MM-DD）","r":"<t>日期类型格式（默认YYYY-MM-DD）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"日期类型格式（默认YYYY-MM-DD）","w":"日期类型格式（默认YYYY-MM-DD）"},"H2":{"t":"s","v":"关系类型连接对象（源对象类型）","r":"<t>关系类型连接对象（源对象类型）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"关系类型连接对象（源对象类型）","w":"关系类型连接对象（源对象类型）"},"I2":{"t":"s","v":"关系类型连接对象（目标对象类型）","r":"<t>关系类型连接对象（目标对象类型）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"关系类型连接对象（目标对象类型）","w":"关系类型连接对象（目标对象类型）"},"A3":{"t":"s","v":"航司","r":"<t>航司</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"航司","w":"航司"},"B3":{"t":"s","v":"对象类型","r":"<t>对象类型</t>","h":"对象类型","w":"对象类型"},"C3":{"t":"s","v":"serialNo","r":"<t>serialNo</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"serialNo","w":"serialNo"},"D3":{"t":"s","v":"序号","r":"<t>序号</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"序号","w":"序号"},"E3":{"t":"s","v":"整数","r":"<t>整数</t>","h":"整数","w":"整数"},"C4":{"t":"s","v":"standardName","r":"<t>standardName</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"standardName","w":"standardName"},"D4":{"t":"s","v":"标准名称","r":"<t>标准名称</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"标准名称","w":"标准名称"},"E4":{"t":"s","v":"单行文本","r":"<t>单行文本</t>","h":"单行文本","w":"单行文本"},"C5":{"t":"s","v":"airlineThreeCode","r":"<t>airlineThreeCode</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"airlineThreeCode","w":"airlineThreeCode"},"D5":{"t":"s","v":"三字码","r":"<t>三字码</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"三字码","w":"三字码"},"E5":{"t":"s","v":"单行文本","r":"<t>单行文本</t>","h":"单行文本","w":"单行文本"},"A6":{"t":"s","v":"飞机","r":"<t>飞机</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"飞机","w":"飞机"},"B6":{"t":"s","v":"对象类型","r":"<t>对象类型</t>","h":"对象类型","w":"对象类型"},"C6":{"t":"s","v":"id","r":"<t>id</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"id","w":"id"},"D6":{"t":"s","v":"序号","r":"<t>序号</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"序号","w":"序号"},"E6":{"t":"s","v":"整数","r":"<t>整数</t>","h":"整数","w":"整数"},"C7":{"t":"s","v":"planeType","r":"<t>planeType</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"planeType","w":"planeType"},"D7":{"t":"s","v":"机型","r":"<t>机型</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"机型","w":"机型"},"E7":{"t":"s","v":"单行文本","r":"<t>单行文本</t>","h":"单行文本","w":"单行文本"},"C8":{"t":"s","v":"flightNumber","r":"<t>flightNumber</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"flightNumber","w":"flightNumber"},"D8":{"t":"s","v":"飞机序列号","r":"<t>飞机序列号</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"飞机序列号","w":"飞机序列号"},"E8":{"t":"s","v":"单行文本","r":"<t>单行文本</t>","h":"单行文本","w":"单行文本"},"A9":{"t":"s","v":"交付","r":"<t>交付</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"交付","w":"交付"},"B9":{"t":"s","v":"关系类型","r":"<t>关系类型</t>","h":"关系类型","w":"关系类型"},"H9":{"t":"s","v":"飞机","r":"<t>飞机</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"飞机","w":"飞机"},"I9":{"t":"s","v":"航司","r":"<t>航司</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"航司","w":"航司"},"H10":{"t":"s","v":"xxxx","r":"<t>xxxx</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"xxxx","w":"xxxx"},"I10":{"t":"s","v":"xxxx","r":"<t>xxxx</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>","h":"xxxx","w":"xxxx"},"!margins":{"left":0.7,"right":0.7,"top":0.75,"bottom":0.75,"header":0.3,"footer":0.3},"!merges":[{"s":{"c":7,"r":0},"e":{"c":8,"r":0}},{"s":{"c":0,"r":2},"e":{"c":0,"r":4}},{"s":{"c":2,"r":0},"e":{"c":6,"r":0}},{"s":{"c":1,"r":0},"e":{"c":1,"r":1}},{"s":{"c":1,"r":2},"e":{"c":1,"r":4}},{"s":{"c":0,"r":8},"e":{"c":0,"r":9}},{"s":{"c":1,"r":8},"e":{"c":1,"r":9}},{"s":{"c":0,"r":5},"e":{"c":0,"r":7}},{"s":{"c":1,"r":5},"e":{"c":1,"r":7}},{"s":{"c":0,"r":0},"e":{"c":0,"r":1}}]})
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+    // 导出为XLSX文件
+    XLSX.writeFile(workbook, '示例数据.xlsx');
+  }
+
   return (
     <>
       <div className='pdb-graph-toolbar'>
         {location.pathname.endsWith("/template") ?
-          <Tooltip title="导入xlsx模板数据" placement="right">
+          <Tooltip title={<span>导入xlsx模板数据 <a onClick={handleDownload}>示例数据</a></span>} placement="right">
             {typeList.length === 0 && relationList.length === 0 ?
               <Upload {...uploadProps()} disabled={uploading}>
                 <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} >
