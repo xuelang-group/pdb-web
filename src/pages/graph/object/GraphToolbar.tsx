@@ -1,5 +1,4 @@
-import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message } from "antd";
-import type { UploadProps } from 'antd';
+import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { Item } from "@antv/g6";
 import _ from "lodash";
@@ -14,10 +13,11 @@ import { getChildren } from "@/actions/object";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { typeLabelMap, uuid } from "@/utils/common";
-import { addRelationByGraphId } from "@/actions/relation";
+import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
 import { setRelations } from "@/reducers/relation";
-import { addTypeByGraphId } from "@/actions/type";
+import { addTypeByGraphId, deleteTypeByGraphId } from "@/actions/type";
 import { setTypes } from "@/reducers/type";
+import "./index.less";
 
 const { Panel } = Collapse;
 const getRelationLabelCfg = (labelColor: string, showLabel: boolean, theme: string) => ({
@@ -582,8 +582,75 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     )
   }
 
+  function postRelations(relationTypes: any[], _relationList: any[]) {
+    if (!store.getState().editor.typeLoading) setTypeLoading(true);
+    addRelationByGraphId(routerParams?.id, relationTypes, (success: boolean, response: any) => {
+      if (success) {
+        let newRelations = _relationList.concat(response);
+        dispatch(setRelations(newRelations));
+        notification.success({
+          message: '导入成功',
+        });
+      } else {
+        notification.error({
+          message: '导入失败，请重新刷新页面',
+          description: response.message || response.msg
+        });
+      }
+      setUploading(false);
+      dispatch(setTypeLoading(false));
+    });
+  }
+
+  function createModelData(objectTypes: any[], relationTypes: any[], _typelList: any[], _relationList: any[]) {
+    if (objectTypes.length > 0) {
+      dispatch(setTypeLoading(true));
+      addTypeByGraphId(routerParams?.id, objectTypes, (success: boolean, response: any) => {
+        if (success) {
+          let newTypes = _typelList.concat(response);
+          dispatch(setTypes(newTypes));
+
+          if (relationTypes.length > 0) {
+            postRelations(relationTypes, _relationList);
+          } else {
+            setUploading(false);
+            dispatch(setTypeLoading(false));
+            notification.success({
+              message: '导入成功',
+            });
+          }
+        } else {
+          setUploading(false);
+          notification.error({
+            message: '导入失败，请重新刷新页面',
+            description: response.message || response.msg
+          });
+          dispatch(setTypeLoading(false));
+        }
+      });
+    } else if (relationTypes.length > 0) {
+      postRelations(relationTypes, _relationList);
+    } else {
+      setUploading(false);
+    }
+  }
+
+  function removeTypes(objectTypes: any[], relationTypes: any[]) {
+    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
+      if (success) {
+        createModelData(objectTypes, relationTypes, [], []);
+      } else {
+        notification.error({
+          message: '导入失败，请重新刷新页面',
+          description: response.message || response.msg
+        });
+        setUploading(false);
+      }
+    });
+  }
+
   // 读取 XLSX 文件并获取数据
-  function readXlsxData(file: any) {
+  function readXlsxData(file: any, override: boolean) {
     const reader = new FileReader();
     reader.onload = (event: any) => {
       setUploading(true);
@@ -696,85 +763,89 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         });
       });
 
-      function postRelations() {
-        if (!store.getState().editor.typeLoading) setTypeLoading(true);
-        addRelationByGraphId(routerParams?.id, relationTypes, (success: boolean, response: any) => {
-          if (success) {
-            let newRelations = relationList.concat(response);
-            dispatch(setRelations(newRelations));
-            notification.success({
-              message: '导入成功',
-            });
-          } else {
-            notification.error({
-              message: '导入失败，请重新刷新页面',
-              description: response.message || response.msg
-            });
-          }
-          setUploading(false);
-          dispatch(setTypeLoading(false));
-        });
-      }
-      if (objectTypes.length > 0) {
-        dispatch(setTypeLoading(true));
-        addTypeByGraphId(routerParams?.id, objectTypes, (success: boolean, response: any) => {
-          if (success) {
-            let newTypes = typeList.concat(response);
-            dispatch(setTypes(newTypes));
-
-            if (relationTypes.length > 0) {
-              postRelations();
+      if (override && (relationList.length > 0 || typeList.length > 0)) {
+        if (relationList.length > 0) {
+          deleteRelationByGraphId(routerParams?.id, relationList.map(val => val['r.type.name']), (success: any, response: any) => {
+            if (success) {
+              if (typeList.length > 0) {
+                removeTypes(objectTypes, relationTypes);
+              } else {
+                createModelData(objectTypes, relationTypes, [], []);
+              }
             } else {
-              setUploading(false);
-              dispatch(setTypeLoading(false));
-              notification.success({
-                message: '导入成功',
+              notification.error({
+                message: '导入失败，请重新刷新页面',
+                description: response.message || response.msg
               });
+              setUploading(false);
             }
-          } else {
-            setUploading(false);
-            notification.error({
-              message: '导入失败，请重新刷新页面',
-              description: response.message || response.msg
-            });
-            dispatch(setTypeLoading(false));
-          }
-        });
-      } else if (relationTypes.length > 0) {
-        postRelations();
+          });
+        } else if (typeList.length > 0) {
+          removeTypes(objectTypes, relationTypes);
+        }
       } else {
-        setUploading(false);
+        createModelData(objectTypes, relationTypes, typeList, relationList);
       }
     };
     reader.readAsBinaryString(file);
   }
 
-  const uploadProps: UploadProps = {
+  let uploadCofirm: any;
+  const uploadProps = (override = false) => ({
     fileList: [],
     accept: ".xlsx",
-    beforeUpload: (file) => {
+    beforeUpload: (file: any) => {
+      if (!file || !file.name) return false;
       if (!file.name.endsWith(".xlsx")) {
         message.warning("上传文件类型错误，请上传xlsx文件！");
         return false;
       }
 
-      readXlsxData(file);
+      readXlsxData(file, override);
+      uploadCofirm && uploadCofirm.destroy();
       return false;
     },
-  };
+  });
+
+  const handleUploadConfirm = function () {
+    let title = "当前已存在对象实例，上传数据无法覆盖当前模板数据，只能新增，是否继续上传？";
+    let footer = [
+      <Button
+        style={{ marginLeft: "16rem" }}
+        onClick={() => { uploadCofirm && uploadCofirm.destroy(); }}
+      >取消</Button>,
+      <Upload {...uploadProps()}><Button type="primary">新增</Button></Upload>
+    ]
+    if (allObjects.length === 0) {
+      title = "当前已存在模板数据，上传数据是否覆盖当前模板数据？";
+      footer.push(<Upload {...uploadProps(true)} ><Button type="primary">覆盖</Button></Upload>);
+    }
+    uploadCofirm = Modal.confirm({
+      className: "pdb-upload-confirm",
+      title,
+      footer
+    });
+  }
 
   return (
     <>
       <div className='pdb-graph-toolbar'>
         {location.pathname.endsWith("/template") ?
           <Tooltip title="导入xlsx模板数据" placement="right">
-            <Upload {...uploadProps} disabled={uploading}>
-              <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} >
+            {typeList.length === 0 && relationList.length === 0 ?
+              <Upload {...uploadProps()} disabled={uploading}>
+                <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} >
+                  <div className="pdb-graph-toolbar-icon">
+                    <i className="operation-icon spicon icon-shangchuan"></i>
+                  </div>
+                </div>
+              </Upload> :
+              <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} onClick={handleUploadConfirm}>
                 <div className="pdb-graph-toolbar-icon">
                   <i className="operation-icon spicon icon-shangchuan"></i>
                 </div>
               </div>
-            </Upload>
+            }
           </Tooltip>
           :
           tabs.map((tab) => (
