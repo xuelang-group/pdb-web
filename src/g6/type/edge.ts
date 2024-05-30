@@ -11,7 +11,7 @@ var PI = Math.PI,
   cos = Math.cos;
 export const edgeStyle: any = {
   default: {
-    stroke: '#F77234',
+    stroke: 'l(0) 0:#FFE1CB 1:#FFAD72',
     lineWidth: 1.5,
     startArrow: {
       path: G6.Arrow.triangle(0, 0, defaultCircleR + 2),
@@ -20,7 +20,8 @@ export const edgeStyle: any = {
     endArrow: {
       path: G6.Arrow.triangle(5, 5, defaultCircleR + 2),
       d: defaultCircleR + 2,
-      fill: '#F77234'
+      fill: '#FFAD72',
+      stroke: '#FFAD72',
     },
     cursor: 'pointer'
   },
@@ -61,10 +62,11 @@ export const labelThemeStyle: any = {
 export const edgeLabelStyle: any = (theme: string = 'light') => ({
   default: {
     fill: labelThemeStyle[theme].fill,
-    fontSize: 14,
+    fontSize: 12,
+    lineHeight: 12,
     background: {
       fill: labelThemeStyle[theme].background,
-      padding: [0, 4, 0, 4],
+      padding: [0, 0, 0, 0],
     },
     cursor: 'pointer'
   },
