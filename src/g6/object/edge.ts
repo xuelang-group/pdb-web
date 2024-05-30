@@ -1,5 +1,6 @@
 import G6, { EdgeConfig } from '@antv/g6';
-import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT } from '../../utils/objectGraph';
+import _ from 'lodash';
+import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../../utils/objectGraph';
 
 export const defaultEdgeStyle = {
   stroke: '#F77234',
@@ -176,46 +177,200 @@ export function registerEdge() {
       ];
     }
   }
+
+  G6.registerEdge('tree-relation-line', {
+    getPath(points: any) {
+      const startPoint = points[0], endPoint = points[1];
+      //曲线的起点终点
+      let startX = startPoint.x + 5;
+      let startY = startPoint.y;
+      let endX = endPoint.x - 8;
+      let endY = endPoint.y;
+
+      if (startY === endY) {
+        return [
+          ['M', startPoint.x, startPoint.y],
+          ['L', endPoint.x, endPoint.y],
+        ];
+      }
+
+      if (startPoint.x > endPoint.x) {
+        startX = startPoint.x - 5;
+        startY = startPoint.y;
+        endX = endPoint.x + 8;
+        endY = endPoint.y;
+      }
+
+      // 曲线控制点坐标
+      let cp1X = startX;
+      let cp1Y = startY + (endY - startY) / 2;
+      let cp2X = endX;
+      let cp2Y = endY - (endY - startY) / 2;
+
+      if (startY < endY) {
+        cp1X = (startX + endX) / 2;
+        cp1Y = startY;
+        cp2X = (startX + endX) / 2;
+        cp2Y = endY;
+      } else {
+        cp1X = startX + (endX - startX) / 2;
+        cp1Y = startY;
+        cp2X = endX - (endX - startX) / 2;
+        cp2Y = endY;
+      }
+
+      return [
+        ['M', startPoint.x, startY],
+        ['L', startX, startY],
+        ['C', cp1X, cp1Y, cp2X, cp2Y, endX, endY],
+        ['L', endPoint.x, endY],
+      ];
+    }
+  }, 'single-line');
+
   // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
   G6.registerEdge('same-tree-relation-line', {
+    curveOffset: 20,
+    clockwise: 1,
     getPath(points: any) {
-      return getPathWithBorderRadiusByPolyline(getPoint(this.mergeStyle), 5);
-    },
-    afterDraw(cfg: any, group: any) {
-      const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
-        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape');
-      const { source, target } = cfg;
-      if (source === target && textShape) {
-        const points = getPoint(cfg),
-          x = (points[2].x - points[1].x) / 2 + points[1].x,
-          y = points[1].y;
-        textShape.attr({ x, y });
-        if (textBgShape) {
-          const textBgWidth = textBgShape.getBBox().width,
-            textBgHeight = textBgShape.getBBox().height;
-          textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
-        }
+      const path = [];
+      const { sourceWidth, targetWidth } = this.mergeStyle;
+
+      const startPoint: any = { ...points[0] },
+        endPoint: any = { ...points[1] };
+      if (startPoint.y < endPoint.y) {
+        startPoint.x = startPoint.x + (sourceWidth || 0);
+        endPoint.x = endPoint.x + (targetWidth || 0);
       }
-    },
-    afterUpdate(cfg: any, item: any) {
-      const group = item.get('group');
-      const textShape = group.find((ele: any) => ele.get('name') === 'text-shape'),
-        textBgShape = group.find((ele: any) => ele.get('name') === 'text-bg-shape');
-      const { source, target } = cfg;
-      if (source === target && textShape) {
-        const points = getPoint(cfg),
-          x = (points[2].x - points[1].x) / 2 + points[1].x,
-          y = points[1].y;
-        textShape.attr({ x, y });
-        if (textBgShape) {
-          const textBgWidth = textBgShape.getBBox().width,
-            textBgHeight = textBgShape.getBBox().height;
-          textBgShape.attr({ x: x - textBgWidth / 2, y: y - textBgHeight / 2 });
-        }
+
+      let endX = endPoint.x + 8;
+      if (startPoint.y > endPoint.y) {
+        endX = endPoint.x - 8;
       }
-    }
-  }, 'line');
+
+      path.push(['M', startPoint.x, startPoint.y]);
+      var midPoint = {
+        x: (startPoint.x + endX) / 2,
+        y: (startPoint.y + endPoint.y) / 2
+      };
+      var center;
+      var arcPoint;
+      this.curveOffset = Math.min(Math.abs(startPoint.y - endPoint.y) * 0.1, 100);
+
+      var vec = {
+        x: endX - startPoint.x,
+        y: endPoint.y - startPoint.y
+      };
+      var edgeAngle = Math.atan2(vec.y, vec.x);
+      arcPoint = {
+        x: this.curveOffset * Math.cos(-Math.PI / 2 + edgeAngle) + midPoint.x,
+        y: this.curveOffset * Math.sin(-Math.PI / 2 + edgeAngle) + midPoint.y
+      };
+      center = getCircleCenterByPoints(startPoint, arcPoint, endPoint);
+      var radius = _distance(startPoint, center);
+      var controlPoint = {
+        x: radius,
+        y: radius
+      };
+
+      path.push(['A', controlPoint.x, controlPoint.y, 0, 0, this.clockwise, endX, endPoint.y]);
+      path.push(['L', endPoint.x, endPoint.y]);
+      return path;
+    },
+  }, 'single-line');
+
+  G6.registerEdge('same-root-relation-line', {
+    curveOffset: 20,
+    clockwise: 1,
+    getPath(points: any) {
+      const path = [];
+
+      const startPoint: any = { ...points[0] },
+        endPoint: any = { ...points[1] };
+      startPoint.x = startPoint.x - ROOT_NODE_WIDTH  + 15;
+      endPoint.x = endPoint.x + 15;
+
+      startPoint.y = startPoint.y - NODE_HEIGHT / 2;
+      endPoint.y = endPoint.y - NODE_HEIGHT / 2;
+
+      this.curveOffset = Math.min(Math.abs(startPoint.y - endPoint.y) * 0.1, 100);
+      this.clockwise = 1;
+      if (points[0].x > points[1].x) {
+        endPoint.x = points[1].x - ROOT_NODE_WIDTH  + 15;
+        startPoint.x = points[0].x + 15;
+
+        startPoint.y = points[0].y - NODE_HEIGHT / 2;
+        endPoint.y = points[1].y - NODE_HEIGHT / 2;
+
+        this.curveOffset = Math.min(Math.abs(startPoint.x - endPoint.x) * 0.1, 100);
+        this.clockwise = 0;
+      }
+
+
+      let endY = endPoint.y - 9;
+
+      path.push(['M', startPoint.x, startPoint.y]);
+      var midPoint = {
+        x: (startPoint.x + endPoint.x) / 2,
+        y: (startPoint.y + endPoint.y) / 2
+      };
+      var center;
+      var arcPoint;
+      this.curveOffset = 20;
+
+      var vec = {
+        x: endPoint.x - startPoint.x,
+        y: endPoint.y - startPoint.y
+      };
+      var edgeAngle = Math.atan2(vec.y, vec.x);
+      arcPoint = {
+        x: this.curveOffset * Math.cos(-Math.PI / 2 + edgeAngle) + midPoint.x,
+        y: this.curveOffset * Math.sin(-Math.PI / 2 + edgeAngle) + midPoint.y
+      };
+      center = getCircleCenterByPoints(startPoint, arcPoint, endPoint);
+      var radius = _distance(startPoint, center);
+      var controlPoint = {
+        x: radius,
+        y: radius
+      };
+
+      path.push(['A', controlPoint.x, controlPoint.y, 0, 0, this.clockwise, endPoint.x, endY]);
+      path.push(['L', endPoint.x, endPoint.y]);
+      return path;
+    },
+  }, 'single-line');
 }
+
+/**
+ *
+ * @param p1 First coordinate
+ * @param p2 second coordinate
+ * @param p2 three coordinate
+ */
+function getCircleCenterByPoints(p1: { x: number; y: number; }, p2: { x: number; y: number; }, p3: { x: number; y: number; }) {
+  const a = p1.x - p2.x;
+  const b = p1.y - p2.y;
+  const c = p1.x - p3.x;
+  const d = p1.y - p3.y;
+  const e = (p1.x * p1.x - p2.x * p2.x - p2.y * p2.y + p1.y * p1.y) / 2;
+  const f = (p1.x * p1.x - p3.x * p3.x - p3.y * p3.y + p1.y * p1.y) / 2;
+  const denominator = b * c - a * d;
+  return {
+    x: -(d * e - b * f) / denominator,
+    y: -(a * f - c * e) / denominator
+  };
+};
+
+/**
+ * get distance by two points
+ * @param p1 first point
+ * @param p2 second point
+ */
+function _distance(p1: PolyPoint, p2: PolyPoint) {
+  var vx = p1.x - p2.x;
+  var vy = p1.y - p2.y;
+  return Math.sqrt(vx * vx + vy * vy);
+};
 
 // 检查线条重叠
 function checkLineCollision(line1: any, line2: any) {

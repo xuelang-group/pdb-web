@@ -24,10 +24,11 @@ const getRelationLabelCfg = (labelColor: string, showLabel: boolean, theme: stri
   autoRotate: true,
   style: {
     fill: labelColor,
-    fontSize: 10,
+    fontSize: 12,
+    lineHeight: 12,
     background: {
       fill: showLabel ? labelThemeStyle[theme].background : 'transparent',
-      padding: [2, 2, 2, 2],
+      padding: [0, 0, 0, 0],
     }
   }
 });
@@ -162,7 +163,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           // 当前边不存在，sourc和target节点存在，则创建该边
           const sourceItemModel = sourceItem.get('model');
           const targetItemModel = targetItem.get('model');
-          let lineColor = '#eca144', labelColor = labelThemeStyle[props.theme].fill; // 亮化颜色
+          let lineColor = 'l(0) 0:rgba(255,173,114,0.2) 1:#FFAD72', labelColor = labelThemeStyle[props.theme].fill; // 亮化颜色
           if (!_.isEmpty(filterMap.relation) && !_.get(filterMap.relation, relation)) {
             // 有过滤配置，且不在过滤项里的，灰化处理
             lineColor = '#EAECEF';
@@ -170,14 +171,25 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           }
 
           // 默认边类型
-          let edgeType = 'cubic-horizontal';
+          let edgeType = 'tree-relation-line';
           const sourceIsRoot = sourceItemModel.parent === rootId,
             targetIsRoot = targetItemModel.parent === rootId,
             sourceWidth = sourceItemModel.width,
             targetWidth = targetItemModel.width;
+          
           // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
-          if ((targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) || (sourceIsRoot && targetIsRoot)) {
+          if ((targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1])) {
             edgeType = 'same-tree-relation-line';
+            if (sourceItemModel.y > targetItemModel.y) {
+              lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
+            }
+          } else if (sourceIsRoot && targetIsRoot) {
+            edgeType = "same-root-relation-line";
+            if (sourceItemModel.x > targetItemModel.x) {
+              lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
+            }
+          } else if (sourceItemModel.x > targetItemModel.x) {
+            lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
           }
 
           const attrs = {};
@@ -202,14 +214,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             style: {
               stroke: lineColor,
               lineWidth: 1.5,
-              // shadowColor: '#ffe2ba',
-              // shadowBlur: 3,
-              // shadowOffsetX:0,
-              // shadowOffsetY: 1,
               endArrow: {
                 path: G6.Arrow.triangle(5, 5, 1),
-                fill: lineColor,
-                stroke: lineColor,
+                fill: '#FFAD72',
+                stroke: '#FFAD72',
               },
               cursor: 'pointer'
             },
@@ -235,6 +243,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             },
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
+
+          // if (edgeType === "same-tree-relation-line") {
+          //   Object.assign(edgeOption, {
+          //     sourceAnchor: 1,
+          //     targetAnchor: 1
+          //   });
+          // }
           if (objectUid === target.uid) {
             Object.assign(edgeOption.labelCfg.style, {
               x: sourceItemModel.x,
@@ -420,7 +435,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         let lineColor = '#EAECEF', labelColor = '#DCDEE1';// 灰化
         if (!_.isEmpty(filterMap.relation) && _.get(filterMap.relation, edgeModel.relationName) || filters.length === 0) {
           // 高亮
-          lineColor = '#F77234';
+          lineColor = 'l(0) 0:#FFEDE1 1:#FFAD72';
           labelColor = labelThemeStyle[props.theme].fill;
         }
         graph.updateItem(edge, {
