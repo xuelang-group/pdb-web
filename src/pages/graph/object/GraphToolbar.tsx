@@ -190,8 +190,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             }
           } else if (targetItemModel.xid.split('.')[1] < sourceItemModel.xid.split('.')[1]) {
             lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
-            console.log(lineColor)
-
           }
 
           const attrs = {};

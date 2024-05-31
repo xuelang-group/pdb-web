@@ -116,6 +116,22 @@
           min-width: 3rem;
         }
       }
+
+      .list-footer {
+        padding: 1rem 1.6rem 1.6rem;
+
+        .pdb-ant-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          span {
+            color: var(--text-color2);
+            font-size: 1.4rem;
+          }
+        }
+      }
     }
   }
 }
@@ -156,12 +172,14 @@
     cursor: pointer;
 
     .anticon,
-    .spicon, .iconfont {
+    .spicon,
+    .iconfont {
       color: var(--primary-color);
       margin-right: .6rem;
     }
 
-    .spicon, .iconfont {
+    .spicon,
+    .iconfont {
       font-size: 1.6rem;
       line-height: 3.6rem;
     }
@@ -178,7 +196,7 @@
     &-disabled * {
       color: var(--text-color4) !important;
     }
-    
+
     &-operation {
       display: none;
     }
