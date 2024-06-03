@@ -598,9 +598,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     )
   }
 
-  function postRelations(relationTypes: any[], _relationList: any[]) {
+  function postRelations(relationTypes: any, _relationList: any[]) {
     if (!store.getState().editor.typeLoading) setTypeLoading(true);
-    addRelationByGraphId(routerParams?.id, relationTypes, (success: boolean, response: any) => {
+    addRelationByGraphId(routerParams?.id, Object.values(relationTypes), (success: boolean, response: any) => {
       message.destroy("upload");
       if (success) {
         resetSchema(routerParams.id, () => { });
@@ -620,15 +620,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     });
   }
 
-  function createModelData(objectTypes: any[], relationTypes: any[], _typelList: any[], _relationList: any[]) {
-    if (objectTypes.length > 0) {
+  function createModelData(objectTypes: {}, relationTypes: {}, _typelList: any[], _relationList: any[]) {
+    if (Object.keys(objectTypes).length > 0) {
       dispatch(setTypeLoading(true));
-      addTypeByGraphId(routerParams?.id, objectTypes, (success: boolean, response: any) => {
+      addTypeByGraphId(routerParams?.id, Object.values(objectTypes), (success: boolean, response: any) => {
         if (success) {
           let newTypes = _typelList.concat(response);
           dispatch(setTypes(newTypes));
 
-          if (relationTypes.length > 0) {
+          if (Object.keys(relationTypes).length > 0) {
             postRelations(relationTypes, _relationList);
           } else {
             message.destroy("upload");
@@ -649,7 +649,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           dispatch(setTypeLoading(false));
         }
       });
-    } else if (relationTypes.length > 0) {
+    } else if (Object.keys(relationTypes).length > 0) {
       postRelations(relationTypes, _relationList);
     } else {
       message.destroy("upload");
@@ -657,7 +657,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }
   }
 
-  function removeTypes(objectTypes: any[], relationTypes: any[]) {
+  function removeTypes(objectTypes: {}, relationTypes: {}) {
     deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
       if (success) {
         createModelData(objectTypes, relationTypes, [], []);
@@ -686,7 +686,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const sheetName = workbook.SheetNames[0];
       const worksheet: any = workbook.Sheets[sheetName];
 
-      const objectTypes: any[] = [], objectTypeMap: any = {}, relationTypes: any[] = [];
+      const objectTypes: any = {}, objectTypeMap: any = {}, relationTypes: any = {};
       const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const HEADERS = 2; // 标题行数
       const colors = Object.keys(nodeColorList);
@@ -697,7 +697,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             Object.assign(newType, {
               'x.type.attrs': Object.values(newTypeAttrs)
             });
-            objectTypes.push(newType);
+            // objectTypes.push(newType);
+            if (!objectTypes[newType['x.type.label']]) {
+              Object.assign(objectTypes, { [newType['x.type.label']]: newType });
+              newType = {};
+              newTypeAttrs = {};
+              currentType = '';
+              binds = [];
+            }
           } else {
             Object.assign(newType, {
               'r.type.constraints': {
@@ -705,71 +712,112 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                 'r.binds': binds
               }
             });
-            relationTypes.push(newType);
+            if (!relationTypes[newType['r.type.label']]) {
+              Object.assign(relationTypes, { [newType['r.type.label']]: newType });
+              newType = {};
+              newTypeAttrs = {};
+              currentType = '';
+              binds = [];
+            }
+            // relationTypes.push(newType);
           }
-          newType = {};
-          newTypeAttrs = {};
-          currentType = '';
-          binds = [];
         }
       }
 
+      function getRowAttr(row: any) {
+        const attrName = row[2];
+        const attrType = typeLabelMap[row[4] || '单行文本'] || 'string';
+        let newAttr = {
+          name: attrName,
+          display: row[3] || attrName,
+          type: attrType,
+          required: false
+        };
+        // 默认值
+        if (row[5] !== undefined) {
+          let defaultVal = row[5];
+          if (attrType === 'int' || attrType === 'float') {
+            defaultVal = Number(row[5]);
+          } else if (attrType === 'boolean') {
+            defaultVal = Boolean(row[5]);
+          }
+          Object.assign(newAttr, { default: defaultVal });
+        }
+
+        if (attrType === 'date') {
+          Object.assign(newAttr, { datetimeFormat: row[6] || 'YYYY-MM-DD' });
+        }
+
+        return newAttr;
+      }
+
       // process the rest of the rows
-      let newType = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [], colorIndex = 0;
+      let newType: any = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [], colorIndex = 0;
       for (let R = HEADERS; R < data.length; ++R) {
         const row = data[R];
+
         // 类型名称是否为空
         if (row[0] !== undefined) {
           saveType();
           if (row[1] === undefined || row[1] === '对象类型') {
-            const _uuid = 'Type.' + uuid();
-            currentType = 'object';
-            Object.assign(objectTypeMap, { [row[0]]: _uuid });
-            Object.assign(newType, {
-              'x.type.name': _uuid,
-              'x.type.label': row[0],
-              'x.type.prototype': [],
-              'x.type.metadata': JSON.stringify({ color: colors[colorIndex] })
-            });
-            colorIndex++;
-            if (colorIndex === colors.length) colorIndex = 0;
+            if (objectTypes[row[0]]) {
+              // 属性名称是否为空
+              if (row[2] !== undefined) {
+                const newAttr = getRowAttr(row);
+                const _objectType = objectTypes[row[0]];
+                _objectType['x.type.attrs'].push(newAttr);
+                Object.assign(objectTypes, { [_objectType['x.type.label']]: _objectType });
+              }
+              continue;
+            } else {
+              const _uuid = 'Type.' + uuid();
+              currentType = 'object';
+              Object.assign(objectTypeMap, { [row[0]]: _uuid });
+              Object.assign(newType, {
+                'x.type.name': _uuid,
+                'x.type.label': row[0],
+                'x.type.prototype': [],
+                'x.type.metadata': JSON.stringify({ color: colors[colorIndex] })
+              });
+              colorIndex++;
+              if (colorIndex === colors.length) colorIndex = 0;
+            }
           } else {
-            const _uuid = 'Relation.' + uuid();
-            currentType = 'relation';
-            Object.assign(newType, {
-              'r.type.name': _uuid,
-              'r.type.label': row[0],
-              'r.type.prototype': []
-            });
+            if (relationTypes[row[0]]) {
+              const _relationType = relationTypes[row[0]];
+
+              if (row[2] !== undefined) {
+                const newAttr = getRowAttr(row);
+                Object.assign(_relationType['r.type.constraints'], { [newAttr.name]: newAttr });
+              }
+
+              if (row[7] && row[8]) {
+                const _binds = JSON.parse(JSON.stringify(_relationType['r.type.constraints']['r.binds'] || []));
+                _binds.push({
+                  source: row[7],
+                  target: row[8]
+                });
+                Object.assign(_relationType['r.type.constraints'], { 'r.binds': _binds });
+              }
+
+              Object.assign(relationTypes, { [_relationType['r.type.label']]: _relationType });
+              continue;
+            } else {
+              const _uuid = 'Relation.' + uuid();
+              currentType = 'relation';
+              Object.assign(newType, {
+                'r.type.name': _uuid,
+                'r.type.label': row[0],
+                'r.type.prototype': []
+              });
+            }
           }
         }
 
         // 属性名称是否为空
         if (row[2] !== undefined) {
-          const attrName = row[2];
-          const attrType = typeLabelMap[row[4] || '单行文本'] || 'string';
-          let newAttr = {
-            name: attrName,
-            display: row[3] || attrName,
-            type: attrType,
-            required: false
-          };
-          // 默认值
-          if (row[5] !== undefined) {
-            let defaultVal = row[5];
-            if (attrType === 'int' || attrType === 'float') {
-              defaultVal = Number(row[5]);
-            } else if (attrType === 'boolean') {
-              defaultVal = Boolean(row[5]);
-            }
-            Object.assign(newAttr, { default: defaultVal });
-          }
-
-          if (attrType === 'date') {
-            Object.assign(newAttr, { datetimeFormat: row[6] || 'YYYY-MM-DD' });
-          }
-
-          Object.assign(newTypeAttrs, { [attrName]: newAttr });
+          const newAttr = getRowAttr(row);
+          Object.assign(newTypeAttrs, { [newAttr.name]: newAttr });
         }
 
         if (currentType === 'relation' && row[7] && row[8]) {
@@ -781,7 +829,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       }
       saveType();
 
-      relationTypes.forEach(function (type) {
+      Object.values(relationTypes).forEach(function (type: any) {
         const binds = type['r.type.constraints']['r.binds'].filter(function (bind: { source: string; target: string; }) {
           const { source, target } = bind;
           if (objectTypeMap[source] && objectTypeMap[target]) {
