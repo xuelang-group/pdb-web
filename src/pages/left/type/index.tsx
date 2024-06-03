@@ -1,4 +1,4 @@
-import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Tabs, Tooltip, Tree } from 'antd';
+import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Spin, Tabs, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 import _ from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
-import { setCurrentEditModel } from '@/reducers/editor';
+import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
 import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
@@ -24,7 +24,9 @@ export default function Left(props: any) {
     location = useLocation();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data);
+    relations = useSelector((state: StoreState) => state.relation.data),
+    typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
 
   const [modalType, setModalType] = useState(''),
     [isModalOpen, setModalOpen] = useState(false),
@@ -42,7 +44,9 @@ export default function Left(props: any) {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(setTypeLoading(true));
     getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
+      dispatch(setTypeLoading(false));
       if (success) {
         dispatch(setTypes(response || []));
         const treeData = getTypeTreeData(response);
@@ -61,7 +65,9 @@ export default function Left(props: any) {
       }
     });
 
+    dispatch(setRelationLoading(true));
     getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
+      dispatch(setRelationLoading(false));
       if (success) {
         dispatch(setRelations(response || []));
 
@@ -526,15 +532,16 @@ export default function Left(props: any) {
               );
             })}
           </div>
-          {list.length === 0 && isSearched &&
+          {list.length === 0 && isSearched && !relationLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
             </div>
           }
+          {relationLoading && <Spin />}
         </div>
       </div>
     );
-  }, [types, relations, searchValue, currentEditModel?.id, isSearched, filterValue]);
+  }, [types, relations, searchValue, currentEditModel?.id, isSearched, filterValue, relationLoading]);
 
   const renderTypeTree = useCallback((type: string) => {
     return (
@@ -585,15 +592,16 @@ export default function Left(props: any) {
               onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
             />
           </div>
-          {treeData.length === 0 && isSearched &&
+          {treeData.length === 0 && isSearched && !typeLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
             </div>
           }
+          {typeLoading && <Spin />}
         </div>
       </div>
     );
-  }, [types, currentEditModel?.id, treeData, searchValue]);
+  }, [types, currentEditModel?.id, treeData, searchValue, typeLoading]);
 
   const tabs = [{
     key: 'type',

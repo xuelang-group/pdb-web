@@ -14,6 +14,8 @@ const { Search } = Input;
 export default function TypeList() {
   const allTypes = useSelector((state: StoreState) => state.type.data);
   const allRelations = useSelector((state: StoreState) => state.relation.data);
+  const typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
   const [currentTab, setCurrentTab] = useState('type');
   const [list, setList] = useState(allTypes),
     [relationList, setRelationList] = useState(allRelations),
@@ -224,11 +226,12 @@ export default function TypeList() {
             // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
             />
           </div>
-          {list.length === 0 && isSearched &&
+          {list.length === 0 && isSearched && !typeLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
             </div>
           }
+          {typeLoading && <Spin />}
         </div>
         <div className='list-footer'>
           <Button
@@ -240,7 +243,7 @@ export default function TypeList() {
         </div>
       </div>
     );
-  }, [treeData, routerParams?.id]);
+  }, [treeData, routerParams?.id, typeLoading]);
 
   const renderRelationTree = useCallback((type: string) => {
     const prevLabel = type === 'type' ? 'x.' : 'r.';
@@ -297,11 +300,12 @@ export default function TypeList() {
               );
             })}
           </div>
-          {relList.length === 0 && isRelSearched &&
+          {relList.length === 0 && isRelSearched && !relationLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
             </div>
           }
+          {relationLoading && <Spin />}
         </div>
         <div className='list-footer'>
           <Button
@@ -313,7 +317,7 @@ export default function TypeList() {
         </div>
       </div>
     );
-  }, [relationList, routerParams?.id]);
+  }, [relationList, routerParams?.id, relationLoading]);
 
   const tabs = [{
     key: 'type',
