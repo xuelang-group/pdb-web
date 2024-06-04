@@ -598,57 +598,97 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     )
   }
 
-  function postRelations(relationTypes: any, _relationList: any[]) {
+  async function postRelations(relationTypes: any, _relationList: any[]) {
     if (!store.getState().editor.typeLoading) setTypeLoading(true);
-    addRelationByGraphId(routerParams?.id, Object.values(relationTypes), (success: boolean, response: any) => {
-      message.destroy("upload");
-      if (success) {
-        resetSchema(routerParams.id, () => { });
-        let newRelations = _relationList.concat(response);
-        dispatch(setRelations(newRelations));
+    const _relationTypes = Object.values(relationTypes);
+    const chunkSize = 100, totalChunks = Math.ceil(_relationTypes.length / chunkSize);
+    let newRelations = JSON.parse(JSON.stringify(_relationList)), isAllSuccess = true, error: any = {};
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = _relationTypes.slice(i * chunkSize, (i + 1) * chunkSize);
+      await (() => {
+        return new Promise((resolve: any, reject: any) => {
+          addRelationByGraphId(routerParams?.id, chunk, (success: boolean, response: any) => {
+            if (success) {
+              newRelations = newRelations.concat(response);
+            } else {
+              isAllSuccess = false;
+              error = response;
+            }
+            resolve();
+          });
+        })
+      })();
+      if (!isAllSuccess) break;
+    }
+
+    message.destroy("upload");
+    dispatch(setRelations(newRelations));
+    setUploading(false);
+    dispatch(setTypeLoading(false));
+    resetSchema(routerParams.id, () => { });
+
+    if (isAllSuccess) {
+      notification.success({
+        message: '导入成功',
+      });
+    } else {
+      notification.error({
+        message: '导入失败，请重新刷新页面',
+        description: error.message || error.msg
+      });
+    }
+  }
+
+  async function postTypes(objectTypes: {}, relationTypes: {}, _typelList: any[], _relationList: any[]) {
+    const _objectTypes = Object.values(objectTypes);
+    const chunkSize = 100, totalChunks = Math.ceil(_objectTypes.length / chunkSize);
+    let newTypes = JSON.parse(JSON.stringify(_typelList)), isAllSuccess = true, error: any = {};
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = _objectTypes.slice(i * chunkSize, (i + 1) * chunkSize);
+      await (() => {
+        return new Promise((resolve: any, reject: any) => {
+          addTypeByGraphId(routerParams?.id, chunk, (success: boolean, response: any) => {
+            if (success) {
+              newTypes = newTypes.concat(response);
+            } else {
+              isAllSuccess = false;
+              error = response;
+            }
+            resolve();
+          })
+        })
+      })();
+      if (!isAllSuccess) break;
+    }
+    dispatch(setTypes(newTypes));
+    if (isAllSuccess) {
+      if (Object.keys(relationTypes).length > 0) {
+        postRelations(relationTypes, _relationList);
+      } else {
+        message.destroy("upload");
+        setUploading(false);
+        dispatch(setTypeLoading(false));
         notification.success({
           message: '导入成功',
         });
-      } else {
-        notification.error({
-          message: '导入失败，请重新刷新页面',
-          description: response.message || response.msg
-        });
+        resetSchema(routerParams.id, () => { });
       }
+    } else {
+      resetSchema(routerParams.id, () => { });
+      message.destroy("upload");
       setUploading(false);
+      error && notification.error({
+        message: '导入失败，请重新刷新页面',
+        description: error.message || error.msg
+      });
       dispatch(setTypeLoading(false));
-    });
+    }
   }
 
   function createModelData(objectTypes: {}, relationTypes: {}, _typelList: any[], _relationList: any[]) {
     if (Object.keys(objectTypes).length > 0) {
       dispatch(setTypeLoading(true));
-      addTypeByGraphId(routerParams?.id, Object.values(objectTypes), (success: boolean, response: any) => {
-        if (success) {
-          let newTypes = _typelList.concat(response);
-          dispatch(setTypes(newTypes));
-
-          if (Object.keys(relationTypes).length > 0) {
-            postRelations(relationTypes, _relationList);
-          } else {
-            message.destroy("upload");
-            setUploading(false);
-            dispatch(setTypeLoading(false));
-            notification.success({
-              message: '导入成功',
-            });
-            resetSchema(routerParams.id, () => { });
-          }
-        } else {
-          message.destroy("upload");
-          setUploading(false);
-          notification.error({
-            message: '导入失败，请重新刷新页面',
-            description: response.message || response.msg
-          });
-          dispatch(setTypeLoading(false));
-        }
-      });
+      postTypes(objectTypes, relationTypes, _typelList, _relationList);
     } else if (Object.keys(relationTypes).length > 0) {
       postRelations(relationTypes, _relationList);
     } else {
@@ -660,6 +700,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function removeTypes(objectTypes: {}, relationTypes: {}) {
     deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
       if (success) {
+        dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);
       } else {
         message.destroy("upload");
@@ -676,12 +717,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function readXlsxData(file: any, override: boolean) {
     const reader = new FileReader();
     reader.onload = (event: any) => {
-      message.loading({
-        key: "upload",
-        content: "导入中",
-        duration: 0
-      });
-      setUploading(true);
       const workbook = XLSX.read(event.target.result, { type: 'binary' });
       const sheetName = workbook.SheetNames[0];
       const worksheet: any = workbook.Sheets[sheetName];
@@ -690,6 +725,20 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
       const HEADERS = 2; // 标题行数
       const colors = Object.keys(nodeColorList);
+
+      if (data.length > 100000) {
+        message.error({
+          content: "单文件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！"
+        });
+        return;
+      }
+
+      message.loading({
+        key: "upload",
+        content: "导入中",
+        duration: 0
+      });
+      setUploading(true);
 
       function saveType() {
         if (!_.isEmpty(newType)) {
@@ -847,6 +896,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         if (relationList.length > 0) {
           deleteRelationByGraphId(routerParams?.id, relationList.map(val => val['r.type.name']), (success: any, response: any) => {
             if (success) {
+              dispatch(setRelations([]));
               if (typeList.length > 0) {
                 removeTypes(objectTypes, relationTypes);
               } else {
