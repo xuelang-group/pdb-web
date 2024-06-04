@@ -727,7 +727,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const HEADERS = 2; // 标题行数
       const colors = Object.keys(nodeColorList);
 
-      if (data.length > 10000) {
+      if (data.length > 100000) {
         message.error({
           key: "upload",
           content: "单文件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！",

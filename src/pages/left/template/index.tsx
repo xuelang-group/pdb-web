@@ -206,7 +206,7 @@ export default function Left() {
               value={searchValue}
               placeholder='搜索类型名称或ID'
               allowClear={true}
-              enterButton={<i className='spicon icon-sousuo2'></i>}
+              enterButton={<i className='spicon icon-sousuo2' onClick={() => handleSearch(_.get(searchRef, "current.input.value", ""))}></i>}
               onChange={(event: any) => {
                 if (!isSearched) {
                   setSearchedStatus(true);
@@ -256,7 +256,7 @@ export default function Left() {
               value={searchValue}
               placeholder='搜索类型名称或ID'
               allowClear={true}
-              enterButton={<i className='spicon icon-sousuo2'></i>}
+              enterButton={<i className='spicon icon-sousuo2' onClick={() => handleSearch(_.get(searchRef, "current.input.value", ""))}></i>}
               onChange={(event: any) => {
                 if (!isSearched) {
                   setSearchedStatus(true);
