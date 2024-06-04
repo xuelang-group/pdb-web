@@ -3,6 +3,7 @@
   "version": "0.0.14",
   "private": true,
   "dependencies": {
+    "@ant-design/cssinjs": "^1.20.0",
     "@antv/g6": "^4.8.23",
     "@antv/vis-predict-engine": "^0.1.1",
     "@dnd-kit/core": "^6.1.0",

@@ -83,7 +83,7 @@ export default function ExportApi(props: ExportApiProps) {
   };
 
   const getCsv = function () {
-    const header = targetKeys?.map(key => {
+    const header = targetKeys?.map((key: any) => {
       const data = key.split("|");
       const config = {
         typeId: data[0],

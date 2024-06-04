@@ -7,6 +7,7 @@ import _ from 'lodash';
 import 'oss-js-upload/src/oss-js-upload.js';
 import 'aliyun-sdk2/dist/aliyun-sdk.min.js';
 import antdLocale from 'antd/es/locale/zh_CN';
+import { legacyLogicalPropertiesTransformer, StyleProvider } from '@ant-design/cssinjs';
 
 import { addTemplate, deleteTemplate, getTemplateList, updateTemplateInfo, getTemplateData, deleteTemplates, updateTemplatesInfo } from './actions/template';
 import { createObject, getObjectData, getObjectList, removeObject, removeObjects, updateObjectInfo, updateObjects } from './actions/object';
@@ -35,7 +36,17 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   notification.config({ prefixCls: 'pdb-ant-notification' });
   Modal.config({ rootPrefixCls: 'pdb-ant' });
   const { locale, messages } = config;
-  
+
+  ConfigProvider.config({
+    holderRender: (children: any) => {
+      return <StyleProvider hashPriority="high">
+        <ConfigProvider>
+          {children}
+        </ConfigProvider>
+      </StyleProvider>
+    }
+  });
+
   root.render(
     <Provider store={store}>
       <IntlProvider locale={locale} messages={messages}>
@@ -50,11 +61,13 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
           getPopupContainer={node => (document.getElementsByClassName('pdb')[0] || document.body) as HTMLElement}
         >
           <Router basename={_.get(window, 'pdbConfig.basePath', '') + '/web'}>
-            <App {...config} />
+            <StyleProvider hashPriority="high" transformers={[legacyLogicalPropertiesTransformer]}>
+              <App {...config} />
+            </StyleProvider>
           </Router>
         </ConfigProvider>
       </IntlProvider>
-    </Provider>
+    </Provider >
   );
   currentRoot = root;
 }

@@ -577,6 +577,7 @@
     &-dashed {
 
       &,
+      &.pdb-ant-btn-background-ghost,
       &:focus {
         background-color: var(--button-default-bg);
         border-color: var(--button-default-border);
@@ -1051,7 +1052,7 @@
 
       &:hover, &:focus {
         border-right: 1px solid var(--primary-hover);
-        z-index: 1;
+        z-index: 1 !important;
       }
     }
 
@@ -1151,4 +1152,8 @@
 
 .pdb-confirm-icon.spicon.icon-jinggao1.text-warning {
   color: var(--warning-color);
+}
+
+.pdb-ant-notification .pdb-ant-notification-notice-wrapper .pdb-ant-notification-notice-close {
+  right: 24px !important;
 }

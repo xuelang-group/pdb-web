@@ -41,6 +41,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const dispatch = useDispatch(),
     location = useLocation(),
     routerParams = useParams();
+  const [modal, contextHolder] = Modal.useModal();
   const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
@@ -629,7 +630,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (isAllSuccess) {
       notification.success({
-        message: '导入成功',
+        message: '导入成功'
       });
     } else {
       notification.error({
@@ -726,19 +727,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const HEADERS = 2; // 标题行数
       const colors = Object.keys(nodeColorList);
 
-      if (data.length > 100000) {
+      if (data.length > 10000) {
         message.error({
-          content: "单文件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！"
+          key: "upload",
+          content: "单文件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！",
+          duration: 3
         });
+        setUploading(false);
         return;
       }
-
-      message.loading({
-        key: "upload",
-        content: "导入中",
-        duration: 0
-      });
-      setUploading(true);
 
       function saveType() {
         if (!_.isEmpty(newType)) {
@@ -807,13 +804,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
         // 类型名称是否为空
         if (row[0] !== undefined) {
+          const _label = row[0].toString();
           saveType();
           if (row[1] === undefined || row[1] === '对象类型') {
-            if (objectTypes[row[0]]) {
+            if (objectTypes[_label]) {
               // 属性名称是否为空
               if (row[2] !== undefined) {
                 const newAttr = getRowAttr(row);
-                const _objectType = objectTypes[row[0]];
+                const _objectType = objectTypes[_label];
                 _objectType['x.type.attrs'].push(newAttr);
                 Object.assign(objectTypes, { [_objectType['x.type.label']]: _objectType });
               }
@@ -821,10 +819,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             } else {
               const _uuid = 'Type.' + uuid();
               currentType = 'object';
-              Object.assign(objectTypeMap, { [row[0]]: _uuid });
+              Object.assign(objectTypeMap, { [_label]: _uuid });
               Object.assign(newType, {
                 'x.type.name': _uuid,
-                'x.type.label': row[0],
+                'x.type.label': _label,
                 'x.type.prototype': [],
                 'x.type.metadata': JSON.stringify({ color: colors[colorIndex] })
               });
@@ -832,8 +830,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               if (colorIndex === colors.length) colorIndex = 0;
             }
           } else {
-            if (relationTypes[row[0]]) {
-              const _relationType = relationTypes[row[0]];
+            if (relationTypes[_label]) {
+              const _relationType = relationTypes[_label];
 
               if (row[2] !== undefined) {
                 const newAttr = getRowAttr(row);
@@ -856,7 +854,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               currentType = 'relation';
               Object.assign(newType, {
                 'r.type.name': _uuid,
-                'r.type.label': row[0],
+                'r.type.label': _label,
                 'r.type.prototype': []
               });
             }
@@ -931,8 +929,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         return false;
       }
 
-      readXlsxData(file, override);
+      message.loading({
+        key: "upload",
+        content: "导入中",
+        duration: 0
+      });
+      setUploading(true);
       uploadCofirm && uploadCofirm.destroy();
+      readXlsxData(file, override);
       return false;
     },
   });
@@ -950,7 +954,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       title = "当前已存在模板数据，上传数据是否覆盖当前模板数据？";
       footer.push(<Upload {...uploadProps(true)} ><Button type="primary">覆盖</Button></Upload>);
     }
-    uploadCofirm = Modal.confirm({
+    uploadCofirm = modal.confirm({
       className: "pdb-upload-confirm",
       title,
       footer
@@ -1053,6 +1057,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           {renderFilterPanel()}
         </PdbPanel>
       )} */}
+      {contextHolder}
     </>
   )
 }

@@ -49,7 +49,7 @@ export default function Right(props: RightProps) {
     dispatch = useDispatch(),
     idRef = useRef<any>(),
     location = useLocation();
-
+  const [modal, contextHolder] = Modal.useModal();
   const graphData = useSelector((state: any) => state[props.route].graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
@@ -777,8 +777,7 @@ export default function Right(props: RightProps) {
 
   // 关联属性 - 值编辑框
   const hanldeSelectRefer = (attr: any) => {
-    console.log(attr);
-    Modal.confirm({
+    modal.confirm({
       title: '请选择类型为"业务域"的对象实例：',
       icon: null,
       content: (
@@ -1251,6 +1250,7 @@ export default function Right(props: RightProps) {
           </PdbPanel>
         }
       </div>
+      {contextHolder}
     </div>
   );
 }

@@ -40,6 +40,7 @@ export default function Editor(props: EditorProps) {
     location = useLocation(),
     dispatch = useDispatch(),
     navigate = useNavigate();
+  const [modal, contextHolder] = Modal.useModal();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
@@ -373,7 +374,7 @@ export default function Editor(props: EditorProps) {
   let deleteConfirmModal: any = null;
   function deleteConfirm(currentEditModel: any) {
     if (!currentEditModel) return;
-    deleteConfirmModal = Modal.confirm({
+    deleteConfirmModal = modal.confirm({
       className: 'pdb-confirm-modal',
       title: '删除实例',
       icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
@@ -698,6 +699,7 @@ export default function Editor(props: EditorProps) {
       </Modal> */}
       </div>
       <TemplateGraph theme={props.theme} />
+      {contextHolder}
     </div>
   );
 }

@@ -17,7 +17,7 @@ type TransferItem = GetProp<TransferProps, 'dataSource'>[number];
 
 export interface TreeTransferProps {
   dataSource: TreeDataNode[];
-  targetKeys: TransferProps['targetKeys'];
+  targetKeys: any[];
   onChange: TransferProps['onChange'];
   colDisplayMap: any;
   onChangeDisplay: Function
@@ -33,7 +33,6 @@ const generateTree = (
 ): TreeDataNode[] =>
   treeNodes.map(({ children, ...props }) => ({
     ...props,
-
     disabled: checkedKeys.includes(props.key as string),
     children: generateTree(children, checkedKeys),
   }));
@@ -231,9 +230,9 @@ export const TreeTransfer: React.FC<TreeTransferProps> = ({
         } else {
           const onDragEnd = ({ active, over }: DragEndEvent) => {
             if (active.id !== over?.id) {
-              const activeIndex = targetKeys.findIndex((key: string) => key === active.id);
-              const overIndex = targetKeys.findIndex((key: string) => key === over?.id);
-              const data: string[] = arrayMove(targetKeys, activeIndex, overIndex);
+              const activeIndex = targetKeys.findIndex((key) => key === active.id);
+              const overIndex = targetKeys.findIndex((key) => key === over?.id);
+              const data = arrayMove(targetKeys, activeIndex, overIndex);
               restProps.onChange && restProps.onChange(data, "right", []);
             }
           };

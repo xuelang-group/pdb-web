@@ -475,11 +475,12 @@ export default function AppExplore() {
       );
     }
     const { label, data, value, key } = option;
+    const _label = label.toString();
     const optionType = _.get(data, "type"),
-      findIndex = label.toLowerCase().indexOf(currentSearchValue.toLowerCase()),
-      prevLabel = label.slice(0, findIndex),
-      centerLabel = label.slice(findIndex, findIndex + currentSearchValue.length),
-      lastLabel = label.slice(findIndex + currentSearchValue.length);
+      findIndex = _label.toLowerCase().indexOf(currentSearchValue.toLowerCase()),
+      prevLabel = _label.slice(0, findIndex),
+      centerLabel = _label.slice(findIndex, findIndex + currentSearchValue.length),
+      lastLabel = _label.slice(findIndex + currentSearchValue.length);
     return (
       <>
         <span className="pdb-explore-dropdown-label">
