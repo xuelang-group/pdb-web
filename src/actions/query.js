@@ -7,8 +7,17 @@ export const api = {
   'x.type.name': apiPrefix + '/type',
   'results': apiPrefix + '/results',
   'pql': apiPrefix + '/pql',
-  'vertex': apiPrefix + '/vertex'
+  'vertex': apiPrefix + '/vertex',
+  'llm': apiPrefix + '/llm',
 };
+
+export const runLLM = function (params, callback) {
+  return axios.post(api['llm'], params).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
 
 export const runPql = function (params, callback) {
   return axios.post(api['pql'], params).then(({ data }) => {
