@@ -22,6 +22,7 @@ const { Search } = Input;
 export default function Left(props: any) {
   const routerParams = useParams(),
     location = useLocation();
+  const [modal, contextHolder] = Modal.useModal();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data),
@@ -439,7 +440,7 @@ export default function Left(props: any) {
       const title = modalLabel['delete'] + typeLabel[type] + '类型';
       const nameLabel = type === 'type' ? 'x.type.label' : 'r.type.label',
         idLabel = type === 'type' ? 'x.type.name' : 'r.type.name';
-      Modal.confirm({
+      modal.confirm({
         className: 'pdb-confirm-modal',
         title,
         icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
@@ -727,6 +728,7 @@ export default function Left(props: any) {
     <PdbPanel className='pdb-type-left' title='类型列表' direction='left' canCollapsed={true}>
       <Tabs defaultActiveKey="type" items={tabs} activeKey={currentTab} onChange={handleChangeTab} />
       {renderModal()}
+      {contextHolder}
     </PdbPanel>
   );
 }
