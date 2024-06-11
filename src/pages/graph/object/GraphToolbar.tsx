@@ -160,7 +160,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const relations = relationLines[objectUid];
       relations && relations.forEach((item: ObjectRelationConig) => {
         const { relation, target } = item;
-        if (!relation || !target) return;
+        if (!relation || !target || !relationMap[relation]) return;
         const edgeKey = `${objectUid}-${target.uid}`;
         const edgeId = `${edgeKey}-${relation}`;
         let edgeItem = graph.findById(edgeId);
