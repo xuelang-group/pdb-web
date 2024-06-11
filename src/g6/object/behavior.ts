@@ -1926,7 +1926,8 @@ export function registerBehavior() {
       const { currentEditModel } = store.getState().editor;
       if (currentEditModel?.id === model.id) return;
       store.dispatch(setMultiEditModel(null));
-      store.dispatch(setCurrentEditModel(model));
+      const { sourceNode, targetNode, ...otherModel } = model;
+      store.dispatch(setCurrentEditModel(otherModel));
 
       graph.findAllByState('node', 'selected').forEach((item: any) => {
         graph.setItemState(item, 'selected', false);

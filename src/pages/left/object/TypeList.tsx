@@ -8,6 +8,7 @@ import './index.less';
 import { TypeConfig } from '@/reducers/type';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { StoreState } from '@/store';
+import { useLocation } from 'react-router';
 
 const { Search } = Input;
 
@@ -15,7 +16,8 @@ export default function TypeList() {
   const allTypes = useSelector((state: StoreState) => state.type.data);
   const allRelations = useSelector((state: StoreState) => state.relation.data);
   const typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
-    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading);
+    relationLoading = useSelector((state: StoreState) => state.editor.relationLoading),
+    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
   const [currentTab, setCurrentTab] = useState('type');
   const [list, setList] = useState(allTypes),
     [relationList, setRelationList] = useState(allRelations),
@@ -26,6 +28,7 @@ export default function TypeList() {
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams(),
+    location = useLocation(),
     navigate = useNavigate(),
     dispatch = useDispatch();
 
@@ -168,6 +171,23 @@ export default function TypeList() {
     dispatch(setCurrentEditModel(item ? { ...item, name: item.title || item.name, type: tab } : null));
   }
 
+  const handleSelectItem = function (data: any) {
+    const graph = (window as any).PDR_GRAPH;
+    if (!graph || data.length === 0 || !location.pathname.endsWith("/template")) return;
+    const id = data[0];
+    const item = graph.findById(id);
+    if (item && item.getModel()) {
+      if (currentEditModel && currentEditModel.id) {
+        const currentItem = graph.findById(currentEditModel.id);
+        if (currentItem) currentItem.setState('selected', false);
+      }
+      const { sourceNode, targetNode, ...otherModel} = item.getModel();
+      dispatch(setCurrentEditModel(otherModel));
+      item.setState('selected', true);
+      graph.focusItem(item);
+    }
+  }
+
   const renderTypeTree = useCallback((type: string) => {
     return (
       <div className='list-container'>
@@ -202,7 +222,7 @@ export default function TypeList() {
             <Tree
               showLine={{ showLeafIcon: false }}
               treeData={treeData}
-              // selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
+              selectedKeys={currentEditModel ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
               titleRender={(item: any) => (
                 <Dropdown
@@ -223,7 +243,7 @@ export default function TypeList() {
               expandedKeys={expandedKeys}
               blockNode
               showIcon
-            // onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
+              onSelect={(selectedKeys, event) => handleSelectItem(selectedKeys)}
             />
           </div>
           {list.length === 0 && isSearched && !typeLoading &&
@@ -243,7 +263,7 @@ export default function TypeList() {
         </div>
       </div>
     );
-  }, [treeData, routerParams?.id, typeLoading]);
+  }, [treeData, routerParams?.id, typeLoading, currentEditModel, location.pathname]);
 
   const renderRelationTree = useCallback((type: string) => {
     const prevLabel = type === 'type' ? 'x.' : 'r.';

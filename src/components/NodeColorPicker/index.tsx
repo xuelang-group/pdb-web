@@ -9,6 +9,7 @@ interface NodeColorPickerProps {
   currentColor: string
   changeColor: Function
   fillColor?: string
+  disabled?: boolean
 }
 
 const colorMap: any = {
@@ -21,7 +22,7 @@ const colorMap: any = {
 }
 
 export default function NodeColorPicker(props: NodeColorPickerProps) {
-  const { type, currentColor, changeColor, fillColor } = props;
+  const { type, currentColor, changeColor, fillColor, disabled } = props;
   const [selectedColor, setSelectedColor] = useState(currentColor),
     [colorList, setColorList] = useState([] as any),
     [isCustomColor, setIsCustomColor] = useState(false);
@@ -90,6 +91,16 @@ export default function NodeColorPicker(props: NodeColorPickerProps) {
     )
   }
 
+  if (disabled) {
+    return (
+      <Tooltip title={colorMap[type].text}>
+        <div className='pdb-node-metadata-item node-color' >
+          <div style={{ backgroundColor: selectedColor, width: '100%', height: '100%' }}></div>
+        </div>
+      </Tooltip>
+    );
+  }
+  
   return (
     <Popover
       content={renderColorPicker}

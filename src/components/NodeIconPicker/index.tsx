@@ -10,12 +10,13 @@ import { getImagePath } from '@/actions/minioOperate';
 import './index.less';
 
 export interface NodeIconPickerProps {
+  disabled?: boolean
   changeIcon: Function
   currentIcon: string
 }
 
 export default function NodeIconPicker(props: NodeIconPickerProps) {
-  const { currentIcon, changeIcon } = props;
+  const { currentIcon, changeIcon, disabled } = props;
   const userId = useSelector((state: StoreState) => state.app.systemInfo.userId);
 
   const [currentTab, setCurrentTab] = useState('default');
@@ -72,6 +73,19 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
     label: '自定义',
     children: (<CustomIconList changeIcon={changeIcon} currentIcon={currentIcon} />)
   }];
+
+  if (disabled) {
+    return (
+      <Tooltip title="图标">
+        <div className='pdb-node-metadata-item node-icon'>
+          {currentIcon.indexOf('studio/' + userId + '/pdb/icons/') > -1 ?
+            <img src={getImagePath(currentIcon)} width='100%' height='100%' /> :
+            <i className={`iconfont icon-${currentIcon || 'jinzhi-yuanxing no-icon'}`}></i>
+          }
+        </div>
+      </Tooltip>
+    );
+  }
 
   return (
     <Popover

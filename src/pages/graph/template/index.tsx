@@ -18,7 +18,7 @@ import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import { Spin } from 'antd';
-import { setTScreenShootTimestamp } from '@/reducers/editor';
+import { setCurrentEditModel, setTScreenShootTimestamp } from '@/reducers/editor';
 
 let graph: any;
 
@@ -37,7 +37,8 @@ export default function Editor(props: EditorProps) {
     relations = useSelector((state: StoreState) => state.relation.data),
     typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
     relationLoading = useSelector((state: StoreState) => state.editor.relationLoading),
-    screenShootTimestamp = useSelector((state: StoreState) => state.editor.screenShootTimestamp);
+    screenShootTimestamp = useSelector((state: StoreState) => state.editor.screenShootTimestamp),
+    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
 
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     graph && graph.changeSize(width, height);
@@ -97,7 +98,8 @@ export default function Editor(props: EditorProps) {
           }, {
             type: 'drag-node', // 节点拖拽
           },
-          'activate-relations-custom'
+          'activate-relations-custom',
+          'graph-select'
         ]
       },
       layout,
@@ -161,7 +163,7 @@ export default function Editor(props: EditorProps) {
         nodes.push({
           label: text,
           name: type['x.type.label'] || '',
-          uid: type,
+          uid: id,
           id,
           data: type,
           style: {
@@ -180,6 +182,7 @@ export default function Editor(props: EditorProps) {
       // // 初始化边数据
       relations.forEach(function (relation: RelationConfig) {
         const label = relation['r.type.label'],
+          id = relation["r.type.name"],
           binds = relation['r.type.constraints']['r.binds'];
         binds.forEach(function (bind) {
           const { source, target } = bind;
@@ -188,6 +191,7 @@ export default function Editor(props: EditorProps) {
             target,
             name: label,
             label,
+            uid: id,
             data: { ...relation },
           };
           if (source === target) {
@@ -228,6 +232,11 @@ export default function Editor(props: EditorProps) {
         className='pdb-object-switch'
         onClick={event => {
           event.stopPropagation();
+          if (currentEditModel && currentEditModel.id) {
+            const currentItem = graph.findById(currentEditModel.id);
+            if (currentItem) currentItem.setState('selected', false);
+          }
+          dispatch(setCurrentEditModel(null));
           navigate(`/${routerParams.id}`);
         }}
       >

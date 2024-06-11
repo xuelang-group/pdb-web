@@ -667,6 +667,7 @@ export default function Editor(props: EditorProps) {
                 className='pdb-object-switch'
                 onClick={event => {
                   event.stopPropagation();
+                  dispatch(setCurrentEditModel(null));
                   navigate(`/${routerParams.id}/template`);
                 }}
               >

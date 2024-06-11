@@ -806,7 +806,6 @@ export function registerNode() {
     setState(name, value, item) {
       if (!item) return;
       const group = item.getContainer(),
-        outerCircle = group.find(ele => ele.get('name') === 'outer-circle'),
         innerCircle = group.find(ele => ele.get('name') === 'circle-node-keyShape'),
         textShape = group.find(ele => ele.get('name') === 'text-shape'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
@@ -827,11 +826,9 @@ export function registerNode() {
 
       if (name === 'selected') {
         if (value) {
-          outerCircle.attr(outerCircleStyle['selected']);
-          innerCircle.attr(defaultNodeStyle);
-          outerCircle.show();
+          innerCircle.attr(outerCircleStyle['selected']);
         } else {
-          outerCircle.hide();
+          innerCircle.attr(defaultNodeStyle);
         }
       } else if (name === 'inactive') {
         if (value) {

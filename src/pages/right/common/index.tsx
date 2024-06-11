@@ -72,7 +72,7 @@ export default function Right(props: RightProps) {
   const inputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    setMetadataKey(props.route === 'object' ? 'x.metadata' : 'x.type.metadata');
+    setMetadataKey(props.route === 'object' && !location.pathname.endsWith("/template") ? 'x.metadata' : 'x.type.metadata');
   }, [props.route]);
 
   useEffect(() => {
@@ -881,7 +881,7 @@ export default function Right(props: RightProps) {
     const _default = attr.default;
     if (!typeMap[currentEditType]) return;
     const addonBefore = typeMap[currentEditType][type];
-    if (!location.pathname.endsWith("/edit")) {
+    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
       return renderEditorInput(type, _default, addonBefore, attr, index);
     }
     return renderReadOnlyInput(type, _default, addonBefore, attr);
@@ -1046,7 +1046,7 @@ export default function Right(props: RightProps) {
   }];
 
   if (currentEditType === 'relation') {
-    if (props.route === 'type') {
+    if (props.route === 'type' || location.pathname.endsWith("/template")) {
       rightPanelTabs.push({
         key: 'bind',
         label: '连接对象',
@@ -1054,11 +1054,11 @@ export default function Right(props: RightProps) {
           <RelationBind
             data={currentEditDefaultData && currentEditDefaultData['r.type.constraints'] ? (currentEditDefaultData['r.type.constraints']['r.binds'] || []) : []}
             update={updateBinds}
-            readOnly={false}
+            readOnly={location.pathname.endsWith("/template")}
           />)
       });
     }
-  } else if (props.route === 'object') {
+  } else if (props.route === 'object' && !location.pathname.endsWith("/template")) {
     rightPanelTabs.push({
       key: 'relation',
       label: '关系列表',
@@ -1167,7 +1167,7 @@ export default function Right(props: RightProps) {
                 placeholder={'点击编辑名称'}
                 onBlur={changeName}
                 onPressEnter={changeName}
-                disabled={(currentEditModel.data || {}).hasOwnProperty("r.type.name")}
+                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
               />
             </Form.Item>
             <div className='info-name-hidden'>{appName}</div>
@@ -1231,15 +1231,21 @@ export default function Right(props: RightProps) {
             {renderPanelForm()}
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>
-                <NodeIconPicker changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} />
+                <NodeIconPicker 
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} 
+                  currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} 
+                />
                 <Divider type='vertical' />
                 <NodeColorPicker
                   type='fill'
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
                 <NodeColorPicker
                   type='border'
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                   changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}
