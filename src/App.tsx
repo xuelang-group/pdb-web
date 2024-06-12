@@ -29,6 +29,7 @@ import { getSystemInfo } from '@/actions/system';
 
 import { PdbConfig } from '.';
 import './App.less';
+import List from './pages/list';
 
 const { Content } = Layout;
 function App(props: PdbConfig) {
@@ -43,9 +44,11 @@ function App(props: PdbConfig) {
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
-        dispatch(setSystemInfo(response));
         getAppFolderList(userId);
-        if (!location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) navigate(`/${graphId}`);
+        if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
+          navigate(`/${graphId}`);
+          dispatch(setSystemInfo(response));
+        }
       } else {
         notification.error({
           message: '获取系统信息失败：',
@@ -83,9 +86,9 @@ function App(props: PdbConfig) {
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
-      {/* <Routes>
-        <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
-      </Routes> */}
+      <Routes>
+        <Route path="/:id?" element={<List route="object" theme={theme} />}></Route>
+      </Routes>
       <Layout className="pdb-layout">
         <Routes>
           <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />

@@ -14,7 +14,7 @@ import FolderOffSvg from '@/assets/images/folder-collpased.svg';
 import FolderOnSvg from '@/assets/images/folder-expand.svg';
 
 import { StoreState } from "@/store";
-import { setCatalog, setCollapsed } from "@/reducers/app";
+import { setCatalog, setCollapsed, setSystemInfo } from "@/reducers/app";
 import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCatalog, getNewFolderId } from "@/utils/common";
 
 import Preview from "./Preview";
@@ -171,6 +171,15 @@ export default function List(props: ListProps) {
     if (keys[0] != treeSelectedKeys[0] && node.isLeaf) {
       setTreeSelectedKeys(keys);
       setActiveItem(node.data);
+      if (!systemInfo.userId) {
+        const { user_id, app_id, node_id } = node.data;
+        dispatch(setSystemInfo({
+          ...systemInfo,
+          userId: user_id,
+          appId: app_id,
+          nodeId: node_id
+        }));
+      }
     }
   }
 

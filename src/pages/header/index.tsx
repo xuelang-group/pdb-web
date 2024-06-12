@@ -79,9 +79,9 @@ export default function Header(props: HeaderProps) {
   return (
     <Layout.Header className='pdb-header'>
       {/* {(window as any).PDB && */}
-      {/* <a className="pdb-header-button" onClick={handleCollapsed}>
+      <a className="pdb-header-button" onClick={handleCollapsed}>
         <i className="spicon icon-jiantou-zuo"></i>
-      </a> */}
+      </a>
       {/* } */}
       <div className="pdb-header-info">
         <h2 className="pdb-header-title">
