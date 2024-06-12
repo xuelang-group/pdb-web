@@ -38,16 +38,20 @@ function App(props: PdbConfig) {
     navigate = useNavigate(),
     location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog),
-    pageLoading = useSelector((state: StoreState) => state.app.pageLoading);
+    pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   useEffect(() => {
     dispatch(setPageLoading(true));
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
         getAppFolderList(userId);
+
         if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
           navigate(`/${graphId}`);
           dispatch(setSystemInfo(response));
+        } else {
+          dispatch(setSystemInfo({ ...systemInfo, userId }));
         }
       } else {
         notification.error({
