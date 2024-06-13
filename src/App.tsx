@@ -47,7 +47,7 @@ function App(props: PdbConfig) {
         const { userId, graphId } = response;
         getAppFolderList(userId);
 
-        if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
+        if (!Boolean(_.get(window, 'pdbConfig.showAppList', false)) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
           navigate(`/${graphId}`);
           dispatch(setSystemInfo(response));
         } else {
