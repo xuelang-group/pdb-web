@@ -22,9 +22,9 @@ import { createObjectRelation, getObject, getObjectData, setObject, updateObject
 import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { CustomObjectConfig, ObjectGraphDataState, setObjectDetail } from '@/reducers/object';
+import { CustomObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel, setToolbarConfig } from '@/reducers/editor';
-import { TemplateGraphDataState, setGraphData } from '@/reducers/template';
+import { TemplateGraphDataState } from '@/reducers/template';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';

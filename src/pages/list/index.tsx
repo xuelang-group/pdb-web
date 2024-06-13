@@ -14,12 +14,13 @@ import FolderOffSvg from '@/assets/images/folder-collpased.svg';
 import FolderOnSvg from '@/assets/images/folder-expand.svg';
 
 import { StoreState } from "@/store";
-import { setCatalog, setCollapsed } from "@/reducers/app";
+import { setCatalog, setCollapsed, setSystemInfo } from "@/reducers/app";
 import { routeLabelMap, routeIconMap, operation, myDirId, removeCatalog, moveCatalog, getNewFolderId } from "@/utils/common";
 
 import Preview from "./Preview";
 import ModalForm from "./ModalForm";
 import "./index.less";
+import { setGraphData } from "@/reducers/object";
 
 const { Search } = Input;
 const { DirectoryTree, TreeNode } = Tree;
@@ -72,7 +73,8 @@ export default function List(props: ListProps) {
 
   const collapsed = useSelector((state: StoreState) => state.app.collapsed),
     catalog = useSelector((state: StoreState) => state.app.catalog),
-    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
+    graphData = useSelector((state: StoreState) => state.object.graphData);
 
   const leftRef: React.Ref<any> = useRef(null),
     treeRef: React.Ref<any> = useRef(null),
@@ -96,6 +98,26 @@ export default function List(props: ListProps) {
     updateTreeHeight();
     treeRef.current && routerParams.id && treeRef.current.scrollTo({ key: routerParams.id });
   }, [treeRef.current]);
+
+  useEffect(() => {
+    if (!collapsed && graphData && activeItem && _.get(graphData, 'id') === _.get(activeItem, 'id') && _.get(graphData, 'name') !== _.get(activeItem, 'name')) {
+      console.log(activeItem)
+      const name = _.get(graphData, 'name');
+      setActiveItem({
+        ...activeItem,
+        name,
+        label: name
+      });
+      const newDataList: any = JSON.parse(JSON.stringify(dataList));
+      for (let data of newDataList) {
+        if (data.id === _.get(graphData, 'id')) {
+          Object.assign(data, { name });
+          break;
+        }
+      }
+      setDataList(newDataList);
+    }
+  }, [collapsed]);
 
   const updateTreeHeight = function () {
     const leftHeight = leftRef.current.clientHeight;
@@ -171,6 +193,15 @@ export default function List(props: ListProps) {
     if (keys[0] != treeSelectedKeys[0] && node.isLeaf) {
       setTreeSelectedKeys(keys);
       setActiveItem(node.data);
+      if (!systemInfo.userId) {
+        const { user_id, app_id, node_id } = node.data;
+        dispatch(setSystemInfo({
+          ...systemInfo,
+          userId: user_id,
+          appId: app_id,
+          nodeId: node_id
+        }));
+      }
     }
   }
 
@@ -200,7 +231,8 @@ export default function List(props: ListProps) {
     // if (_keyword !== _key) expandedKeys = [];
     const loop = (floders: any) => {
       return floders.map((folder: any) => {
-        const parents = folder.parents ? folder.parents.concat([{ id: `${folder.id}`, label: folder.label }]) : [{ id: `${folder.id}`, label: folder.label }];
+        const folderId = "folder-" + folder.id;
+        const parents = folder.parents ? folder.parents.concat([{ id: `${folderId}`, label: folder.label }]) : [{ id: `${folderId}`, label: folder.label }];
         let children = _.map(_.remove(_list, (item: any = {}) => item.dir === folder.id), (item) => ({ ...item, parents, label: item.name }));
         if (folder.id == myDirId) {
           const dirNull = _.map(_.remove(_list, (item: any) => !item.dir), (item) => ({ ...item, parents, label: item.name }));
@@ -212,8 +244,6 @@ export default function List(props: ListProps) {
             expandedKeys = expandedKeys.concat(_.map(parents, 'id'));
           }
         }
-        const noParentSearched = folder.parents ?
-          folder.parents.findIndex((val: any) => _.toLower(val.label).indexOf(keyword) > -1) == -1 : true;
         if (!_.isEmpty(keyword) && _.toLower(folder.label).indexOf(keyword) == -1) {
           children = children.filter((item) => {
             if (!_.isEmpty(item)) {
@@ -239,6 +269,7 @@ export default function List(props: ListProps) {
             } else {
               return {
                 ...folder,
+                id: folderId,
                 children,
               };
             }
@@ -246,11 +277,12 @@ export default function List(props: ListProps) {
             if (!_.isEmpty(folder.parents)) {
               expandedKeys = expandedKeys.concat(_.map(folder.parents, 'id'));
             }
-            expandedKeys = [...expandedKeys, folder.id.toString()];
+            expandedKeys = [...expandedKeys, folderId];
           }
         }
         return {
           ...folder,
+          id: folderId,
           children,
         };
       });
@@ -265,12 +297,13 @@ export default function List(props: ListProps) {
         data = [];
       }
     }
+    const myDirFolder = "folder-" + myDirId;
     if (!_.isEmpty(_list)) {
-      _list = _list.map((item: any) => ({ ...item, label: item.name, parents: [{ id: `${myDirId}`, label: floders[1].label }] }));
+      _list = _list.map((item: any) => ({ ...item, label: item.name, parents: [{ id: myDirFolder, label: "我的项目" }] }));
       if (!activeApp) {
         activeApp = _.find(_list, ({ id }) => `${id}` == activeId);
         if (activeApp) {
-          expandedKeys = [`${myDirId}`];
+          expandedKeys = [myDirFolder];
         }
       }
       if (!_.isEmpty(keyword)) {
@@ -281,7 +314,7 @@ export default function List(props: ListProps) {
         });
       }
       data = data.map((item: any) => {
-        if (item.id == myDirId) {
+        if (item.id == myDirFolder) {
           return {
             ...item,
             children: [...item.children, ..._list],
@@ -328,6 +361,26 @@ export default function List(props: ListProps) {
     });
   }
 
+  const handleMove = function (params: any) {
+    const { id, dir, name } = params;
+    routeActionMap[route].update({ graphId: id, dir }, (success: boolean, response: any) => {
+      if (success) {
+        const newDataList: any = JSON.parse(JSON.stringify(dataList));
+        for (let data of newDataList) {
+          if (data.id === id) {
+            Object.assign(data, { dir });
+            break;
+          }
+        }
+        setDataList(newDataList);
+        message.success(`移动${routeLabelMap[route]}“${name}”成功`);
+      } else {
+        message.error(`移动${routeLabelMap[route]}“${name}”失败：${response.message || response.msg}`);
+      }
+      handleModalCancel();
+    });
+  }
+
   // 创建文件夹
   const handleCreateFolder = function (parentDir: number, name: string) {
     const newCatalog = JSON.parse(JSON.stringify(catalog));
@@ -340,7 +393,7 @@ export default function List(props: ListProps) {
 
   const saveCatalog = function (catalog: any, callback?: Function) {
     const { userId } = systemInfo;
-    const path = `studio/${userId}/pdbConfig`;
+    const path = `studio/${userId}/pdb/config`;
     putFile(path, JSON.stringify({ catalog })).then(() => {
       dispatch(setCatalog(catalog));
       callback && callback();
@@ -373,6 +426,12 @@ export default function List(props: ListProps) {
           }
           setDataList(newDataList);
           message.success(`重命名${routeLabelMap[route]}“${newName}”成功`);
+          if (graphData && _.get(graphData, 'id') === id) {
+            dispatch(setGraphData({
+              ...graphData,
+              name: newName
+            }));
+          }
         } else {
           message.error(`重命名${routeLabelMap[route]}“${oldName}”失败：${response.message || response.msg}`);
         }
@@ -404,6 +463,13 @@ export default function List(props: ListProps) {
             handleModalCancel();
           } else {
             handleRename(name, formInitialValue.name);
+          }
+          break;
+        case 'move':
+          if (formInitialValue.dir === dir) {
+            handleModalCancel();
+          } else {
+            handleMove({ ...formInitialValue, dir });
           }
           break;
       }
@@ -516,7 +582,7 @@ export default function List(props: ListProps) {
             const { dir, label } = targetItem;
             Object.assign(initialValue, { dir, name: label });
           }
-          if (key === 'rename' || key === 'remove') Object.assign(initialValue, { id, targetType });
+          if (key === 'rename' || key === 'remove' || key === 'move') Object.assign(initialValue, { id, targetType });
         }
       }
       setFormInitialValue(initialValue);
