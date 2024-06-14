@@ -414,3 +414,24 @@ export const removeObjects = (data, callback) => {
     callback && callback(false, err);
   });
 }
+
+/**
+ * 版本相关
+ */
+const versionApiPrefix = `${objectApiPrefix}/version`
+
+const versionApi = {
+  list: versionApiPrefix + "list"
+}
+
+export const getVersionList = (params, callback) => {
+
+  return axios.post(versionApi['list'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};

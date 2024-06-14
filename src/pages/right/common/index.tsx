@@ -982,6 +982,11 @@ export default function Right(props: RightProps) {
       label: '关系列表',
       children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
+    rightPanelTabs.push({
+      key: 'version',
+      label: '版本列表',
+      children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
+    });
   } else if (props.route === 'template') {
     rightPanelTabs.push({
       key: 'constraint',
@@ -1085,7 +1090,7 @@ export default function Right(props: RightProps) {
                 placeholder={'点击编辑名称'}
                 onBlur={changeName}
                 onPressEnter={changeName}
-                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
               />
             </Form.Item>
             <div className='info-name-hidden'>{appName}</div>
@@ -1138,31 +1143,31 @@ export default function Right(props: RightProps) {
       cancelText: "取消",
       onOk: function () {
         checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
-          if (success) {
-            dispatch(setIsEditing(true));
-            dispatch(setCurrentEditModel({
-              ...currentEditModel,
+          // if (success) {
+          dispatch(setIsEditing(true));
+          dispatch(setCurrentEditModel({
+            ...currentEditModel,
+            data: {
+              ...currentEditModel?.data,
+              'x.checkout': true
+            }
+          }));
+          const graph = (window as any).PDB_GRAPH;
+          const item = graph.findById(currentEditModel?.id);
+          if (item) {
+            graph?.updateItem(item, {
               data: {
                 ...currentEditModel?.data,
                 'x.checkout': true
               }
-            }));
-            const graph = (window as any).PDB_GRAPH;
-            const item = graph.findById(currentEditModel?.id);
-            if (item) {
-              graph?.updateItem(item, {
-                data: {
-                  ...currentEditModel?.data,
-                  'x.checkout': true
-                }
-              });
-            }
-          } else {
-            notification.error({
-              message: '检出对象失败',
-              description: response.message || response.msg
             });
           }
+          // } else {
+          //   notification.error({
+          //     message: '检出对象失败',
+          //     description: response.message || response.msg
+          //   });
+          // }
         });
       }
     });
@@ -1196,7 +1201,7 @@ export default function Right(props: RightProps) {
             }
           } else {
             notification.error({
-              message: '检入对象失败',
+              message: '发布对象失败',
               description: response.message || response.msg
             });
           }
@@ -1228,7 +1233,7 @@ export default function Right(props: RightProps) {
         }
       } else {
         notification.error({
-          message: '检入对象失败',
+          message: '取消检出对象失败',
           description: response.message || response.msg
         });
       }
@@ -1254,20 +1259,20 @@ export default function Right(props: RightProps) {
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>
                 <NodeIconPicker
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
                   changeIcon={(icon: string) => changeNodeMetadata('icon', icon)}
                   currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
                 <NodeColorPicker
                   type='fill'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
                 <NodeColorPicker
                   type='border'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                   changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}

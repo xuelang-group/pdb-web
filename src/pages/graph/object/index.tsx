@@ -379,7 +379,7 @@ export default function Editor(props: EditorProps) {
       title: '删除实例',
       icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
       getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
-      content: rendeRemoveModalContent(currentEditModel),
+      content: renderRemoveModalContent(currentEditModel),
       okButtonProps: {
         danger: true
       },
@@ -583,7 +583,7 @@ export default function Editor(props: EditorProps) {
     });
   }
 
-  const rendeRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
+  const renderRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
     const name = (currentEditModel?.name || '') as string;
     return (
       <>

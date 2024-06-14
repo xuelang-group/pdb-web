@@ -20,7 +20,8 @@ export default function RelationList(props: RelationListProps) {
   const relationMap = useSelector((store: StoreState) => store.editor.relationMap),
     typeRelationMap: any = useSelector((store: StoreState) => store.editor.typeRelationMap),
     { relationLines, showRelationLine } = useSelector((store: StoreState) => store.editor.toolbarConfig.main),
-    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
+    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
+    isEditing = useSelector((state: StoreState) => state.editor.isEditing);
 
   const [relations, setRelations] = useState([]),
     [currentRelationMap, setCurrentRelationMap] = useState({} as any),
@@ -100,7 +101,7 @@ export default function RelationList(props: RelationListProps) {
     setRelationList(relationList);
   }
 
-  const columns = [{
+  const columns: any[] = [{
     title: '展示名称',
     dataIndex: 'relation',
     render: (text: any, record: any, index: number) => renderColumn(index, 'relation')
@@ -108,13 +109,16 @@ export default function RelationList(props: RelationListProps) {
     title: '目标对象',
     dataIndex: 'target',
     render: (text: any, record: any, index: number) => renderColumn(index, 'target')
-  }, {
-    title: '',
-    dataIndex: 'operation',
-    width: 23,
-    render: (text: any, record: any, index: number) => <i className="operation-icon spicon icon-shanchu2" onClick={() => deleteRelation(index)} />
   }];
 
+  if (isEditing) {
+    columns.push({
+      title: '',
+      dataIndex: 'operation',
+      width: 23,
+      render: (text: any, record: any, index: number) => <i className="operation-icon spicon icon-shanchu2" onClick={() => deleteRelation(index)} />
+    });
+  }
   // 添加关系
   const handleAddRelation = function () {
     form.validateFields().then((values) => {
@@ -397,6 +401,7 @@ export default function RelationList(props: RelationListProps) {
           ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
             (option?.value ?? '').toString() === input)
           }
+          disabled={!isEditing}
           onChange={value => handleChangeRelation(value, index)}>
         </Select> :
         <Select
@@ -406,7 +411,7 @@ export default function RelationList(props: RelationListProps) {
           ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
             (option?.value ?? '').toString() === input)
           }
-          disabled={!form.getFieldValue(['relation', index, 'relation'])}
+          disabled={!form.getFieldValue(['relation', index, 'relation']) || !isEditing}
           onFocus={() => handleGetRelationTarget(index)}
           onChange={(value, option) => handleChangeTarget(value, option, index)}>
         </Select>
@@ -427,13 +432,15 @@ export default function RelationList(props: RelationListProps) {
           pagination={false}
         />
       </Form >
-      <Button
-        type='dashed'
-        onClick={() => handleAddRelation()}
-        style={{ width: '100%', marginTop: '.8rem' }}
-      >
-        <i className='spicon icon-plus'></i>
-      </Button>
+      {isEditing &&
+        <Button
+          type='dashed'
+          onClick={() => handleAddRelation()}
+          style={{ width: '100%', marginTop: '.8rem' }}
+        >
+          <i className='spicon icon-plus'></i>
+        </Button>
+      }
     </div>
   )
 }
