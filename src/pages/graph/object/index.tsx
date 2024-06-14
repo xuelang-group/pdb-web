@@ -669,6 +669,10 @@ export default function Editor(props: EditorProps) {
                   event.stopPropagation();
                   dispatch(setCurrentEditModel(null));
                   navigate(`/${routerParams.id}/template`);
+                  if (currentEditModel && graph) {
+                    const item = graph.findById(currentEditModel.id);
+                    if (item) item.setState("selected", false);
+                  }
                 }}
               >
                 {!location.pathname.endsWith("/template") &&

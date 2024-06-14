@@ -18,12 +18,12 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
-import { createObjectRelation, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
+import { checkInObject, checkOutObject, createObjectRelation, discardObject, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
 import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
-import { NodeItemData, setCurrentEditModel, setToolbarConfig } from '@/reducers/editor';
+import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import { TemplateGraphDataState } from '@/reducers/template';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -37,7 +37,6 @@ import ConstraintList from '../constraint/ConstraintList';
 import './index.less';
 import SearchAround from '@/components/SearchAround';
 import store from '@/store';
-
 
 const { Option } = Select;
 
@@ -55,7 +54,8 @@ export default function Right(props: RightProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
-    relations = useSelector((state: StoreState) => state.relation.data);
+    relations = useSelector((state: StoreState) => state.relation.data),
+    isEditing = useSelector((state: StoreState) => state.editor.isEditing);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -227,11 +227,13 @@ export default function Right(props: RightProps) {
     }
     setCurrentEditType(currentEditType);
     initData(currentEditType, currentEditDefaultData, currentEditModel);
+    dispatch(setIsEditing(currentEditModel && currentEditModel.data && currentEditModel.data['x.checkout']));
 
     return () => {
       setCurrentEditParam(null);
       setCurrentEditDefaultData(null);
       setCurrentEditType('');
+      dispatch(setIsEditing(false));
     }
   }, [currentEditModel]);
 
@@ -775,35 +777,14 @@ export default function Right(props: RightProps) {
     )
   }
 
-  // 关联属性 - 值编辑框
-  const hanldeSelectRefer = (attr: any) => {
-    modal.confirm({
-      title: '请选择类型为"业务域"的对象实例：',
-      icon: null,
-      content: (
-        <Table
-          rowSelection={{
-            type: 'radio',
-            onChange: (selectedRowKeys: React.Key[], selectedRows: any) => {
-            },
-          }}
-          columns={[{
-            title: '实例名称',
-            dataIndex: 'x.name',
-            key: 'x.name'
-          }, {
-            title: '实例ID',
-            dataIndex: 'uid',
-            key: 'uid'
-          }]}
-          dataSource={[]}
-        />
-      )
-    });
-  }
-
   // 可编辑输入框
   const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number) => {
+    if (!isEditing) {
+      return rendeCustomAddon(attr, (
+        <Input addonBefore={addonBefore} readOnly disabled />
+      ));
+    }
+
     switch (type) {
       case 'boolean':
         return rendeCustomAddon(attr, (
@@ -839,10 +820,6 @@ export default function Right(props: RightProps) {
           >
           </Select>
         ), addonBefore);
-      case 'refer':
-        return rendeCustomAddon(attr, (
-          <Input addonBefore={addonBefore} readOnly onClick={() => hanldeSelectRefer(attr)} />
-        ))
       default:
         return rendeCustomAddon(attr, (
           <InputNumber addonBefore={addonBefore} onChange={() => handleAttrChange(index, attr)} />
@@ -885,13 +862,6 @@ export default function Right(props: RightProps) {
       return renderEditorInput(type, _default, addonBefore, attr, index);
     }
     return renderReadOnlyInput(type, _default, addonBefore, attr);
-  }
-
-  const editCurrentType = () => {
-    (window as any).PDB.goto('/web/pdb/type', {
-      type: currentEditType,
-      uid: currentEditModel?.uid
-    });
   }
 
   const findParam = useCallback(
@@ -973,18 +943,6 @@ export default function Right(props: RightProps) {
                   </Button>
                 </div>
               }
-              {/* {currentEditType !== 'object' &&
-                <div className='param-btn'>
-                  {props.route !== 'template' ?
-                    <Button className='btn-default' onClick={addParam} block icon={<i className='spicon icon-tianjia2'></i>}>
-                      添加属性
-                    </Button> :
-                    <Button className='btn-default' onClick={editCurrentType} block>
-                      编辑此类型
-                    </Button>
-                  }
-                </div>
-              } */}
             </DndProvider>
           )
         }
@@ -997,46 +955,6 @@ export default function Right(props: RightProps) {
     if (!ref || !ref.current) return;
     ref.current.select();
     document.execCommand("copy");
-  }
-
-  const changeTgtCardinality = _.debounce((value: number | null) => {
-    if (!currentEditModel) return;
-    const { source, target } = currentEditModel;
-    const currentGraphData = JSON.parse(JSON.stringify(graphData));
-    for (let i = 0; i < currentGraphData.connections.length; i++) {
-      const currentConnection = currentGraphData.connections[i];
-      if (currentConnection.src.process === source && currentConnection.tgt.process === target) {
-        const constraintConfig = {
-          type: 'max_tgt',
-          value
-        };
-        if (currentConnection.metadata['r.constraints'] && currentConnection.metadata['r.constraints'].length > 0) {
-          const firstConstraint = currentConnection.metadata['r.constraints'][0];
-          if (firstConstraint.type === 'max_tgt') {
-            firstConstraint.value = value;
-          } else {
-            currentConnection.metadata['r.constraints'].unshift(constraintConfig);
-          }
-        } else {
-          Object.assign(currentConnection.metadata, {
-            'r.constraints': [constraintConfig]
-          })
-        }
-      }
-    }
-    if (JSON.stringify(graphData) !== JSON.stringify(currentGraphData)) dispatch(setGraphData(currentGraphData));
-  }, 500);
-
-  // 更改关系目标对象上限
-  const handleChangeTgtCardinality = (value: number | null) => {
-    if (!currentEditModel) return;
-    const tgtCardinality = value === null ? Infinity : value;
-    dispatch(setCurrentEditModel({ ...currentEditModel, tgtCardinality }));
-    const graph = (window as any).PDB_GRAPH;
-    const label = JSON.parse(JSON.stringify(currentEditModel.label));
-    if (typeof label === 'object') label[2] = value;
-    graph.updateItem(currentEditModel.id, { tgtCardinality, label });
-    changeTgtCardinality(value);
   }
 
   const rightPanelTabs = [{
@@ -1213,6 +1131,110 @@ export default function Right(props: RightProps) {
     );
   }
 
+  const handleEditItem = function () {
+    modal.confirm({
+      title: "编辑将生成一个新版本数据实体，请确认是否修订？",
+      okText: "确定",
+      cancelText: "取消",
+      onOk: function () {
+        checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
+          if (success) {
+            dispatch(setIsEditing(true));
+            dispatch(setCurrentEditModel({
+              ...currentEditModel,
+              data: {
+                ...currentEditModel?.data,
+                'x.checkout': true
+              }
+            }));
+            const graph = (window as any).PDB_GRAPH;
+            const item = graph.findById(currentEditModel?.id);
+            if (item) {
+              graph?.updateItem(item, {
+                data: {
+                  ...currentEditModel?.data,
+                  'x.checkout': true
+                }
+              });
+            }
+          } else {
+            notification.error({
+              message: '检出对象失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      }
+    });
+  }
+
+  const handleCheckIn = function () {
+    modal.confirm({
+      title: "确定发布此数据实体吗？",
+      okText: "确定",
+      cancelText: "取消",
+      onOk: function () {
+        checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
+          if (success) {
+            dispatch(setIsEditing(false));
+            dispatch(setCurrentEditModel({
+              ...currentEditModel,
+              data: {
+                ...currentEditModel?.data,
+                'x.checkout': false
+              }
+            }));
+            const graph = (window as any).PDB_GRAPH;
+            const item = graph.findById(currentEditModel?.id);
+            if (item) {
+              graph?.updateItem(item, {
+                data: {
+                  ...currentEditModel?.data,
+                  'x.checkout': false
+                }
+              });
+            }
+          } else {
+            notification.error({
+              message: '检入对象失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      }
+    });
+  }
+
+  const handleDiscard = function () {
+    discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
+      if (success) {
+        dispatch(setIsEditing(false));
+        dispatch(setCurrentEditModel({
+          ...currentEditModel,
+          data: {
+            ...currentEditModel?.data,
+            'x.checkout': false
+          }
+        }));
+        const graph = (window as any).PDB_GRAPH;
+        const item = graph.findById(currentEditModel?.id);
+        if (item) {
+          graph?.updateItem(item, {
+            data: {
+              ...currentEditModel?.data,
+              'x.checkout': false
+            }
+          });
+        }
+      } else {
+        notification.error({
+          message: '检入对象失败',
+          description: response.message || response.msg
+        });
+      }
+    });
+  }
+
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
@@ -1231,10 +1253,10 @@ export default function Right(props: RightProps) {
             {renderPanelForm()}
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>
-                <NodeIconPicker 
+                <NodeIconPicker
                   disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
-                  changeIcon={(icon: string) => changeNodeMetadata('icon', icon)} 
-                  currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')} 
+                  changeIcon={(icon: string) => changeNodeMetadata('icon', icon)}
+                  currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
                 <NodeColorPicker
@@ -1253,6 +1275,17 @@ export default function Right(props: RightProps) {
               </div>
             }
             {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
+            {currentEditModel && currentEditType === 'object' &&
+              <div className='pdb-right-panel-footer'>
+                {isEditing ?
+                  <>
+                    <Button style={{ marginRight: 5 }} onClick={handleDiscard}>取消</Button>
+                    <Button type='primary' onClick={handleCheckIn}>发布</Button>
+                  </> :
+                  <Button onClick={handleEditItem}>编辑</Button>
+                }
+              </div>
+            }
           </PdbPanel>
         }
       </div>

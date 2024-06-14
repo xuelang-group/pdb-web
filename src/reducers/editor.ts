@@ -73,6 +73,7 @@ interface EditorState {
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
   toolbarConfig: ToolbarConfig // 对象管理 - 工具栏,每个tab都有对应的工具栏
   currentEditModel: NodeItemData | EdgeItemData | TypeItemData | null // 所有 - 单个选中编辑
+  isEditing: boolean
   showSearch: boolean
   typeRelationMap: {}
   graphLoading: boolean
@@ -112,6 +113,7 @@ const initialState: EditorState = {
     }
   },
   currentEditModel: null,
+  isEditing: false,
   typeRelationMap: {},
   showSearch: false, //显示搜索框
   graphLoading: false,
@@ -145,6 +147,9 @@ export const editorSlice = createSlice({
     },
     setCurrentEditModel: (state, action: PayloadAction<NodeItemData | EdgeItemData | TypeItemData | null>) => {
       state.currentEditModel = JSON.parse(JSON.stringify(action.payload));
+    },
+    setIsEditing: (state, action: PayloadAction<boolean>) => {
+      state.isEditing = action.payload;
     },
     setMultiEditModel: (state, action: PayloadAction<Array<NodeItemData | EdgeItemData | TypeItemData> | null>) => {
       state.multiEditModel = JSON.parse(JSON.stringify(action.payload));
@@ -214,6 +219,6 @@ export const editorSlice = createSlice({
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
   addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, 
-  setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp
+  setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp, setIsEditing
 } = editorSlice.actions
 export default editorSlice.reducer
