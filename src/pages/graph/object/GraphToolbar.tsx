@@ -915,6 +915,36 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     return '0x' + Number(num).toString(16);
   }
 
+  async function postObject(objects: any[]) {
+    const chunkSize = 8000, totalChunks = Math.ceil(objects.length / chunkSize);
+    let isAllSuccess = true, error: any = {};
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = objects.slice(i * chunkSize, (i + 1) * chunkSize);
+      await (() => {
+        return new Promise((resolve: any, reject: any) => {
+          addObject(chunk, (success: boolean, response: any) => {
+            if (!success) {
+              isAllSuccess = false;
+              error = response;
+            }
+            resolve();
+          });
+        })
+      })();
+      if (!isAllSuccess) break;
+    }
+
+    getRootsData();
+    if (!isAllSuccess) {
+      notification.error({
+        message: '导入对象实例失败',
+        description: error.message || error.msg
+      });
+    }
+    message.destroy("upload");
+    setUploading(false);
+  }
+
   // 上传实例数据
   function uploadObjects(data: any[], relationData: any[], override: boolean) {
     if (!rootId) return;
@@ -977,17 +1007,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     if (override) {
       clearObjects((success: boolean, response: any) => {
         if (success) {
-          addObject(objects, (success: boolean, response: any) => {
-            getRootsData();
-            if (!success) {
-              notification.error({
-                message: '导入对象实例失败',
-                description: response.message || response.msg
-              });
-            }
-            message.destroy("upload");
-            setUploading(false);
-          });
+          postObject(objects);
         } else {
           getRootsData();
           notification.error({
@@ -999,17 +1019,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       });
     } else {
-      addObject(objects, (success: boolean, response: any) => {
-        getRootsData();
-        if (!success) {
-          notification.error({
-            message: '导入对象实例失败',
-            description: response.message || response.msg
-          });
-        }
-        message.destroy("upload");
-        setUploading(false);
-      });
+      postObject(objects);
     }
   }
 
@@ -1021,11 +1031,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const sheetName = workbook.SheetNames[0];
       const worksheet: any = workbook.Sheets[sheetName];
       const data: any = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      console.log(worksheet)
       if (data.length > 100000) {
         message.error({
           key: "upload",
-          content: "单文件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！",
+          content: "单表件支持最大数据量100000条。该文件数据量已超过最大数据量，请分多个文件上传！",
           duration: 3
         });
         setUploading(false);
@@ -1038,7 +1047,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         const sheetName2 = workbook.SheetNames[1];
         const worksheet2: any = workbook.Sheets[sheetName2];
         const relationData: any = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
-        console.log(worksheet2)
+        if (worksheet2.length > 100000) {
+          message.error({
+            key: "upload",
+            content: "单表支持最大数据量100000条。实例关系表数据量已超过最大数据量，请分多个文件上传！",
+            duration: 3
+          });
+          setUploading(false);
+          return;
+        }
         uploadObjects(data, relationData, override);
       }
     };
