@@ -19,7 +19,8 @@ export interface ObjectConfig {
   'x.created': any
   'x.children': number
   'x.metadata': string
-  'x.checkout': boolean
+  'x.version'?: boolean
+  'x.checkout'?: boolean
   [key: string]: any
 }
 

@@ -37,6 +37,7 @@ import ConstraintList from '../constraint/ConstraintList';
 import './index.less';
 import SearchAround from '@/components/SearchAround';
 import store from '@/store';
+import VersionList from '../object/VersionList';
 
 const { Option } = Select;
 
@@ -985,7 +986,7 @@ export default function Right(props: RightProps) {
     rightPanelTabs.push({
       key: 'version',
       label: '版本列表',
-      children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
+      children: (<VersionList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
   } else if (props.route === 'template') {
     rightPanelTabs.push({
@@ -1143,31 +1144,31 @@ export default function Right(props: RightProps) {
       cancelText: "取消",
       onOk: function () {
         checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
-          // if (success) {
-          dispatch(setIsEditing(true));
-          dispatch(setCurrentEditModel({
-            ...currentEditModel,
-            data: {
-              ...currentEditModel?.data,
-              'x.checkout': true
-            }
-          }));
-          const graph = (window as any).PDB_GRAPH;
-          const item = graph.findById(currentEditModel?.id);
-          if (item) {
-            graph?.updateItem(item, {
+          if (success) {
+            dispatch(setIsEditing(true));
+            dispatch(setCurrentEditModel({
+              ...currentEditModel,
               data: {
                 ...currentEditModel?.data,
                 'x.checkout': true
               }
+            }));
+            const graph = (window as any).PDB_GRAPH;
+            const item = graph.findById(currentEditModel?.id);
+            if (item) {
+              graph?.updateItem(item, {
+                data: {
+                  ...currentEditModel?.data,
+                  'x.checkout': true
+                }
+              });
+            }
+          } else {
+            notification.error({
+              message: '检出对象失败',
+              description: response.message || response.msg
             });
           }
-          // } else {
-          //   notification.error({
-          //     message: '检出对象失败',
-          //     description: response.message || response.msg
-          //   });
-          // }
         });
       }
     });
