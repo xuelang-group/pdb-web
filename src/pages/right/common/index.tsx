@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Table, Empty, Divider } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Table, Empty, Divider, Switch } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -951,6 +951,22 @@ export default function Right(props: RightProps) {
     );
   }
 
+  const renderCommon = () => {
+    return (
+      <div className='pdb-type-common'>
+        <div className='pdb-type-common-item'>
+          <span>开启版本控制： </span>
+          <Switch value={currentEditDefaultData['x.type.version']} onChange={checked => {
+            updateItemData({
+              ...currentEditDefaultData,
+              'x.type.version': checked
+            });
+          }} />
+        </div>
+      </div>
+    )
+  }
+
   // 复制id
   const copyId = (ref: any) => {
     if (!ref || !ref.current) return;
@@ -964,7 +980,13 @@ export default function Right(props: RightProps) {
     children: renderParams(),
   }];
 
-  if (currentEditType === 'relation') {
+  if (currentEditType === 'type') {
+    rightPanelTabs.push({
+      key: 'common',
+      label: '高级配置',
+      children: renderCommon()
+    })
+  } else if (currentEditType === 'relation') {
     if (props.route === 'type' || location.pathname.endsWith("/template")) {
       rightPanelTabs.push({
         key: 'bind',

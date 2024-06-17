@@ -472,7 +472,21 @@
     padding: 1.6rem;
   }
 
-
+  .pdb-type-common {
+    padding: 1.6rem;
+    &-item {
+      display: flex;
+      align-items: center;
+      
+      & > span:nth-child(1) {
+        margin: .4rem 0;
+        font-weight: 400;
+        color: var(--text-color3);
+        white-space: break-spaces;
+        min-width: 5rem;
+      }
+    }
+  }
 
   .pdb-ant-form-item-label>label {
     font-weight: normal;

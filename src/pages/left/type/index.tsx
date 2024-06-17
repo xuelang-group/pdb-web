@@ -626,7 +626,8 @@ export default function Left(props: any) {
           'x.type.name': 'Type.' + uuid(),
           'x.type.attrs': [],
           'x.type.prototype': item['x.type.prototype'] || [],
-          'x.type.label': name
+          'x.type.label': name,
+          'x.type.version': false
         }
         if (modalType === 'copy') {
           Object.assign(newType, { 'x.type.attrs': item['x.type.attrs'] || [] });
