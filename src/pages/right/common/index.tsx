@@ -18,12 +18,12 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
-import { checkInObject, checkOutObject, createObjectRelation, discardObject, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
+import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
 import { updateTemplateInfo } from '@/actions/template';
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
-import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
+import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import { TemplateGraphDataState } from '@/reducers/template';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -66,7 +66,9 @@ export default function Right(props: RightProps) {
     [showMore, setShowMore] = useState(Boolean(!currentEditModel)), // 查看更多
     [metadataKey, setMetadataKey] = useState(''),
     [attrLoading, setAttrLoading] = useState(false),
-    [panelTitle, setPanelTitle] = useState('');
+    [panelTitle, setPanelTitle] = useState(''),
+    [hasVersion, setHasVersion] = useState(false),
+    [checkoutVersion, setCheckoutVersion] = useState({});
 
   const [infoForm] = Form.useForm(),
     [attrForm] = Form.useForm();
@@ -228,13 +230,16 @@ export default function Right(props: RightProps) {
     }
     setCurrentEditType(currentEditType);
     initData(currentEditType, currentEditDefaultData, currentEditModel);
-    dispatch(setIsEditing(currentEditModel && currentEditModel.data && currentEditModel.data['x.checkout']));
+    const hasVersion = Boolean(currentEditDefaultData['x.version']);
+    setHasVersion(hasVersion);
+    hasVersion && dispatch(setIsEditing(currentEditDefaultData['x.checkout']));
 
     return () => {
       setCurrentEditParam(null);
       setCurrentEditDefaultData(null);
       setCurrentEditType('');
-      dispatch(setIsEditing(false));
+      dispatch(setIsEditing(true));
+      setHasVersion(false);
     }
   }, [currentEditModel]);
 
@@ -312,9 +317,23 @@ export default function Right(props: RightProps) {
 
   const getObjectInfo = function (uid: string, attrs: any) {
     setAttrLoading(true);
-    getObject({ uid }, (success: boolean, response: any) => {
+    getObject({ uid }, async (success: boolean, response: any) => {
       if (success && response && response[0]) {
         const objectData = response[0];
+        if (objectData['x.version'] && objectData['x.checkout']) {
+          await (() => {
+            return new Promise((resolve) => {
+              getCheckoutVersion(uid, (success: boolean, response: any) => {
+                if (success) {
+                  const { uid, ...other } = response['v.attrs'];
+                  Object.assign(objectData, other);
+                  setCheckoutVersion(response);
+                }
+                resolve(null);
+              });
+            });
+          })();
+        }
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         // 获取对象关系列表数据
@@ -1005,10 +1024,10 @@ export default function Right(props: RightProps) {
       label: '关系列表',
       children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
-    rightPanelTabs.push({
+    hasVersion && rightPanelTabs.push({
       key: 'version',
       label: '版本列表',
-      children: (<VersionList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
+      children: (<VersionList source={currentEditDefaultData} loading={typeLoading || attrLoading} checkoutVesion={checkoutVersion} />)
     });
   } else if (props.route === 'template') {
     rightPanelTabs.push({
@@ -1168,13 +1187,7 @@ export default function Right(props: RightProps) {
         checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
           if (success) {
             dispatch(setIsEditing(true));
-            dispatch(setCurrentEditModel({
-              ...currentEditModel,
-              data: {
-                ...currentEditModel?.data,
-                'x.checkout': true
-              }
-            }));
+            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
             const graph = (window as any).PDB_GRAPH;
             const item = graph.findById(currentEditModel?.id);
             if (item) {
@@ -1205,13 +1218,7 @@ export default function Right(props: RightProps) {
         checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
           if (success) {
             dispatch(setIsEditing(false));
-            dispatch(setCurrentEditModel({
-              ...currentEditModel,
-              data: {
-                ...currentEditModel?.data,
-                'x.checkout': false
-              }
-            }));
+            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
             const graph = (window as any).PDB_GRAPH;
             const item = graph.findById(currentEditModel?.id);
             if (item) {
@@ -1237,13 +1244,7 @@ export default function Right(props: RightProps) {
     discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
       if (success) {
         dispatch(setIsEditing(false));
-        dispatch(setCurrentEditModel({
-          ...currentEditModel,
-          data: {
-            ...currentEditModel?.data,
-            'x.checkout': false
-          }
-        }));
+        setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
         const graph = (window as any).PDB_GRAPH;
         const item = graph.findById(currentEditModel?.id);
         if (item) {
@@ -1303,7 +1304,7 @@ export default function Right(props: RightProps) {
               </div>
             }
             {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
-            {currentEditModel && currentEditType === 'object' &&
+            {hasVersion &&
               <div className='pdb-right-panel-footer'>
                 {isEditing ?
                   <>

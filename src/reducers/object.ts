@@ -9,6 +9,11 @@ export interface Parent {
   'x.children'?: number
 }
 
+interface LatestVersionConfig {
+  uid: string
+  'v.version': string
+}
+
 export interface ObjectConfig {
   'uid': string
   'x.name': string
@@ -21,6 +26,7 @@ export interface ObjectConfig {
   'x.metadata': string
   'x.version'?: boolean
   'x.checkout'?: boolean
+  'x.latest_version': LatestVersionConfig
   [key: string]: any
 }
 

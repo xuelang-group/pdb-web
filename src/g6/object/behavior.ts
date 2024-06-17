@@ -17,8 +17,9 @@ export const G6OperateFunctions = {
 
     addObject([newObject], (success: boolean, response: any) => {
       if (success) {
-        Object.assign(newData, { uid: Object.values(response)[0] });
-        getObject({ uid: Object.values(response)[0] }, (success: boolean, response: any) => {
+        const uid = response['xid'];
+        Object.assign(newData, { uid });
+        getObject({ uid }, (success: boolean, response: any) => {
           if (success && response && response[0]) {
             newData = response[0];
           }

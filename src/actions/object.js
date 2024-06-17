@@ -421,7 +421,8 @@ export const removeObjects = (data, callback) => {
 const versionApiPrefix = `${objectApiPrefix}/version`
 
 const versionApi = {
-  list: versionApiPrefix + "list"
+  list: versionApiPrefix + "/list",
+  checkout: versionApiPrefix + "/checkout",
 }
 
 export const getVersionList = (params, callback) => {
@@ -429,6 +430,17 @@ export const getVersionList = (params, callback) => {
   return axios.post(versionApi['list'], {
     ...commonParams,
     ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const getCheckoutVersion = (uid, callback) => {
+  return axios.post(versionApi['checkout'], {
+    ...commonParams,
+    uid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

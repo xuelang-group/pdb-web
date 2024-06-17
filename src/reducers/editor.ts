@@ -113,7 +113,7 @@ const initialState: EditorState = {
     }
   },
   currentEditModel: null,
-  isEditing: false,
+  isEditing: true,
   typeRelationMap: {},
   showSearch: false, //显示搜索框
   graphLoading: false,
