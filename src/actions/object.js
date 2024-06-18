@@ -64,10 +64,18 @@ export const discardObject = (uid, callback) => {
 };
 
 // 创建对象
-export const addObject = (params, callback) => {
-  // mock
-  // callback && callback(true);
+export const clearObjects = (callback) => {
+  return axios.post(apiPrefix + '/graph/drop/data', {
+    ...commonParams,
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
 
+// 创建对象
+export const addObject = (params, callback) => {
   return axios.post(api['add'], {
     ...commonParams,
     set: params
@@ -80,9 +88,6 @@ export const addObject = (params, callback) => {
 
 // 更新对象
 export const setObject = (params, callback) => {
-  // mock
-  // callback && callback(true);
-
   return axios.post(api['update'], {
     ...commonParams,
     ...params
@@ -95,9 +100,6 @@ export const setObject = (params, callback) => {
 
 // 获取对象
 export const getObject = (params, callback) => {
-  // mock
-  // callback && callback(true);
-
   return axios.post(api['get'], {
     ...commonParams,
     ...params
