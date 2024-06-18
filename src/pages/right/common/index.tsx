@@ -1186,18 +1186,21 @@ export default function Right(props: RightProps) {
       onOk: function () {
         checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
           if (success) {
-            dispatch(setIsEditing(true));
-            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
-            const graph = (window as any).PDB_GRAPH;
-            const item = graph.findById(currentEditModel?.id);
-            if (item) {
-              graph?.updateItem(item, {
-                data: {
-                  ...currentEditModel?.data,
-                  'x.checkout': true
-                }
-              });
-            }
+            getCheckoutVersion(currentEditModel?.uid, (success: boolean, response: any) => {
+              dispatch(setIsEditing(true));
+              setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': true });
+              const graph = (window as any).PDB_GRAPH;
+              const item = graph.findById(currentEditModel?.id);
+              if (item) {
+                graph?.updateItem(item, {
+                  data: {
+                    ...currentEditModel?.data,
+                    'x.checkout': true
+                  }
+                });
+              }
+              success && setCheckoutVersion(response);
+            });
           } else {
             notification.error({
               message: '检出对象失败',
@@ -1245,6 +1248,7 @@ export default function Right(props: RightProps) {
       if (success) {
         dispatch(setIsEditing(false));
         setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
+        setCheckoutVersion({});
         const graph = (window as any).PDB_GRAPH;
         const item = graph.findById(currentEditModel?.id);
         if (item) {

@@ -1,7 +1,7 @@
 import { getVersionList } from '@/actions/object';
 import { ObjectConfig } from '@/reducers/object';
 import { formatTimestamp } from '@/utils/common';
-import { notification, Table } from 'antd';
+import { Modal, notification, Table } from 'antd';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import './index.less';
@@ -14,6 +14,7 @@ interface RelationListProps {
 
 export default function RelationList(props: RelationListProps) {
   const { source, loading, checkoutVesion } = props;
+  const [modal, contextHolder] = Modal.useModal()
   const [count, setCount] = useState(0),
     [versionList, setVersionList] = useState([]),
     [versionLoading, setVersionLoading] = useState(false);
@@ -21,7 +22,12 @@ export default function RelationList(props: RelationListProps) {
   const pageSize = 5
   const columns = [{
     dataIndex: "v.version",
-    title: "版本号"
+    title: "版本号",
+    render: (text: any, record: any, index: number) => (
+      record['v.status'] === "编辑中" ?
+        <span>{text}</span> :
+        <span style={{ cursor: "pointer", color: "#0084FF" }} onClick={() => handleShowDetail(record)}>{text}</span>
+    )
   }, {
     dataIndex: "v.status",
     title: "状态"
@@ -54,6 +60,37 @@ export default function RelationList(props: RelationListProps) {
     });
   }
 
+  function handleShowDetail(record: any) {
+    const attrs = JSON.parse(JSON.stringify(record["v.attrs"]));
+    const { uid, ...other } = attrs;
+    const attrColumns = [{
+      dataIndex: "key",
+      title: "属性"
+    }, {
+      dataIndex: "value",
+      title: "值"
+    }];
+    const attrData:any[] = [];
+    Object.keys(attrs).forEach(key => {
+      if (key !== "uid" && !key.startsWith("x.")) {
+        attrData.push({
+          key,
+          value: attrs[key]
+        });
+      }
+    });
+    modal.info({
+      title: `版本${record["v.version"]} 修改详情`,
+      icon: null,
+      content: (
+        <div>
+          <Table columns={attrColumns} dataSource={attrData} />
+        </div>
+      ),
+      okText: "关闭"
+    });
+  }
+
   useEffect(() => {
     if (source && source.uid) {
       getVersions(0);
@@ -79,6 +116,7 @@ export default function RelationList(props: RelationListProps) {
           },
         }}
       />
+      {contextHolder}
     </div>
   )
 }

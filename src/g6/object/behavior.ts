@@ -604,7 +604,7 @@ export const G6OperateFunctions = {
 
       const limit = Number(PAGE_SIZE()),
         _offset = Number(offset);
-      if (_offset >= 0) {
+      if (_offset >= 0 && limit > 0) {
         Object.assign(params, { first: limit, offset: _offset });
       }
       store.dispatch(setGraphLoading(true));
@@ -627,7 +627,7 @@ export const G6OperateFunctions = {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           let _data: any[] = [];
-          if (_offset > 0) {
+          if (params.hasOwnProperty("offset")) {
             _data.push({
               uid: 'pagination-' + parent + `-${_offset - limit}-prev`,
               id: 'pagination-' + parent + `-${_offset - limit}-prev`,
@@ -715,7 +715,7 @@ export const G6OperateFunctions = {
           let concatData = [];
           _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.id, true) }));
 
-          if (_offset >= 0 && parentChildLen > limit) {
+          if (_offset >= 0 && limit > 0 && parentChildLen > limit) {
             const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
             _data.push({
               uid: 'pagination-' + parent + `-${_offset + limit}-next`,
