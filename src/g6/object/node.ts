@@ -1,12 +1,11 @@
 import G6, { ModelConfig, IGroup, IG6GraphEvent, Item, UpdateType } from '@antv/g6';
-import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString, COLLAPSE_SHAPE_R, LINE_SYTLE } from '@/utils/objectGraph';
+import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString, COLLAPSE_SHAPE_R } from '@/utils/objectGraph';
 import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
-import { ObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60;
 
@@ -276,51 +275,6 @@ export function registerNode() {
       cfg.width = width;
       textShape.toFront();
       textShape.attr({ x: textX });
-
-      if ((data as ObjectConfig)['x.version'] && (data as ObjectConfig)['x.checkout']) {
-        const versionX = width + 20;
-        const versionGroup = group.addGroup({
-          name: 'version-group',
-          draggable: false
-        });
-        versionGroup.addShape('path', {
-          attrs: {
-            path: [
-              ['M', width, NODE_HEIGHT / 2],
-              ['L', versionX, NODE_HEIGHT / 2],
-            ],
-            stroke: LINE_SYTLE['default']['stroke'],
-            lineWidth: 1,
-            lineDash: [3, 2]
-          },
-          name: 'version-line'
-        });
-        versionGroup.addShape('rect', {
-          attrs: {
-            x: versionX,
-            y: NODE_HEIGHT / 2 - 15,
-            width: 40,
-            height: 30,
-            stroke: LINE_SYTLE['default']['stroke'],
-            fill: "#e9eaee",
-            radius: [8, 8]
-          },
-          name: 'version-rect'
-        });
-        versionGroup.addShape('text', {
-          attrs: {
-            text: 'V1',
-            fill: '#364273',
-            fontWeight: 600,
-            x: versionX + 20,
-            y: NODE_HEIGHT / 2,
-            textAlign: 'center',
-            textBaseline: 'middle'
-          },
-          name: 'version-text'
-        });
-      }
-
       return keyShape;
     },
     afterDraw(cfg: ModelConfig | undefined, group: IGroup | undefined) {
@@ -591,69 +545,6 @@ export function registerNode() {
           });
         }
         if (leftRect) leftRect.remove();
-      }
-
-      const versionGroup = group?.find(ele => ele.get('name') === 'version-group');
-      if ((data as ObjectConfig)['x.version'] && (data as ObjectConfig)['x.checkout']) {
-        const versionX = width + 20;
-        if (versionGroup) {
-          const versionGroup = group?.find(ele => ele.get('name') === 'version-group'),
-            versionLine = group?.find(ele => ele.get('name') === 'version-line'),
-            versionRect = group?.find(ele => ele.get('name') === 'version-rect'),
-            versionText = group?.find(ele => ele.get('name') === 'version-text');
-          versionLine.attr({
-            path: [
-              ['M', width, NODE_HEIGHT / 2],
-              ['L', versionX, NODE_HEIGHT / 2],
-            ],
-          });
-          versionRect.attr({ x: versionX });
-          versionText.attr({ text: "V1", x: versionX + 20 });
-          versionGroup.show();
-        } else {
-          const versionGroup = group.addGroup({
-            name: 'version-group',
-            draggable: false,
-          });
-          versionGroup.addShape('path', {
-            attrs: {
-              path: [
-                ['M', width, NODE_HEIGHT / 2],
-                ['L', versionX, NODE_HEIGHT / 2],
-              ],
-              stroke: LINE_SYTLE['default']['stroke'],
-              lineWidth: 1,
-              lineDash: [3, 2]
-            },
-            name: 'version-line'
-          });
-          versionGroup.addShape('rect', {
-            attrs: {
-              x: versionX,
-              y: NODE_HEIGHT / 2 - 15,
-              width: 40,
-              height: 30,
-              stroke: LINE_SYTLE['default']['stroke'],
-              fill: "#e9eaee",
-              radius: [8, 8]
-            },
-            name: 'version-rect'
-          });
-          versionGroup.addShape('text', {
-            attrs: {
-              text: 'V1',
-              fill: '#364273',
-              fontWeight: 600,
-              x: versionX + 20,
-              y: NODE_HEIGHT / 2,
-              textAlign: 'center',
-              textBaseline: 'middle'
-            },
-            name: 'version-text'
-          });
-        }
-      } else if (versionGroup) {
-        versionGroup.hide();
       }
     },
     setState(name, value, item) {
