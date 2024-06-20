@@ -1,6 +1,6 @@
 {
   "name": "pdb-web",
-  "version": "app_list_test",
+  "version": "0.0.16",
   "private": true,
   "dependencies": {
     "@ant-design/cssinjs": "^1.20.0",
@@ -45,7 +45,7 @@
   "scripts": {
     "start": "craco start",
     "v:patch": "npm version --no-git-tag-version patch",
-    "build": " bash ./build.sh && bash ./docker/build.sh",
+    "build": "npm run v:patch && bash ./build.sh && bash ./docker/build.sh",
     "docker": "bash ./docker/build.sh",
     "test": "craco test",
     "eject": "craco eject"
