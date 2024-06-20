@@ -975,12 +975,16 @@ export default function Right(props: RightProps) {
       <div className='pdb-type-common'>
         <div className='pdb-type-common-item'>
           <span>开启版本控制： </span>
-          <Switch value={currentEditDefaultData['x.type.version']} onChange={checked => {
-            updateItemData({
-              ...currentEditDefaultData,
-              'x.type.version': checked
-            });
-          }} />
+          <Switch
+            value={currentEditDefaultData['x.type.version']}
+            onChange={checked => {
+              updateItemData({
+                ...currentEditDefaultData,
+                'x.type.version': checked
+              });
+            }}
+            disabled
+          />
         </div>
       </div>
     )

@@ -1,4 +1,4 @@
-import { Dropdown, Form, Input, InputRef, Modal, notification, Select, Spin, Tabs, Tooltip, Tree } from 'antd';
+import { Checkbox, Dropdown, Form, Input, InputRef, Modal, notification, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -630,11 +630,12 @@ export default function Left(props: any) {
           'x.type.version': false
         }
         if (modalType === 'copy') {
-          Object.assign(newType, { 'x.type.attrs': item['x.type.attrs'] || [] });
+          Object.assign(newType, { 'x.type.attrs': item['x.type.attrs'] || [], 'x.type.version': item['x.type.version'] });
         } else if (modalType === 'add') {
           const colors = Object.keys(nodeColorList);
           Object.assign(newType, {
-            'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] })
+            'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
+            'x.type.version': values['x.type.version']
           });
         } else if (prototype) {
           Object.assign(newType, { 'x.type.prototype': [prototype] });
@@ -644,7 +645,7 @@ export default function Left(props: any) {
               Object.assign(attr, { override: prototype });
             }
           });
-          Object.assign(newType, { 'x.type.attrs': new_attrs });
+          Object.assign(newType, { 'x.type.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
         }
         createType(newType);
       } else {
@@ -675,8 +676,8 @@ export default function Left(props: any) {
   }
 
   const layout = {
-    labelCol: { span: 4 },
-    wrapperCol: { span: 20 },
+    labelCol: { span: 6 },
+    wrapperCol: { span: 18 },
   };
 
   const renderModal = () => {
@@ -718,6 +719,11 @@ export default function Left(props: any) {
                   </Select.Option>
                 ))}
               </Select>
+            </Form.Item>
+          }
+          {type === 'type' && modalType === 'add' &&
+            <Form.Item name="x.type.version" label="开启版本控制">
+              <Switch />
             </Form.Item>
           }
         </Form>
