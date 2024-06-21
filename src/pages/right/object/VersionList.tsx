@@ -1,7 +1,7 @@
 import { getVersionList } from '@/actions/object';
 import { ObjectConfig } from '@/reducers/object';
 import { formatTimestamp } from '@/utils/common';
-import { Modal, notification, Table } from 'antd';
+import { Modal, notification, Table, Tabs } from 'antd';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import './index.less';
@@ -62,31 +62,66 @@ export default function RelationList(props: RelationListProps) {
 
   function handleShowDetail(record: any) {
     const attrs = JSON.parse(JSON.stringify(record["v.attrs"]));
-    const { uid, ...other } = attrs;
-    const attrColumns = [{
-      dataIndex: "key",
-      title: "属性"
-    }, {
-      dataIndex: "value",
-      title: "值"
-    }];
-    const attrData:any[] = [];
+    const attrData: any[] = [], relationData: any[] = [], childrenList: any[] = record["v.children"];
     Object.keys(attrs).forEach(key => {
-      if (key !== "uid" && !key.startsWith("x.")) {
+      if (key.startsWith("Relation.")) {
+        attrs[key].forEach(function ({ uid }: { uid: string }) {
+          relationData.push({
+            relation: key,
+            uid
+          });
+        });
+      } else if (key !== "uid" && !key.startsWith("x.")) {
         attrData.push({
           key,
           value: attrs[key]
         });
       }
     });
+    const tabs = [];
+    if (attrData.length > 0) {
+      const attrColumns = [{
+        dataIndex: "key",
+        title: "属性"
+      }, {
+        dataIndex: "value",
+        title: "值"
+      }];
+      tabs.push({
+        key: "attr",
+        label: "属性列表",
+        children: (<Table columns={attrColumns} dataSource={attrData} />)
+      });
+    }
+    if (relationData.length > 0) {
+      const relationColumns = [{
+        dataIndex: "relation",
+        title: "关系"
+      }, {
+        dataIndex: "uid",
+        title: "目标对象"
+      }];
+      tabs.push({
+        key: "relation",
+        label: "关系列表",
+        children: (<Table columns={relationColumns} dataSource={relationData} />)
+      });
+    }
+    if (childrenList && childrenList.length > 0) {
+      const childrenColumns = [{
+        dataIndex: "uid",
+        title: "对象实例"
+      }];
+      tabs.push({
+        key: "relation",
+        label: "关系列表",
+        children: (<Table columns={childrenColumns} dataSource={childrenList} />)
+      });
+    }
     modal.info({
       title: `版本${record["v.version"]} 修改详情`,
       icon: null,
-      content: (
-        <div>
-          <Table columns={attrColumns} dataSource={attrData} />
-        </div>
-      ),
+      content: (<Tabs items={tabs} />),
       okText: "关闭"
     });
   }
