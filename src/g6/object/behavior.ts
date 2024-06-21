@@ -3,7 +3,7 @@ import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } fr
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import { addObject, checkOutObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
@@ -791,7 +791,7 @@ export const G6OperateFunctions = {
  * @param defaultTypeName 默认类型数据
  * @param prev 是否在节点上方添加，否就在节点下方添加
  */
-export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {}, prev = false) {
+export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {}, prev = false) {
 
   const defaultTypeName = _.get(typeData, 'id', ''),
     typeAttrs = _.get(typeData, 'attrs', {}),
@@ -826,6 +826,31 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     "x.parent|x.index": newParentIndex,
   };
 
+  let isCheckout = false;
+  if (parentNodeModel.data && parentNodeModel.data['x.version'] && !parentNodeModel.data['x.checkout']) {
+    await (() => {
+      return new Promise((resolve) => {
+        checkOutObject(parentNodeModel.uid, (success: boolean, response: any) => {
+          resolve(null);
+          if (success) {
+            isCheckout = true;
+            graph.updateItem(parentNode, {
+              data: {
+                ...parentNodeModel.data,
+                'x.checkout': true
+              }
+            });
+          } else {
+            notification.error({
+              message: '创建实例失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      })
+    })();
+    if (!isCheckout) return;
+  }
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
@@ -1120,7 +1145,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
 }
 
 // 新增子节点
-function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) {
+async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) {
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
 
@@ -1140,6 +1165,33 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
     "x.parent|x.index": (childLen + 1) * 1024,
     "x.children": childLen + 1
   };
+
+  let isCheckout = false;
+  if (sourceNode.data && sourceNode.data['x.version'] && !sourceNode.data['x.checkout']) {
+    await (() => {
+      return new Promise((resolve) => {
+        checkOutObject(sourceNode.uid, (success: boolean, response: any) => {
+          resolve(null);
+          if (success) {
+            isCheckout = true;
+            graph.updateItem(sourceNode.uid, {
+              data: {
+                ...sourceNode.data,
+                'x.checkout': true
+              }
+            });
+          } else {
+            notification.error({
+              message: '创建实例失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      })
+    })();
+    if (!isCheckout) return;
+  }
+
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.name": defaultTypeName,
