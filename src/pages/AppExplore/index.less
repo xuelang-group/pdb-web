@@ -64,7 +64,8 @@
       overflow: auto;
       border-radius: 2px;
       padding-top: 4px;
-
+      padding-right: 65px;
+      
       &-focus {
         border-color: var(--input-active-border-inner);
         box-shadow: 0 0 0 2px var(--input-active-border-outer);
@@ -287,12 +288,12 @@
 
     &-isNot {
       .pdb-ant-form-item-row {
-        flex-direction: row;
+        flex-direction: row !important;
         flex-wrap: nowrap;
-        align-items: center;
+        align-items: center !important;
 
         .pdb-ant-form-item-label {
-          padding: 0;
+          padding: 0 !important;
         }
 
         .pdb-ant-form-item-control {

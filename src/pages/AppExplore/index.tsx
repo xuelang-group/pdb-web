@@ -527,7 +527,7 @@ export default function AppExplore() {
         <span style={{ display: "inline-flex" }}>
           <span>{label}</span>
           {!_.isEmpty(filterLabel) && <span> (</span>}
-          {!_.isEmpty(filterLabel) && <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{filterLabel}</span>}
+          {!_.isEmpty(filterLabel) && <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>{filterLabel}</span>}
           {!_.isEmpty(filterLabel) && <span>)</span>}
         </span>
         {/* {tagType && <i className="spicon icon-shaixuan" onClick={showFilterPanel}></i>} */}

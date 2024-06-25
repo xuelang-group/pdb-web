@@ -1,6 +1,6 @@
 {
   "name": "pdb-web",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "private": true,
   "dependencies": {
     "@ant-design/cssinjs": "^1.20.0",
