@@ -1026,7 +1026,7 @@ export default function Right(props: RightProps) {
     rightPanelTabs.push({
       key: 'relation',
       label: '关系列表',
-      children: (<RelationList source={currentEditModel as NodeItemData} sourceAttrs={attrs} loading={typeLoading || attrLoading} />)
+      children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
     hasVersion && rightPanelTabs.push({
       key: 'version',
