@@ -14,6 +14,7 @@ const api = {
   count: `${objectApiPrefix}/count`,
   search: apiPrefix + '/search',
   rearrange: `${objectApiPrefix}/children/rearrange`,
+  list: `${objectApiPrefix}/list`
 };
 
 const commonParams = {
@@ -64,6 +65,17 @@ export const getObject = (params, callback) => {
   return axios.post(api['get'], {
     ...commonParams,
     ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const getObjects = (uid, callback) => {
+  return axios.post(api['list'], {
+    ...commonParams,
+    uid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

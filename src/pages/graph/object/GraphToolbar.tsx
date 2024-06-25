@@ -360,27 +360,27 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           delete newValue['~x.parent|x.index'];
 
           // 获取对象关系列表数据
-          if (newValue['x.relation.name']) {
-            const relations: any[] = [];
-            newValue['x.relation.name'].forEach((relation: string) => {
-              if (_.isArray(newValue[relation])) {
-                newValue[relation].forEach((target: any) => {
+          const relations: any[] = [];
+          Object.keys(newValue).forEach((key: string) => {
+            if (key.startsWith("Relation.")) {
+              if (_.isArray(newValue[key])) {
+                newValue[key].forEach((target: any) => {
                   relations.push({
-                    relation,
+                    relation: key,
                     target
                   });
                 });
               } else {
                 relations.push({
-                  relation,
-                  target: newValue[relation]
+                  relation: key,
+                  target: newValue[key]
                 });
               }
-            });
-            Object.assign(relationLines, {
-              [newValue.uid]: relations
-            });
-          }
+            }
+          });
+          Object.assign(relationLines, {
+            [newValue.uid]: relations
+          });
 
           return {
             ...newValue,
