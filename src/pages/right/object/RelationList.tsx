@@ -1,4 +1,4 @@
-import { Button, Form, message, notification, Select, Table } from 'antd';
+import { Button, Form, message, Modal, notification, Select, Table } from 'antd';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import './index.less';
 
 interface RelationListProps {
   source: NodeItemData
+  sourceAttrs: any
   loading?: boolean
 }
 
@@ -23,15 +24,14 @@ export default function RelationList(props: RelationListProps) {
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     isEditing = useSelector((state: StoreState) => state.editor.isEditing);
 
-  const [relations, setRelations] = useState([]),
+  const [relationList, setRelationList] = useState([]),
+    [relations, setRelations] = useState([]),
     [currentRelationMap, setCurrentRelationMap] = useState({} as any),
-    [relationConstrarintMap, setRelationConstrarintMap] = useState({} as any);
-
-  const [relationList, setRelationList] = useState([]); // 对象对应类型配置的关系
-  const [targetList, setTargetList] = useState([]);
-  const [targetMap, setTargetMap] = useState({} as any)
-
-  const [tableLoading, setTableLoading] = useState(false);
+    [relationConstrarintMap, setRelationConstrarintMap] = useState({} as any),
+    [targetList, setTargetList] = useState([]),
+    [targetMap, setTargetMap] = useState({} as any),
+    [tableLoading, setTableLoading] = useState(false),
+    [createModal, setCreateModal] = useState(false);
 
   useEffect(() => {
     if (!props.source) return;
@@ -51,8 +51,8 @@ export default function RelationList(props: RelationListProps) {
         Object.assign(usedTargetMap, { [targetId]: targetLabel });
       }
       _relations.push({
-        relation: relationId,
-        target: targetId
+        relation: relationMap[relationId]['r.type.label'],
+        target: targetLabel
       });
       if (_relationMap[relationId]) {
         Object.assign(_relationMap[relationId], {
@@ -69,11 +69,9 @@ export default function RelationList(props: RelationListProps) {
     setRelations(_relations);
     setCurrentRelationMap(_relationMap);
     setTargetList(_targetList);
-    form.setFieldValue('relation', _relations);
     setTableLoading(false);
 
     return () => {
-      form.resetFields();
       setRelations([]);
       setCurrentRelationMap({});
       setTargetList([]);
@@ -102,14 +100,20 @@ export default function RelationList(props: RelationListProps) {
   }
 
   const columns: any[] = [{
-    title: '展示名称',
+    title: '源端关联属性',
+    dataIndex: 'source.attr'
+  }, {
+    title: '关系名称',
     dataIndex: 'relation',
-    render: (text: any, record: any, index: number) => renderColumn(index, 'relation')
+    // render: (text: any, record: any, index: number) => renderColumn(index, 'relation')
   }, {
     title: '目标对象',
     dataIndex: 'target',
-    render: (text: any, record: any, index: number) => renderColumn(index, 'target')
-  }];
+    // render: (text: any, record: any, index: number) => renderColumn(index, 'target')
+  }, {
+    title: '目标端关联属性',
+    dataIndex: 'target.attr'
+  },];
 
   if (isEditing) {
     columns.push({
@@ -121,13 +125,7 @@ export default function RelationList(props: RelationListProps) {
   }
   // 添加关系
   const handleAddRelation = function () {
-    form.validateFields().then((values) => {
-      const newRelations = JSON.parse(JSON.stringify(relations));
-      newRelations.push({ source: '', target: '' });
-      setRelations(newRelations);
-      form.setFieldValue('relation', newRelations);
-    }).catch(err => {
-    });
+    setCreateModal(true);
   }
 
   // 删除关系
@@ -150,7 +148,7 @@ export default function RelationList(props: RelationListProps) {
       [relationId]: [deleteItemConfig]
     }], (success: boolean, response: any) => {
       if (success) {
-        const deletTarget = form.getFieldValue(['relation', index, 'target']);
+        const deletTarget = relations[index]['target'];
         if (deletTarget && currentRelationMap[relationId] && currentRelationMap[relationId][deletTarget]) {
           delete currentRelationMap[relationId][deletTarget];
         }
@@ -178,7 +176,6 @@ export default function RelationList(props: RelationListProps) {
         }
         _relations.splice(index, 1);
         setRelations(_relations);
-        form.setFieldValue('relation', _relations);
 
         const newRelationMap = JSON.parse(JSON.stringify(relationMap));
         delete newRelationMap[relationId][deleteItemConfig.uid];
@@ -207,7 +204,6 @@ export default function RelationList(props: RelationListProps) {
   const handleChangeRelation = function (value: string, index: number) {
     setTargetList([]);
     deleteRelation(index, null, null, () => {
-      form.setFieldValue(['relation', index, 'target'], '');
       const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, props.source.uid, [])));
       newRelationLines[index] = { relation: value, target: {} };
       dispatch(setToolbarConfig({
@@ -219,14 +215,11 @@ export default function RelationList(props: RelationListProps) {
           }
         }
       }));
-      setRelations(form.getFieldValue('relation'));
     });
   }
 
   // 获取目标对象
-  const handleGetRelationTarget = function (index: number) {
-    setTableLoading(true);
-    const relation = form.getFieldValue(['relation', index, 'relation']);
+  const handleGetRelationTarget = function (relation: string) {
     getRelationTarget({
       'x.type.name': props.source.data['x.type.name'],
       'x.relation.name': relation
@@ -251,13 +244,12 @@ export default function RelationList(props: RelationListProps) {
           description: response.message || response.msg
         });
       }
-      setTableLoading(false);
     });
   }
 
   // 修改对象关系
   const handleChangeTarget = function (uid: string, option: any, index: number) {
-    const relation = form.getFieldValue(['relation', index, 'relation']);
+    const relation = relations[index]['relation'];
     const prvRelationId = relations[index]['relation'],
       prvRelationTarget = relations[index]['target'];
     const sourceUid = props.source.uid;
@@ -278,7 +270,6 @@ export default function RelationList(props: RelationListProps) {
         }
         if (maxTgt <= currentNum) {
           message.warning(`从 “${srcLabel}” 对象类型到 “${tgtLabel}” 对象类型的 “${relationMap[relation]['r.type.label']}” 关系达到上限，最高上限为${currentNum}`);
-          form.setFieldValue(['relation', index, 'target'], '');
           return;
         }
       }
@@ -308,7 +299,6 @@ export default function RelationList(props: RelationListProps) {
         [relation]: [targetOption]
       }], (success: any, response: any) => {
         if (success) {
-          setRelations(form.getFieldValue('relation'));
           const newRelationMap = JSON.parse(JSON.stringify(currentRelationMap));
           const targetLabel = targetMap[uid]['x.name'];
           if (newRelationMap[relation]) {
@@ -335,7 +325,7 @@ export default function RelationList(props: RelationListProps) {
           }
 
           const newLineData = {
-            relation: form.getFieldValue(['relation', index, 'relation']),
+            relation: relations[index]['relation'],
             target: {
               uid,
               'x.name': targetMap[uid]['x.name']
@@ -374,64 +364,17 @@ export default function RelationList(props: RelationListProps) {
     }
   }
 
-  const renderColumn = (index: number, key: string) => (
-    <Form.Item
-      name={['relation', index, key]}
-      className='relation-item'
-      rules={[
-        { required: true, message: '' },
-        {
-          validator: async (_, value) => {
-            const relationLines = form.getFieldValue('relation');
-            const currentBind = relationLines[index];
-            if (currentBind && currentBind.relation && currentBind.target) {
-              if (relationLines.findIndex((val: any, i: number) => val.source === currentBind.relation && val.target === currentBind.target && index !== i) > -1) {
-                throw new Error('');
-              }
-            }
-          }
-        }
-      ]}
-    >
-      {key === 'relation' ?
-        <Select
-          options={relationList}
-          showSearch
-          filterOption={(input, option: any) =>
-          ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
-            (option?.value ?? '').toString() === input)
-          }
-          disabled={!isEditing}
-          onChange={value => handleChangeRelation(value, index)}>
-        </Select> :
-        <Select
-          options={targetList}
-          showSearch
-          filterOption={(input, option: any) =>
-          ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
-            (option?.value ?? '').toString() === input)
-          }
-          disabled={!form.getFieldValue(['relation', index, 'relation']) || !isEditing}
-          onFocus={() => handleGetRelationTarget(index)}
-          onChange={(value, option) => handleChangeTarget(value, option, index)}>
-        </Select>
-      }
-    </Form.Item>
-  );
-
   return (
     <div className='pdb-object-relation-editor'>
       <div className='pdb-object-relation-title'>
         <span>以此对象为源对象：</span>
       </div>
-      <Form form={form}>
-        <Table
-          loading={tableLoading || props.loading}
-          columns={columns}
-          dataSource={relations}
-          pagination={false}
-        />
-      </Form >
+      <Table
+        loading={tableLoading || props.loading}
+        columns={columns}
+        dataSource={relations}
+        pagination={false}
+      />
       {isEditing &&
         <Button
           type='dashed'
@@ -441,6 +384,103 @@ export default function RelationList(props: RelationListProps) {
           <i className='spicon icon-plus'></i>
         </Button>
       }
+      <Modal
+        open={createModal}
+        title="创建对象关系"
+      >
+        <Form form={form}>
+
+          <Form.Item
+            name="relation"
+            label="关系名称"
+            rules={[
+              { required: true, message: '' },
+              {
+                validator: async (_, value) => {
+                  const relation = form.getFieldValue('relation'),
+                    target = form.getFieldValue('target');
+                  if (relation && target) {
+                    if (relations.findIndex((val: any, i: number) => val.source === relation && val.target === target) > -1) {
+                      throw new Error('');
+                    }
+                  }
+                }
+              }
+            ]}
+          >
+            <Select
+              options={relationList}
+              showSearch
+              filterOption={(input, option: any) =>
+              ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+                (option?.value ?? '').toString() === input)
+              }
+              onChange={value => {
+                handleGetRelationTarget(value);
+                form.setFieldValue('target', '');
+              }}
+            >
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="source.attr"
+            label="源端关联属性"
+          >
+            <Select
+              options={props.sourceAttrs}
+              fieldNames={{ label: 'display', value: 'name' }}
+            ></Select>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues: any, curValues: any) => prevValues.relation !== curValues.relation}
+          >
+            {({ getFieldValue }) => {
+              const relation = getFieldValue('relation');
+              return (
+                <Form.Item
+                  name={'target'}
+                  label="目标对象"
+                  rules={[
+                    { required: true, message: '' },
+                    {
+                      validator: async (_, value) => {
+                        const relation = form.getFieldValue('relation'),
+                          target = form.getFieldValue('target');
+                        if (relation && target) {
+                          if (relations.findIndex((val: any, i: number) => val.source === relation && val.target === target) > -1) {
+                            throw new Error('');
+                          }
+                        }
+                      }
+                    }
+                  ]}
+                >
+                  <Select
+                    options={targetList}
+                    showSearch
+                    filterOption={(input, option: any) =>
+                    ((option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+                      (option?.value ?? '').toString() === input)
+                    }
+                    disabled={!relation || !isEditing}
+                  >
+                  </Select>
+                </Form.Item>
+              )
+            }}
+          </Form.Item>
+          <Form.Item
+            name="target.attr"
+            label="目标端关联属性"
+          >
+            <Select
+              options={props.sourceAttrs}
+              fieldNames={{ label: 'display', value: 'name' }}
+            ></Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }
