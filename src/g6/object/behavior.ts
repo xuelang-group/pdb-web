@@ -3,7 +3,7 @@ import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } fr
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import { addObject, checkOutObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
@@ -17,8 +17,9 @@ export const G6OperateFunctions = {
 
     addObject([newObject], (success: boolean, response: any) => {
       if (success) {
-        Object.assign(newData, { uid: Object.values(response)[0] });
-        getObject({ uid: Object.values(response)[0] }, (success: boolean, response: any) => {
+        const uid = response['xid'];
+        Object.assign(newData, { uid });
+        getObject({ uid }, (success: boolean, response: any) => {
           if (success && response && response[0]) {
             newData = response[0];
           }
@@ -603,7 +604,7 @@ export const G6OperateFunctions = {
 
       const limit = Number(PAGE_SIZE()),
         _offset = Number(offset);
-      if (_offset >= 0) {
+      if (_offset >= 0 && limit > 0) {
         Object.assign(params, { first: limit, offset: _offset });
       }
       store.dispatch(setGraphLoading(true));
@@ -626,7 +627,7 @@ export const G6OperateFunctions = {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           let _data: any[] = [];
-          if (_offset > 0) {
+          if (params.hasOwnProperty("offset")) {
             _data.push({
               uid: 'pagination-' + parent + `-${_offset - limit}-prev`,
               id: 'pagination-' + parent + `-${_offset - limit}-prev`,
@@ -714,7 +715,7 @@ export const G6OperateFunctions = {
           let concatData = [];
           _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.id, true) }));
 
-          if (_offset >= 0 && parentChildLen > limit) {
+          if (_offset >= 0 && limit > 0 && parentChildLen > limit) {
             const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
             _data.push({
               uid: 'pagination-' + parent + `-${_offset + limit}-next`,
@@ -790,7 +791,7 @@ export const G6OperateFunctions = {
  * @param defaultTypeName 默认类型数据
  * @param prev 是否在节点上方添加，否就在节点下方添加
  */
-export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {}, prev = false) {
+export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {}, prev = false) {
 
   const defaultTypeName = _.get(typeData, 'id', ''),
     typeAttrs = _.get(typeData, 'attrs', {}),
@@ -825,6 +826,31 @@ export function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {
     "x.parent|x.index": newParentIndex,
   };
 
+  let isCheckout = false;
+  if (parentNodeModel.data && parentNodeModel.data['x.version'] && !parentNodeModel.data['x.checkout']) {
+    await (() => {
+      return new Promise((resolve) => {
+        checkOutObject(parentNodeModel.uid, (success: boolean, response: any) => {
+          resolve(null);
+          if (success) {
+            isCheckout = true;
+            graph.updateItem(parentNode, {
+              data: {
+                ...parentNodeModel.data,
+                'x.checkout': true
+              }
+            });
+          } else {
+            notification.error({
+              message: '创建实例失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      })
+    })();
+    if (!isCheckout) return;
+  }
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
@@ -1119,7 +1145,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
 }
 
 // 新增子节点
-function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) {
+async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) {
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
 
@@ -1139,6 +1165,33 @@ function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) 
     "x.parent|x.index": (childLen + 1) * 1024,
     "x.children": childLen + 1
   };
+
+  let isCheckout = false;
+  if (sourceNode.data && sourceNode.data['x.version'] && !sourceNode.data['x.checkout']) {
+    await (() => {
+      return new Promise((resolve) => {
+        checkOutObject(sourceNode.uid, (success: boolean, response: any) => {
+          resolve(null);
+          if (success) {
+            isCheckout = true;
+            graph.updateItem(sourceNode.uid, {
+              data: {
+                ...sourceNode.data,
+                'x.checkout': true
+              }
+            });
+          } else {
+            notification.error({
+              message: '创建实例失败',
+              description: response.message || response.msg
+            });
+          }
+        });
+      })
+    })();
+    if (!isCheckout) return;
+  }
+
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.name": defaultTypeName,

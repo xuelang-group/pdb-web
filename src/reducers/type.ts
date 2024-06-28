@@ -32,6 +32,7 @@ export interface TypeConfig {
   'x.type.metadata'?: string
   'x.type.attrs': Array<AttrConfig | null>
   'x.type.prototype': Array<string | null>
+  'x.type.version': boolean
   'x.type.last_change': number
   'x.type.created': number
 }

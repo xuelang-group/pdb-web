@@ -13,7 +13,7 @@ import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions } from '@/g6/object/behavior';
-import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import { QueryResultState, setResult } from '@/reducers/query';
@@ -379,7 +379,7 @@ export default function Editor(props: EditorProps) {
       title: '删除实例',
       icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
       getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
-      content: rendeRemoveModalContent(currentEditModel),
+      content: renderRemoveModalContent(currentEditModel),
       okButtonProps: {
         danger: true
       },
@@ -583,7 +583,7 @@ export default function Editor(props: EditorProps) {
     });
   }
 
-  const rendeRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
+  const renderRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
     const name = (currentEditModel?.name || '') as string;
     return (
       <>
@@ -598,9 +598,41 @@ export default function Editor(props: EditorProps) {
     )
   }
 
-  const handleModalOk = function (currentEditModel: any, removeAll: boolean) {
+  const handleModalOk = async function (currentEditModel: any, removeAll: boolean) {
     setModalLoading(true);
     if (currentEditModel.type === "pdbNode") {
+      const parentId = currentEditModel.parent;
+      if (parentId && parentId !== rootNode?.uid) {
+        const parentNode = graph.findById(parentId);
+        if (parentNode) {
+          const parentData = parentNode.getModel().data;
+          let isCheckout = false;
+          if (parentData && parentData['x.version'] && !parentData['x.checkout']) {
+            await (() => {
+              return new Promise((resolve) => {
+                checkOutObject(parentId, (success: boolean, response: any) => {
+                  resolve(null);
+                  if (success) {
+                    isCheckout = true;
+                    graph.updateItem(parentNode, {
+                      data: {
+                        ...parentData,
+                        'x.checkout': true
+                      }
+                    });
+                  } else {
+                    notification.error({
+                      message: '删除实例失败',
+                      description: response.message || response.msg
+                    });
+                  }
+                });
+              })
+            })();
+            if (!isCheckout) return;
+          }
+        }
+      }
       G6OperateFunctions.removeNode(currentEditModel?.id, {
         uid: currentEditModel?.uid,
         recurse: removeAll
@@ -669,6 +701,10 @@ export default function Editor(props: EditorProps) {
                   event.stopPropagation();
                   dispatch(setCurrentEditModel(null));
                   navigate(`/${routerParams.id}/template`);
+                  if (currentEditModel && graph) {
+                    const item = graph.findById(currentEditModel.id);
+                    if (item) item.setState("selected", false);
+                  }
                 }}
               >
                 {!location.pathname.endsWith("/template") &&

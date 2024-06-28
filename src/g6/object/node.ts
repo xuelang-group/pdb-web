@@ -221,7 +221,57 @@ export function registerNode() {
         });
       }
 
-      group.addShape('marker', {
+      if ((data as any)['x.version']) {
+        const versionGroup = group.addGroup({
+          name: 'version-group',
+          visible: (data as any)['x.checkout']
+        });
+        versionGroup.addShape('circle', {
+          attrs: {
+            r: 12,
+            x: width - 0.5,
+            y: -0.5,
+            cursor: 'pointer',
+            fill: "#f9fbfc",
+          },
+          name: 'version-circle',
+          draggable: false,
+          modelId: id
+        });
+        versionGroup.addShape('circle', {
+          attrs: {
+            r: 10.5,
+            x: width - 0.5,
+            y: -0.5,
+            cursor: 'pointer',
+            fill: '#f9fbfc',
+            stroke: "#C2C7CC",
+            lineWidth: 1,
+          },
+          name: 'version-shape',
+          draggable: false,
+          modelId: id
+        });
+        versionGroup.addShape('text', {
+          attrs: {
+            x: width - 0.5,
+            // y: 6,
+            fill: "#4C5A67",
+            fontFamily: 'iconfont',
+            textAlign: 'center',
+            textBaseline: 'middle',
+            text: String.fromCodePoint(59376),
+            fontSize: 12
+          },
+          name: 'version-icon'
+        });
+      }
+
+      const searchGroup = group.addGroup({
+        name: 'search-group',
+        visible: false
+      });
+      searchGroup.addShape('marker', {
         attrs: {
           r: 10,
           x: width - 0.5,
@@ -236,10 +286,9 @@ export function registerNode() {
         },
         name: 'search-circle',
         draggable: false,
-        visible: false,
         modelId: id
       });
-      group.addShape('marker', {
+      searchGroup.addShape('marker', {
         attrs: {
           r: 10,
           x: width - 0.5,
@@ -254,11 +303,9 @@ export function registerNode() {
         },
         name: 'search-shape',
         draggable: false,
-        visible: false,
         modelId: id
       });
-
-      group.addShape('text', {
+      searchGroup.addShape('text', {
         attrs: {
           x: width - 0.5,
           y: 6,
@@ -268,7 +315,6 @@ export function registerNode() {
           text: String.fromCodePoint(58909),
           fontSize: 12
         },
-        visible: false,
         name: 'search-icon'
       });
 
@@ -329,6 +375,13 @@ export function registerNode() {
         searchIcon = group?.find(ele => ele.get('name') === 'search-icon');
       let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
         topRect = group?.find(child => child.get('name') === 'top-rect');
+
+      const versionGroup = group.find(ele => ele.get('name') === 'version-group');
+      if ((data as any)['x.checkout']) {
+        versionGroup.show();
+      } else {
+        versionGroup.hide();
+      }
 
       if (parent === rootId && !leftRect) {
         leftRect = group.addShape('rect', {
@@ -552,9 +605,7 @@ export function registerNode() {
       const outerCircle = item.getContainer().findAll(ele => ele.get('name') === 'outer-rect')[0];
       const currentSelected = item.hasState('selected');
       const outerNodeWidth = item.getOriginStyle()['node-rect'].width + 10;
-      const searchCircle = item.getContainer().findAll(ele => ele.get('name') === 'search-circle')[0],
-        searchShape = item.getContainer().findAll(ele => ele.get('name') === 'search-shape')[0],
-        searchIcon = item.getContainer().findAll(ele => ele.get('name') === 'search-icon')[0];
+      const searchGroup = item.getContainer().findAll(ele => ele.get('name') === 'search-group')[0];
 
       if (!outerCircle) return;
       if (name === 'active') {
@@ -575,13 +626,10 @@ export function registerNode() {
         }
       } else if (name === 'searchAround') {
         if (value) {
-          searchCircle.show();
-          searchShape.show();
-          searchIcon.show();
+          searchGroup.show();
+          searchGroup.attr({ visible: true })
         } else {
-          searchCircle.hide();
-          searchShape.hide();
-          searchIcon.hide();
+          searchGroup.hide();
         }
       }
     }

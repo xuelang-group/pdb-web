@@ -12,6 +12,9 @@ const api = {
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
   count: `${objectApiPrefix}/count`,
+  checkout: `${objectApiPrefix}/checkout`,
+  checkin: `${objectApiPrefix}/checkin`,
+  discard: `${objectApiPrefix}/checkout/discard`,
   search: apiPrefix + '/search',
   rearrange: `${objectApiPrefix}/children/rearrange`,
   list: `${objectApiPrefix}/list`
@@ -24,6 +27,42 @@ const commonParams = {
 export function setCommonParams(params) {
   Object.assign(commonParams, params);
 }
+
+export const checkOutObject = (uid, callback) => {
+
+  return axios.post(api['checkout'], {
+    ...commonParams,
+    uid
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const checkInObject = (uid, callback) => {
+
+  return axios.post(api['checkin'], {
+    ...commonParams,
+    uid
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const discardObject = (uid, callback) => {
+
+  return axios.post(api['discard'], {
+    ...commonParams,
+    uid
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
 
 // 创建对象
 export const clearObjects = (callback) => {
@@ -389,3 +428,36 @@ export const removeObjects = (data, callback) => {
     callback && callback(false, err);
   });
 }
+
+/**
+ * 版本相关
+ */
+const versionApiPrefix = `${objectApiPrefix}/version`
+
+const versionApi = {
+  list: versionApiPrefix + "/list",
+  checkout: versionApiPrefix + "/checkout",
+}
+
+export const getVersionList = (params, callback) => {
+
+  return axios.post(versionApi['list'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+export const getCheckoutVersion = (uid, callback) => {
+  return axios.post(versionApi['checkout'], {
+    ...commonParams,
+    uid
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
