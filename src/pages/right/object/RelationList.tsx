@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { deleteObjectRelation, getRelationTarget, createObjectRelation } from '@/actions/object';
+import { deleteObjectRelation, getRelationTarget, createObjectRelation, getObjects } from '@/actions/object';
 import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/object/edge';
 import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
 import { StoreState } from '@/store';
@@ -35,14 +35,15 @@ export default function RelationList(props: RelationListProps) {
   useEffect(() => {
     if (!props.source) return;
     const _relations: any = [], _relationMap: any = {}, _targetList: any = [];
-    const usedTargetMap: any = {};
+    const usedTargetMap: any = {}, noLabelObject = {};
     setTableLoading(true);
     _.get(relationLines, props.source.uid, []).forEach((item: ObjectRelationConig) => {
       const { relation, target } = item;
       const relationId = _.get(relationMap[relation], 'r.type.name', ''),
         targetLabel = _.get(target, 'x.name', ''),
         targetId = _.get(target, 'uid', '');
-      if (!usedTargetMap[targetId]) {
+      if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
+      if (!usedTargetMap[targetId] && targetLabel) {
         _targetList.push({
           value: targetId,
           label: targetLabel
@@ -65,11 +66,30 @@ export default function RelationList(props: RelationListProps) {
         });
       }
     });
-    setRelations(_relations);
-    setCurrentRelationMap(_relationMap);
-    setTargetList(_targetList);
-    form.setFieldValue('relation', _relations);
-    setTableLoading(false);
+
+    if (!_.isEmpty(noLabelObject)) {
+      getObjects(Object.keys(noLabelObject), (success: boolean, response: any) => {
+        if (success) {
+          response.forEach(function (item: { [x: string]: any; }) {
+            _targetList.push({
+              value: item['uid'],
+              label: item['x.name']
+            });
+          });
+        }
+        setRelations(_relations);
+        setCurrentRelationMap(_relationMap);
+        setTargetList(_targetList);
+        form.setFieldValue('relation', _relations);
+        setTableLoading(false);
+      });
+    } else {
+      setRelations(_relations);
+      setCurrentRelationMap(_relationMap);
+      setTargetList(_targetList);
+      form.setFieldValue('relation', _relations);
+      setTableLoading(false);
+    }
 
     return () => {
       form.resetFields();

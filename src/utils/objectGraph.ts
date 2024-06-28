@@ -448,27 +448,27 @@ export function convertResultData(
       });
 
       // 获取对象关系列表数据
-      if (item['x.relation.name']) {
-        const relations: any[] = [];
-        item['x.relation.name'].forEach((relation: string) => {
-          if (isArray(item[relation])) {
-            item[relation].forEach((target: any) => {
+      const relations: any[] = [];
+      Object.keys(item).forEach((key: string) => {
+        if (key.startsWith("Relation.")) {
+          if (isArray(item[key])) {
+            item[key].forEach((target: any) => {
               relations.push({
-                relation,
+                relation: key,
                 target
               });
             });
           } else {
             relations.push({
-              relation,
-              target: item[relation]
+              relation: key,
+              target: item[key]
             });
           }
-        });
-        Object.assign(relationLines, {
-          [item.uid]: relations
-        });
-      }
+        }
+      });
+      Object.assign(relationLines, {
+        [item.uid]: relations
+      });
 
       childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
