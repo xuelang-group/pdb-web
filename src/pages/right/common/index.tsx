@@ -337,27 +337,27 @@ export default function Right(props: RightProps) {
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         // 获取对象关系列表数据
-        if (objectData['x.relation.name']) {
-          const relations: any[] = [];
-          objectData['x.relation.name'].forEach((relation: string) => {
-            if (isArray(objectData[relation])) {
-              objectData[relation].forEach((target: any) => {
+        const relations: any[] = [];
+        Object.keys(objectData).forEach((key: string) => {
+          if (key.startsWith("Relation.")) {
+            if (isArray(objectData[key])) {
+              objectData[key].forEach((target: any) => {
                 relations.push({
-                  relation,
+                  relation: key,
                   target
                 });
               });
             } else {
               relations.push({
-                relation,
-                target: objectData[relation]
+                relation: key,
+                target: objectData[key]
               });
             }
-          });
-          Object.assign(relationLines, {
-            [objectData.uid]: relations
-          });
-        }
+          }
+        });
+        Object.assign(relationLines, {
+          [objectData.uid]: relations
+        });
         dispatch(setToolbarConfig({
           key: currentGraphTab,
           config: { relationLines }
