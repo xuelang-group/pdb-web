@@ -377,10 +377,12 @@ export function registerNode() {
         topRect = group?.find(child => child.get('name') === 'top-rect');
 
       const versionGroup = group.find(ele => ele.get('name') === 'version-group');
-      if ((data as any)['x.checkout']) {
-        versionGroup.show();
-      } else {
-        versionGroup.hide();
+      if (versionGroup) {
+        if ((data as any)['x.checkout']) {
+          versionGroup.show();
+        } else {
+          versionGroup.hide();
+        }
       }
 
       if (parent === rootId && !leftRect) {
