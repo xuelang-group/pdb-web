@@ -315,6 +315,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                 size="small"
                 extra={getExtra(index, opt)}
                 title={title}
+                className={activePanelKey[0] !== index ? "no-body-card" : ""}
               >
                 {activePanelKey[0] === index ? renderPanelChildren() : null}
               </Card>
