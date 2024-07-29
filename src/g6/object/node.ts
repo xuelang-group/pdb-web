@@ -257,10 +257,10 @@ export function registerNode() {
             x: width - 0.5,
             // y: 6,
             fill: "#4C5A67",
-            fontFamily: 'iconfont',
+            fontFamily: 'spicon',
             textAlign: 'center',
             textBaseline: 'middle',
-            text: String.fromCodePoint(59376),
+            text: String.fromCodePoint(59156),
             fontSize: 12
           },
           name: 'version-icon'

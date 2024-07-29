@@ -6,6 +6,69 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "40804064",
+      "name": "编辑角标",
+      "font_class": "bianjijiaobiao",
+      "unicode": "e621",
+      "unicode_decimal": 58913
+    },
+    {
+      "icon_id": "40011163",
+      "name": "经典-箭头-上",
+      "font_class": "jingdian-jiantou-shang",
+      "unicode": "eb15",
+      "unicode_decimal": 60181
+    },
+    {
+      "icon_id": "26164021",
+      "name": "经典-箭头-下",
+      "font_class": "jingdian-jiantou-xia",
+      "unicode": "e788",
+      "unicode_decimal": 59272
+    },
+    {
+      "icon_id": "39803797",
+      "name": "标记",
+      "font_class": "biaoji",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "39803601",
+      "name": "位置",
+      "font_class": "weizhi",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "39173435",
+      "name": "继承",
+      "font_class": "jicheng",
+      "unicode": "e900",
+      "unicode_decimal": 59648
+    },
+    {
+      "icon_id": "37834945",
+      "name": "查询构建器",
+      "font_class": "chaxungoujianqi",
+      "unicode": "e886",
+      "unicode_decimal": 59526
+    },
+    {
+      "icon_id": "37834946",
+      "name": "关系类型",
+      "font_class": "guanxileixing",
+      "unicode": "e885",
+      "unicode_decimal": 59525
+    },
+    {
+      "icon_id": "37834949",
+      "name": "对象类型",
+      "font_class": "duixiangleixing",
+      "unicode": "e882",
+      "unicode_decimal": 59522
+    },
+    {
       "icon_id": "33480305",
       "name": "无图标",
       "font_class": "jinzhi-yuanxing",
