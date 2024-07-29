@@ -764,153 +764,129 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
   /**
    * 上传类型数据
-   * @param data 
+   * @param typeData 类型数据 
    * @param override 是否覆盖
    */
-  function uploadTypes(data: any[], override: boolean) {
+  function uploadTypes(typeData: any[], typeAttrData: any[], relationTypeBindData: any[], override: boolean) {
     const objectTypes: any = {}, objectTypeMap: any = {}, relationTypes: any = {};
-    const HEADERS = 2; // 标题行数
+    const HEADERS = 1; // 标题行数
     const colors = Object.keys(nodeColorList);
-    function saveType() {
-      if (!_.isEmpty(newType)) {
-        if (currentType === 'object') {
-          Object.assign(newType, {
-            'x.type.attrs': Object.values(newTypeAttrs)
-          });
-          // objectTypes.push(newType);
-          if (!objectTypes[newType['x.type.label']]) {
-            Object.assign(objectTypes, { [newType['x.type.label']]: newType });
-            newType = {};
-            newTypeAttrs = {};
-            currentType = '';
-            binds = [];
-          }
-        } else {
-          Object.assign(newType, {
-            'r.type.constraints': {
-              ...newTypeAttrs,
-              'r.binds': binds
-            }
-          });
-          if (!relationTypes[newType['r.type.label']]) {
-            Object.assign(relationTypes, { [newType['r.type.label']]: newType });
-            newType = {};
-            newTypeAttrs = {};
-            currentType = '';
-            binds = [];
-          }
-          // relationTypes.push(newType);
-        }
-      }
-    }
 
     function getRowAttr(row: any) {
-      const attrName = row[2];
-      const attrType = typeLabelMap[row[4] || '单行文本'] || 'string';
+      const attrName = row[1];
+      const attrType = typeLabelMap[row[3] || '单行文本'] || 'string';
       let newAttr = {
         name: attrName,
-        display: row[3] || attrName,
+        display: row[2] || attrName,
         type: attrType,
         required: false
       };
       // 默认值
       if (row[5] !== undefined) {
-        let defaultVal = row[5];
+        let defaultVal = row[4];
         if (attrType === 'int' || attrType === 'float') {
-          defaultVal = Number(row[5]);
+          defaultVal = Number(row[4]);
         } else if (attrType === 'boolean') {
-          defaultVal = Boolean(row[5]);
+          defaultVal = Boolean(row[4]);
         }
         Object.assign(newAttr, { default: defaultVal });
       }
 
       if (attrType === 'date') {
-        Object.assign(newAttr, { datetimeFormat: row[6] || 'YYYY-MM-DD' });
+        Object.assign(newAttr, { datetimeFormat: row[5] || 'YYYY-MM-DD' });
       }
 
       return newAttr;
     }
 
     // process the rest of the rows
-    let newType: any = {}, newTypeAttrs = {}, currentType = '', binds: { source: any; target: any; }[] = [], colorIndex = 0;
-    for (let R = HEADERS; R < data.length; ++R) {
-      const row = data[R];
+    let colorIndex = 0;
+    for (let R = HEADERS; R < typeData.length; ++R) {
+      const row = typeData[R];
+      // 类型名称是否为空
+      if (row[0] !== undefined) {
+        const _label = row[0].toString();
+        if (row[1] === undefined || row[1] === '对象类型') {
+          const _uuid = 'Type.' + uuid();
+          Object.assign(objectTypeMap, { [_label]: _uuid });
+          Object.assign(objectTypes, {
+            [_label]: {
+              'x.type.name': _uuid,
+              'x.type.label': _label,
+              'x.type.prototype': [],
+              'x.type.metadata': JSON.stringify({ color: colors[colorIndex] }),
+              'x.type.version': row[2] === undefined || row[2] === 'FALSE' ? false : true,
+              'x.type.attrs': []
+            }
+          });
+          colorIndex++;
+          if (colorIndex === colors.length) colorIndex = 0;
+        } else {
+          const _uuid = 'Relation.' + uuid();
+          Object.assign(relationTypes, {
+            [_label]: {
+              'r.type.name': _uuid,
+              'r.type.label': _label,
+              'r.type.prototype': [],
+              'r.type.constraints': {
+                'r.binds': []
+              }
+            }
+          });
+        }
+      }
+    }
+
+    for (let R = HEADERS; R < typeAttrData.length; ++R) {
+      const row = typeAttrData[R];
 
       // 类型名称是否为空
       if (row[0] !== undefined) {
         const _label = row[0].toString();
-        saveType();
-        if (row[1] === undefined || row[1] === '对象类型') {
-          if (objectTypes[_label]) {
-            // 属性名称是否为空
-            if (row[2] !== undefined) {
-              const newAttr = getRowAttr(row);
-              const _objectType = objectTypes[_label];
-              _objectType['x.type.attrs'].push(newAttr);
-              Object.assign(objectTypes, { [_objectType['x.type.label']]: _objectType });
-            }
-            continue;
-          } else {
-            const _uuid = 'Type.' + uuid();
-            currentType = 'object';
-            Object.assign(objectTypeMap, { [_label]: _uuid });
-            Object.assign(newType, {
-              'x.type.name': _uuid,
-              'x.type.label': _label,
-              'x.type.prototype': [],
-              'x.type.metadata': JSON.stringify({ color: colors[colorIndex] })
-            });
-            colorIndex++;
-            if (colorIndex === colors.length) colorIndex = 0;
+        if (objectTypes[_label]) {
+          // 属性名称是否为空
+          if (row[1] !== undefined) {
+            const newAttr = getRowAttr(row);
+            const _objectType = objectTypes[_label];
+            _objectType['x.type.attrs'].push(newAttr);
+            Object.assign(objectTypes, { [_label]: _objectType });
           }
-        } else {
-          if (relationTypes[_label]) {
-            const _relationType = relationTypes[_label];
+        } else if (relationTypes[_label]) {
+          const _relationType = relationTypes[_label];
 
-            if (row[2] !== undefined) {
-              const newAttr = getRowAttr(row);
-              Object.assign(_relationType['r.type.constraints'], { [newAttr.name]: newAttr });
-            }
-
-            if (row[7] && row[8]) {
-              const _binds = JSON.parse(JSON.stringify(_relationType['r.type.constraints']['r.binds'] || []));
-              _binds.push({
-                source: row[7],
-                target: row[8]
-              });
-              Object.assign(_relationType['r.type.constraints'], { 'r.binds': _binds });
-            }
-
-            Object.assign(relationTypes, { [_relationType['r.type.label']]: _relationType });
-            continue;
-          } else {
-            const _uuid = 'Relation.' + uuid();
-            currentType = 'relation';
-            Object.assign(newType, {
-              'r.type.name': _uuid,
-              'r.type.label': _label,
-              'r.type.prototype': []
-            });
+          if (row[1] !== undefined) {
+            const newAttr = getRowAttr(row);
+            Object.assign(_relationType['r.type.constraints'], { [newAttr.name]: newAttr });
+            Object.assign(relationTypes, { [_label]: _relationType });
           }
         }
       }
+    }
 
-      // 属性名称是否为空
-      if (row[2] !== undefined) {
-        const newAttr = getRowAttr(row);
-        Object.assign(newTypeAttrs, { [newAttr.name]: newAttr });
-      }
+    for (let R = HEADERS; R < relationTypeBindData.length; ++R) {
+      const row = relationTypeBindData[R];
 
-      if (currentType === 'relation' && row[7] && row[8]) {
-        binds.push({
-          source: row[7],
-          target: row[8]
-        });
+      // 类型名称是否为空
+      if (row[0] !== undefined) {
+        const _label = row[0].toString();
+        if (relationTypes[_label]) {
+          const _relationType = relationTypes[_label];
+
+          if (row[1] && row[2]) {
+            const _binds = JSON.parse(JSON.stringify(_relationType['r.type.constraints']['r.binds'] || []));
+            _binds.push({
+              source: row[1],
+              target: row[2]
+            });
+            Object.assign(_relationType['r.type.constraints'], { 'r.binds': _binds });
+            Object.assign(relationTypes, { [_label]: _relationType });
+          }
+        }
       }
     }
-    saveType();
 
     Object.values(relationTypes).forEach(function (type: any) {
+      console.log(type)
       const binds = type['r.type.constraints']['r.binds'].filter(function (bind: { source: string; target: string; }) {
         const { source, target } = bind;
         if (objectTypeMap[source] && objectTypeMap[target]) {
@@ -1082,8 +1058,43 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       }
 
       if (location.pathname.endsWith("/template")) {
-        uploadTypes(data, override);
+        /**
+         * sheetName 类型数据
+         * sheetName2 类型属性数据
+         * sheetName3 关系类型连接对象数据
+         * */
+        const sheetName2 = workbook.SheetNames[1];
+        const worksheet2: any = workbook.Sheets[sheetName2];
+        if (worksheet2.length > 100000) {
+          message.error({
+            key: "upload",
+            content: "单表支持最大数据量100000条。类型属性表数据量已超过最大数据量，请分多个文件上传！",
+            duration: 3
+          });
+          setUploading(false);
+          return;
+        }
+        const sheetName3 = workbook.SheetNames[2];
+        const worksheet3: any = workbook.Sheets[sheetName3];
+        if (worksheet3.length > 100000) {
+          message.error({
+            key: "upload",
+            content: "单表支持最大数据量100000条。关系类型连接对象表数据量已超过最大数据量，请分多个文件上传！",
+            duration: 3
+          });
+          setUploading(false);
+          return;
+        }
+
+        const typeAttrData: any = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+        const relationTypeBindData: any = XLSX.utils.sheet_to_json(worksheet3, { header: 1 });
+
+        uploadTypes(data, typeAttrData, relationTypeBindData, override);
       } else {
+        /**
+         * sheetName 对象实例数据
+         * sheetName2 对象实例关系数据表
+         * */
         const sheetName2 = workbook.SheetNames[1];
         const worksheet2: any = workbook.Sheets[sheetName2];
         const relationData: any = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
