@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import { message, notification, Modal, ConfigProvider } from 'antd';
-import { BrowserRouter as Router, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { IntlProvider } from 'react-intl';
 import _ from 'lodash';

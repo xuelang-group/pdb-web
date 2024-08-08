@@ -1,7 +1,7 @@
 import { Layout, notification, Spin } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 
 import * as Editor from '@/reducers/editor';
@@ -13,7 +13,6 @@ import { setCatalog, setPageLoading, setSystemInfo } from '@/reducers/app';
 
 import ObjectLeft from '@/pages/left/object';
 import ObjectGraph from '@/pages/graph/object';
-import TemplateGraph from '@/pages/graph/template/index';
 import CommonRight from '@/pages/right/common/index';
 import TypeLeft from '@/pages/left/type/index';
 import TypeGraph from '@/pages/graph/type/index';
@@ -82,10 +81,6 @@ function App(props: PdbConfig) {
     });
   }
 
-  // if (!(window as any).location.pathname.startsWith("/web/") && (window as any).location.pathname !== "/web") {
-  //   (window as any).location.href = "/web";
-  // }
-
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
@@ -105,7 +100,6 @@ function App(props: PdbConfig) {
           <PdbContent>
             <Routes>
               <Route path="/:id/template?" element={<ObjectGraph theme={theme} />} />
-              {/* <Route path="/:id/template" element={<TemplateGraph theme={theme} />} /> */}
               <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
             </Routes>
             <Routes>

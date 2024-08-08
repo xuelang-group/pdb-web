@@ -1,7 +1,7 @@
-import { Button, Form } from "antd";
+import { Button } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
-import React, { useState } from "react";
+import React from "react";
 
 import { optionLabelMap, optionSymbolMap } from "@/utils/common";
 import { typeLabelMap } from ".";
@@ -29,8 +29,6 @@ export default function ExploreFilter(props: ExploreFilterProps) {
 
     let filterLabel = "", filterKey = "", conditions: any = [];
     if (filterOptions && filterOptions.length > 0) {
-      // filterLabel = " (";
-      // filterKey = "(";
       filterOptions.forEach((opt: any, index: number) => {
         const condition = _.get(opt, 'condition.value', ""),
           attrLabel = _.get(opt, 'attr.label'),
@@ -70,9 +68,6 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         if (index < filterOptions.length - 1) {
           filterLabel += " ";
           filterKey += " ";
-        } else {
-          // filterLabel += ")";
-          // filterKey += ")";
         }
       });
     }

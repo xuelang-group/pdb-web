@@ -18,7 +18,6 @@ import ExploreFilter from "./ExploreFilter";
 import './index.less';
 import ExportApi from "@/components/ExportApi";
 
-
 export const typeLabelMap: any = {
   object: "对象实例",
   type: "对象类型",
@@ -155,18 +154,6 @@ export default function AppExplore() {
         data: val,
         prevSearchTagType
       })));
-      /**
-       * TODO: 当前单次搜索只有一种类型，因此暂时注释
-       */
-      // const options = typeOptions.length > 3 ? typeOptions.slice(0, 3).concat({
-      //   type: "divider",
-      //   link: "type",
-      // }) : typeOptions;
-      // allOptions.push({
-      //   label: "对象类型",
-      //   key: "type",
-      //   options
-      // });
     } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
       // 关系类型 - 关系必须在类型后面
       const _relations = Array.from(new Set(_.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', [])))
@@ -203,26 +190,10 @@ export default function AppExplore() {
           type: 'relation',
           data: val
         })));
-        /**
-         * TODO: 当前单次搜索只有一种类型，因此暂时注释
-         */
-        // const options = relationOptions.length > 3 ? relationOptions.slice(0, 3).concat({
-        //   type: "divider",
-        //   link: "relation",
-        // }) : relationOptions;
-        // allOptions.push({
-        //   label: "关系类型",
-        //   key: "relation",
-        //   options
-        // });
       }
     }
 
     Object.assign(optionMap, {
-      /**
-       * TODO: 当前单次搜索只有一种类型，因此暂时注释
-       */
-      // all: allOptions, 
       type: typeOptions,
       relation: relationOptions,
     });
@@ -425,14 +396,6 @@ export default function AppExplore() {
     }
     return (
       <div className="pdb-explore-dropdown">
-        {/* TODO: 当前单次搜索只有一种类型，因此暂时注释 */}
-        {/* <Tabs activeKey={selectedSearchTab} onChange={activeKey => setSearchTab(activeKey)}>
-          <TabPane tab="综合" key="all">
-          </TabPane>
-          {(optionMap["all"] || []).map((opt: any) => (
-            <TabPane tab={opt.label} key={opt.key}></TabPane>
-          ))}
-        </Tabs> */}
         {originNode}
         <div className="pdb-explore-dropdown-footer">
           <i className="spicon icon-tishi" style={{ fontSize: 12, marginRight: 6 }}></i>
@@ -530,7 +493,6 @@ export default function AppExplore() {
           {!_.isEmpty(filterLabel) && <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>{filterLabel}</span>}
           {!_.isEmpty(filterLabel) && <span>)</span>}
         </span>
-        {/* {tagType && <i className="spicon icon-shaixuan" onClick={showFilterPanel}></i>} */}
       </Tag>
     );
     return tagItem;
@@ -661,23 +623,6 @@ export default function AppExplore() {
           }}
         ></i>
       </Tooltip>
-      {/* <Tooltip title="复制接口">
-        <i
-          className="spicon icon-fuzhi"
-          onClick={event => {
-            let textarea: HTMLTextAreaElement = document.createElement('textarea');
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = "0";
-            const { pql } = getPQL();
-            const graphId = routerParams.id;
-            textarea.value = JSON.stringify({ api: api.pql, params: { pql, graphId } });
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-          }}
-        ></i>
-      </Tooltip> */}
     </div>
   )
 }
