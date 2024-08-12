@@ -683,7 +683,6 @@ export default function List(props: ListProps) {
         onDoubleClick={handeDoubleClick}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-      // onDrop={this.handleDrop}
       >
         {loop(treeData)}
       </DirectoryTree>

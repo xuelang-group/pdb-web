@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Table, Empty, Divider, Switch } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -1174,7 +1174,6 @@ export default function Right(props: RightProps) {
           }
           <div className='info-show-more' onClick={() => setShowMore(!showMore)}>
             <span>{showMore ? '收起' : '查看更多'}</span>
-            {/* <i className={'spicon icon-expand' + (showMore ? ' up' : '')}></i> */}
             {showMore ? <UpCircleOutlined /> : <DownCircleOutlined />}
           </div>
         </div>

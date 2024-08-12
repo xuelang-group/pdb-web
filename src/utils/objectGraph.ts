@@ -1,10 +1,10 @@
 import { nodeStateStyle } from '@/g6/type/node';
 import store from '@/store';
-import G6, { ComboConfig, EdgeConfig, GraphData, Item } from '@antv/g6';
-import _, { isArray, remove } from 'lodash';
+import G6, { ComboConfig, EdgeConfig, GraphData } from '@antv/g6';
+import _, { isArray } from 'lodash';
 import { NodeItemData } from '../reducers/editor';
 import { CustomObjectConfig } from '../reducers/object';
-import { defaultNodeColor, getIcon, getTextColor } from './common';
+import { defaultNodeColor, getTextColor } from './common';
 
 export const GLOBAL_FONT_SIZE = 12;
 export const ROOT_NODE_WIDTH = 320, // 主节点宽度
@@ -473,12 +473,6 @@ export function convertResultData(
       childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
   });
-
-  // return {
-  //   nodes,
-  //   edges,
-  //   combos,
-  // };
 }
 
 export function convertAllData(data: CustomObjectConfig[]) {

@@ -1,4 +1,4 @@
-import { Form, Input, Select, TreeSelect } from "antd";
+import { Form, Input, TreeSelect } from "antd";
 import { myDirId, routeLabelMap } from "@/utils/common";
 import "./index.less";
 import { useSelector } from "react-redux";
@@ -16,8 +16,7 @@ interface ModalFormProps {
 
 export default function ModalForm(props: ModalFormProps) {
   const { formRef, operate, route, initialValue } = props;
-  const catalog = useSelector((state: StoreState) => state.app.catalog),
-    templateList = useSelector((state: StoreState) => state.template.list);
+  const catalog = useSelector((state: StoreState) => state.app.catalog);
 
   const [catalogTree, setCatalogTree] = useState<any>([]);
 

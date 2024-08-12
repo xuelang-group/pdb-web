@@ -210,12 +210,6 @@ export default function TypeList() {
               onPressEnter={(event: any) => handleSearch(event.target.value)}
             />
           </div>
-          {/* <Tooltip title="类型管理">
-            <i
-              className='operation-icon spicon icon-gengduo2'
-              onClick={() => handleClickMenu(routerParams.id, 'type')}
-            />
-          </Tooltip> */}
         </div>
         <div className='list-content'>
           <div className='type-list'>
@@ -275,7 +269,6 @@ export default function TypeList() {
             <Search
               ref={searchRef}
               className='pdb-search-input'
-              // value={relationSearchValue}
               placeholder='搜索类型名称或ID'
               allowClear={true}
               enterButton={<i className='spicon icon-sousuo2' onClick={() => handleRelationSearch(_.get(searchRef, "current.input.value", ""))}></i>}
@@ -290,12 +283,6 @@ export default function TypeList() {
               onPressEnter={(event: any) => handleRelationSearch(event.target.value)}
             />
           </div>
-          {/* <Tooltip title="类型管理">
-            <i
-              className='operation-icon spicon icon-gengduo2'
-              onClick={() => handleClickMenu(routerParams.id, 'relation')}
-            />
-          </Tooltip> */}
         </div>
         <div className='list-content'>
           <div className='type-list relation-list'>

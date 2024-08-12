@@ -681,7 +681,7 @@ export default function Left(props: any) {
   };
 
   const renderModal = () => {
-    const { type, item } = operateItem;
+    const { type } = operateItem;
     const title = modalLabel[modalType] + typeLabel[type] + '类型';
     const prototypeList = type === 'type' ? types : relations;
     return (
