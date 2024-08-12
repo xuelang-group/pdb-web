@@ -7,7 +7,6 @@ import _ from 'lodash';
 
 import type { StoreState } from '@/store';
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
-import { initG6 } from '@/g6';
 import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
 
 import './index.less';
@@ -17,7 +16,6 @@ import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor } from '@/utils/common';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
-import { Spin } from 'antd';
 import { setCurrentEditModel, setTScreenShootTimestamp } from '@/reducers/editor';
 
 let graph: any;
@@ -75,7 +73,7 @@ export default function Editor(props: EditorProps) {
     if (!container) return;
     const width = container.clientWidth;
     const height = container.clientHeight || 500;
-    let isInitial = true, layout = {};
+    let layout = {};
     if (shouldLayout) {
       Object.assign(layout, {
         type: 'force',
@@ -213,7 +211,6 @@ export default function Editor(props: EditorProps) {
         graph.data({ nodes, edges });
         graph.render();
       } else {
-        // initG6('template');
         initLayout({ nodes, edges });
       }
     }

@@ -18,7 +18,6 @@ export default function EditHeader(props: HeaderProps) {
   const routerParams = useParams(),
     dispatch = useDispatch();
   const { route, headerEXtraWidth } = props;
-  const graphData = useSelector((store: any) => store[route].graphData);
   const graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
   const navigate = useNavigate();
 
@@ -78,12 +77,6 @@ export default function EditHeader(props: HeaderProps) {
 
   return (
     <div className='pdb-header pdb-header-edit'>
-      {/* <a
-        className="pdb-header-button"
-        onClick={exit}
-      >
-        <i className="spicon icon-jiantou-zuo"></i>
-      </a> */}
       <div className="pdb-header-info">
         <h2 className="pdb-header-title">
           类型管理

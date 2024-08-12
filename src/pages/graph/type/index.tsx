@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 
 import type { StoreState } from '@/store';
 import type { ObjectConfig } from '@/reducers/object';
-import { initG6 } from '@/g6';
 import { nodeStateStyle } from '@/g6/type/node';
 import { labelThemeStyle } from '@/g6/type/edge';
 import './index.less';
@@ -83,7 +82,6 @@ export default function Editor(props: any) {
 
   useEffect(() => {
     initLayout([]);
-    // initG6('type');
 
     return () => {
       graph?.destroy();

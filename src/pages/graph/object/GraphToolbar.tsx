@@ -292,12 +292,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
 
-          // if (edgeType === "same-tree-relation-line") {
-          //   Object.assign(edgeOption, {
-          //     sourceAnchor: 1,
-          //     targetAnchor: 1
-          //   });
-          // }
           if (objectUid === target.uid) {
             Object.assign(edgeOption.labelCfg.style, {
               x: sourceItemModel.x,
@@ -316,16 +310,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     });
 
     if (!addEdge) return;
-
-    // const edges: any = graph.save().edges.filter((val: any) => val.type !== 'step-line' && val.type !== 'same-tree-relation-line');
-    // // 节点节点之间存在多条quadratic类型边, 处理平行边
-    // G6.Util.processParallelEdges(edges, 15);
-    // edges.forEach((edge: any, i: number) => {
-    //   graph.updateItem(edge.id, {
-    //     curveOffset: edges[i].curveOffset,
-    //     curvePosition: edges[i].curvePosition,
-    //   });
-    // });
   }
 
   // 隐藏关系连线
@@ -1251,17 +1235,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           }
         </Tooltip>
       </div>
-      {/* {_.get(selectedTab, 'key') && (_.get(selectedTab, 'key', '') === 'setting' ?
-        renderSettingPanel() :
-        <PdbPanel
-          className='pdb-graph-toolbar-panel edit_tools pdb-param-editor'
-          title={_.get(selectedTab, 'label', '')}
-          external={<i className="operation-icon spicon icon-guanbi" onClick={() => setSelectedTab(null)} />}
-          canCollapsed={false}
-        >
-          {renderFilterPanel()}
-        </PdbPanel>
-      )} */}
       {contextHolder}
     </>
   )

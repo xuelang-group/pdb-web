@@ -29,9 +29,6 @@ interface EditorProps {
   theme: string
 }
 
-const modalTile: any = {
-  'remove': '删除实例'
-}
 let graph: any;
 let graphCopyItem: any;
 export default function Editor(props: EditorProps) {
@@ -177,10 +174,6 @@ export default function Editor(props: EditorProps) {
     if (!container) return;
     const width = container.clientWidth;
     const height = container.clientHeight || 500;
-    // const minimap = new G6.Minimap({
-    //   size: [150, 100],
-    //   type: 'keyShape'
-    // }); // 小地图
 
     // 画布提示框
     const tooltip = new G6.Tooltip({
@@ -317,11 +310,6 @@ export default function Editor(props: EditorProps) {
           'drag-enter',
           'graph-select'
         ]
-        // addNode: [
-        //   'drag-canvas', // 画布拖拽
-        //   'zoom-canvas', // 画布缩放
-        //   'graph-keydown',
-        // ]
       },
       defaultCombo: {
         type: 'rect',
@@ -355,7 +343,6 @@ export default function Editor(props: EditorProps) {
         }
       },
       plugins: [tooltip, contextMenu]
-      // plugins: [minimap],
     });
     (window as any).PDR_GRAPH = graph;
     let graphData: any = {};
@@ -507,10 +494,6 @@ export default function Editor(props: EditorProps) {
     });
   }
 
-  const [isModalOpen, setModalOpen] = useState(false),
-    [modalOperate, setModalOperate] = useState(''),
-    [modalLoading, setModalLoading] = useState(false);
-
   let isUpdateScreenshot = false;
   function saveScreenShoot() {
     if (isUpdateScreenshot) {
@@ -599,7 +582,6 @@ export default function Editor(props: EditorProps) {
   }
 
   const handleModalOk = async function (currentEditModel: any, removeAll: boolean) {
-    setModalLoading(true);
     if (currentEditModel.type === "pdbNode") {
       const parentId = currentEditModel.parent;
       if (parentId && parentId !== rootNode?.uid) {
@@ -659,9 +641,6 @@ export default function Editor(props: EditorProps) {
   }
 
   const handleModalCancel = function () {
-    setModalOpen(false);
-    setModalOperate('');
-    setModalLoading(false);
     deleteConfirmModal && deleteConfirmModal.destroy();
     deleteConfirmModal = null;
   }
@@ -724,16 +703,6 @@ export default function Editor(props: EditorProps) {
             }
           </div>
         </Spin>
-        {/* <Modal
-        title={modalTile[modalOperate]}
-        open={isModalOpen}
-        className='pdb-object-modal'
-        confirmLoading={modalLoading}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-      >
-        {renderModalContent(modalOperate)}
-      </Modal> */}
       </div>
       <TemplateGraph theme={props.theme} />
       {contextHolder}

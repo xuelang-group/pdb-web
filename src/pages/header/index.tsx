@@ -78,11 +78,9 @@ export default function Header(props: HeaderProps) {
   
   return (
     <Layout.Header className='pdb-header'>
-      {/* {(window as any).PDB && */}
       <a className="pdb-header-button" onClick={handleCollapsed}>
         <i className="spicon icon-jiantou-zuo"></i>
       </a>
-      {/* } */}
       <div className="pdb-header-info">
         <h2 className="pdb-header-title">
           {_.get(graphData, 'name', '')}
@@ -104,11 +102,6 @@ export default function Header(props: HeaderProps) {
       </div>
       <div className="pdb-header-center">{centerContent}</div>
       <div className="pdb-header-right" style={{ marginRight: headerEXtraWidth || 0 }}>
-        {/* <div className="pdb-header-toolbar">
-          <div className="pdb-header-toolbar-item">
-            <i className="spicon icon-daoru"></i>
-          </div>
-        </div> */}
         {Number(headerEXtraWidth) > 0 && <Divider />}
       </div>
     </Layout.Header>
