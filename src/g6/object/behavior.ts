@@ -69,11 +69,11 @@ export const G6OperateFunctions = {
             val['x_children'] = val['x_children'] ? val['x_children'] - 1 : 0;
           }
           const shouldRemove = !removeIds.hasOwnProperty(val.id || val.uid);
-          if (val.currentParent.id === parentNodeId && shouldRemove && val['x.id']) {
-            const xid = val['x.id'].split(".");
+          if (val.currentParent.id === parentNodeId && shouldRemove && val['x_id']) {
+            const xid = val['x_id'].split(".");
             xid.pop();
             xid.push(newIndex);
-            val['x.id'] = xid.join(".");
+            val['x_id'] = xid.join(".");
             newIndex++;
           }
           return shouldRemove;
@@ -104,7 +104,7 @@ export const G6OperateFunctions = {
                 "x_name": rootNode['x_name'],
                 id: rootId
               },
-              'x.id': newXid,
+              'x_id': newXid,
               id
             }
             _data.push(newObject);
@@ -209,7 +209,7 @@ export const G6OperateFunctions = {
                 ...currentParent,
                 id
               },
-              'x.id': _xid,
+              'x_id': _xid,
               id: newValue.uid
             }
           });
@@ -231,7 +231,7 @@ export const G6OperateFunctions = {
           const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
           let newData: any[] = [];
           store.getState().object.data.forEach(function (obj: any) {
-            if (obj['x.id'] === xid) {
+            if (obj['x_id'] === xid) {
               newData.push({
                 ...obj,
                 collapsed
@@ -303,7 +303,7 @@ export const G6OperateFunctions = {
     let shouldUpdateObject: ObjectConfig[] = [], dragItemIdMap = { [dragItemId]: dragItem };
 
     allData.forEach(function (value) {
-      const xid = value['x.id'],
+      const xid = value['x_id'],
         parent: any = value['currentParent'].id;
       if (!parent) return;
       if (value.id === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
@@ -317,7 +317,7 @@ export const G6OperateFunctions = {
           const obj = JSON.parse(JSON.stringify(value));
           if (newId !== xid) {
             Object.assign(obj, {
-              'x.id': newId
+              'x_id': newId
             });
             Object.assign(modifyIdMaps, {
               [value.id]: {
@@ -343,7 +343,7 @@ export const G6OperateFunctions = {
             const newId = xid.replace(modifyIdMaps[parent].old, modifyIdMaps[parent].new);
             const data = {
               ...value,
-              'x.id': newId,
+              'x_id': newId,
               'x_last_change': lastChangeTime
             };
             if (value.id === dropItemId) {
@@ -407,13 +407,13 @@ export const G6OperateFunctions = {
         });
 
         const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(value));
-        delete newObj['x.id'];
+        delete newObj['x_id'];
         shouldUpdateObject.push(newObj);
       }
-      if (value['x.id']) {
+      if (value['x_id']) {
         return {
           ...value,
-          'x.id': value['x.id'].replace(dragItemXid, dragItemNewXid),
+          'x_id': value['x_id'].replace(dragItemXid, dragItemNewXid),
         };
       }
       return value;
@@ -435,7 +435,7 @@ export const G6OperateFunctions = {
           let dropItemIndex = -1;
           for (let i = newData.length - 1; i >= 0; i--) {
             const value = newData[i];
-            if (value['x.id'] && (value['x.id'] === newDropItemXid || value['x.id'].startsWith(newDropItemXid + '.'))) {
+            if (value['x_id'] && (value['x_id'] === newDropItemXid || value['x_id'].startsWith(newDropItemXid + '.'))) {
               dropItemIndex = i;
               break;
             }
@@ -570,7 +570,7 @@ export const G6OperateFunctions = {
           ...copyItem.data,
           uid: response.xid,
           id: response.xid,
-          "x.id": newXid,
+          "x_id": newXid,
           "e_x_parent": [newParent],
           currentParent: {
             ...newParent,
@@ -620,7 +620,7 @@ export const G6OperateFunctions = {
           if (objectData) {
             const index = objectData.findIndex((val: any) => val.id === parent);
             if (index > -1) {
-              xid = objectData[index]['x.id'];
+              xid = objectData[index]['x_id'];
               childLen = objectData[index]['x_children'];
             }
           }
@@ -668,7 +668,7 @@ export const G6OperateFunctions = {
                 ...currentParent,
                 id
               },
-              'x.id': _xid,
+              'x_id': _xid,
               id: newValue.uid
             }
           }));
@@ -687,7 +687,7 @@ export const G6OperateFunctions = {
             if (obj.id === parent) {
               parentChildLen = obj['x_children'];
             }
-            if (obj['x.id'] === xid) {
+            if (obj['x_id'] === xid) {
               newData.push({
                 ...obj,
                 collapsed
@@ -695,17 +695,17 @@ export const G6OperateFunctions = {
               // newData = newData.concat(_data);
               concatIndex = newData.length;
             }
-            if (obj['x.id'] && obj['x.id'].startsWith(xid) && obj['x.id'].split(".").length === xidLen) {
+            if (obj['x_id'] && obj['x_id'].startsWith(xid) && obj['x_id'].split(".").length === xidLen) {
               Object.assign(removeChildrenMap, { [obj.id]: obj });
             }
-            if ((!obj['x.id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x.id'] && !obj['x.id'].startsWith(xid)) && !removeChildrenMap[parentId]) {
+            if ((!obj['x_id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x_id'] && !obj['x_id'].startsWith(xid)) && !removeChildrenMap[parentId]) {
               newData.push(obj);
             } else {
-              if (obj['x.id'] && obj['x.id'].startsWith(xid) && obj['x.id'].split(".").length > xidLen || removeChildrenMap[parentId]) {
+              if (obj['x_id'] && obj['x_id'].startsWith(xid) && obj['x_id'].split(".").length > xidLen || removeChildrenMap[parentId]) {
                 removeChildren.push(obj);
                 Object.assign(removeChildrenMap, { [obj.id]: obj });
               }
-              obj['x.id'] && Object.assign(removeMap, { [obj.id]: obj.collapsed });
+              obj['x_id'] && Object.assign(removeMap, { [obj.id]: obj.collapsed });
             }
           });
 
@@ -726,12 +726,12 @@ export const G6OperateFunctions = {
           if (removeChildren.length > 0) {
             let newRemoveChildren: any[] = [];
             _data.forEach(function (val) {
-              const nodeXid = val['x.id'];
+              const nodeXid = val['x_id'];
               concatData.push(val);
               if (nodeXid) {
                 for (let i = 0; i < removeChildren.length; i++) {
                   const item = removeChildren[i];
-                  const itemXid = item['x.id'];
+                  const itemXid = item['x_id'];
                   if (itemXid && itemXid.startsWith(nodeXid)) {
                     if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item, 'currentParent.id') !== val.id) {
                       break;
@@ -877,7 +877,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
     const updateGraphData = function () {
       const newObj = {
         ...newData,
-        "x.id": newXid,
+        "x_id": newXid,
         currentParent: {
           ...newParent,
           "x_name": parentNodeModel.name,
@@ -893,7 +893,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
       let prevIsSource: any = false;
       for (let i = 0; i < data.length; i++) {
         const obj = data[i],
-          xid = obj['x.id'],
+          xid = obj['x_id'],
           parentId = obj['currentParent'].id;
         if (!parentId) return;
         if (!hasAdd) {
@@ -916,7 +916,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
           if (newId !== xid) {
             const newObj = {
               ...obj,
-              'x.id': newId,
+              'x_id': newId,
             };
 
             _data.push(newObj);
@@ -936,7 +936,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
         if (modifyIdMaps[parentId] && xid) {
           const modifyId = modifyIdMaps[parentId];
           const newId = xid.replace(modifyId.old, modifyId.new);
-          const newObj = { ...obj, 'x.id': newId };
+          const newObj = { ...obj, 'x_id': newId };
           _data.push(newObj);
           continue;
         }
@@ -1024,13 +1024,13 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   for (let i = data.length - 1; i >= 0; i--) {
     let obj = JSON.parse(JSON.stringify(data[i]));
     const parent = obj['currentParent'].id,
-      xid = obj['x.id'];
+      xid = obj['x_id'];
 
     if (obj.id === sourceNodeId) {
       Object.assign(obj, { 'x_children': childLen });
     }
 
-    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x.id'] === sourceNodeXid)) {
+    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x_id'] === sourceNodeXid)) {
       _data.unshift(newObj);
       hasAdd = true;
     }
@@ -1109,7 +1109,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const node = {
     uid,
     id,
-    xid: newObj['x.id'],
+    xid: newObj['x_id'],
     parent: rootId,
     name: name,
     data: newObj,
@@ -1201,7 +1201,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     const newObj = {
       ...newData,
       id,
-      "x.id": newXid,
+      "x_id": newXid,
       currentParent: {
         ...newParent,
         "x_name": sourceNode.name,
@@ -1274,7 +1274,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
         "x_name": rootNode['x_name'],
         id: rootId
       },
-      'x.id': newXid,
+      'x_id': newXid,
       id
     };
     addRootNode(newObject, graph);
@@ -1317,7 +1317,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   let newParentIndex: any;
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
 
-    if (item['x.id'] === dropPrevItemXid) {
+    if (item['x_id'] === dropPrevItemXid) {
       const dropPrevItemXindex: number = Number(item.currentParent['x_index']);
       newParentIndex = dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x_index']) - dropPrevItemXindex) / 2;
       Object.assign(newParent, {
@@ -1330,15 +1330,15 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       });
     }
 
-    if (dropItemDataIndex === -1 && item['x.id'] === dropItemXid) dropItemDataIndex = index;
+    if (dropItemDataIndex === -1 && item['x_id'] === dropItemXid) dropItemDataIndex = index;
 
-    if (item['x.id'] && item['x.id'].startsWith(rootId + '.' + (currentIndex + 1))) {
+    if (item['x_id'] && item['x_id'].startsWith(rootId + '.' + (currentIndex + 1))) {
       currentIndex += 1;
     }
 
-    if (item['x.id'] && item['x.id'].startsWith(rootId + '.' + currentIndex)) {
+    if (item['x_id'] && item['x_id'].startsWith(rootId + '.' + currentIndex)) {
       const newIndex = currentIndex + 1;
-      item['x.id'] = item['x.id'].replace(rootId + '.' + currentIndex, rootId + '.' + newIndex);
+      item['x_id'] = item['x_id'].replace(rootId + '.' + currentIndex, rootId + '.' + newIndex);
     }
   });
 
@@ -1358,7 +1358,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
         "x_name": rootNode['x_name'],
         id: rootId
       },
-      'x.id': newXid,
+      'x_id': newXid,
       id
     }
 
@@ -1431,7 +1431,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                     ...currentParent,
                     id: rootId,
                   },
-                  'x.id': rootId + '.' + index,
+                  'x_id': rootId + '.' + index,
                   id: newValue.uid
                 };
               }));
@@ -1446,7 +1446,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               let newData: any[] = _data;
 
               store.getState().object.data.forEach(function (obj: any) {
-                if (!obj['x.id'] || obj['x.id'].split(".").length > 2) {
+                if (!obj['x_id'] || obj['x_id'].split(".").length > 2) {
                   newData.push(obj);
                 }
               });
@@ -1619,7 +1619,7 @@ export function registerBehavior() {
           currentDragParentChildrenIndex = 0;
 
         data.forEach(function (value) {
-          if (value['x.id'] && value['x.id'] !== dragItemXid && value['x.id'] !== dropItemXid && value['x.id'].startsWith(dragItemXid + '.') || dragItemsIdMap[_.get(value, 'currentParent.id', '')]) {
+          if (value['x_id'] && value['x_id'] !== dragItemXid && value['x_id'] !== dropItemXid && value['x_id'].startsWith(dragItemXid + '.') || dragItemsIdMap[_.get(value, 'currentParent.id', '')]) {
             Object.assign(dragItemsIdMap, { [value.id]: value })
             originDragItems.push(value);
           }
@@ -1640,7 +1640,7 @@ export function registerBehavior() {
               "x_children": new_value["x_children"] + 1
             });
           }
-          const xid = value['x.id'],
+          const xid = value['x_id'],
             parentId = value['currentParent'].id;
           if (parentId !== rootId && !graph.findById(parentId)) {
             newData.push(new_value);
@@ -1688,7 +1688,7 @@ export function registerBehavior() {
             dragItemData['e_x_parent'].push(newParent);
             const obj = {
               ...dragItemData,
-              'x.id': newId,
+              'x_id': newId,
               'currentParent': {
                 ...newParent,
                 'x_name': parentModel.name,
@@ -1698,14 +1698,14 @@ export function registerBehavior() {
             };
             newData.push(obj);
             const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(obj));
-            delete newObj['x.id'];
+            delete newObj['x_id'];
             shouldUpdateObject.push(newObj);
 
             dragItems = originDragItems.map(item => {
-              if (item['x.id']) {
+              if (item['x_id']) {
                 const newItem = {
                   ...item,
-                  'x.id': item['x.id'].replace(dragItemXid, newId),
+                  'x_id': item['x_id'].replace(dragItemXid, newId),
                 }
                 newData.push(newItem);
               } else {
@@ -1720,7 +1720,7 @@ export function registerBehavior() {
             dropItemIds[dropItemIds.length - 1] = currentDropParentChildrenIndex;
             const newId = dropItemIds.join('.');
             if (xid !== newId) {
-              new_value['x.id'] = newId;
+              new_value['x_id'] = newId;
 
               Object.assign(modifyIdMaps, {
                 [new_value.uid]: {
@@ -1736,7 +1736,7 @@ export function registerBehavior() {
             dragItemIds[dragItemIds.length - 1] = currentDragParentChildrenIndex;
             const newId = dragItemIds.join('.');
             if (xid !== newId) {
-              new_value['x.id'] = newId;
+              new_value['x_id'] = newId;
               Object.assign(modifyIdMaps, {
                 [new_value.uid]: {
                   new: newId,
@@ -1747,17 +1747,17 @@ export function registerBehavior() {
             currentDragParentChildrenIndex++;
           }
 
-          if (modifyIdMaps[parentUid] && new_value['x.id']) {
+          if (modifyIdMaps[parentUid] && new_value['x_id']) {
             const modifyId = modifyIdMaps[parentUid];
-            new_value['x.id'] = new_value['x.id'].replace(modifyId.old, modifyId.new);
+            new_value['x_id'] = new_value['x_id'].replace(modifyId.old, modifyId.new);
             Object.assign(modifyIdMaps, {
               [new_value.uid]: {
-                new: new_value['x.id'],
+                new: new_value['x_id'],
                 old: xid
               }
             });
             if (modifyIdMaps[new_value.id]) {
-              Object.assign(modifyIdMaps[new_value.id], { new: new_value['x.id'] });
+              Object.assign(modifyIdMaps[new_value.id], { new: new_value['x_id'] });
             }
           }
 

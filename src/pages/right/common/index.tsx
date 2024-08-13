@@ -527,7 +527,7 @@ export default function Right(props: RightProps) {
     const timestamp = new Date();
 
     const { id, currentParent, collapsed, ...newObject } = JSON.parse(JSON.stringify(object));
-    delete newObject['x.id'];
+    delete newObject['x_id'];
 
     const params = { 'set': [newObject] };
     if (deleteConfig) Object.assign(params, { 'delete': deleteConfig });

@@ -32,7 +32,7 @@ export interface ObjectConfig {
 export interface CustomObjectConfig extends ObjectConfig {
   'currentParent': Parent
   'collapsed'?: boolean
-  'x.id': string
+  'x_id': string
   'id': string
 }
 

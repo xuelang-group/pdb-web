@@ -119,7 +119,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
   let index = 0;
   for (const item of data) {
     const uid = item['uid'],
-      xid = item['x.id'] || uid,
+      xid = item['x_id'] || uid,
       name = item['x_name'] || uid,
       childLen = item['x_children'] || 0,
       currentParent = item['currentParent'],
@@ -201,9 +201,9 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   const id = parent.id;
 
   const sortData = data.sort((a, b) => {
-    if (!a['x.id'] || !b['x.id']) return 1;
-    const aIds: any = a['x.id'].split('.'),
-      bIds: any = b['x.id'].split('.');
+    if (!a['x_id'] || !b['x_id']) return 1;
+    const aIds: any = a['x_id'].split('.'),
+      bIds: any = b['x_id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
       if (Number(aIds[i]) === Number(bIds[i])) continue;
       return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
@@ -242,14 +242,14 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
 
   const newDataIdMap: any = {};
   const sortData = data.sort((a, b) => {
-    if (!a['x.id'] || !b['x.id']) return 1;
+    if (!a['x_id'] || !b['x_id']) return 1;
 
     Object.assign(newDataIdMap, {
       [a.id]: a,
       [b.id]: b
     });
-    const aIds: any = a['x.id'].split('.'),
-      bIds: any = b['x.id'].split('.');
+    const aIds: any = a['x_id'].split('.'),
+      bIds: any = b['x_id'].split('.');
     for (let i = 1; i < aIds.length; i++) {
       if (Number(aIds[i]) === Number(bIds[i])) continue;
       return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
@@ -366,7 +366,7 @@ export function convertResultData(
 
   data.forEach((item: any, index: number) => {
     const uid = item['uid'],
-      _xid = xid ? (xid + '.' + index) : (item['x.id'] || uid),
+      _xid = xid ? (xid + '.' + index) : (item['x_id'] || uid),
       name = item['x_name'] || uid,
       children = item['~e_x_parent'] || [],
       childLen = children.length || 0,
@@ -396,7 +396,7 @@ export function convertResultData(
             ...currentParent,
             id: rootId,
           },
-          'x.id': xid,
+          'x_id': xid,
           id: uid
         },
         childLen,
@@ -484,7 +484,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
   combos.push({ id: `${rootId}-combo` });
   for (const item of data) {
     const uid = item['uid'],
-      xid = item['x.id'] || uid,
+      xid = item['x_id'] || uid,
       name = item['x_name'] || uid,
       childLen = item['x_children'] || 0,
       currentParent = item['currentParent'],
