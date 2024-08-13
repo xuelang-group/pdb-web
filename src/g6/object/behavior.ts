@@ -101,7 +101,7 @@ export const G6OperateFunctions = {
               ...item,
               currentParent: {
                 ...newParent,
-                "x.name": rootNode['x.name'],
+                "x_name": rootNode['x_name'],
                 id: rootId
               },
               'x.id': newXid,
@@ -401,7 +401,7 @@ export const G6OperateFunctions = {
         Object.assign(value, {
           currentParent: {
             ...newParent,
-            'x.name': dropItemModel.name,
+            'x_name': dropItemModel.name,
             id: dropItemId
           }
         });
@@ -541,7 +541,7 @@ export const G6OperateFunctions = {
     const rootId = rootNode.uid;
 
     const parentId = pasteItem ? pasteItem.id : rootId;
-    const parentName = pasteItem ? pasteItem.name : rootNode['x.name'];
+    const parentName = pasteItem ? pasteItem.name : rootNode['x_name'];
     const parentUid = pasteItem ? pasteItem.uid : rootId;
     const parentXid = pasteItem ? pasteItem.xid : rootId;
 
@@ -575,7 +575,7 @@ export const G6OperateFunctions = {
           currentParent: {
             ...newParent,
             id: parentId,
-            "x.name": parentName
+            "x_name": parentName
           },
           collapsed: true
         };
@@ -854,7 +854,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
-    "x.name": typeData.name,
+    "x_name": typeData.name,
     "x.parent": [newParent],
     "x.type.name": defaultTypeName,
     "x.metadata": typeMetadata,
@@ -883,7 +883,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
         "x.id": newXid,
         currentParent: {
           ...newParent,
-          "x.name": parentNodeModel.name,
+          "x_name": parentNodeModel.name,
           id: parentNodeId
         }
       };
@@ -1105,7 +1105,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const { nodes, edges, combos } = curentGraphData;
 
   const { uid, id, } = newObj;
-  const name = newObj['x.name'],
+  const name = newObj['x_name'],
     metadata = JSON.parse(newObj['x.metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
     iconKey = _.get(metadata, 'icon', '');
@@ -1194,7 +1194,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x.name": defaultTypeName,
+    "x_name": defaultTypeName,
     "x.parent": [newParent],
     "x.type.name": typeId,
     "x.metadata": typeMetadata,
@@ -1207,7 +1207,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
       "x.id": newXid,
       currentParent: {
         ...newParent,
-        "x.name": sourceNode.name,
+        "x_name": sourceNode.name,
         id: sourceNodeId
       }
     };
@@ -1263,7 +1263,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   };
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x.name": defaultName,
+    "x_name": defaultName,
     "x.parent": [newParent],
     "x.type.name": typeId,
     "x.metadata": typeMetadata,
@@ -1274,7 +1274,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
       ...newData,
       currentParent: {
         ...newParent,
-        "x.name": rootNode['x.name'],
+        "x_name": rootNode['x_name'],
         id: rootId
       },
       'x.id': newXid,
@@ -1347,7 +1347,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x.name": defaultName,
+    "x_name": defaultName,
     "x.parent": [newParent],
     "x.type.name": typeId,
     "x.metadata": typeMetadata,
@@ -1358,7 +1358,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       ...newData,
       currentParent: {
         ...newParent,
-        "x.name": rootNode['x.name'],
+        "x_name": rootNode['x_name'],
         id: rootId
       },
       'x.id': newXid,
@@ -1694,7 +1694,7 @@ export function registerBehavior() {
               'x.id': newId,
               'currentParent': {
                 ...newParent,
-                'x.name': parentModel.name,
+                'x_name': parentModel.name,
                 id: parentId
               },
               'x.last_change': lastChangeTime

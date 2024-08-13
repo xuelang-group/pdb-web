@@ -91,7 +91,7 @@ export default function QueryList(props: any) {
       // 对象id
       const uid = _.get(condition, 'uid', '').split(',');
       Object.assign(data, { uid });
-    } else if (type === 'x.name' && match === 'batch') {
+    } else if (type === 'x_name' && match === 'batch') {
       // 对象名称 + 批量匹配
       const names = _.get(condition, 'names', '').split(',');
       Object.assign(data, { names, match: 'eq' });
@@ -100,7 +100,7 @@ export default function QueryList(props: any) {
       Object.assign(data, { type });
     } else {
       const tableData = _.get(query, 'condition.table', []);
-      if (type === 'x.name' && match !== 'batch') {
+      if (type === 'x_name' && match !== 'batch') {
         // 对象名称 + 条件匹配
         const match = _.get(condition, 'match', ''),
           names = tableData.map((val: any) => val.name);

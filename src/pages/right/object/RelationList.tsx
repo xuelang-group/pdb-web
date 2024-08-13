@@ -41,7 +41,7 @@ export default function RelationList(props: RelationListProps) {
     _.get(relationLines, props.source.uid, []).forEach((item: ObjectRelationConig) => {
       const { relation, target } = item;
       const relationId = _.get(relationMap[relation], 'r.type.name', ''),
-        targetLabel = _.get(target, 'x.name', ''),
+        targetLabel = _.get(target, 'x_name', ''),
         targetId = _.get(target, 'uid', '');
       if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
       if (!usedTargetMap[targetId] && targetLabel) {
@@ -74,7 +74,7 @@ export default function RelationList(props: RelationListProps) {
           response.forEach(function (item: { [x: string]: any; }) {
             _targetList.push({
               value: item['uid'],
-              label: item['x.name']
+              label: item['x_name']
             });
           });
         }
@@ -254,7 +254,7 @@ export default function RelationList(props: RelationListProps) {
       if (success) {
         const _targetList: any = [], newTargetMap = { ...targetMap };
         response.forEach((item: any) => {
-          const value = item['uid'], label = item['x.name'];
+          const value = item['uid'], label = item['x_name'];
           _targetList.push({
             value,
             label,
@@ -289,7 +289,7 @@ export default function RelationList(props: RelationListProps) {
         const relationConstrarint = relationConstrarintMap[relation];
         const tgtLabel = option.label,
           tgtType = option.type;
-        const srcLabel = props.source.data['x.name'],
+        const srcLabel = props.source.data['x_name'],
           srcType = props.source.data['x.type.name'];
         const maxTgt = relationConstrarint[srcType + '-' + tgtType] || Infinity;
         let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x.type.name') === tgtType).length;
@@ -305,7 +305,7 @@ export default function RelationList(props: RelationListProps) {
 
       const targetOption = {
         uid,
-        'x.name': targetDetail['x.name']
+        'x_name': targetDetail['x_name']
       };
       Object.assign(newRelationLines[index], {
         target: targetOption
@@ -330,7 +330,7 @@ export default function RelationList(props: RelationListProps) {
         if (success) {
           setRelations(form.getFieldValue('relation'));
           const newRelationMap = JSON.parse(JSON.stringify(currentRelationMap));
-          const targetLabel = targetMap[uid]['x.name'];
+          const targetLabel = targetMap[uid]['x_name'];
           if (newRelationMap[relation]) {
             Object.assign(newRelationMap[relation], { [uid]: targetLabel });
           } else {
@@ -358,7 +358,7 @@ export default function RelationList(props: RelationListProps) {
             relation: form.getFieldValue(['relation', index, 'relation']),
             target: {
               uid,
-              'x.name': targetMap[uid]['x.name']
+              'x_name': targetMap[uid]['x_name']
             }
           };
           if (newRelationLines[index]) {

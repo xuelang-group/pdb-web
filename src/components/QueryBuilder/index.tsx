@@ -453,7 +453,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                 <Select
                   options={[
                     { value: 'uid', label: '对象ID' },
-                    { value: 'x.name', label: '对象名称' },
+                    { value: 'x_name', label: '对象名称' },
                     { value: 'x.type.name', label: '对象类型' }
                   ]}
                   placeholder="请选择"
@@ -466,7 +466,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                   if (type === 'uid') {
                     // setFieldValue('match', 'batch');
                     return renderIdForm();
-                  } else if (type === 'x.name') {
+                  } else if (type === 'x_name') {
                     // setFieldValue('match', 'batch');
                     // setFieldValue(['condition', 'match'], 'batch');
 

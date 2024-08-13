@@ -20,7 +20,7 @@ export interface NameConditionState {
 
 export interface AttrConditionState {
   connectives?: string // 逻辑运算
-  name: string // 属性名称，可以是用户定义的属性或者pdb内置属性 x.name, x.parent等
+  name: string // 属性名称，可以是用户定义的属性或者pdb内置属性 x_name, x.parent等
   function: string
   value?: any
 }
@@ -33,7 +33,7 @@ export interface TypeConditionState {
 
 enum QueryTypes {
   Uid = 'uid',
-  Name = 'x.name',
+  Name = 'x_name',
   Type = 'x.type.name'
 }
 

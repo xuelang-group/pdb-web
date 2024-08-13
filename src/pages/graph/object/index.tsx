@@ -93,19 +93,20 @@ export default function Editor(props: EditorProps) {
       if (success) {
         if (!data || data.length === 0) return;
         const rootData = data[0];
-        const rootId = rootData.uid;
-        dispatch(setRootNode(rootData));
+        const rootId = rootData.vid;
+        dispatch(setRootNode({
+          uid: rootId,
+          ...rootData['tags'][0]['props']
+        }));
         getChildren({ uid: rootId }, (success: boolean, data: any) => {
           let newData = [];
           if (success) {
             const relationLines = {};
             newData = data.map((value: any, index: number) => {
               const newValue = JSON.parse(JSON.stringify(value)),
-                parents = newValue['x.parent'],
-                currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
-
-              delete newValue['~x.parent'];
-              delete newValue['~x.parent|x.index'];
+                parents = newValue['e_x_parent'],
+                currentParent = parents.filter((val: Parent) => val.uid === rootId)[0],
+                defaultInfo = newValue['tags'][0]['props'];
 
               // 获取对象关系列表数据
               const relations: any[] = [];
@@ -131,13 +132,14 @@ export default function Editor(props: EditorProps) {
               });
 
               return {
-                ...newValue,
+                ...defaultInfo,
                 currentParent: {
                   ...currentParent,
                   id: rootId,
                 },
-                'x.id': rootId + '.' + index,
-                id: newValue.uid
+                'x_id': rootId + '.' + index,
+                id: newValue.vid,
+                uid: newValue.vid
               };
             });
             dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));

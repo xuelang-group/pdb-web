@@ -62,7 +62,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
     typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
     relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
-  const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x.name}, relation }]}
+  const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(undefined),
@@ -976,7 +976,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
-    const objects: { uid: string; 'x.name': any; 'x.type.name': any; 'x.parent': { uid: string; 'x.parent|x.index': any; }[]; }[] = [], parentIndexMap: any = {};
+    const objects: { uid: string; 'x_name': any; 'x.type.name': any; 'x.parent': { uid: string; 'x.parent|x.index': any; }[]; }[] = [], parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];
@@ -998,7 +998,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const parentInfo = { uid: parentUid, 'x.parent|x.index': index };
       let objectInfo = {
         uid,
-        'x.name': row[1].toString(),
+        'x_name': row[1].toString(),
         'x.type.name': row[2],
         'x.parent': [parentInfo],
         ...attrs

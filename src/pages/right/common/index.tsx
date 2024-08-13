@@ -534,7 +534,7 @@ export default function Right(props: RightProps) {
 
     setObject(params, (success: boolean, response: any) => {
       if (success) {
-        const name = object['x.name'];
+        const name = object['x_name'];
         const icon = _.get(JSON.parse(object['x.metadata'] || '{}'), 'icon', '');
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
@@ -646,7 +646,7 @@ export default function Right(props: RightProps) {
       if (currentEditModel?.id) {
         const node = (window as any).PDB_GRAPH.findById(currentEditModel.id);
         if (!node || node.getModel().name === name) return;
-        let nameLabel = 'x.name';
+        let nameLabel = 'x_name';
         if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.label' : 'r.type.label';
         updateItemData({
           ...currentEditDefaultData,

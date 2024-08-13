@@ -435,7 +435,7 @@ export default function SearchAround() {
                     color={color}
                     style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color), cursor: "pointer" }}
                     onClick={() => onFocusItem(item["uid"])}
-                  >{item["x.name"]}</Tag>
+                  >{item["x_name"]}</Tag>
                 );
               })
               }

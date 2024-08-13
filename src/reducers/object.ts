@@ -1,11 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TemplateGraphDataState } from './template';
 
 export interface Parent {
   uid: string
   id?: string
   'x.parent|x.index'?: number
-  'x.name'?: string
+  'x_name'?: string
   'x.children'?: number
 }
 
@@ -16,7 +15,7 @@ interface LatestVersionConfig {
 
 export interface ObjectConfig {
   'uid': string
-  'x.name': string
+  'x_name': string
   'x.parent': Array<Parent>
   'x.type.name': string
   'x.last_change': any

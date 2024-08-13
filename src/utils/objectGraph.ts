@@ -120,7 +120,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
   for (const item of data) {
     const uid = item['uid'],
       xid = item['x.id'] || uid,
-      name = item['x.name'] || uid,
+      name = item['x_name'] || uid,
       childLen = item['x.children'] || 0,
       currentParent = item['currentParent'],
       id = uid,
@@ -367,7 +367,7 @@ export function convertResultData(
   data.forEach((item: any, index: number) => {
     const uid = item['uid'],
       _xid = xid ? (xid + '.' + index) : (item['x.id'] || uid),
-      name = item['x.name'] || uid,
+      name = item['x_name'] || uid,
       children = item['~x.parent'] || [],
       childLen = children.length || 0,
       target = item['target'],
@@ -485,7 +485,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
   for (const item of data) {
     const uid = item['uid'],
       xid = item['x.id'] || uid,
-      name = item['x.name'] || uid,
+      name = item['x_name'] || uid,
       childLen = item['x.children'] || 0,
       currentParent = item['currentParent'],
       id = item.id || uid,

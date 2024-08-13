@@ -32,7 +32,7 @@ export interface TypeItemData extends NodeConfig {
 }
 export interface RelationTargetConfig {
   uid: string
-  'x.name': string
+  'x_name': string
 }
 export interface ObjectRelationConig {
   target: RelationTargetConfig

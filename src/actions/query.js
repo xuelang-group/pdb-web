@@ -3,7 +3,7 @@ import axios from '../utils/axios';
 const apiPrefix = '/pdb/api/v1/object/search';
 export const api = {
   'uid': apiPrefix + '/id',
-  'x.name': apiPrefix + '/name',
+  'x_name': apiPrefix + '/name',
   'x.type.name': apiPrefix + '/type',
   'results': apiPrefix + '/results',
   'pql': apiPrefix + '/pql',
