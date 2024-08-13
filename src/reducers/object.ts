@@ -22,7 +22,7 @@ export interface ObjectConfig {
   'x.created': any
   'x.children': number
   'x.metadata': string
-  'x.version'?: boolean
+  'x_version'?: boolean
   'x.checkout'?: boolean
   'x.latest_version': LatestVersionConfig
   [key: string]: any

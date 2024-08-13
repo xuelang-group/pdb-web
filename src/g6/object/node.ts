@@ -221,7 +221,7 @@ export function registerNode() {
         });
       }
 
-      if ((data as any)['x.version']) {
+      if ((data as any)['x_version']) {
         const versionGroup = group.addGroup({
           name: 'version-group',
           visible: (data as any)['x.checkout']

@@ -230,7 +230,7 @@ export default function Right(props: RightProps) {
     }
     setCurrentEditType(currentEditType);
     initData(currentEditType, currentEditDefaultData, currentEditModel);
-    const hasVersion = Boolean(currentEditDefaultData['x.version']);
+    const hasVersion = Boolean(currentEditDefaultData['x_version']);
     setHasVersion(hasVersion);
     hasVersion && dispatch(setIsEditing(currentEditDefaultData['x.checkout']));
 
@@ -320,7 +320,7 @@ export default function Right(props: RightProps) {
     getObject({ uid }, async (success: boolean, response: any) => {
       if (success && response && response[0]) {
         const objectData = response[0];
-        if (objectData['x.version'] && objectData['x.checkout']) {
+        if (objectData['x_version'] && objectData['x.checkout']) {
           await (() => {
             return new Promise((resolve) => {
               getCheckoutVersion(uid, (success: boolean, response: any) => {
