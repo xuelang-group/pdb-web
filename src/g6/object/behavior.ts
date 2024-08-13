@@ -827,7 +827,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   };
 
   let isCheckout = false;
-  if (parentNodeModel.data && parentNodeModel.data['x_version'] && !parentNodeModel.data['x.checkout']) {
+  if (parentNodeModel.data && parentNodeModel.data['x_version'] && !parentNodeModel.data['x_checkout']) {
     await (() => {
       return new Promise((resolve) => {
         checkOutObject(parentNodeModel.uid, (success: boolean, response: any) => {
@@ -837,7 +837,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
             graph.updateItem(parentNode, {
               data: {
                 ...parentNodeModel.data,
-                'x.checkout': true
+                'x_checkout': true
               }
             });
           } else {
@@ -1167,7 +1167,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   };
 
   let isCheckout = false;
-  if (sourceNode.data && sourceNode.data['x_version'] && !sourceNode.data['x.checkout']) {
+  if (sourceNode.data && sourceNode.data['x_version'] && !sourceNode.data['x_checkout']) {
     await (() => {
       return new Promise((resolve) => {
         checkOutObject(sourceNode.uid, (success: boolean, response: any) => {
@@ -1177,7 +1177,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
             graph.updateItem(sourceNode.uid, {
               data: {
                 ...sourceNode.data,
-                'x.checkout': true
+                'x_checkout': true
               }
             });
           } else {

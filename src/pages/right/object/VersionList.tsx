@@ -48,7 +48,7 @@ export default function RelationList(props: RelationListProps) {
         setCount(response.count || 0);
         response.versions && setVersionList(response.versions.map((version: any) => ({
           ...version,
-          'v.status': source['x.checkout'] && _.get(checkoutVesion, "uid") === version.uid ? "编辑中" : "已发布",
+          'v.status': source['x_checkout'] && _.get(checkoutVesion, "uid") === version.uid ? "编辑中" : "已发布",
           'v.created': formatTimestamp(Number(version['v.created']))
         })));
       } else {

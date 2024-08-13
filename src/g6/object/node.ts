@@ -224,7 +224,7 @@ export function registerNode() {
       if ((data as any)['x_version']) {
         const versionGroup = group.addGroup({
           name: 'version-group',
-          visible: (data as any)['x.checkout']
+          visible: (data as any)['x_checkout']
         });
         versionGroup.addShape('circle', {
           attrs: {
@@ -378,7 +378,7 @@ export function registerNode() {
 
       const versionGroup = group.find(ele => ele.get('name') === 'version-group');
       if (versionGroup) {
-        if ((data as any)['x.checkout']) {
+        if ((data as any)['x_checkout']) {
           versionGroup.show();
         } else {
           versionGroup.hide();

@@ -591,7 +591,7 @@ export default function Editor(props: EditorProps) {
         if (parentNode) {
           const parentData = parentNode.getModel().data;
           let isCheckout = false;
-          if (parentData && parentData['x_version'] && !parentData['x.checkout']) {
+          if (parentData && parentData['x_version'] && !parentData['x_checkout']) {
             await (() => {
               return new Promise((resolve) => {
                 checkOutObject(parentId, (success: boolean, response: any) => {
@@ -601,7 +601,7 @@ export default function Editor(props: EditorProps) {
                     graph.updateItem(parentNode, {
                       data: {
                         ...parentData,
-                        'x.checkout': true
+                        'x_checkout': true
                       }
                     });
                   } else {

@@ -232,7 +232,7 @@ export default function Right(props: RightProps) {
     initData(currentEditType, currentEditDefaultData, currentEditModel);
     const hasVersion = Boolean(currentEditDefaultData['x_version']);
     setHasVersion(hasVersion);
-    hasVersion && dispatch(setIsEditing(currentEditDefaultData['x.checkout']));
+    hasVersion && dispatch(setIsEditing(currentEditDefaultData['x_checkout']));
 
     return () => {
       setCurrentEditParam(null);
@@ -320,7 +320,7 @@ export default function Right(props: RightProps) {
     getObject({ uid }, async (success: boolean, response: any) => {
       if (success && response && response[0]) {
         const objectData = response[0];
-        if (objectData['x_version'] && objectData['x.checkout']) {
+        if (objectData['x_version'] && objectData['x_checkout']) {
           await (() => {
             return new Promise((resolve) => {
               getCheckoutVersion(uid, (success: boolean, response: any) => {
@@ -1191,14 +1191,14 @@ export default function Right(props: RightProps) {
           if (success) {
             getCheckoutVersion(currentEditModel?.uid, (success: boolean, response: any) => {
               dispatch(setIsEditing(true));
-              setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': true });
+              setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': true });
               const graph = (window as any).PDB_GRAPH;
               const item = graph.findById(currentEditModel?.id);
               if (item) {
                 graph?.updateItem(item, {
                   data: {
                     ...currentEditModel?.data,
-                    'x.checkout': true
+                    'x_checkout': true
                   }
                 });
               }
@@ -1224,14 +1224,14 @@ export default function Right(props: RightProps) {
         checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
           if (success) {
             dispatch(setIsEditing(false));
-            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
+            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
             const graph = (window as any).PDB_GRAPH;
             const item = graph.findById(currentEditModel?.id);
             if (item) {
               graph?.updateItem(item, {
                 data: {
                   ...currentEditModel?.data,
-                  'x.checkout': false
+                  'x_checkout': false
                 }
               });
             }
@@ -1250,7 +1250,7 @@ export default function Right(props: RightProps) {
     discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
       if (success) {
         dispatch(setIsEditing(false));
-        setCurrentEditDefaultData({ ...currentEditDefaultData, 'x.checkout': false });
+        setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
         setCheckoutVersion({});
         const graph = (window as any).PDB_GRAPH;
         const item = graph.findById(currentEditModel?.id);
@@ -1258,7 +1258,7 @@ export default function Right(props: RightProps) {
           graph?.updateItem(item, {
             data: {
               ...currentEditModel?.data,
-              'x.checkout': false
+              'x_checkout': false
             }
           });
         }
