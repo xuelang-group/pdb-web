@@ -368,7 +368,7 @@ export function convertResultData(
     const uid = item['uid'],
       _xid = xid ? (xid + '.' + index) : (item['x.id'] || uid),
       name = item['x_name'] || uid,
-      children = item['~x.parent'] || [],
+      children = item['~e_x_parent'] || [],
       childLen = children.length || 0,
       target = item['target'],
       id = uid,

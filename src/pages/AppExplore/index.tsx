@@ -137,7 +137,7 @@ export default function AppExplore() {
           sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
           targetTypeMap: any = {};
 
-        if (sourceType && relationName !== "~x.parent" && relationName !== "x.parent") {
+        if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
           relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
             if (bind.source === sourceType) {
               Object.assign(targetTypeMap, { [bind.target]: bind.target });
@@ -163,16 +163,16 @@ export default function AppExplore() {
       if ("所属父级".indexOf(value) > -1) {
         relationOptions.push({
           label: "所属父级",
-          value: "x.parent" + `-${currentTagLen}`,
-          key: "x.parent",
+          value: "e_x_parent" + `-${currentTagLen}`,
+          key: "e_x_parent",
           type: 'relation'
         });
       }
       if ("包含子级".indexOf(value) > -1) {
         relationOptions.push({
           label: "包含子级",
-          value: "~x.parent" + `-${currentTagLen}`,
-          key: "~x.parent",
+          value: "~e_x_parent" + `-${currentTagLen}`,
+          key: "~e_x_parent",
           type: 'relation'
         });
       }
@@ -306,7 +306,7 @@ export default function AppExplore() {
           let option = {
             name: detail.label
           };
-          if (detail.key === "x.parent" || detail.key === "~x.parent") {
+          if (detail.key === "e_x_parent" || detail.key === "~e_x_parent") {
             Object.assign(option, {
               type: "relation",
               id: detail.key,
@@ -451,7 +451,7 @@ export default function AppExplore() {
           <span style={{ color: 'red' }}>{centerLabel}</span>
           <span>{lastLabel}</span>
         </span>
-        {optionType && key !== "~x.parent" && key !== "x.parent" && <i className="spicon icon-shaixuan" onClick={() => showFilterPanel(value)}></i>}
+        {optionType && key !== "~e_x_parent" && key !== "e_x_parent" && <i className="spicon icon-shaixuan" onClick={() => showFilterPanel(value)}></i>}
       </>
     )
   }
@@ -505,7 +505,7 @@ export default function AppExplore() {
           {searchTags.map((item, index) => (
             <Popover
               open={currentFocusIndex === index && filterPanelOpenKey !== null && !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey))
-                && !filterPanelOpenKey.startsWith("~x.parent-") && !filterPanelOpenKey.startsWith("x.parent-")
+                && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
               }
               rootClassName="pdb-explore-filter-popover"
               placement="bottomLeft"

@@ -378,11 +378,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         const relationLines = {};
         newData = data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
-            parents = newValue['x.parent'],
+            parents = newValue['e_x_parent'],
             currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
 
-          delete newValue['~x.parent'];
-          delete newValue['~x.parent|x.index'];
+          delete newValue['~e_x_parent'];
+          delete newValue['~x_index'];
 
           // 获取对象关系列表数据
           const relations: any[] = [];
@@ -976,7 +976,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
-    const objects: { uid: string; 'x_name': any; 'x_type_name': any; 'x.parent': { uid: string; 'x.parent|x.index': any; }[]; }[] = [], parentIndexMap: any = {};
+    const objects: { uid: string; 'x_name': any; 'x_type_name': any; 'e_x_parent': { uid: string; 'x_index': any; }[]; }[] = [], parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];
@@ -995,12 +995,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         index = parentIndexMap[parentUid];
         Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       }
-      const parentInfo = { uid: parentUid, 'x.parent|x.index': index };
+      const parentInfo = { uid: parentUid, 'x_index': index };
       let objectInfo = {
         uid,
         'x_name': row[1].toString(),
         'x_type_name': row[2],
-        'x.parent': [parentInfo],
+        'e_x_parent': [parentInfo],
         ...attrs
       };
       if (objectRelationMap[uid]) Object.assign(objectInfo, objectRelationMap[uid]);

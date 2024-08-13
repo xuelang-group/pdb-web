@@ -95,7 +95,7 @@ export const G6OperateFunctions = {
             const id = item.uid;
             const newParent = {
               "uid": rootId,
-              "x.parent|x.index": (lastRootNodeIndex + 1) * 1024
+              "x_index": (lastRootNodeIndex + 1) * 1024
             };
             const newObject: CustomObjectConfig = {
               ...item,
@@ -110,7 +110,7 @@ export const G6OperateFunctions = {
             _data.push(newObject);
             shouldUpdateObject.push({
               uid: id,
-              "x.parent": [newParent]
+              "e_x_parent": [newParent]
             });
             lastRootNodeIndex++;
           });
@@ -174,11 +174,11 @@ export const G6OperateFunctions = {
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           const _data = data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
-              currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === model.uid)[0],
+              currentParent = newValue['e_x_parent'].filter((val: Parent) => val.uid === model.uid)[0],
               _xid = xid + '.' + index;
 
-            delete newValue['~x.parent'];
-            delete newValue['~x.parent|x.index'];
+            delete newValue['~e_x_parent'];
+            delete newValue['~x_index'];
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -384,7 +384,7 @@ export const G6OperateFunctions = {
 
       if (value.id === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
-        dropItemLastChildrenXIndex = value?.currentParent['x.parent|x.index'];
+        dropItemLastChildrenXIndex = value?.currentParent['x_index'];
       }
     });
 
@@ -392,12 +392,12 @@ export const G6OperateFunctions = {
 
     dragItems = dragItems.map(function (value) {
       if (value.id === dragItemId) {
-        value['x.parent'] = value['x.parent'].filter(val => val.uid !== dragItemParentUid);
+        value['e_x_parent'] = value['e_x_parent'].filter(val => val.uid !== dragItemParentUid);
         const newParent = {
           uid: dropItemModel.uid,
-          'x.parent|x.index': (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024
+          'x_index': (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024
         }
-        value['x.parent'].push(newParent);
+        value['e_x_parent'].push(newParent);
         Object.assign(value, {
           currentParent: {
             ...newParent,
@@ -556,13 +556,13 @@ export const G6OperateFunctions = {
     const newXid = parentXid + '.' + childLen,
       newParent = {
         uid: parentUid,
-        'x.parent|x.index': (childLen + 1) * 1024,
+        'x_index': (childLen + 1) * 1024,
         'x_children': childLen + 1
       };
     store.dispatch(setGraphLoading(true));
     copyObject({
       uid: copyItem.uid,
-      'x.parent': [newParent],
+      'e_x_parent': [newParent],
       recurse: true
     }, (success: boolean, response: any) => {
       if (success) {
@@ -571,7 +571,7 @@ export const G6OperateFunctions = {
           uid: response.xid,
           id: response.xid,
           "x.id": newXid,
-          "x.parent": [newParent],
+          "e_x_parent": [newParent],
           currentParent: {
             ...newParent,
             id: parentId,
@@ -636,11 +636,8 @@ export const G6OperateFunctions = {
           }
           _data = _data.concat(data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
-              currentParent = newValue['x.parent'].filter((val: Parent) => val.uid === parent)[0],
+              currentParent = newValue['e_x_parent'].filter((val: Parent) => val.uid === parent)[0],
               _xid = xid + '.' + index;
-
-            delete newValue['~x.parent'];
-            delete newValue['~x.parent|x.index'];
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -818,12 +815,12 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
     return item.getModel().xid === (parentNodeXid + '.' + (xIndex - 1));
   });
-  const sourceNodeXIndex = sourceNodeModel.data.currentParent['x.parent|x.index'];
-  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : sourceNodeXIndex - 1;
+  const sourceNodeXIndex = sourceNodeModel.data.currentParent['x_index'];
+  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x_index'] : sourceNodeXIndex - 1;
   const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
     "uid": parentNodeModel.uid,
-    "x.parent|x.index": newParentIndex,
+    "x_index": newParentIndex,
   };
 
   let isCheckout = false;
@@ -855,7 +852,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
 
   G6OperateFunctions.addNode({
     "x_name": typeData.name,
-    "x.parent": [newParent],
+    "e_x_parent": [newParent],
     "x_type_name": defaultTypeName,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1162,7 +1159,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 
   const newParent = {
     "uid": sourceNode.uid,
-    "x.parent|x.index": (childLen + 1) * 1024,
+    "x_index": (childLen + 1) * 1024,
     "x_children": childLen + 1
   };
 
@@ -1195,7 +1192,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultTypeName,
-    "x.parent": [newParent],
+    "e_x_parent": [newParent],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1259,12 +1256,12 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
 
   const newParent = {
     "uid": rootId,
-    "x.parent|x.index": (childLen + 1) * 1024
+    "x_index": (childLen + 1) * 1024
   };
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultName,
-    "x.parent": [newParent],
+    "e_x_parent": [newParent],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1311,7 +1308,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     newXid = dropItemXid,
     newParent = {
       "uid": rootId,
-      // "x.parent|x.index": dropItemIndex
+      // "x_index": dropItemIndex
     };
 
   const dropPrevItemXid = dropItemIndex > 1 ? (rootId + "." + (dropItemIndex - 1)) : "";
@@ -1321,15 +1318,15 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
 
     if (item['x.id'] === dropPrevItemXid) {
-      const dropPrevItemXindex: number = Number(item.currentParent['x.parent|x.index']);
-      newParentIndex = dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x.parent|x.index']) - dropPrevItemXindex) / 2;
+      const dropPrevItemXindex: number = Number(item.currentParent['x_index']);
+      newParentIndex = dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x_index']) - dropPrevItemXindex) / 2;
       Object.assign(newParent, {
-        "x.parent|x.index": newParentIndex
+        "x_index": newParentIndex
       });
     } else if (dropItemIndex === 0 && index === 0) {
-      newParentIndex = Number(dropItemModel.data.currentParent['x.parent|x.index']) / 2;
+      newParentIndex = Number(dropItemModel.data.currentParent['x_index']) / 2;
       Object.assign(newParent, {
-        "x.parent|x.index": newParentIndex
+        "x_index": newParentIndex
       });
     }
 
@@ -1348,7 +1345,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultName,
-    "x.parent": [newParent],
+    "e_x_parent": [newParent],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1399,11 +1396,11 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
               _data = _data.concat(data.map((value: any, index: number) => {
                 const newValue = JSON.parse(JSON.stringify(value)),
-                  parents = newValue['x.parent'],
+                  parents = newValue['e_x_parent'],
                   currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
 
-                delete newValue['~x.parent'];
-                delete newValue['~x.parent|x.index'];
+                delete newValue['~e_x_parent'];
+                delete newValue['~x_index'];
 
                 // 获取对象关系列表数据
                 const relations: any[] = [];
@@ -1606,7 +1603,7 @@ export function registerBehavior() {
           dropItemParentUid = dropItemParentModel.uid;
         }
         if (dropItemParentId !== rootId && dropItemParentId !== dragItemModel.parent) {
-          if (dragItemData['x.parent'].findIndex((val: Parent) => val.uid === dropItemParentUid) > -1) {
+          if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.uid === dropItemParentUid) > -1) {
             message.warning(`当前${dropItemParentModel.name}对象中存在${dragItemModel.name}对象`);
             return;
           }
@@ -1680,15 +1677,15 @@ export function registerBehavior() {
             const dropPrevNodeItem = graph.find("node", function (item, index) {
               return item.getModel().xid === dropPrevXid;
             });
-            const droNodeXIndex = dropItemModel.data.currentParent['x.parent|x.index'];
-            const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x.parent|x.index'] : droNodeXIndex - 1;
+            const droNodeXIndex = dropItemModel.data.currentParent['x_index'];
+            const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x_index'] : droNodeXIndex - 1;
             const newParent = {
               uid: parentUid,
-              'x.parent|x.index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2),
+              'x_index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2),
             };
 
-            dragItemData['x.parent'] = dragItemData['x.parent'].filter((val: Parent) => val.uid !== dragItemData.currentParent.uid);
-            dragItemData['x.parent'].push(newParent);
+            dragItemData['e_x_parent'] = dragItemData['e_x_parent'].filter((val: Parent) => val.uid !== dragItemData.currentParent.uid);
+            dragItemData['e_x_parent'].push(newParent);
             const obj = {
               ...dragItemData,
               'x.id': newId,
@@ -1855,7 +1852,7 @@ export function registerBehavior() {
           });
         }
       } else if (type === 'node-rect') {
-        if (dragItemData['x.parent'].findIndex((val: Parent) => val.uid === dropItemModel.uid) > -1) {
+        if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.uid === dropItemModel.uid) > -1) {
           message.warning(`当前${dropItemModel.name}对象中存在${dragItemModel.name}对象`);
           return;
         }

@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface Parent {
   uid: string
   id?: string
-  'x.parent|x.index'?: number
+  'x_index'?: number
   'x_name'?: string
   'x_children'?: number
 }
@@ -16,7 +16,7 @@ interface LatestVersionConfig {
 export interface ObjectConfig {
   'uid': string
   'x_name': string
-  'x.parent': Array<Parent>
+  'e_x_parent': Array<Parent>
   'x_type_name': string
   'x.last_change': any
   'x.created': any
