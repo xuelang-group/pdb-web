@@ -138,7 +138,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       data: item,
       childLen,
       icon: iconKey,
-      isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.name'] || ''),
+      isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x_type_name'] || ''),
       style: {
         ...nodeStateStyle.default,
         fill

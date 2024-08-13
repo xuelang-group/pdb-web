@@ -27,7 +27,7 @@ export interface AttrConfig {
   "override"?: string
 }
 export interface TypeConfig {
-  'x.type.name': string
+  'x_type_name': string
   'x.type.label': string
   'x.type.metadata'?: string
   'x.type.attrs': Array<AttrConfig | null>
@@ -61,7 +61,7 @@ export const typeSlice = createSlice({
       const newData = JSON.parse(JSON.stringify(state.data));
       if (name) {
         for (let i = 0; i < newData.length; i++) {
-          if (newData[i]['x.type.name'] === name) {
+          if (newData[i]['x_type_name'] === name) {
             Object.assign(newData[i], options);
             break;
           }

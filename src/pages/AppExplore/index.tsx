@@ -143,13 +143,13 @@ export default function AppExplore() {
               Object.assign(targetTypeMap, { [bind.target]: bind.target });
             }
           });
-          _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
+          _types = _types.filter(type => targetTypeMap[type['x_type_name']]);
         }
       }
       typeOptions = typeOptions.concat(_types.map((val, index: number) => ({
         label: val['x.type.label'],
-        value: val['x.type.name'] + `-${currentTagLen}`,
-        key: val['x.type.name'],
+        value: val['x_type_name'] + `-${currentTagLen}`,
+        key: val['x_type_name'],
         type: 'type',
         data: val,
         prevSearchTagType

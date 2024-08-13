@@ -95,7 +95,7 @@ export default function QueryList(props: any) {
       // 对象名称 + 批量匹配
       const names = _.get(condition, 'names', '').split(',');
       Object.assign(data, { names, match: 'eq' });
-    } else if (type === 'x.type.name' && match === 'type') {
+    } else if (type === 'x_type_name' && match === 'type') {
       const type = _.get(condition, 'type', []);
       Object.assign(data, { type });
     } else {

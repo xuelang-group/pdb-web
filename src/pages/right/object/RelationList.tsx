@@ -101,7 +101,7 @@ export default function RelationList(props: RelationListProps) {
   }, [props.source, relationLines]);
 
   useEffect(() => {
-    currentEditModel && updateRelationList(currentEditModel.data['x.type.name']);
+    currentEditModel && updateRelationList(currentEditModel.data['x_type_name']);
   }, [currentEditModel?.id]);
 
   function updateRelationList(typeId: any) {
@@ -248,7 +248,7 @@ export default function RelationList(props: RelationListProps) {
     setTableLoading(true);
     const relation = form.getFieldValue(['relation', index, 'relation']);
     getRelationTarget({
-      'x.type.name': props.source.data['x.type.name'],
+      'x_type_name': props.source.data['x_type_name'],
       'x.relation.name': relation
     }, (success: any, response: any) => {
       if (success) {
@@ -258,7 +258,7 @@ export default function RelationList(props: RelationListProps) {
           _targetList.push({
             value,
             label,
-            type: item['x.type.name'],
+            type: item['x_type_name'],
             disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][item['uid']])
           });
           Object.assign(newTargetMap, { [item.uid]: { ...item } });
@@ -290,10 +290,10 @@ export default function RelationList(props: RelationListProps) {
         const tgtLabel = option.label,
           tgtType = option.type;
         const srcLabel = props.source.data['x_name'],
-          srcType = props.source.data['x.type.name'];
+          srcType = props.source.data['x_type_name'];
         const maxTgt = relationConstrarint[srcType + '-' + tgtType] || Infinity;
-        let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x.type.name') === tgtType).length;
-        if (_.get(targetMap[prvRelationTarget], 'x.type.name') === tgtType) {
+        let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x_type_name') === tgtType).length;
+        if (_.get(targetMap[prvRelationTarget], 'x_type_name') === tgtType) {
           currentNum -= 1;
         }
         if (maxTgt <= currentNum) {

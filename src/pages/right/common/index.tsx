@@ -104,8 +104,8 @@ export default function Right(props: RightProps) {
 
     // 获取属性列表
     if (currentEditType === 'object') {
-      if (_currentEditDefaultData['x.type.name']) {
-        _attrs = await getObjectTypeInfo(_currentEditDefaultData['x.type.name']);
+      if (_currentEditDefaultData['x_type_name']) {
+        _attrs = await getObjectTypeInfo(_currentEditDefaultData['x_type_name']);
       }
       getObjectInfo(_currentEditDefaultData.uid, _attrs);
       uid = _currentEditDefaultData.uid;
@@ -176,7 +176,7 @@ export default function Right(props: RightProps) {
 
     if (currentEditType === 'object') {
       Object.assign(formValues, {
-        typeName: _currentEditDefaultData['x.type.name'] || ''
+        typeName: _currentEditDefaultData['x_type_name'] || ''
       });
     } else if (currentEditType === 'relation') {
       Object.assign(formValues, {
@@ -192,7 +192,7 @@ export default function Right(props: RightProps) {
     setShowMore(Boolean(!currentEditModel));
     let panelTitle = `${props.route === 'object' ? '项目' : '模板'}属性`;
     if (currentEditModel) {
-      if (currentEditModel.data.hasOwnProperty('x.type.name')) {
+      if (currentEditModel.data.hasOwnProperty('x_type_name')) {
         panelTitle = '对象属性'
       } else if (currentEditModel.data.hasOwnProperty('r.type.name')) {
         panelTitle = '关系属性'
@@ -425,7 +425,7 @@ export default function Right(props: RightProps) {
     setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       if (success) {
         const label = type['x.type.label'],
-          name = type['x.type.name'];
+          name = type['x_type_name'];
         if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== currentEditModel.data['x.type.metadata'])) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
           (window as any).PDB_GRAPH?.updateItem(currentEditModel?.id, {
@@ -1124,7 +1124,7 @@ export default function Right(props: RightProps) {
 
                   if (_types && _types.findIndex((_type: any, index: number) =>
                     _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
-                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
+                    _type[currentEditType === 'type' ? "x_type_name" : "r.type.name"] !== currentEditModel.uid
                   ) > -1) {
                     throw new Error('该名称已被使用');
                   }

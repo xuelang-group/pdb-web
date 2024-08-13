@@ -153,7 +153,7 @@ export const countObject = (typeName, callback) => {
 
   return axios.post(api['count'], {
     ...commonParams,
-    'x.type.name': typeName
+    'x_type_name': typeName
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
@@ -297,7 +297,7 @@ export const getRelationTarget = (params, callback) => {
 export const getTypeSupportRelation = (typeName, callback) => {
   return axios.post(objectRelationApi['support'], {
     ...commonParams,
-    'x.type.name': typeName
+    'x_type_name': typeName
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

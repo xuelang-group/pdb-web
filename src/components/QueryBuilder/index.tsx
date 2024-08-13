@@ -313,7 +313,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                     }
                   >
                     {types.map(type => (
-                      <Select.Option value={type['x.type.name']}>{type['x.type.label']}</Select.Option>
+                      <Select.Option value={type['x_type_name']}>{type['x.type.label']}</Select.Option>
                     ))}
                   </Select>
                 </Form.Item>
@@ -339,7 +339,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                       }}
                     >
                       {types.map(type => (
-                        <Select.Option value={type['x.type.name']}>{type['x.type.label']}</Select.Option>
+                        <Select.Option value={type['x_type_name']}>{type['x.type.label']}</Select.Option>
                       ))}
                     </Select>
                   </Form.Item>
@@ -369,7 +369,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                       }
                     >
                       {types.map(type => (
-                        <Select.Option value={type['x.type.name']}>{type['x.type.label']}</Select.Option>
+                        <Select.Option value={type['x_type_name']}>{type['x.type.label']}</Select.Option>
                       ))}
                     </Select>
                   </Form.Item>
@@ -454,7 +454,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                   options={[
                     { value: 'uid', label: '对象ID' },
                     { value: 'x_name', label: '对象名称' },
-                    { value: 'x.type.name', label: '对象类型' }
+                    { value: 'x_type_name', label: '对象类型' }
                   ]}
                   placeholder="请选择"
                   onChange={handleChangeType}
@@ -471,7 +471,7 @@ const QueryBuilder = (props: QueryBuilderProps, ref: any) => {
                     // setFieldValue(['condition', 'match'], 'batch');
 
                     return renderNameForm();
-                  } else if (type === 'x.type.name') {
+                  } else if (type === 'x_type_name') {
                     // setFieldValue('match', 'type');
                     return renderTypeForm();
                   }

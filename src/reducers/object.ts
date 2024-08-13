@@ -17,7 +17,7 @@ export interface ObjectConfig {
   'uid': string
   'x_name': string
   'x.parent': Array<Parent>
-  'x.type.name': string
+  'x_type_name': string
   'x.last_change': any
   'x.created': any
   'x.children': number

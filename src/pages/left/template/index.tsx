@@ -132,7 +132,7 @@ export default function Left() {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
       if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
-        const typeName = type['x.type.name'];
+        const typeName = type['x_type_name'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
           dataIndex,
@@ -153,7 +153,7 @@ export default function Left() {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
       if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
-        const typeName = val['x.type.name'],
+        const typeName = val['x_type_name'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
           dataIndex,
@@ -190,7 +190,7 @@ export default function Left() {
   }
 
   const renderList = (type: string) => {
-    const keyLabel = type === 'type' ? 'x.type.name' : 'r.type.name',
+    const keyLabel = type === 'type' ? 'x_type_name' : 'r.type.name',
       nameLabel = type === 'type' ? 'x.type.label' : 'r.type.label';
     let list = JSON.parse(JSON.stringify(relations));
     if (filterValue) {
@@ -278,14 +278,14 @@ export default function Left() {
               titleRender={(item: any) => (
                 <div
                   style={{ display: 'flex' }}
-                  className={disableType[item.data['x.type.name']] ? 'disabled' : ''}
-                  draggable={!disableType[item.data['x.type.name']]}
+                  className={disableType[item.data['x_type_name']] ? 'disabled' : ''}
+                  draggable={!disableType[item.data['x_type_name']]}
                   onDragStart={event => handleDragStart(event, item.data)}
                   onClick={() => handleSelectRelation(item.data, 'type')}
                 >
                   <i className={'iconfont icon-duixiangleixing'}></i>
                   <span className='type-item-label'>{item.title}</span>
-                  {disableType[item.data['x.type.name']] && <span className='type-item-used'>已使用</span>}
+                  {disableType[item.data['x_type_name']] && <span className='type-item-used'>已使用</span>}
                 </div>
               )}
               expandedKeys={expandedKeys}

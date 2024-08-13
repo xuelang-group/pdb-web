@@ -67,7 +67,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(undefined),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
+    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x_type_name]: ...}}
     [uploading, setUploading] = useState(false); // 上传xlsx文件中
   const [filterForm] = Form.useForm();
   let uploadCofirm: any;
@@ -494,7 +494,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       graph.findAll('node', function (node: Item) {
         const nodeModel = node.get('model'),
           nodeModelData = _.get(nodeModel, 'data'),
-          isDisabled = (_.isEmpty(filterMap.type) || !_.get(filterMap.type, nodeModelData['x.type.name'] || '')) && filters.length > 0;
+          isDisabled = (_.isEmpty(filterMap.type) || !_.get(filterMap.type, nodeModelData['x_type_name'] || '')) && filters.length > 0;
         graph.updateItem(node, { isDisabled });
         if (!isDisabled && !_.isEmpty(filterMap.type)) shouldSelectedNodes.push(node);
         node.setState('selected', !isDisabled && !_.isEmpty(filterMap.type));
@@ -587,7 +587,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                                       <Select.Option value={info['r.type.name']} disabled={_.get(filterMap.relation, info['r.type.name'])}>{info['r.type.label']}</Select.Option>
                                     ))}
                                     {target === 'type' && typeList.map((info: any) => (
-                                      <Select.Option value={info['x.type.name']} disabled={_.get(filterMap.type, info['x.type.name'])}>{info['x.type.label']}</Select.Option>
+                                      <Select.Option value={info['x_type_name']} disabled={_.get(filterMap.type, info['x_type_name'])}>{info['x.type.label']}</Select.Option>
                                     ))}
                                   </Select>
                                 </Form.Item>
@@ -733,7 +733,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function removeTypes(objectTypes: {}, relationTypes: {}) {
-    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
+    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x_type_name']), (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);
@@ -797,7 +797,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           Object.assign(objectTypeMap, { [_label]: _uuid });
           Object.assign(objectTypes, {
             [_label]: {
-              'x.type.name': _uuid,
+              'x_type_name': _uuid,
               'x.type.label': _label,
               'x.type.prototype': [],
               'x.type.metadata': JSON.stringify({ color: colors[colorIndex] }),
@@ -976,7 +976,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
-    const objects: { uid: string; 'x_name': any; 'x.type.name': any; 'x.parent': { uid: string; 'x.parent|x.index': any; }[]; }[] = [], parentIndexMap: any = {};
+    const objects: { uid: string; 'x_name': any; 'x_type_name': any; 'x.parent': { uid: string; 'x.parent|x.index': any; }[]; }[] = [], parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];
@@ -999,7 +999,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       let objectInfo = {
         uid,
         'x_name': row[1].toString(),
-        'x.type.name': row[2],
+        'x_type_name': row[2],
         'x.parent': [parentInfo],
         ...attrs
       };

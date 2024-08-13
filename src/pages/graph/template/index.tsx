@@ -152,7 +152,7 @@ export default function Editor(props: EditorProps) {
       const nodes: any[] = [], edges: any[] = [];
       // 初始化节点数据
       types.forEach(function (type: TypeConfig) {
-        const id = type["x.type.name"];
+        const id = type["x_type_name"];
         const { text } = fittingString(type['x.type.label'] || '', defaultCircleR * 2),
           _metadata = JSON.parse(type['x.type.metadata'] || '{}'),
           fill = _.get(_metadata, 'color', defaultNodeColor.fill),

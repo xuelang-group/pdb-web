@@ -856,7 +856,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   G6OperateFunctions.addNode({
     "x_name": typeData.name,
     "x.parent": [newParent],
-    "x.type.name": defaultTypeName,
+    "x_type_name": defaultTypeName,
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
@@ -1196,7 +1196,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   G6OperateFunctions.addNode({
     "x_name": defaultTypeName,
     "x.parent": [newParent],
-    "x.type.name": typeId,
+    "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
@@ -1265,7 +1265,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   G6OperateFunctions.addNode({
     "x_name": defaultName,
     "x.parent": [newParent],
-    "x.type.name": typeId,
+    "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
@@ -1349,7 +1349,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   G6OperateFunctions.addNode({
     "x_name": defaultName,
     "x.parent": [newParent],
-    "x.type.name": typeId,
+    "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
@@ -1873,7 +1873,7 @@ export function registerBehavior() {
     drop: function drop(event: IG6GraphEvent) {
       const { item, target, originalEvent } = event;
       const dropAddType = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
-      const dropAddTypeId = dropAddType['x.type.name'],
+      const dropAddTypeId = dropAddType['x_type_name'],
         dropAddTypeMetadata = dropAddType['x.type.metadata'] || '{}';
       if (!dropAddTypeId) {
         this.dropItem = item;

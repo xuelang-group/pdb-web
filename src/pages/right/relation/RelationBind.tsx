@@ -10,7 +10,7 @@ import _ from "lodash";
 export default function RelationBind(props: any) {
   const allTypes = useSelector((state: StoreState) => state.type.data);
   const options = allTypes.map(type => ({
-    value: type['x.type.name'],
+    value: type['x_type_name'],
     label: type['x.type.label']
   }));
   const [form] = Form.useForm();

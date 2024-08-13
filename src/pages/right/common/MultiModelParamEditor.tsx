@@ -37,7 +37,7 @@ export default function MultiModelParamEditor(props: any) {
         if (!hasDiffIcon) hasDiffIcon = icon !== prevIcon;
         if (!hasDiffColor) hasDiffColor = currentColor !== prevColor;
         if (!hasDiffBorderColor) hasDiffBorderColor = currentBorderColor !== prevBorderColor;
-        if (isSameType) isSameType = multiEditModel[i]['data']['x.type.name'] === multiEditModel[i - 1]['data']['x.type.name'];
+        if (isSameType) isSameType = multiEditModel[i]['data']['x_type_name'] === multiEditModel[i - 1]['data']['x_type_name'];
       }
       if (hasDiffIcon && hasDiffColor && hasDiffBorderColor) break;
       prevIcon = icon;

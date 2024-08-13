@@ -34,7 +34,7 @@ export interface TypeConditionState {
 enum QueryTypes {
   Uid = 'uid',
   Name = 'x_name',
-  Type = 'x.type.name'
+  Type = 'x_type_name'
 }
 
 export type QueryConditionState =
