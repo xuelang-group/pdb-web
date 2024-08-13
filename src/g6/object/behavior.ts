@@ -66,7 +66,7 @@ export const G6OperateFunctions = {
         let newIndex = 0;
         const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
           if (val.id === parentNodeId || val.uid === parentNodeId) {
-            val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
+            val['x_children'] = val['x_children'] ? val['x_children'] - 1 : 0;
           }
           const shouldRemove = !removeIds.hasOwnProperty(val.id || val.uid);
           if (val.currentParent.id === parentNodeId && shouldRemove && val['x.id']) {
@@ -328,12 +328,12 @@ export const G6OperateFunctions = {
           }
           if (value.id === dropItemId) {
             Object.assign(obj, {
-              'x.children': Number(value['x.children']) + 1,
+              'x_children': Number(value['x_children']) + 1,
               collapsed: false
             });
           } else if (value.id === dragItemParent) {
             Object.assign(obj, {
-              'x.children': Number(value['x.children']) - 1
+              'x_children': Number(value['x_children']) - 1
             });
           }
           newData.push(obj);
@@ -348,12 +348,12 @@ export const G6OperateFunctions = {
             };
             if (value.id === dropItemId) {
               Object.assign(data, {
-                'x.children': Number(value['x.children']) + 1,
+                'x_children': Number(value['x_children']) + 1,
                 collapsed: false
               });
             } else if (value.id === dragItemParent) {
               Object.assign(data, {
-                'x.children': Number(value['x.children']) - 1
+                'x_children': Number(value['x_children']) - 1
               });
             }
             newData.push(data);
@@ -367,13 +367,13 @@ export const G6OperateFunctions = {
             if (value.id === dropItemId) {
               newData.push({
                 ...value,
-                'x.children': Number(value['x.children']) + 1,
+                'x_children': Number(value['x_children']) + 1,
                 collapsed: false
               });
             } else if (value.id === dragItemParent) {
               newData.push({
                 ...value,
-                'x.children': Number(value['x.children']) - 1
+                'x_children': Number(value['x_children']) - 1
               });
             } else {
               newData.push(value);
@@ -557,7 +557,7 @@ export const G6OperateFunctions = {
       newParent = {
         uid: parentUid,
         'x.parent|x.index': (childLen + 1) * 1024,
-        'x.children': childLen + 1
+        'x_children': childLen + 1
       };
     store.dispatch(setGraphLoading(true));
     copyObject({
@@ -621,7 +621,7 @@ export const G6OperateFunctions = {
             const index = objectData.findIndex((val: any) => val.id === parent);
             if (index > -1) {
               xid = objectData[index]['x.id'];
-              childLen = objectData[index]['x.children'];
+              childLen = objectData[index]['x_children'];
             }
           }
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
@@ -688,7 +688,7 @@ export const G6OperateFunctions = {
           allData.forEach(function (obj: any, index: number) {
             const parentId = _.get(obj, "currentParent.id", "");
             if (obj.id === parent) {
-              parentChildLen = obj['x.children'];
+              parentChildLen = obj['x_children'];
             }
             if (obj['x.id'] === xid) {
               newData.push({
@@ -860,19 +860,19 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const childLen = parentNodeModel.data['x.children'];
+    const childLen = parentNodeModel.data['x_children'];
     parentNode.update({
       childLen: childLen + 1,
       data: {
         ...(parentNodeModel?.data),
-        'x.children': childLen + 1,
+        'x_children': childLen + 1,
         collapsed: false
       }
     });
     store.dispatch(setObjectDetail({
       uid: parentNodeId,
       options: {
-        'x.children': childLen + 1,
+        'x_children': childLen + 1,
         collapsed: false
       }
     }));
@@ -1008,7 +1008,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
 
 // 在节点尾部增加子节点
 function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, graph: Graph) {
-  const childLen = newObj.currentParent['x.children'];
+  const childLen = newObj.currentParent['x_children'];
   if (childLen === undefined) return;
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
@@ -1030,7 +1030,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
       xid = obj['x.id'];
 
     if (obj.id === sourceNodeId) {
-      Object.assign(obj, { 'x.children': childLen });
+      Object.assign(obj, { 'x_children': childLen });
     }
 
     if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x.id'] === sourceNodeXid)) {
@@ -1050,14 +1050,14 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
         childLen: childLen,
         data: {
           ...node.data,
-          'x.children': childLen,
+          'x_children': childLen,
           collapsed: false
         }
       });
       store.dispatch(setObjectDetail({
         uid: sourceNodeId,
         options: {
-          'x.children': childLen,
+          'x_children': childLen,
           collapsed: false
         }
       }));
@@ -1117,7 +1117,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
     name: name,
     data: newObj,
     comboId: rootId + '-combo',
-    childLen: Number(newObj['x.children']),
+    childLen: Number(newObj['x_children']),
     icon: iconKey,
     style: {
       ...nodeStateStyle.default,
@@ -1156,14 +1156,14 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 
   const sourceNodeXid = sourceNode.xid;
 
-  const childLen = sourceNode.data['x.children'];
+  const childLen = sourceNode.data['x_children'];
 
   const newXid = sourceNodeXid + '.' + childLen;
 
   const newParent = {
     "uid": sourceNode.uid,
     "x.parent|x.index": (childLen + 1) * 1024,
-    "x.children": childLen + 1
+    "x_children": childLen + 1
   };
 
   let isCheckout = false;
@@ -1636,11 +1636,11 @@ export function registerBehavior() {
           });
           if (value.uid === dragItemParentUid) {
             Object.assign(new_value, {
-              "x.children": new_value["x.children"] - 1
+              "x_children": new_value["x_children"] - 1
             });
           } else if (value.uid === dropItemParentUid) {
             Object.assign(new_value, {
-              "x.children": new_value["x.children"] + 1
+              "x_children": new_value["x_children"] + 1
             });
           }
           const xid = value['x.id'],

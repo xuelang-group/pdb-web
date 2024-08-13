@@ -5,7 +5,7 @@ export interface Parent {
   id?: string
   'x.parent|x.index'?: number
   'x_name'?: string
-  'x.children'?: number
+  'x_children'?: number
 }
 
 interface LatestVersionConfig {
@@ -20,7 +20,7 @@ export interface ObjectConfig {
   'x_type_name': string
   'x.last_change': any
   'x.created': any
-  'x.children': number
+  'x_children': number
   'x_metadata': string
   'x_version'?: boolean
   'x_checkout'?: boolean
