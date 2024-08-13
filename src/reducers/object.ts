@@ -24,7 +24,7 @@ export interface ObjectConfig {
   'x.metadata': string
   'x_version'?: boolean
   'x_checkout'?: boolean
-  'x.latest_version': LatestVersionConfig
+  'x_latest_version': LatestVersionConfig
   [key: string]: any
 }
 
