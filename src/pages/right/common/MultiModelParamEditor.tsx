@@ -30,7 +30,7 @@ export default function MultiModelParamEditor(props: any) {
     if (!multiEditModel) return;
     let isSameType = true;
     for (let i = 0; i < multiEditModel?.length; i++) {
-      const { icon, color, borderColor } = JSON.parse(_.get(multiEditModel[i], 'data', {})['x.metadata'] || '{}');
+      const { icon, color, borderColor } = JSON.parse(_.get(multiEditModel[i], 'data', {})['x_metadata'] || '{}');
       const currentColor = color || defaultNodeColor.fill,
         currentBorderColor = getBorderColor(borderColor, currentColor);
       if (i !== 0) {
@@ -58,20 +58,20 @@ export default function MultiModelParamEditor(props: any) {
 
   const changeNodeMetadata = function (type: string, value: string, isDefault = false) {
     console.log(type, value, isDefault)
-    const shouldUpdateData: { uid: string; 'x.metadata': string; }[] = [];
+    const shouldUpdateData: { uid: string; 'x_metadata': string; }[] = [];
     currentEditModel?.forEach((model: any) => {
       const data = _.get(model, 'data');
       if (data) {
-        const _metadata = JSON.parse(data['x.metadata'] || '{}');
+        const _metadata = JSON.parse(data['x_metadata'] || '{}');
         if (currentIcon) Object.assign(_metadata)
         Object.assign(_metadata, {
           [type]: value
         });
         shouldUpdateData.push({
           uid: data.uid,
-          'x.metadata': JSON.stringify(_metadata)
+          'x_metadata': JSON.stringify(_metadata)
         });
-        Object.assign(data, { 'x.metadata': JSON.stringify(_metadata) });
+        Object.assign(data, { 'x_metadata': JSON.stringify(_metadata) });
       }
     });
     setObject({ 'set': shouldUpdateData }, (success: boolean, response: any) => {

@@ -857,7 +857,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
     "x_name": typeData.name,
     "x.parent": [newParent],
     "x.type.name": defaultTypeName,
-    "x.metadata": typeMetadata,
+    "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
     const childLen = parentNodeModel.data['x.children'];
@@ -1106,7 +1106,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
 
   const { uid, id, } = newObj;
   const name = newObj['x_name'],
-    metadata = JSON.parse(newObj['x.metadata'] || '{}'),
+    metadata = JSON.parse(newObj['x_metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
     iconKey = _.get(metadata, 'icon', '');
   const node = {
@@ -1197,7 +1197,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     "x_name": defaultTypeName,
     "x.parent": [newParent],
     "x.type.name": typeId,
-    "x.metadata": typeMetadata,
+    "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
     const id = newData.uid;
@@ -1266,7 +1266,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     "x_name": defaultName,
     "x.parent": [newParent],
     "x.type.name": typeId,
-    "x.metadata": typeMetadata,
+    "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
     const id = newData.uid;
@@ -1350,7 +1350,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     "x_name": defaultName,
     "x.parent": [newParent],
     "x.type.name": typeId,
-    "x.metadata": typeMetadata,
+    "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
     const id = newData.uid;

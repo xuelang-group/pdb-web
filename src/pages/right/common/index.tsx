@@ -75,7 +75,7 @@ export default function Right(props: RightProps) {
   const inputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    setMetadataKey(props.route === 'object' && !location.pathname.endsWith("/template") ? 'x.metadata' : 'x.type.metadata');
+    setMetadataKey(props.route === 'object' && !location.pathname.endsWith("/template") ? 'x_metadata' : 'x.type.metadata');
   }, [props.route]);
 
   useEffect(() => {
@@ -535,7 +535,7 @@ export default function Right(props: RightProps) {
     setObject(params, (success: boolean, response: any) => {
       if (success) {
         const name = object['x_name'];
-        const icon = _.get(JSON.parse(object['x.metadata'] || '{}'), 'icon', '');
+        const icon = _.get(JSON.parse(object['x_metadata'] || '{}'), 'icon', '');
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
           icon: icon,

@@ -61,7 +61,7 @@ export function registerNode() {
       const userId = store.getState().app.systemInfo.userId;
       const { parent, name, id, data, childLen } = cfg;
       const isRootNode = parent === rootId;
-      const metadata = JSON.parse((data as any)['x.metadata'] || '{}'),
+      const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
@@ -409,7 +409,7 @@ export function registerNode() {
         });
       }
 
-      const metadata = JSON.parse((data as any)['x.metadata'] || '{}'),
+      const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),

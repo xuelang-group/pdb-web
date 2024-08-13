@@ -428,7 +428,7 @@ export default function SearchAround() {
             <span>起始对象</span>
             <span>
               {start.map((item: ObjectConfig) => {
-                const metadata = JSON.parse(item['x.metadata'] || '{}'),
+                const metadata = JSON.parse(item['x_metadata'] || '{}'),
                   color = _.get(metadata, 'color', defaultNodeColor.fill);
                 return (
                   <Tag

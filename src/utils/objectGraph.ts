@@ -125,7 +125,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
       currentParent = item['currentParent'],
       id = uid,
       collapsed = item.collapsed === undefined ? true : item.collapsed,
-      metadata = JSON.parse(item['x.metadata'] || '{}'),
+      metadata = JSON.parse(item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     const comboId = `${id}-combo`;
@@ -372,7 +372,7 @@ export function convertResultData(
       childLen = children.length || 0,
       target = item['target'],
       id = uid,
-      metadata = JSON.parse(item['x.metadata'] || '{}'),
+      metadata = JSON.parse(item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     if (uid === rootId) {
@@ -489,7 +489,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
       childLen = item['x.children'] || 0,
       currentParent = item['currentParent'],
       id = item.id || uid,
-      metadata = JSON.parse(item['x.metadata'] || '{}'),
+      metadata = JSON.parse(item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     const comboId = `${id}-combo`;
