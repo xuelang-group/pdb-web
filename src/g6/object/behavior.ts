@@ -344,7 +344,7 @@ export const G6OperateFunctions = {
             const data = {
               ...value,
               'x.id': newId,
-              'x.last_change': lastChangeTime
+              'x_last_change': lastChangeTime
             };
             if (value.id === dropItemId) {
               Object.assign(data, {
@@ -1629,7 +1629,7 @@ export function registerBehavior() {
         data.forEach(function (value: any) {
           const new_value = JSON.parse(JSON.stringify(value));
           Object.assign(new_value, {
-            'x.last_change': lastChangeTime
+            'x_last_change': lastChangeTime
           });
           if (value.uid === dragItemParentUid) {
             Object.assign(new_value, {
@@ -1694,7 +1694,7 @@ export function registerBehavior() {
                 'x_name': parentModel.name,
                 id: parentId
               },
-              'x.last_change': lastChangeTime
+              'x_last_change': lastChangeTime
             };
             newData.push(obj);
             const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(obj));

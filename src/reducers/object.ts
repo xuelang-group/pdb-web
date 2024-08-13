@@ -18,8 +18,8 @@ export interface ObjectConfig {
   'x_name': string
   'e_x_parent': Array<Parent>
   'x_type_name': string
-  'x.last_change': any
-  'x.created': any
+  'x_last_change': any
+  'x_created': any
   'x_children': number
   'x_metadata': string
   'x_version'?: boolean
