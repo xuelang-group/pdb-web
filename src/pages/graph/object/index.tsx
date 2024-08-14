@@ -96,7 +96,7 @@ export default function Editor(props: EditorProps) {
         const rootId = rootData.vid;
         dispatch(setRootNode({
           uid: rootId,
-          ...rootData['tags'][0]['props']
+          ...(_.get(rootData, 'tags.0.props', {}))
         }));
         getChildren({ uid: rootId }, (success: boolean, data: any) => {
           let newData = [];
@@ -106,7 +106,7 @@ export default function Editor(props: EditorProps) {
               const newValue = JSON.parse(JSON.stringify(value)),
                 parents = newValue['e_x_parent'],
                 currentParent = parents.filter((val: Parent) => val.uid === rootId)[0],
-                defaultInfo = newValue['tags'][0]['props'];
+                defaultInfo = _.get(newValue, 'tags.0.props', {});
 
               // 获取对象关系列表数据
               const relations: any[] = [];
@@ -128,11 +128,12 @@ export default function Editor(props: EditorProps) {
                 }
               });
               Object.assign(relationLines, {
-                [newValue.uid]: relations
+                [newValue.vid]: relations
               });
 
               return {
                 ...defaultInfo,
+                'e_x_parent': parents,
                 currentParent: {
                   ...currentParent,
                   id: rootId,

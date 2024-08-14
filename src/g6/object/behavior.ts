@@ -178,11 +178,10 @@ export const G6OperateFunctions = {
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           const _data = data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
-              currentParent = newValue['e_x_parent'].filter((val: Parent) => val.uid === model.uid)[0],
-              _xid = xid + '.' + index;
-
-            delete newValue['~e_x_parent'];
-            delete newValue['~x_index'];
+              parents = newValue['e_x_parent'],
+              currentParent = parents.filter((val: Parent) => val.uid === model.uid)[0],
+              _xid = xid + '.' + index,
+              defaultInfo = _.get(newValue, 'tags.0.props', {});
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -204,17 +203,19 @@ export const G6OperateFunctions = {
               }
             });
             Object.assign(relationLines, {
-              [newValue.uid]: relations
+              [newValue.vid]: relations
             });
 
             return {
-              ...newValue,
+              ...defaultInfo,
+              'e_x_parent': parents,
               currentParent: {
                 ...currentParent,
                 id
               },
               'x_id': _xid,
-              id: newValue.uid
+              id: newValue.vid,
+              uid: newValue.vid
             }
           });
           store.dispatch(setToolbarConfig({
@@ -640,8 +641,10 @@ export const G6OperateFunctions = {
           }
           _data = _data.concat(data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
-              currentParent = newValue['e_x_parent'].filter((val: Parent) => val.uid === parent)[0],
-              _xid = xid + '.' + index;
+              parents = newValue['e_x_parent'],
+              currentParent = parents.filter((val: Parent) => val.uid === parent)[0],
+              _xid = xid + '.' + index,
+              defaultInfo = _.get(newValue, 'tags.0.props', {});
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -663,17 +666,19 @@ export const G6OperateFunctions = {
               }
             });
             Object.assign(relationLines, {
-              [newValue.uid]: relations
+              [newValue.vid]: relations
             });
 
             return {
-              ...newValue,
+              ...defaultInfo,
+              'e_x_parent': parents,
               currentParent: {
                 ...currentParent,
                 id
               },
               'x_id': _xid,
-              id: newValue.uid
+              id: newValue.vid,
+              uid: newValue.vid
             }
           }));
           store.dispatch(setToolbarConfig({
@@ -1401,10 +1406,8 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               _data = _data.concat(data.map((value: any, index: number) => {
                 const newValue = JSON.parse(JSON.stringify(value)),
                   parents = newValue['e_x_parent'],
-                  currentParent = parents.filter((val: Parent) => val.uid === rootId)[0];
-
-                delete newValue['~e_x_parent'];
-                delete newValue['~x_index'];
+                  currentParent = parents.filter((val: Parent) => val.uid === rootId)[0],
+                  defaultInfo = _.get(newValue, 'tags.0.props', {});
 
                 // 获取对象关系列表数据
                 const relations: any[] = [];
@@ -1426,17 +1429,19 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                   }
                 });
                 Object.assign(relationLines, {
-                  [newValue.uid]: relations
+                  [newValue.vid]: relations
                 });
 
                 return {
-                  ...newValue,
+                  ...defaultInfo,
+                  'e_x_parent': parents,
                   currentParent: {
                     ...currentParent,
                     id: rootId,
                   },
                   'x_id': rootId + '.' + index,
-                  id: newValue.uid
+                  id: newValue.vid,
+                  uid: newValue.vid
                 };
               }));
 
