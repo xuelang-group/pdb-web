@@ -17,13 +17,17 @@ export const G6OperateFunctions = {
 
     addObject([newObject], (success: boolean, response: any) => {
       if (success) {
-        const uid = response['xid'];
+        const uid = response['vid'];
         Object.assign(newData, { uid });
         getObject({ uid }, (success: boolean, response: any) => {
           if (success && response && response[0]) {
             newData = response[0];
           }
-          callback && callback(newData);
+          callback && callback({
+            ...(_.get(newData, 'tags.0.props', {})),
+            'e_x_parent': newData['e_x_parent'],
+            uid,
+          });
         });
       } else {
         notification.error({
