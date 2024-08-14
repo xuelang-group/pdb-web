@@ -73,8 +73,8 @@ export default function RelationList(props: RelationListProps) {
         if (success) {
           response.forEach(function (item: { [x: string]: any; }) {
             _targetList.push({
-              value: item['uid'],
-              label: item['x_name']
+              value: item['vid'],
+              label: _.get(item, 'tags.0.props.x_name', '')
             });
           });
         }
