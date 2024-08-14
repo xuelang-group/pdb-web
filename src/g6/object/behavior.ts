@@ -17,7 +17,7 @@ export const G6OperateFunctions = {
 
     addObject([newObject], (success: boolean, response: any) => {
       if (success) {
-        const uid = response['vid'];
+        const uid = response['vid'][0];
         Object.assign(newData, { uid });
         getObject({ uid }, (success: boolean, response: any) => {
           if (success && response && response[0]) {
@@ -861,7 +861,10 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
 
   G6OperateFunctions.addNode({
     "x_name": typeData.name,
-    "e_x_parent": [newParent],
+    "e_x_parent": [{
+      "vid": newParent['uid'],
+      "x_index": newParent['x_index']
+    }],
     "x_type_name": defaultTypeName,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1201,7 +1204,10 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultTypeName,
-    "e_x_parent": [newParent],
+    "e_x_parent": [{
+      "vid": newParent['uid'],
+      "x_index": newParent['x_index']
+    }],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1270,7 +1276,10 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultName,
-    "e_x_parent": [newParent],
+    "e_x_parent": [{
+      "vid": newParent['uid'],
+      "x_index": newParent['x_index']
+    }],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs
@@ -1315,7 +1324,10 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     dropItemXid = dropItemModel.xid,
     dropItemIndex = Number(dropItemXid.replace(rootId + ".", "")),
     newXid = dropItemXid,
-    newParent = {
+    newParent: {
+      uid: string,
+      "x_index"?: number
+    } = {
       "uid": rootId,
       // "x_index": dropItemIndex
     };
@@ -1354,7 +1366,10 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x_name": defaultName,
-    "e_x_parent": [newParent],
+    "e_x_parent": [{
+      "vid": newParent['uid'],
+      "x_index": newParent['x_index']
+    }],
     "x_type_name": typeId,
     "x_metadata": typeMetadata,
     ...typeAttrs

@@ -976,7 +976,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
-    const objects: { uid: string; 'x_name': any; 'x_type_name': any; 'e_x_parent': { uid: string; 'x_index': any; }[]; }[] = [], parentIndexMap: any = {};
+    const objects: { 
+      vid: string; 
+      'x_name': any; 
+      'x_type_name': any; 
+      'e_x_parent': { vid: string; 'x_index': any; }[]; 
+    }[] = [], 
+    parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];
@@ -995,9 +1001,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         index = parentIndexMap[parentUid];
         Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       }
-      const parentInfo = { uid: parentUid, 'x_index': index };
+      const parentInfo = { vid: parentUid, 'x_index': index };
       let objectInfo = {
-        uid,
+        vid: uid,
         'x_name': row[1].toString(),
         'x_type_name': row[2],
         'e_x_parent': [parentInfo],
