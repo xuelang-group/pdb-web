@@ -111,10 +111,10 @@ export const getObject = (params, callback) => {
   });
 };
 
-export const getObjects = (uid, callback) => {
+export const getObjects = (vid, callback) => {
   return axios.post(api['list'], {
     ...commonParams,
-    uid
+    vid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
