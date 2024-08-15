@@ -619,7 +619,7 @@ export default function Editor(props: EditorProps) {
         }
       }
       G6OperateFunctions.removeNode(currentEditModel?.id, {
-        uid: currentEditModel?.uid,
+        vid: currentEditModel?.uid,
         recurse: removeAll
       }, graph, () => {
         handleModalCancel();
