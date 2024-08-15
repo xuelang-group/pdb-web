@@ -572,15 +572,18 @@ export const G6OperateFunctions = {
       };
     store.dispatch(setGraphLoading(true));
     copyObject({
-      uid: copyItem.uid,
-      'e_x_parent': [newParent],
+      'vid': copyItem.uid,
+      'e_x_parent': [{
+        'vid': newParent['uid'],
+        'x_index': newParent['x_index']
+      }],
       recurse: true
     }, (success: boolean, response: any) => {
       if (success) {
         const newObj = {
           ...copyItem.data,
-          uid: response.xid,
-          id: response.xid,
+          uid: response,
+          id: response,
           "x_id": newXid,
           "e_x_parent": [newParent],
           currentParent: {
