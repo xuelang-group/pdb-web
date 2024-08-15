@@ -530,10 +530,15 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
 
-    const { id, currentParent, collapsed, ...newObject } = JSON.parse(JSON.stringify(object));
+    const { id, currentParent, collapsed, uid, ...newObject } = JSON.parse(JSON.stringify(object));
     delete newObject['x_id'];
 
-    const params = { 'set': [newObject] };
+    const params = {
+      'set': [{
+        ...newObject,
+        'vid': uid
+      }]
+    };
     if (deleteConfig) Object.assign(params, { 'delete': deleteConfig });
 
     setObject(params, (success: boolean, response: any) => {

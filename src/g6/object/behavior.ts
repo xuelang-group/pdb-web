@@ -113,8 +113,11 @@ export const G6OperateFunctions = {
             }
             _data.push(newObject);
             shouldUpdateObject.push({
-              uid: id,
-              "e_x_parent": [newParent]
+              "vid": id,
+              "e_x_parent": [{
+                "vid": newParent['uid'],
+                "x_index": newParent['x_index']
+              }]
             });
             lastRootNodeIndex++;
           });
@@ -411,9 +414,12 @@ export const G6OperateFunctions = {
           }
         });
 
-        const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(value));
+        const { currentParent, collapsed, id, uid, ...newObj } = JSON.parse(JSON.stringify(value));
         delete newObj['x_id'];
-        shouldUpdateObject.push(newObj);
+        shouldUpdateObject.push({
+          ...newObj,
+          'vid': uid
+        });
       }
       if (value['x_id']) {
         return {
@@ -1721,9 +1727,12 @@ export function registerBehavior() {
               'x_last_change': lastChangeTime
             };
             newData.push(obj);
-            const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(obj));
+            const { currentParent, collapsed, id, uid, ...newObj } = JSON.parse(JSON.stringify(obj));
             delete newObj['x_id'];
-            shouldUpdateObject.push(newObj);
+            shouldUpdateObject.push({
+              ...newObj,
+              'vid': uid
+            });
 
             dragItems = originDragItems.map(item => {
               if (item['x_id']) {

@@ -58,7 +58,7 @@ export default function MultiModelParamEditor(props: any) {
 
   const changeNodeMetadata = function (type: string, value: string, isDefault = false) {
     console.log(type, value, isDefault)
-    const shouldUpdateData: { uid: string; 'x_metadata': string; }[] = [];
+    const shouldUpdateData: { vid: string; 'x_metadata': string; }[] = [];
     currentEditModel?.forEach((model: any) => {
       const data = _.get(model, 'data');
       if (data) {
@@ -68,7 +68,7 @@ export default function MultiModelParamEditor(props: any) {
           [type]: value
         });
         shouldUpdateData.push({
-          uid: data.uid,
+          'vid': data.uid,
           'x_metadata': JSON.stringify(_metadata)
         });
         Object.assign(data, { 'x_metadata': JSON.stringify(_metadata) });
@@ -84,7 +84,7 @@ export default function MultiModelParamEditor(props: any) {
           } else if (currentIcon) {
             Object.assign(option, { icon: currentIcon });
           }
-          graph?.updateItem(data.uid, option);
+          graph?.updateItem(data.vid, option);
         });
         if (type === 'icon') {
           setCurrentIcon(value);
