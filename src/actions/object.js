@@ -293,17 +293,17 @@ export const getRelationTarget = (params, callback) => {
   });
 }
 
-// 获取对象对应类型配置的关系
-export const getTypeSupportRelation = (typeName, callback) => {
-  return axios.post(objectRelationApi['support'], {
-    ...commonParams,
-    'x_type_name': typeName
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
+// 获取对象对应类型配置的关系 - 暂无使用
+// export const getTypeSupportRelation = (typeName, callback) => {
+//   return axios.post(objectRelationApi['support'], {
+//     ...commonParams,
+//     'x_type_name': typeName
+//   }).then(({ data }) => {
+//     callback && callback(data.success, data.success ? data.data : data);
+//   }, (err) => {
+//     callback && callback(false, err);
+//   });
+// }
 
 
 /**

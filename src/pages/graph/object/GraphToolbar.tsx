@@ -14,9 +14,9 @@ import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
 import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
-import { setRelations } from "@/reducers/relation";
+import { RelationConfig, setRelations } from "@/reducers/relation";
 import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/type";
-import { setTypes } from "@/reducers/type";
+import { setTypes, TypeConfig } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
 
@@ -67,7 +67,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(undefined),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x_type_name]: ...}}
+    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
     [uploading, setUploading] = useState(false); // 上传xlsx文件中
   const [filterForm] = Form.useForm();
   let uploadCofirm: any;
@@ -583,11 +583,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                                       (option?.value ?? '').toString() === input)
                                     }
                                   >
-                                    {target === 'relation' && relationList.map((info: any) => (
+                                    {target === 'relation' && relationList.map((info: RelationConfig) => (
                                       <Select.Option value={info['r.type.name']} disabled={_.get(filterMap.relation, info['r.type.name'])}>{info['r.type.label']}</Select.Option>
                                     ))}
-                                    {target === 'type' && typeList.map((info: any) => (
-                                      <Select.Option value={info['x_type_name']} disabled={_.get(filterMap.type, info['x_type_name'])}>{info['x.type.label']}</Select.Option>
+                                    {target === 'type' && typeList.map((info: TypeConfig) => (
+                                      <Select.Option value={info['x.type.name']} disabled={_.get(filterMap.type, info['x.type.name'])}>{info['x.type.label']}</Select.Option>
                                     ))}
                                   </Select>
                                 </Form.Item>
@@ -733,7 +733,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function removeTypes(objectTypes: {}, relationTypes: {}) {
-    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x_type_name']), (success: boolean, response: any) => {
+    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);
@@ -797,7 +797,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           Object.assign(objectTypeMap, { [_label]: _uuid });
           Object.assign(objectTypes, {
             [_label]: {
-              'x_type_name': _uuid,
+              'x.type.name': _uuid,
               'x.type.label': _label,
               'x.type.prototype': [],
               'x.type.metadata': JSON.stringify({ color: colors[colorIndex] }),

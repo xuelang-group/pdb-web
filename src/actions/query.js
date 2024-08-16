@@ -2,9 +2,6 @@ import axios from '../utils/axios';
 
 const apiPrefix = '/pdb/api/v1/object/search';
 export const api = {
-  'uid': apiPrefix + '/id',
-  'x_name': apiPrefix + '/name',
-  'x_type_name': apiPrefix + '/type',
   'results': apiPrefix + '/results',
   'pql': apiPrefix + '/pql',
   'vertex': apiPrefix + '/vertex'
@@ -20,15 +17,6 @@ export const runPql = function (params, callback) {
 
 export const runVertex = function (params, callback) {
   return axios.post(api['vertex'], params).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
-// 执行query
-export const runQuery = function (type, params, callback) {
-  return axios.post(api[type], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

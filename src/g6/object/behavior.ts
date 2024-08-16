@@ -1906,7 +1906,7 @@ export function registerBehavior() {
     drop: function drop(event: IG6GraphEvent) {
       const { item, target, originalEvent } = event;
       const dropAddType = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
-      const dropAddTypeId = dropAddType['x_type_name'],
+      const dropAddTypeId = dropAddType['x.type.name'],
         dropAddTypeMetadata = dropAddType['x.type.metadata'] || '{}';
       if (!dropAddTypeId) {
         this.dropItem = item;

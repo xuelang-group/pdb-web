@@ -161,7 +161,7 @@ export default function Left(props: any) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
       if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
-        const typeName = type['x_type_name'];
+        const typeName = type['x.type.name'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
           dataIndex,
@@ -182,7 +182,7 @@ export default function Left(props: any) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
       if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
-        const typeName = val['x_type_name'],
+        const typeName = val['x.type.name'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
           dataIndex,
@@ -339,7 +339,7 @@ export default function Left(props: any) {
 
     let node;
     if (type === 'type') {
-      getTypeByGraphId(routerParams?.id, item['x_type_name'], (success: boolean, response: any) => {
+      getTypeByGraphId(routerParams?.id, item['x.type.name'], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
         if (success && response && response[0]) {
           const data = response[0];
@@ -439,7 +439,7 @@ export default function Left(props: any) {
     if (key === 'delete') {
       const title = modalLabel['delete'] + typeLabel[type] + '类型';
       const nameLabel = type === 'type' ? 'x.type.label' : 'r.type.label',
-        idLabel = type === 'type' ? 'x_type_name' : 'r.type.name';
+        idLabel = type === 'type' ? 'x.type.name' : 'r.type.name';
       modal.confirm({
         className: 'pdb-confirm-modal',
         title,
@@ -470,7 +470,7 @@ export default function Left(props: any) {
       });
     } else {
       if (key === 'inherit') {
-        modalForm.setFieldValue('prototype', item['x_type_name']);
+        modalForm.setFieldValue('prototype', item['x.type.name']);
       }
       setModalType(key);
       setOperateItem({ type, item });
@@ -577,7 +577,7 @@ export default function Left(props: any) {
             <Tree
               showLine={{ showLeafIcon: false }}
               treeData={treeData}
-              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x_type_name']] : []}
+              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
               switcherIcon={() => (<span></span>)}
               titleRender={(item: any) => (
                 <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
@@ -623,7 +623,7 @@ export default function Left(props: any) {
       setModalLoading(true);
       if (type === 'type') {
         const newType = {
-          'x_type_name': 'Type.' + uuid(),
+          'x.type.name': 'Type.' + uuid(),
           'x.type.attrs': [],
           'x.type.prototype': item['x.type.prototype'] || [],
           'x.type.label': name,
@@ -714,7 +714,7 @@ export default function Left(props: any) {
             <Form.Item name="prototype" label="继承自">
               <Select disabled={modalType === 'inherit'}>
                 {prototypeList.map((item: any) => (
-                  <Select.Option value={item['x_type_name']}>
+                  <Select.Option value={item['x.type.name']}>
                     {item['x.type.label']}
                   </Select.Option>
                 ))}

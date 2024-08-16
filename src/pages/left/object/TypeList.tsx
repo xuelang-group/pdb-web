@@ -42,7 +42,7 @@ export default function TypeList() {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
       if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
-        const typeName = val['x_type_name'],
+        const typeName = val['x.type.name'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
           dataIndex,
@@ -62,7 +62,7 @@ export default function TypeList() {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
       if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
-        const typeName = type['x_type_name'];
+        const typeName = type['x.type.name'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
           dataIndex,
@@ -115,7 +115,7 @@ export default function TypeList() {
   const getList = function (list: Array<any>, keyWord: string): Array<any> {
     var arr = [];
     for (var i = 0; i < list.length; i++) {
-      const item = list[i], idKey = 'x_type_name', labelKey = 'x.type.label';
+      const item = list[i], idKey = 'x.type.name', labelKey = 'x.type.label';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
         const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
         let title = (<span className='type-item-label'>{label}</span>);
