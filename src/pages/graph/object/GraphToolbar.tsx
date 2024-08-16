@@ -379,8 +379,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         newData = data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
             parents = newValue['e_x_parent'],
-            currentParent = parents.filter((val: Parent) => val.uid === rootId)[0],
-            defaultInfo = _.get(newValue, 'tags.0.props', {});
+            currentParent = parents.filter((val: Parent) => val.vid === rootId)[0],
+            defaultInfo = _.get(newValue, 'tags.0.props', {}),
+            attrValue = _.get(newValue, 'tags.1.props', {}),
+            uid = newValue['vid'].toString();
 
           // 获取对象关系列表数据
           const relations: any[] = [];
@@ -402,19 +404,21 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             }
           });
           Object.assign(relationLines, {
-            [newValue.uid]: relations
+            [uid]: relations
           });
 
           return {
             ...defaultInfo,
+            ...attrValue,
             'e_x_parent': parents,
             currentParent: {
               ...currentParent,
+              uid: currentParent.vid,
               id: rootId,
             },
             'x_id': rootId + '.' + index,
-            id: newValue.uid,
-            uid: newValue.vid
+            id: uid,
+            uid: uid
           };
         });
         let graphData: any = {};

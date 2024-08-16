@@ -317,12 +317,13 @@ export default function Right(props: RightProps) {
 
   const getObjectInfo = function (uid: string, attrs: any) {
     setAttrLoading(true);
-    getObject({ uid }, async (success: boolean, response: any) => {
-      if (success && response && response[0]) {
+    getObject(uid, async (success: boolean, response: any) => {
+      if (success && response) {
         const objectData = {
-          ...(_.get(response[0], 'tags.0.props', {})),
-          uid: response[0].vid,
-          'e_x_parent': _.get(response[0], 'e_x_parent', {})
+          ...(_.get(response, 'tags.0.props', {})),
+          ...(_.get(response, 'tags.1.props', {})),
+          uid: response.vid,
+          'e_x_parent': _.get(response, 'e_x_parent', {})
         };
         if (objectData['x_version'] && objectData['x_checkout']) {
           await (() => {

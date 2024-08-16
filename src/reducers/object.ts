@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface Parent {
   uid: string
+  vid?: string
   id?: string
   'x_index'?: number
   'x_name'?: string

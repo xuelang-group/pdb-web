@@ -19,12 +19,13 @@ export const G6OperateFunctions = {
       if (success) {
         const uid = response['vid'][0];
         Object.assign(newData, { uid });
-        getObject({ uid }, (success: boolean, response: any) => {
-          if (success && response && response[0]) {
-            newData = response[0];
+        getObject(uid, (success: boolean, response: any) => {
+          if (success && response) {
+            newData = response;
           }
           callback && callback({
             ...(_.get(newData, 'tags.0.props', {})),
+            ...(_.get(newData, 'tags.1.props', {})),
             'e_x_parent': newData['e_x_parent'],
             uid,
           });
@@ -182,9 +183,11 @@ export const G6OperateFunctions = {
           const _data = data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.uid === model.uid)[0],
+              currentParent = parents.filter((val: Parent) => val.vid === model.uid)[0],
               _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue, 'tags.0.props', {});
+              defaultInfo = _.get(newValue, 'tags.0.props', {}),
+              attrValue = _.get(newValue, 'tags.1.props', {}),
+              uid = newValue['vid'].toString();
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -206,19 +209,21 @@ export const G6OperateFunctions = {
               }
             });
             Object.assign(relationLines, {
-              [newValue.vid]: relations
+              [uid]: relations
             });
 
             return {
               ...defaultInfo,
+              ...attrValue,
               'e_x_parent': parents,
               currentParent: {
                 ...currentParent,
+                uid: currentParent.vid,
                 id
               },
               'x_id': _xid,
-              id: newValue.vid,
-              uid: newValue.vid
+              id: uid,
+              uid: uid
             }
           });
           store.dispatch(setToolbarConfig({
@@ -651,9 +656,11 @@ export const G6OperateFunctions = {
           _data = _data.concat(data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.uid === parent)[0],
+              currentParent = parents.filter((val: Parent) => val.vid === parent)[0],
               _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue, 'tags.0.props', {});
+              defaultInfo = _.get(newValue, 'tags.0.props', {}),
+              attrValue = _.get(newValue, 'tags.1.props', {}),
+              uid = newValue['vid'].toString();
 
             // 获取对象关系列表数据
             const relations: any[] = [];
@@ -675,19 +682,21 @@ export const G6OperateFunctions = {
               }
             });
             Object.assign(relationLines, {
-              [newValue.vid]: relations
+              [uid]: relations
             });
 
             return {
               ...defaultInfo,
+              ...attrValue,
               'e_x_parent': parents,
               currentParent: {
                 ...currentParent,
+                uid: currentParent.vid,
                 id
               },
               'x_id': _xid,
-              id: newValue.vid,
-              uid: newValue.vid
+              id: uid,
+              uid: uid
             }
           }));
           store.dispatch(setToolbarConfig({
@@ -1430,8 +1439,10 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               _data = _data.concat(data.map((value: any, index: number) => {
                 const newValue = JSON.parse(JSON.stringify(value)),
                   parents = newValue['e_x_parent'],
-                  currentParent = parents.filter((val: Parent) => val.uid === rootId)[0],
-                  defaultInfo = _.get(newValue, 'tags.0.props', {});
+                  currentParent = parents.filter((val: Parent) => val.vid === rootId)[0],
+                  defaultInfo = _.get(newValue, 'tags.0.props', {}),
+                  attrValue = _.get(newValue, 'tags.1.props', {}),
+                  uid = newValue['vid'].toString();
 
                 // 获取对象关系列表数据
                 const relations: any[] = [];
@@ -1453,19 +1464,21 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                   }
                 });
                 Object.assign(relationLines, {
-                  [newValue.vid]: relations
+                  [uid]: relations
                 });
 
                 return {
                   ...defaultInfo,
+                  ...attrValue,
                   'e_x_parent': parents,
                   currentParent: {
                     ...currentParent,
+                    uid: currentParent.vid,
                     id: rootId,
                   },
                   'x_id': rootId + '.' + index,
-                  id: newValue.vid,
-                  uid: newValue.vid
+                  id: uid,
+                  uid: uid
                 };
               }));
 
