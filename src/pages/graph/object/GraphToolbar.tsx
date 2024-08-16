@@ -387,18 +387,22 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           // 获取对象关系列表数据
           const relations: any[] = [];
           Object.keys(newValue).forEach((key: string) => {
-            if (key.startsWith("Relation.")) {
+            if (key.startsWith("Relation_")) {
               if (_.isArray(newValue[key])) {
                 newValue[key].forEach((target: any) => {
                   relations.push({
                     relation: key,
-                    target
+                    target: {
+                      uid: _.get(target, 'dst', '').toString()
+                    }
                   });
                 });
               } else {
                 relations.push({
                   relation: key,
-                  target: newValue[key]
+                  target: {
+                    uid: _.get(newValue[key], 'dst', '').toString()
+                  }
                 });
               }
             }
@@ -980,13 +984,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
-    const objects: { 
-      vid: string; 
-      'x_name': any; 
-      'x_type_name': any; 
-      'e_x_parent': { vid: string; 'x_index': any; }[]; 
-    }[] = [], 
-    parentIndexMap: any = {};
+    const objects: {
+      vid: string;
+      'x_name': any;
+      'x_type_name': any;
+      'e_x_parent': { vid: string; 'x_index': any; }[];
+    }[] = [],
+      parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];

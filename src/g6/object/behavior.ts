@@ -192,18 +192,22 @@ export const G6OperateFunctions = {
             // 获取对象关系列表数据
             const relations: any[] = [];
             Object.keys(newValue).forEach((key: string) => {
-              if (key.startsWith("Relation.")) {
+              if (key.startsWith("Relation_")) {
                 if (isArray(newValue[key])) {
                   newValue[key].forEach((target: any) => {
                     relations.push({
                       relation: key,
-                      target
+                      target: {
+                        uid: _.get(target, 'dst', '').toString()
+                      }
                     });
                   });
                 } else {
                   relations.push({
                     relation: key,
-                    target: newValue[key]
+                    target: {
+                      uid: _.get(newValue[key], 'dst', '').toString()
+                    }
                   });
                 }
               }
@@ -665,18 +669,22 @@ export const G6OperateFunctions = {
             // 获取对象关系列表数据
             const relations: any[] = [];
             Object.keys(newValue).forEach((key: string) => {
-              if (key.startsWith("Relation.")) {
+              if (key.startsWith("Relation_")) {
                 if (isArray(newValue[key])) {
                   newValue[key].forEach((target: any) => {
                     relations.push({
                       relation: key,
-                      target
+                      target: {
+                        uid: _.get(target, 'dst', '').toString()
+                      }
                     });
                   });
                 } else {
                   relations.push({
                     relation: key,
-                    target: newValue[key]
+                    target: {
+                      uid: _.get(newValue[key], 'dst', '').toString()
+                    }
                   });
                 }
               }
@@ -1447,18 +1455,22 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                 // 获取对象关系列表数据
                 const relations: any[] = [];
                 Object.keys(newValue).forEach((key: string) => {
-                  if (key.startsWith("Relation.")) {
+                  if (key.startsWith("Relation_")) {
                     if (_.isArray(newValue[key])) {
                       newValue[key].forEach((target: any) => {
                         relations.push({
                           relation: key,
-                          target
+                          target: {
+                            uid: _.get(target, 'dst', '').toString()
+                          }
                         });
                       });
                     } else {
                       relations.push({
                         relation: key,
-                        target: newValue[key]
+                        target: {
+                          uid: _.get(newValue[key], 'dst', '').toString()
+                        }
                       });
                     }
                   }
