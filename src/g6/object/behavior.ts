@@ -170,7 +170,7 @@ export const G6OperateFunctions = {
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
       const limit = Number(PAGE_SIZE());
-      let params = { uid: model.uid };
+      let params = { vid: model.uid };
 
       if (limit > 0 && Number(model.childLen) > limit) {
         Object.assign(params, { first: limit, offset: 0 });
@@ -614,7 +614,7 @@ export const G6OperateFunctions = {
         resolve(null);
         return;
       }
-      const params = { uid: parent };
+      const params = { vid: parent };
 
       const limit = Number(PAGE_SIZE()),
         _offset = Number(offset);
@@ -1420,7 +1420,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
       rearrangeChildren({ uid: parentUid }, (success: boolean, response: any) => {
         if (success) {
-          getChildren({ uid: parentUid }, (success: boolean, data: any) => {
+          getChildren({ vid: parentUid }, (success: boolean, data: any) => {
             if (success) {
 
               const { toolbarConfig, currentGraphTab } = store.getState().editor;

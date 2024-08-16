@@ -98,7 +98,7 @@ export default function Editor(props: EditorProps) {
           uid: rootId,
           ...(_.get(rootData, 'tags.0.props', {}))
         }));
-        getChildren({ uid: rootId }, (success: boolean, data: any) => {
+        getChildren({ vid: rootId }, (success: boolean, data: any) => {
           let newData = [];
           if (success) {
             const relationLines = {};

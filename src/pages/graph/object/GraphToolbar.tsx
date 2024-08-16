@@ -372,7 +372,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (!rootId || !graph) return;
     dispatch(setGraphLoading(true));
-    getChildren({ uid: rootId }, (success: boolean, data: any) => {
+    getChildren({ vid: rootId }, (success: boolean, data: any) => {
       let newData = [];
       if (success) {
         const relationLines = {};
