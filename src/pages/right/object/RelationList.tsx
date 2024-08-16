@@ -248,20 +248,22 @@ export default function RelationList(props: RelationListProps) {
     setTableLoading(true);
     const relation = form.getFieldValue(['relation', index, 'relation']);
     getRelationTarget({
-      'x_type_name': props.source.data['x_type_name'],
+      'x.type.name': props.source.data['x_type_name'],
       'x.relation.name': relation
     }, (success: any, response: any) => {
       if (success) {
         const _targetList: any = [], newTargetMap = { ...targetMap };
         response.forEach((item: any) => {
-          const value = item['uid'], label = item['x_name'];
+          const value = item['vid'], 
+            defaultInfo = _.get(item, 'tags.0.props', {}),
+            label = _.get(defaultInfo, 'x_name', '');
           _targetList.push({
             value,
             label,
-            type: item['x_type_name'],
-            disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][item['uid']])
+            type: _.get(defaultInfo, 'x_type_name', ''),
+            disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][item['vid']])
           });
-          Object.assign(newTargetMap, { [item.uid]: { ...item } });
+          Object.assign(newTargetMap, { [item.vid]: { ...item } });
         });
         setTargetMap(newTargetMap);
         setTargetList(_targetList);

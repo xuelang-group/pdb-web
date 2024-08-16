@@ -234,7 +234,6 @@ const objectRelationApi = {
   add: `${objectRelationApiPrefix}/add`,
   update: `${objectRelationApiPrefix}/update`,
   delete: `${objectRelationApiPrefix}/delete`,
-  target: `${objectRelationApiPrefix}/target`,
   support: `${objectRelationApiPrefix}/support`
 }
 
@@ -283,7 +282,7 @@ export const deleteObjectRelation = (params, callback) => {
 }
 
 export const getRelationTarget = (params, callback) => {
-  return axios.post(objectRelationApi['target'], {
+  return axios.post('/pdb/api/v1/graph/relation/target', {
     ...commonParams,
     ...params
   }).then(({ data }) => {
