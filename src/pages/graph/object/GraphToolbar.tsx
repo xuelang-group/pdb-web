@@ -249,7 +249,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           const edgeOption = {
             id: edgeId,
             source: objectUid,
-            target: target.uid,
+            target: target.uid.toString(),
             relationName: relation,
             name: relationMap[relation]['r.type.label'],
             data: relationMap[relation],
@@ -390,10 +390,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           const relations: any[] = [];
           Object.keys(newValue).forEach((key: string) => {
             if (key.startsWith("Relation_")) {
+              const relationKey = key.replace('_', '.');
               if (_.isArray(newValue[key])) {
                 newValue[key].forEach((target: any) => {
                   relations.push({
-                    relation: key,
+                    relation: relationKey,
                     target: {
                       uid: _.get(target, 'dst', '').toString()
                     }
@@ -401,7 +402,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                 });
               } else {
                 relations.push({
-                  relation: key,
+                  relation: relationKey,
                   target: {
                     uid: _.get(newValue[key], 'dst', '').toString()
                   }

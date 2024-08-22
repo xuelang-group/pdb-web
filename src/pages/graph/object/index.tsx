@@ -117,10 +117,11 @@ export default function Editor(props: EditorProps) {
               const relations: any[] = [];
               Object.keys(newValue).forEach((key: string) => {
                 if (key.startsWith("Relation_")) {
+                  const relationKey = key.replace('_', '.');
                   if (_.isArray(newValue[key])) {
                     newValue[key].forEach((target: any) => {
                       relations.push({
-                        relation: key,
+                        relation: relationKey,
                         target: {
                           uid: _.get(target, 'dst', '').toString()
                         }
@@ -128,7 +129,7 @@ export default function Editor(props: EditorProps) {
                     });
                   } else {
                     relations.push({
-                      relation: key,
+                      relation: relationKey,
                       target: {
                         uid: _.get(newValue[key], 'dst', '').toString()
                       }

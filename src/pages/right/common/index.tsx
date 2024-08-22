@@ -343,19 +343,22 @@ export default function Right(props: RightProps) {
         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
         // 获取对象关系列表数据
         const relations: any[] = [];
-        Object.keys(objectData).forEach((key: string) => {
-          if (key.startsWith("Relation.")) {
-            if (isArray(objectData[key])) {
-              objectData[key].forEach((target: any) => {
+        Object.keys(response).forEach((key: string) => {
+          if (key.startsWith("Relation_")) {
+            const relationKey = key.replace('_', '.');
+            if (isArray(response[key])) {
+              response[key].forEach((target: any) => {
                 relations.push({
-                  relation: key,
-                  target
+                  relation: relationKey,
+                  target: {
+                    uid: _.get(target, 'dst', '')
+                  }
                 });
               });
             } else {
               relations.push({
-                relation: key,
-                target: objectData[key]
+                relation: relationKey,
+                target: response[key]
               });
             }
           }
