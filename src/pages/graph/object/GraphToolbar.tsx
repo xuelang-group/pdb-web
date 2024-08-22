@@ -379,7 +379,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         newData = data.map((value: any, index: number) => {
           const newValue = JSON.parse(JSON.stringify(value)),
             parents = newValue['e_x_parent'],
-            currentParent = parents.filter((val: Parent) => val.vid === rootId)[0],
+            currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
             defaultInfo = _.get(newValue, 'tags.0.props', {}),
             attrValue = _.get(newValue, 'tags.1.props', {}),
             uid = newValue['vid'].toString();
@@ -417,8 +417,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             'e_x_parent': parents,
             'x_children': _.get(newValue, 'x_children', 0),
             currentParent: {
-              ...currentParent,
-              uid: currentParent.vid,
+              ...(_.get(currentParent, 'props', {})),
+              uid: currentParent.dst.toString(),
               id: rootId,
             },
             'x_id': rootId + '.' + index,

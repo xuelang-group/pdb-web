@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface Parent {
-  uid: string
-  vid?: string
+  uid?: string
   id?: string
-  'x_index'?: number
-  'x_name'?: string
-  'x_children'?: number
+  src: string
+  dst: number
+  type: number
+  name: string
+  ranking: number
+  props: any
 }
 
 interface LatestVersionConfig {
@@ -31,7 +33,7 @@ export interface ObjectConfig {
 
 
 export interface CustomObjectConfig extends ObjectConfig {
-  'currentParent': Parent
+  'currentParent': any
   'collapsed'?: boolean
   'x_id': string
   'id': string

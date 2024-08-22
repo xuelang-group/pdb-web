@@ -116,8 +116,14 @@ export const G6OperateFunctions = {
             shouldUpdateObject.push({
               "vid": id,
               "e_x_parent": [{
-                "vid": newParent['uid'],
-                "x_index": newParent['x_index']
+                "src": id,
+                "dst": newParent['uid'],
+                "type": 1,
+                "name": "e_x_parent",
+                "ranking": 0,
+                "props": {
+                  "x_index": newParent['x_index']
+                }
               }]
             });
             lastRootNodeIndex++;
@@ -183,7 +189,7 @@ export const G6OperateFunctions = {
           const _data = data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.vid === model.uid)[0],
+              currentParent = parents.filter((val: Parent) => val.dst?.toString() === model.uid)[0],
               _xid = xid + '.' + index,
               defaultInfo = _.get(newValue, 'tags.0.props', {}),
               attrValue = _.get(newValue, 'tags.1.props', {}),
@@ -410,10 +416,16 @@ export const G6OperateFunctions = {
 
     dragItems = dragItems.map(function (value) {
       if (value.id === dragItemId) {
-        value['e_x_parent'] = value['e_x_parent'].filter(val => val.uid !== dragItemParentUid);
+        value['e_x_parent'] = value['e_x_parent'].filter(val => val.dst !== dragItemParentUid);
         const newParent = {
-          uid: dropItemModel.uid,
-          'x_index': (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024
+          src: dragItemId,
+          dst: dropItemModel.uid,
+          type: 1,
+          name: "e_x_parent",
+          ranking: 0,
+          props: {
+            'x_index': (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024
+          }
         }
         value['e_x_parent'].push(newParent);
         Object.assign(value, {
@@ -584,8 +596,14 @@ export const G6OperateFunctions = {
     copyObject({
       'vid': copyItem.uid,
       'e_x_parent': [{
-        'vid': newParent['uid'],
-        'x_index': newParent['x_index']
+        'src': copyItem.uid,
+        'dst': newParent['uid'],
+        'type': 1,
+        'name': 'e_x_parent',
+        'ranking': 0,
+        'props': {
+          'x_index': newParent['x_index']
+        }
       }],
       recurse: true
     }, (success: boolean, response: any) => {
@@ -595,7 +613,16 @@ export const G6OperateFunctions = {
           uid: response,
           id: response,
           "x_id": newXid,
-          "e_x_parent": [newParent],
+          "e_x_parent": [{
+            'src': copyItem.uid,
+            'dst': newParent['uid'],
+            'type': 1,
+            'name': 'e_x_parent',
+            'ranking': 0,
+            'props': {
+              'x_index': newParent['x_index']
+            }
+          }],
           currentParent: {
             ...newParent,
             id: parentId,
@@ -661,7 +688,7 @@ export const G6OperateFunctions = {
           _data = _data.concat(data.map((value: any, index: number) => {
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.vid === parent)[0],
+              currentParent = parents.filter((val: Parent) => val.dst?.toString() === parent)[0],
               _xid = xid + '.' + index,
               defaultInfo = _.get(newValue, 'tags.0.props', {}),
               attrValue = _.get(newValue, 'tags.1.props', {}),
@@ -700,8 +727,8 @@ export const G6OperateFunctions = {
               'e_x_parent': parents,
               'x_children': _.get(newValue, 'x_children', 0),
               currentParent: {
-                ...currentParent,
-                uid: currentParent.vid,
+                ...(_.get(currentParent, 'props', {})),
+                uid: currentParent.dst.toString(),
                 id
               },
               'x_id': _xid,
@@ -1449,7 +1476,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               _data = _data.concat(data.map((value: any, index: number) => {
                 const newValue = JSON.parse(JSON.stringify(value)),
                   parents = newValue['e_x_parent'],
-                  currentParent = parents.filter((val: Parent) => val.vid === rootId)[0],
+                  currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
                   defaultInfo = _.get(newValue, 'tags.0.props', {}),
                   attrValue = _.get(newValue, 'tags.1.props', {}),
                   uid = newValue['vid'].toString();
@@ -1487,8 +1514,8 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                   'e_x_parent': parents,
                   'x_children': _.get(newValue, 'x_children', 0),
                   currentParent: {
-                    ...currentParent,
-                    uid: currentParent.vid,
+                    ...(_.get(currentParent, 'props', {})),
+                    uid: currentParent.dst.toString(),
                     id: rootId,
                   },
                   'x_id': rootId + '.' + index,
@@ -1664,7 +1691,7 @@ export function registerBehavior() {
           dropItemParentUid = dropItemParentModel.uid;
         }
         if (dropItemParentId !== rootId && dropItemParentId !== dragItemModel.parent) {
-          if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.uid === dropItemParentUid) > -1) {
+          if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.dst.toString() === dropItemParentUid) > -1) {
             message.warning(`当前${dropItemParentModel.name}对象中存在${dragItemModel.name}对象`);
             return;
           }
@@ -1741,11 +1768,13 @@ export function registerBehavior() {
             const droNodeXIndex = dropItemModel.data.currentParent['x_index'];
             const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x_index'] : droNodeXIndex - 1;
             const newParent = {
-              uid: parentUid,
-              'x_index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2),
+              'dst': parentUid,
+              'props': {
+                'x_index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2)
+              }
             };
 
-            dragItemData['e_x_parent'] = dragItemData['e_x_parent'].filter((val: Parent) => val.uid !== dragItemData.currentParent.uid);
+            dragItemData['e_x_parent'] = dragItemData['e_x_parent'].filter((val: Parent) => val.dst.toString() !== dragItemData.currentParent.uid);
             dragItemData['e_x_parent'].push(newParent);
             const obj = {
               ...dragItemData,
@@ -1916,7 +1945,7 @@ export function registerBehavior() {
           });
         }
       } else if (type === 'node-rect') {
-        if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.uid === dropItemModel.uid) > -1) {
+        if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.dst.toString() === dropItemModel.uid) > -1) {
           message.warning(`当前${dropItemModel.name}对象中存在${dragItemModel.name}对象`);
           return;
         }

@@ -93,7 +93,7 @@ export default function Editor(props: EditorProps) {
       if (success) {
         if (!data || data.length === 0) return;
         const rootData = data[0];
-        const rootId = rootData.vid;
+        const rootId = rootData.vid.toString();
         dispatch(setRootNode({
           uid: rootId,
           ...(_.get(rootData, 'tags.0.props', {}))
@@ -105,7 +105,7 @@ export default function Editor(props: EditorProps) {
             newData = data.map((value: any, index: number) => {
               const newValue = JSON.parse(JSON.stringify(value)),
                 parents = newValue['e_x_parent'],
-                currentParent = parents.filter((val: Parent) => val.vid === rootId)[0],
+                currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
                 defaultInfo = _.get(newValue, 'tags.0.props', {}),
                 attrValue = _.get(newValue, 'tags.1.props', {}),
                 uid = newValue['vid'].toString();
@@ -143,8 +143,8 @@ export default function Editor(props: EditorProps) {
                 'e_x_parent': parents,
                 'x_children': _.get(newValue, 'x_children', 0),
                 currentParent: {
-                  ...currentParent,
-                  uid: currentParent.vid,
+                  ...(_.get(currentParent, 'props', {})),
+                  uid: currentParent.dst.toString(),
                   id: rootId,
                 },
                 'x_id': rootId + '.' + index,

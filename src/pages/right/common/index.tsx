@@ -323,7 +323,7 @@ export default function Right(props: RightProps) {
           ...(_.get(response, 'tags.0.props', {})),
           ...(_.get(response, 'tags.1.props', {})),
           uid: response.vid,
-          'e_x_parent': _.get(response, 'e_x_parent', {})
+          'e_x_parent': _.get(response, 'e_x_parent', [])
         };
         if (objectData['x_version'] && objectData['x_checkout']) {
           await (() => {
