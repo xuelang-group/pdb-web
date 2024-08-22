@@ -57,12 +57,12 @@ export default function RelationList(props: RelationListProps) {
       });
       if (_relationMap[relationId]) {
         Object.assign(_relationMap[relationId], {
-          [targetId]: targetLabel
+          [targetId]: targetId
         });
       } else {
         Object.assign(_relationMap, {
           [relationId]: {
-            [targetId]: targetLabel
+            [targetId]: targetId
           }
         });
       }
@@ -330,17 +330,19 @@ export default function RelationList(props: RelationListProps) {
       });
 
       createObjectRelation([{
-        uid: props.source.uid,
-        [relation]: [targetOption]
+        vid: props.source.uid,
+        [relation]: [{
+          'vid': targetOption['uid'],
+          'x_name': targetOption['x_name']
+        }]
       }], (success: any, response: any) => {
         if (success) {
           setRelations(form.getFieldValue('relation'));
           const newRelationMap = JSON.parse(JSON.stringify(currentRelationMap));
-          const targetLabel = targetMap[uid]['x_name'];
           if (newRelationMap[relation]) {
-            Object.assign(newRelationMap[relation], { [uid]: targetLabel });
+            Object.assign(newRelationMap[relation], { [uid]: uid });
           } else {
-            Object.assign(newRelationMap, { [relation]: { [uid]: targetLabel } });
+            Object.assign(newRelationMap, { [relation]: { [uid]: uid } });
           }
           setCurrentRelationMap(newRelationMap);
 

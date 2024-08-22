@@ -474,15 +474,14 @@ export default function Right(props: RightProps) {
           Object.assign(modelAtts, { [key]: _.get(relation, key) });
         }
       });
-      const config = [{
-        uid: source,
+
+      createObjectRelation([{
+        'vid': source,
         [relationName as string]: [{
-          uid: target,
+          'vid': target,
           ...attrs
         }]
-      }];
-
-      createObjectRelation(config, (success: boolean, response: any) => {
+      }], (success: boolean, response: any) => {
         if (success) {
           graph.updateItem(currentEditModel.id, { attrs: modelAtts });
         } else {
