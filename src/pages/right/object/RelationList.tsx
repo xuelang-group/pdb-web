@@ -167,8 +167,10 @@ export default function RelationList(props: RelationListProps) {
     const relationId = deleteId || _relations[index].relationId || _relations[index].relation;
     const deleteItemConfig = deleteItem || { uid: _relations[index].target };
     deleteObjectRelation([{
-      uid: sourceUid,
-      [relationId]: [deleteItemConfig]
+      vid: sourceUid,
+      [relationId]: [{
+        vid: deleteItemConfig.uid
+      }]
     }], (success: boolean, response: any) => {
       if (success) {
         const deletTarget = form.getFieldValue(['relation', index, 'target']);

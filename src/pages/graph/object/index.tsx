@@ -639,8 +639,8 @@ export default function Editor(props: EditorProps) {
     } else if (_.get(currentEditModel, "source")) {
       const { id, relationName, source, target } = currentEditModel;
       deleteObjectRelation([{
-        uid: source,
-        [relationName]: [{ uid: target }]
+        vid: source,
+        [relationName]: [{ vid: target }]
       }], (success: boolean, response: any) => {
         if (success) {
           graph.removeItem(id);
