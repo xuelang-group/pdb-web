@@ -377,11 +377,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (success) {
         const relationLines = {};
         newData = data.map((value: any, index: number) => {
+          const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+            attrIndex = infoIndex === 0 ? 1 : 0;
           const newValue = JSON.parse(JSON.stringify(value)),
             parents = newValue['e_x_parent'],
             currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-            defaultInfo = _.get(newValue, 'tags.0.props', {}),
-            attrValue = _.get(newValue, 'tags.1.props', {}),
+            defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+            attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
             uid = newValue['vid'].toString();
 
           // 获取对象关系列表数据

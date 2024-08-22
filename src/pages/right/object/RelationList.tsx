@@ -72,9 +72,10 @@ export default function RelationList(props: RelationListProps) {
       getObjects(Object.keys(noLabelObject), (success: boolean, response: any) => {
         if (success) {
           response.forEach(function (item: { [x: string]: any; }) {
+            const infoIndex = _.get(item, 'tags.0.name') === 'v_node' ? 0 : 1;
             _targetList.push({
               value: item['vid'],
-              label: _.get(item, 'tags.0.props.x_name', '')
+              label: _.get(item.tags[infoIndex], 'props.x_name', '')
             });
           });
         }
@@ -254,8 +255,9 @@ export default function RelationList(props: RelationListProps) {
       if (success) {
         const _targetList: any = [], newTargetMap = { ...targetMap };
         response.forEach((item: any) => {
-          const value = item['vid'], 
-            defaultInfo = _.get(item, 'tags.0.props', {}),
+          const infoIndex = _.get(item, 'tags', []).findIndex((val: any) => val.name === 'v_node');
+          const value = item['vid'],
+            defaultInfo = _.get(item.tags[infoIndex], 'props', {}),
             label = _.get(defaultInfo, 'x_name', '');
           _targetList.push({
             value,

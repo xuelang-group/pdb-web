@@ -94,20 +94,23 @@ export default function Editor(props: EditorProps) {
         if (!data || data.length === 0) return;
         const rootData = data[0];
         const rootId = rootData.vid.toString();
+        const infoIndex = _.get(rootData, 'tags.0.name') === 'v_node' ? 0 : 1;
         dispatch(setRootNode({
           uid: rootId,
-          ...(_.get(rootData, 'tags.0.props', {}))
+          ...(_.get(rootData.tags[infoIndex], 'props', {}))
         }));
         getChildren({ vid: rootId }, (success: boolean, data: any) => {
           let newData = [];
           if (success) {
             const relationLines = {};
             newData = data.map((value: any, index: number) => {
+              const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+                attrIndex = infoIndex === 0 ? 1 : 0;
               const newValue = JSON.parse(JSON.stringify(value)),
                 parents = newValue['e_x_parent'],
                 currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-                defaultInfo = _.get(newValue, 'tags.0.props', {}),
-                attrValue = _.get(newValue, 'tags.1.props', {}),
+                defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+                attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
                 uid = newValue['vid'].toString();
 
               // 获取对象关系列表数据

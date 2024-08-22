@@ -187,12 +187,14 @@ export const G6OperateFunctions = {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           const _data = data.map((value: any, index: number) => {
+            const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+              attrIndex = infoIndex === 0 ? 1 : 0;
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
               currentParent = parents.filter((val: Parent) => val.dst?.toString() === model.uid)[0],
               _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue, 'tags.0.props', {}),
-              attrValue = _.get(newValue, 'tags.1.props', {}),
+              defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+              attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
               uid = newValue['vid'].toString();
 
             // 获取对象关系列表数据
@@ -686,12 +688,14 @@ export const G6OperateFunctions = {
             });
           }
           _data = _data.concat(data.map((value: any, index: number) => {
+            const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+              attrIndex = infoIndex === 0 ? 1 : 0;
             const newValue = JSON.parse(JSON.stringify(value)),
               parents = newValue['e_x_parent'],
               currentParent = parents.filter((val: Parent) => val.dst?.toString() === parent)[0],
               _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue, 'tags.0.props', {}),
-              attrValue = _.get(newValue, 'tags.1.props', {}),
+              defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+              attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
               uid = newValue['vid'].toString();
 
             // 获取对象关系列表数据
@@ -1474,11 +1478,13 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               let _data: any[] = [];
 
               _data = _data.concat(data.map((value: any, index: number) => {
+                const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+                  attrIndex = infoIndex === 0 ? 1 : 0;
                 const newValue = JSON.parse(JSON.stringify(value)),
                   parents = newValue['e_x_parent'],
                   currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-                  defaultInfo = _.get(newValue, 'tags.0.props', {}),
-                  attrValue = _.get(newValue, 'tags.1.props', {}),
+                  defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+                  attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
                   uid = newValue['vid'].toString();
 
                 // 获取对象关系列表数据
