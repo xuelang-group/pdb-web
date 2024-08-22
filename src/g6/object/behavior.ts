@@ -219,10 +219,11 @@ export const G6OperateFunctions = {
             return {
               ...defaultInfo,
               ...attrValue,
+              'x_children': _.get(newValue, 'x_children', 0),
               'e_x_parent': parents,
               currentParent: {
-                ...currentParent,
-                uid: currentParent.vid,
+                ...(_.get(currentParent, 'props', {})),
+                uid: currentParent.dst.toString(),
                 id
               },
               'x_id': _xid,
@@ -345,12 +346,12 @@ export const G6OperateFunctions = {
           }
           if (value.id === dropItemId) {
             Object.assign(obj, {
-              'x_children': Number(value['x_children']) + 1,
+              'x_children': Number(value['x_children'] || 0) + 1,
               collapsed: false
             });
           } else if (value.id === dragItemParent) {
             Object.assign(obj, {
-              'x_children': Number(value['x_children']) - 1
+              'x_children': Number(value['x_children'] || 0) - 1
             });
           }
           newData.push(obj);
@@ -365,12 +366,12 @@ export const G6OperateFunctions = {
             };
             if (value.id === dropItemId) {
               Object.assign(data, {
-                'x_children': Number(value['x_children']) + 1,
+                'x_children': Number(value['x_children'] || 0) + 1,
                 collapsed: false
               });
             } else if (value.id === dragItemParent) {
               Object.assign(data, {
-                'x_children': Number(value['x_children']) - 1
+                'x_children': Number(value['x_children'] || 0) - 1
               });
             }
             newData.push(data);
@@ -384,13 +385,13 @@ export const G6OperateFunctions = {
             if (value.id === dropItemId) {
               newData.push({
                 ...value,
-                'x_children': Number(value['x_children']) + 1,
+                'x_children': Number(value['x_children'] || 0) + 1,
                 collapsed: false
               });
             } else if (value.id === dragItemParent) {
               newData.push({
                 ...value,
-                'x_children': Number(value['x_children']) - 1
+                'x_children': Number(value['x_children'] || 0) - 1
               });
             } else {
               newData.push(value);
@@ -644,7 +645,7 @@ export const G6OperateFunctions = {
             const index = objectData.findIndex((val: any) => val.id === parent);
             if (index > -1) {
               xid = objectData[index]['x_id'];
-              childLen = objectData[index]['x_children'];
+              childLen = objectData[index]['x_children'] || 0;
             }
           }
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
@@ -697,6 +698,7 @@ export const G6OperateFunctions = {
               ...defaultInfo,
               ...attrValue,
               'e_x_parent': parents,
+              'x_children': _.get(newValue, 'x_children', 0),
               currentParent: {
                 ...currentParent,
                 uid: currentParent.vid,
@@ -720,7 +722,7 @@ export const G6OperateFunctions = {
           allData.forEach(function (obj: any, index: number) {
             const parentId = _.get(obj, "currentParent.id", "");
             if (obj.id === parent) {
-              parentChildLen = obj['x_children'];
+              parentChildLen = obj['x_children'] || 0;
             }
             if (obj['x_id'] === xid) {
               newData.push({
@@ -895,7 +897,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
     "x_metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const childLen = parentNodeModel.data['x_children'];
+    const childLen = parentNodeModel.data['x_children'] || 0;
     parentNode.update({
       childLen: childLen + 1,
       data: {
@@ -1152,7 +1154,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
     name: name,
     data: newObj,
     comboId: rootId + '-combo',
-    childLen: Number(newObj['x_children']),
+    childLen: Number(newObj['x_children'] || 0),
     icon: iconKey,
     style: {
       ...nodeStateStyle.default,
@@ -1191,7 +1193,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 
   const sourceNodeXid = sourceNode.xid;
 
-  const childLen = sourceNode.data['x_children'];
+  const childLen = sourceNode.data['x_children'] || 0;
 
   const newXid = sourceNodeXid + '.' + childLen;
 
@@ -1483,6 +1485,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                   ...defaultInfo,
                   ...attrValue,
                   'e_x_parent': parents,
+                  'x_children': _.get(newValue, 'x_children', 0),
                   currentParent: {
                     ...currentParent,
                     uid: currentParent.vid,

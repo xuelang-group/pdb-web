@@ -415,6 +415,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             ...defaultInfo,
             ...attrValue,
             'e_x_parent': parents,
+            'x_children': _.get(newValue, 'x_children', 0),
             currentParent: {
               ...currentParent,
               uid: currentParent.vid,
