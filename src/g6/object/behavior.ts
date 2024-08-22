@@ -538,7 +538,7 @@ export const G6OperateFunctions = {
       return;
     }
     moveObject({
-      uid: dragItemModel.uid,
+      vid: dragItemModel.uid,
       src: dragItemParentUid,
       dest: dropItemModel.uid
     }, (success: boolean, response: any) => {
@@ -1929,7 +1929,7 @@ export function registerBehavior() {
           handleUpdateObjects();
         } else {
           moveObject({
-            uid: dragItemModel.uid,
+            vid: dragItemModel.uid,
             src: dragItemParentUid,
             dest: dropItemParentUid
           }, (success: boolean, response: any) => {
