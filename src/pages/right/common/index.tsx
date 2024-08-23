@@ -535,10 +535,14 @@ export default function Right(props: RightProps) {
 
     const { id, currentParent, collapsed, uid, ...newObject } = JSON.parse(JSON.stringify(object));
     delete newObject['x_id'];
-
+    const exparent = newObject['e_x_parent'].map((val: any) => ({
+      'vid': val['dst'],
+      'x_index': val['props']['x_index']
+    }));
     const params = {
       'set': [{
         ...newObject,
+        'e_x_parent': exparent,
         'vid': uid
       }]
     };
