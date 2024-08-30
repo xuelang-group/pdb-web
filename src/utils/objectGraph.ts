@@ -365,18 +365,26 @@ export function convertResultData(
   }
 
   data.forEach((item: any, index: number) => {
-    const uid = item['uid'],
-      _xid = xid ? (xid + '.' + index) : (item['x_id'] || uid),
-      name = item['x_name'] || uid,
-      children = item['~e_x_parent'] || [],
+    const uid = item['vid'].toString(),
+      _item = {
+        ...(_.get(item, 'tags.0.props', {})),
+        ...(_.get(item, 'tags.1.props', {})),
+        uid,
+        e_x_children: _.get(item, 'e_x_children', []),
+        e_x_parent: _.get(item, 'e_x_parent', []),
+        target: _.get(item, 'target')
+      },
+      _xid = xid ? (xid + '.' + index) : (_item['x_id'] || uid),
+      name = _item['x_name'] || uid,
+      children = _item['e_x_children'] || [],
       childLen = children.length || 0,
-      target = item['target'],
+      target = _item['target'],
       id = uid,
-      metadata = JSON.parse(item['x_metadata'] || '{}'),
+      metadata = JSON.parse(_item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     if (uid === rootId) {
-      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, _item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     } else {
       const comboId = `${id}-combo`;
       const currentParentId = _.get(currentParent, 'uid'),
@@ -390,7 +398,7 @@ export function convertResultData(
         isQueryNode: true,
         name,
         data: {
-          ...item,
+          ..._item,
           collapsed: false,
           currentParent: {
             ...currentParent,
@@ -431,8 +439,8 @@ export function convertResultData(
       const isPagination = id.startsWith("pagination-");
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
-        if (item.totalPage) {
-          Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+        if (_item.totalPage) {
+          Object.assign(node, { totalPage: _item.totalPage, nextDisabled: Boolean(_item.nextDisabled) });
         }
       }
 
@@ -450,27 +458,28 @@ export function convertResultData(
       // 获取对象关系列表数据
       const relations: any[] = [];
       Object.keys(item).forEach((key: string) => {
-        if (key.startsWith("Relation.")) {
+        if (key.startsWith("Relation_")) {
+          const relationKey = key.replace('_', '.');
           if (isArray(item[key])) {
             item[key].forEach((target: any) => {
               relations.push({
-                relation: key,
+                relation: relationKey,
                 target
               });
             });
           } else {
             relations.push({
-              relation: key,
+              relation: relationKey,
               target: item[key]
             });
           }
         }
       });
       Object.assign(relationLines, {
-        [item.uid]: relations
+        [uid]: relations
       });
 
-      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, _item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
   });
 }
