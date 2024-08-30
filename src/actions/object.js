@@ -52,11 +52,11 @@ export const checkInObject = (vid, callback) => {
   });
 };
 
-export const discardObject = (uid, callback) => {
+export const discardObject = (vid, callback) => {
 
   return axios.post(api['discard'], {
     ...commonParams,
-    uid
+    vid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
