@@ -28,11 +28,11 @@ export function setCommonParams(params) {
   Object.assign(commonParams, params);
 }
 
-export const checkOutObject = (uid, callback) => {
+export const checkOutObject = (vid, callback) => {
 
   return axios.post(api['checkout'], {
     ...commonParams,
-    uid
+    vid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
