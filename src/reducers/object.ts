@@ -13,7 +13,7 @@ export interface Parent {
 
 interface LatestVersionConfig {
   uid: string
-  'v.version': string
+  'v_version': string
 }
 
 export interface ObjectConfig {

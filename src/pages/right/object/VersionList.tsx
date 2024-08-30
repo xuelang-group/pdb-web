@@ -12,7 +12,7 @@ interface RelationListProps {
   loading?: boolean
 }
 
-export default function RelationList(props: RelationListProps) {
+export default function VersionList(props: RelationListProps) {
   const { source, loading, checkoutVesion } = props;
   const [modal, contextHolder] = Modal.useModal()
   const [count, setCount] = useState(0),
@@ -21,36 +21,43 @@ export default function RelationList(props: RelationListProps) {
 
   const pageSize = 5
   const columns = [{
-    dataIndex: "v.version",
+    dataIndex: "v_version",
     title: "版本号",
     render: (text: any, record: any, index: number) => (
-      record['v.status'] === "编辑中" ?
+      record['v_status'] === "编辑中" ?
         <span>{text}</span> :
         <span style={{ cursor: "pointer", color: "#0084FF" }} onClick={() => handleShowDetail(record)}>{text}</span>
     )
   }, {
-    dataIndex: "v.status",
+    dataIndex: "v_status",
     title: "状态"
   }, {
-    dataIndex: "v.created",
+    dataIndex: "v_created",
     title: "创建时间"
   }];
 
   function getVersions(offset: number) {
     setVersionLoading(true);
     getVersionList({
-      uid: source.uid,
+      vid: source.uid,
       offset,
       first: pageSize
     }, (success: boolean, response: any) => {
       setVersionLoading(false);
       if (success) {
         setCount(response.count || 0);
-        response.versions && setVersionList(response.versions.map((version: any) => ({
-          ...version,
-          'v.status': source['x_checkout'] && _.get(checkoutVesion, "uid") === version.uid ? "编辑中" : "已发布",
-          'v.created': formatTimestamp(Number(version['v.created']))
-        })));
+        response.versions && setVersionList(response.versions.map((version: any) => {
+          const versionInfo = _.get(version, 'tags.0.props', {}),
+            v_attrs = _.get(version, 'e_v_attrs.tags.0.props', {}),
+            v_children = _.get(version, 'e_v_children', []);
+          return {
+            ...versionInfo,
+            v_attrs,
+            v_children,
+            'v_status': source['x_checkout'] && _.get(checkoutVesion, "uid", "").toString() === version.vid.toString() ? "编辑中" : "已发布",
+            'v_created': formatTimestamp(Number(versionInfo['v_created']))
+          }
+        }));
       } else {
         notification.error({
           message: '获取版本列表失败',
@@ -61,8 +68,8 @@ export default function RelationList(props: RelationListProps) {
   }
 
   function handleShowDetail(record: any) {
-    const attrs = JSON.parse(JSON.stringify(record["v.attrs"]));
-    const attrData: any[] = [], relationData: any[] = [], childrenList: any[] = record["v.children"];
+    const attrs = JSON.parse(JSON.stringify(record["v_attrs"]));
+    const attrData: any[] = [], relationData: any[] = [], childrenList: any[] = record["v_children"];
     Object.keys(attrs).forEach(key => {
       if (key.startsWith("Relation.")) {
         attrs[key].forEach(function ({ uid }: { uid: string }) {
@@ -119,7 +126,7 @@ export default function RelationList(props: RelationListProps) {
       });
     }
     modal.info({
-      title: `版本${record["v.version"]} 修改详情`,
+      title: `版本${record["v_version"]} 修改详情`,
       icon: null,
       content: (<Tabs items={tabs} />),
       okText: "关闭"
