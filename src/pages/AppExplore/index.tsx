@@ -313,7 +313,7 @@ export default function AppExplore() {
             });
           } else {
             const type = detail.type === "type" ? "object" : detail.type;
-            if (type === "relation") relationNames.push(detail.key);
+            if (type === "relation") relationNames.push(detail.key.replace('.', '_'));
             Object.assign(option, {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
@@ -338,7 +338,7 @@ export default function AppExplore() {
     const graphId = routerParams.id;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
-        getQueryResult({ uid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
+        getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
           if (success) {
             updateGraphData(response);
           } else {
