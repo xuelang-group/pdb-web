@@ -341,7 +341,7 @@ export default function SearchAround() {
               fieldNames={{ value: 'x.type.name', label: 'x.type.label' }}
               onChange={value => changeValue(tabIndex, index, 'object', value)}
             ></Select>
-            {option.object && <span>{_.get(results, option.object, []).length}</span>}
+            {option.object && <span>{_.get(results, option.object.replace(".", "_"), []).length}</span>}
           </div>
         </div>
       </div>
