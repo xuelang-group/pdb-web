@@ -40,11 +40,11 @@ export const checkOutObject = (vid, callback) => {
   });
 };
 
-export const checkInObject = (uid, callback) => {
+export const checkInObject = (vid, callback) => {
 
   return axios.post(api['checkin'], {
     ...commonParams,
-    uid
+    vid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
