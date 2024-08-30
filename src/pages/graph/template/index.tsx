@@ -96,7 +96,7 @@ export default function Editor(props: EditorProps) {
           }, {
             type: 'drag-node', // 节点拖拽
           },
-          'activate-relations-custom',
+          'activate-relations',
           'graph-select'
         ]
       },
