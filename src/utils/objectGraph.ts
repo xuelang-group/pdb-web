@@ -464,13 +464,17 @@ export function convertResultData(
             item[key].forEach((target: any) => {
               relations.push({
                 relation: relationKey,
-                target
+                target: {
+                  uid: _.get(target, 'dst', '').toString()
+                }
               });
             });
           } else {
             relations.push({
               relation: relationKey,
-              target: item[key]
+              target: {
+                uid: _.get(item[key], 'dst', '').toString()
+              }
             });
           }
         }
