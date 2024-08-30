@@ -450,10 +450,10 @@ export const getVersionList = (params, callback) => {
   });
 };
 
-export const getCheckoutVersion = (uid, callback) => {
+export const getCheckoutVersion = (vid, callback) => {
   return axios.post(versionApi['checkout'], {
     ...commonParams,
-    uid
+    vid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

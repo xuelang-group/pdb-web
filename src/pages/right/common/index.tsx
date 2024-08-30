@@ -330,8 +330,8 @@ export default function Right(props: RightProps) {
             return new Promise((resolve) => {
               getCheckoutVersion(uid, (success: boolean, response: any) => {
                 if (success) {
-                  const { uid, ...other } = response['v.attrs'];
-                  Object.assign(objectData, other);
+                  const _attrs = _.get(response, 'e_v_attrs.tags.0.props', {});
+                  Object.assign(objectData, _attrs);
                   setCheckoutVersion(response);
                 }
                 resolve(null);

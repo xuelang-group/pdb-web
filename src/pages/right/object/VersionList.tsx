@@ -54,7 +54,7 @@ export default function VersionList(props: RelationListProps) {
             ...versionInfo,
             v_attrs,
             v_children,
-            'v_status': source['x_checkout'] && _.get(checkoutVesion, "uid", "").toString() === version.vid.toString() ? "编辑中" : "已发布",
+            'v_status': source['x_checkout'] && _.get(checkoutVesion, "vid", "").toString() === version.vid.toString() ? "编辑中" : "已发布",
             'v_created': formatTimestamp(Number(versionInfo['v_created']))
           }
         }));
