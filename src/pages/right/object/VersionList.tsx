@@ -116,8 +116,8 @@ export default function VersionList(props: RelationListProps) {
     }
     if (childrenList && childrenList.length > 0) {
       const childrenColumns = [{
-        dataIndex: "uid",
-        title: "对象实例"
+        dataIndex: "dst",
+        title: "对象实例id"
       }];
       tabs.push({
         key: "relation",
