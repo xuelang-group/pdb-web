@@ -970,7 +970,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         if (row[0] === undefined || row[0] === null || row[1] === undefined || row[1] === null || row[2] === undefined || row[2] === null) continue;
         const sourceUid = numToHex(row[0]),
           targetUid = numToHex(row[1]),
-          relationUid = row[2],
+          relationUid = row[2].replace(".", "_"),
           relationAttrs = {};
         try {
           const attrValues = JSON.parse(row[3]);
@@ -978,7 +978,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             Object.assign(relationAttrs, { [`${relationUid}|${key}`]: attrValues[key] });
           });
         } catch (err) { }
-        const info = { uid: targetUid, ...relationAttrs };
+        const info = { vid: targetUid, ...relationAttrs };
         if (!objectRelationMap[sourceUid]) {
           Object.assign(objectRelationMap, { [sourceUid]: { [relationUid]: [info] } });
         } else if (!objectRelationMap[sourceUid][relationUid]) {
