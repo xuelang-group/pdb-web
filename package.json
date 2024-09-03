@@ -1,6 +1,6 @@
 {
   "name": "pdb-web",
-  "version": "0.0.17",
+  "version": "nebula_test",
   "private": true,
   "dependencies": {
     "@ant-design/cssinjs": "^1.20.0",
