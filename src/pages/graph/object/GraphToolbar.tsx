@@ -988,6 +988,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
       }
     }
+    const graph = (window as any).PDB_GRAPH;
+    let nextRootNodeIndex = 1;
+    if (graph && !override) {
+      const rootCombo = graph.findById(rootId + "-combo");
+      if (rootCombo && rootCombo.getChildren().nodes.length > 0) {
+        const lastRootNode = rootCombo.getChildren().nodes.slice(-1)[0];
+        nextRootNodeIndex = Math.floor(lastRootNode.getModel().data.currentParent['x_index'] / 1024) + 1;
+      }
+    }
     const objects: {
       vid: string;
       'x_name': any;
@@ -1000,20 +1009,24 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const row = data[R];
       if (row[0] === undefined || row[0] === null || row[1] === undefined || row[1] === null || row[2] === undefined || row[2] === null) continue;
       const uid = numToHex(row[0]),
-        parentUid = row[4] ? numToHex(row[4]) : rootId,
+        parentUid: any = row[4] ? numToHex(row[4]) : rootId,
         attrs = {};
       try {
         Object.assign(attrs, JSON.parse(row[3]));
       } catch (err) { }
       let index;
       if (!parentIndexMap[parentUid]) {
-        index = 1;
-        Object.assign(parentIndexMap, { [parentUid]: 2 });
+        if (parentUid === rootId) {
+          index = nextRootNodeIndex;
+        } else {
+          index = 1;
+        }
+        Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       } else {
         index = parentIndexMap[parentUid];
         Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       }
-      const parentInfo = { vid: parentUid, 'x_index': index };
+      const parentInfo = { vid: parentUid, 'x_index': index * 1024 };
       let objectInfo = {
         vid: uid,
         'x_name': row[1].toString(),
