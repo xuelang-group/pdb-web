@@ -498,6 +498,19 @@ export default function AppExplore() {
     return tagItem;
   }
 
+  const handleClearSearch = function (event: any) {
+    event.stopPropagation();
+    setSearchTags([[]]);
+    setSearchTagMap([{}]);
+    setCurrentFocusIndex(0);
+    const graph = (window as any).PDB_GRAPH;
+    if (!graph || !graphDataMap['main']) return;
+    dispatch(setCurrentGraphTab("main"));
+    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+    graph.render();
+    graph.zoom(1);
+  }
+
   return (
     <div id="pdb-explore" className={`pdb-explore pdb-explore-${exploreExpand ? 'expand' : 'collapse'}`}>
       {showSearch &&
@@ -615,12 +628,7 @@ export default function AppExplore() {
       <Tooltip title="清空">
         <i
           className="spicon icon-shibai"
-          onClick={event => {
-            event.stopPropagation();
-            setSearchTags([[]]);
-            setSearchTagMap([{}]);
-            setCurrentFocusIndex(0);
-          }}
+          onClick={handleClearSearch}
         ></i>
       </Tooltip>
     </div>

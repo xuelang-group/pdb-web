@@ -531,6 +531,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function clearFilter() {
     filterForm.setFieldValue('filter', []);
   }
+  
   const renderFilterPanel = function () {
     return (
       <div className="pdb-graph-toolbar-panel-container">
