@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -1286,7 +1286,7 @@ export default function Right(props: RightProps) {
       }
     });
   }
-
+  console.log(currentEditDefaultData)
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
@@ -1331,7 +1331,12 @@ export default function Right(props: RightProps) {
               <div className='pdb-right-panel-footer'>
                 {isEditing ?
                   <>
-                    <Button style={{ marginRight: 5 }} onClick={handleDiscard}>取消</Button>
+                    {_.get(checkoutVersion, 'tags.0.props.v_version', '').toString() === '1' ?
+                      <Tooltip title="当前为初始版本，无法取消">
+                        <Button style={{ marginRight: 5 }} disabled>取消</Button>
+                      </Tooltip> :
+                      <Button style={{ marginRight: 5 }} onClick={handleDiscard}>取消</Button>
+                    }
                     <Button type='primary' onClick={handleCheckIn}>发布</Button>
                   </> :
                   <Button onClick={handleEditItem}>编辑</Button>
