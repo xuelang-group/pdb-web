@@ -376,39 +376,6 @@ export function registerNode() {
       let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
         topRect = group?.find(child => child.get('name') === 'top-rect');
 
-      const versionGroup = group.find(ele => ele.get('name') === 'version-group');
-      if (versionGroup) {
-        if ((data as any)['x_checkout']) {
-          versionGroup.show();
-        } else {
-          versionGroup.hide();
-        }
-      }
-
-      if (parent === rootId && !leftRect) {
-        leftRect = group.addShape('rect', {
-          attrs: {
-            width: 40,
-            height: NODE_HEIGHT,
-            fill: 'transparent',
-            stroke: 'transparent',
-            radius: 2,
-            x: -40
-          },
-          name: 'left-rect'
-        });
-        leftRect.on('dragenter', () => {
-          leftRect.attr('fill', '#E8F3FF');
-        });
-        leftRect.on('dragleave', () => {
-          leftRect.attr('fill', 'transparent');
-        });
-
-        leftRect.on('drop', () => {
-          leftRect.attr('fill', 'transparent');
-        });
-      }
-
       const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
@@ -438,6 +405,45 @@ export function registerNode() {
       searchShape.attr({ fill: nodeColor });
       searchIcon.attr({ fill: textColor });
       cfg.width = width;
+
+      const versionGroup: any = group.find(ele => ele.get('name') === 'version-group');
+      if (versionGroup) {
+        if ((data as any)['x_checkout']) {
+          versionGroup.show();
+          const children = versionGroup.getChildren(),
+            newX = width - 0.5;
+          children[0].attr({ x: newX });
+          children[1].attr({ x: newX });
+          children[2].attr({ x: newX });
+        } else {
+          versionGroup.hide();
+        }
+      }
+
+      if (parent === rootId && !leftRect) {
+        leftRect = group.addShape('rect', {
+          attrs: {
+            width: 40,
+            height: NODE_HEIGHT,
+            fill: 'transparent',
+            stroke: 'transparent',
+            radius: 2,
+            x: -40
+          },
+          name: 'left-rect'
+        });
+        leftRect.on('dragenter', () => {
+          leftRect.attr('fill', '#E8F3FF');
+        });
+        leftRect.on('dragleave', () => {
+          leftRect.attr('fill', 'transparent');
+        });
+
+        leftRect.on('drop', () => {
+          leftRect.attr('fill', 'transparent');
+        });
+      }
+
 
       const prevIconType = nodeIcon ? nodeIcon.get('type') : '', currentIconType = iconName.indexOf('studio/' + userId + '/pdb/icons/') > -1 ? 'image' : 'text';
       if (iconName) {
