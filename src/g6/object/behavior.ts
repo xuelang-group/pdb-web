@@ -146,6 +146,7 @@ export const G6OperateFunctions = {
           }
         }
         store.dispatch(setCurrentEditModel(null));
+        store.dispatch(setGraphLoading(false));
         if (shouldUpdate) {
           store.dispatch(setObjects(_data));
           graph.changeData(graphData);
@@ -316,7 +317,7 @@ export const G6OperateFunctions = {
       dragItemParentUid = dragItemParentModel.uid;
     }
 
-    const lastChangeTime = new Date();
+    const lastChangeTime = new Date().getTime();
 
     let dragItems: CustomObjectConfig[] = [];
     let newData: CustomObjectConfig[] = [], sameParentWithDrag = 0, dropItemLastChildrenIndex = -1, modifyIdMaps: any = {}, dropItemLastChildrenXIndex: any = 0;
@@ -506,6 +507,7 @@ export const G6OperateFunctions = {
           shouldUpdate = false;
         }
       }
+      store.dispatch(setGraphLoading(false));
       if (shouldUpdate) {
         store.dispatch(setObjects(newData));
         graph.changeData(graphData);
@@ -1152,6 +1154,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
       shouldUpdate = false;
     }
   }
+  store.dispatch(setGraphLoading(false));
   if (shouldUpdate) {
     graph.changeData(graphData);
     graph.layout();
@@ -1683,7 +1686,7 @@ export function registerBehavior() {
       const dragItemData = JSON.parse(JSON.stringify(dragItemModel.data));
       const shouldUpdateObject: ObjectConfig[] = [];
 
-      const lastChangeTime = new Date();
+      const lastChangeTime = new Date().getTime();
       if (type === 'top-rect' || type === 'left-rect') {
         const rootInfo = store.getState().editor.rootNode,
           rootId = rootInfo?.uid;
@@ -1909,6 +1912,8 @@ export function registerBehavior() {
               }
             }
           }
+
+          store.dispatch(setGraphLoading(false));
           if (shouldUpdate) {
             store.dispatch(setObjects(newData));
             graph.changeData(JSON.parse(JSON.stringify(graphData)));
