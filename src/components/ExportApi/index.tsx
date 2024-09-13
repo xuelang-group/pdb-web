@@ -1,5 +1,5 @@
 import axios from "@/utils/axios";
-import { Button, Modal, Select, Switch, Tag, Tooltip, Transfer, TreeDataNode } from "antd";
+import { Button, message, Modal, Select, Switch, Tag, Tooltip, Transfer, TreeDataNode } from "antd";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import "./index.less";
@@ -116,6 +116,7 @@ export default function ExportApi(props: ExportApiProps) {
     textarea.select();
     document.execCommand('copy');
     document.body.removeChild(textarea);
+    message.success("复制成功");
   }
 
   const onPreview = function () {
