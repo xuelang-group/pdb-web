@@ -45,6 +45,7 @@
   "scripts": {
     "start": "craco start",
     "v:patch": "npm version --no-git-tag-version patch",
+    "build:web": "bash ./build.sh",
     "build": "npm run v:patch && bash ./build.sh && bash ./docker/build.sh",
     "docker": "bash ./docker/build.sh",
     "test": "craco test",

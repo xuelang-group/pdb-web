@@ -75,7 +75,7 @@ export const typeSlice = createSlice({
 });
 
 export const getDefaultTypeConfig = () => {
-  const timestamp = new Date();
+  const timestamp = new Date().getTime();
 
   return {
     "x.type.label": '新类型',
