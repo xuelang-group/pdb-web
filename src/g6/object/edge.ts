@@ -279,7 +279,7 @@ export function registerEdge() {
     },
   }, 'single-line');
 
-  G6.registerEdge('same-root-relation-line', {
+  G6.registerEdge('all-root-relation-line', {
     curveOffset: 20,
     clockwise: 1,
     getPath(points: any) {

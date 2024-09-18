@@ -226,13 +226,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             targetWidth = targetItemModel.width;
 
           // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
-          if (targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) {
+          if (targetItemModel.uid === sourceItemModel.uid) {
+            edgeType = "loop";
+          } else if (targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) {
             edgeType = 'same-tree-relation-line';
             if (sourceItemModel.y > targetItemModel.y) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }
           } else if (sourceIsRoot && targetIsRoot) {
-            edgeType = "same-root-relation-line";
+            edgeType = "all-root-relation-line";
             if (targetItemModel.xid.split('.')[1] < sourceItemModel.xid.split('.')[1]) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }
@@ -292,7 +294,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
 
-          if (objectUid === target.uid) {
+          if (objectUid === target.uid && edgeType !== "loop") {
             Object.assign(edgeOption.labelCfg.style, {
               x: sourceItemModel.x,
               y: sourceItemModel.y

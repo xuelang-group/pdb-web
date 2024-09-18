@@ -57,7 +57,6 @@ export default function MultiModelParamEditor(props: any) {
   }, [multiEditModel]);
 
   const changeNodeMetadata = function (type: string, value: string, isDefault = false) {
-    console.log(type, value, isDefault)
     const shouldUpdateData: { vid: string; 'x_metadata': string; }[] = [];
     currentEditModel?.forEach((model: any) => {
       const data = _.get(model, 'data');

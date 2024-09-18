@@ -1286,7 +1286,6 @@ export default function Right(props: RightProps) {
       }
     });
   }
-  console.log(currentEditDefaultData)
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>

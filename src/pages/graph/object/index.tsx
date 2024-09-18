@@ -7,7 +7,7 @@ import { useResizeDetector } from 'react-resize-detector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
-import { convertResultData, covertToGraphData } from '@/utils/objectGraph';
+import { convertResultData, covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
 import store from '@/store';
 import { initG6 } from '@/g6';
@@ -356,7 +356,12 @@ export default function Editor(props: EditorProps) {
         type: 'step-line',
         labelCfg: {
           style: edgeLabelStyle(props.theme).default,
-        }
+        },
+        loopCfg: {
+          position: 'right',
+          dist: NODE_HEIGHT,
+          clockwise: false
+        },
       },
       plugins: [tooltip, contextMenu]
     });
