@@ -97,7 +97,7 @@ export default function Right(props: RightProps) {
   }, [currentEditParam]);
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
-    let prevLabel = 'x.';
+    let prevLabel = 'x_';
     let uid = '';
     let _currentEditDefaultData = JSON.parse(JSON.stringify(currentEditDefaultData));
     let _attrs: any = [];
@@ -1215,12 +1215,16 @@ export default function Right(props: RightProps) {
                   <Input bordered={false} readOnly />
                 </Form.Item>
               }
-              <Form.Item name='created' label='创建时间' >
-                <Input bordered={false} readOnly />
-              </Form.Item>
-              <Form.Item name='lastChange' label='更改时间' >
-                <Input bordered={false} readOnly />
-              </Form.Item>
+              {!(currentEditType === "relation" && props.route === "object") &&
+                <>
+                  <Form.Item name='created' label='创建时间' >
+                    <Input bordered={false} readOnly />
+                  </Form.Item>
+                  <Form.Item name='lastChange' label='更改时间' >
+                    <Input bordered={false} readOnly />
+                  </Form.Item>
+                </>
+              }
             </>
           }
           <div className='info-show-more' onClick={() => setShowMore(!showMore)}>
