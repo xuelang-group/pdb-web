@@ -762,13 +762,16 @@ export default function Right(props: RightProps) {
 
       if (attr && attr.name && newValues[attr.name] === null) {
         delete newValues[attr.name];
-        const newData = JSON.parse(JSON.stringify(currentEditDefaultData));
+        const newData = JSON.parse(JSON.stringify({
+          ...currentEditDefaultData,
+          ...newValues
+        }));
         delete newData[attr.name];
         updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
       } else {
         updateItemData({
           ...currentEditDefaultData,
-          [attr.name]: newValues[attr.name]
+          ...newValues
         });
       }
     }).catch(err => {
