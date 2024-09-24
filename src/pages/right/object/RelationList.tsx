@@ -74,7 +74,7 @@ export default function RelationList(props: RelationListProps) {
           response.forEach(function (item: { [x: string]: any; }) {
             const infoIndex = _.get(item, 'tags.0.name') === 'v_node' ? 0 : 1;
             _targetList.push({
-              value: item['vid'],
+              value: item['vid'].toString(),
               label: _.get(item.tags[infoIndex], 'props.x_name', '')
             });
           });
@@ -258,16 +258,16 @@ export default function RelationList(props: RelationListProps) {
         const _targetList: any = [], newTargetMap = { ...targetMap };
         response.forEach((item: any) => {
           const infoIndex = _.get(item, 'tags', []).findIndex((val: any) => val.name === 'v_node');
-          const value = item['vid'],
+          const value = item['vid'].toString(),
             defaultInfo = _.get(item.tags[infoIndex], 'props', {}),
             label = _.get(defaultInfo, 'x_name', '');
           _targetList.push({
             value,
             label,
             type: _.get(defaultInfo, 'x_type_name', ''),
-            disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][item['vid']])
+            disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][value])
           });
-          Object.assign(newTargetMap, { [item.vid]: { ...item } });
+          Object.assign(newTargetMap, { [value]: { ...item } });
         });
         setTargetMap(newTargetMap);
         setTargetList(_targetList);
