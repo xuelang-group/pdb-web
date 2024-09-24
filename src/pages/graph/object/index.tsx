@@ -143,7 +143,7 @@ export default function Editor(props: EditorProps) {
 
               return {
                 ...defaultInfo,
-                ...attrValue,
+                'x_attr_value': { ...attrValue },
                 'e_x_parent': parents,
                 'x_children': _.get(newValue, 'x_children', 0),
                 currentParent: {

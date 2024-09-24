@@ -19,13 +19,16 @@ export const G6OperateFunctions = {
       if (success) {
         const uid = response['vid'][0];
         Object.assign(newData, { uid });
+
         getObject(uid, (success: boolean, response: any) => {
           if (success && response) {
             newData = response;
           }
+          const infoIndex = _.get(newData, 'tags.0.name') === 'v_node' ? 0 : 1,
+            attrIndex = infoIndex === 0 ? 1 : 0;
           callback && callback({
-            ...(_.get(newData, 'tags.0.props', {})),
-            ...(_.get(newData, 'tags.1.props', {})),
+            ...(_.get(newData, `tags.${infoIndex}.props`, {})),
+            x_attr_value: { ...(_.get(newData, `tags.${attrIndex}.props`, {})) },
             'e_x_parent': newData['e_x_parent'],
             uid,
           });
@@ -222,7 +225,7 @@ export const G6OperateFunctions = {
 
             return {
               ...defaultInfo,
-              ...attrValue,
+              'x_attr_value': { ...attrValue },
               'x_children': _.get(newValue, 'x_children', 0),
               'e_x_parent': parents,
               currentParent: {
@@ -730,7 +733,7 @@ export const G6OperateFunctions = {
 
             return {
               ...defaultInfo,
-              ...attrValue,
+              'x_attr_value': { ...attrValue },
               'e_x_parent': parents,
               'x_children': _.get(newValue, 'x_children', 0),
               currentParent: {
@@ -1521,7 +1524,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
                 return {
                   ...defaultInfo,
-                  ...attrValue,
+                  'x_attr_value': { ...attrValue },
                   'e_x_parent': parents,
                   'x_children': _.get(newValue, 'x_children', 0),
                   currentParent: {

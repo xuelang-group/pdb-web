@@ -365,10 +365,12 @@ export function convertResultData(
   }
 
   data.forEach((item: any, index: number) => {
+    const infoIndex = _.get(item, 'tags.0.name') === 'v_node' ? 0 : 1,
+      attrIndex = infoIndex === 0 ? 1 : 0;
     const uid = item['vid'].toString(),
       _item = {
-        ...(_.get(item, 'tags.0.props', {})),
-        ...(_.get(item, 'tags.1.props', {})),
+        ...(_.get(item, `tags.${infoIndex}.props`, {})),
+        x_attr_value: { ...(_.get(item, `tags.${attrIndex}.props`, {})) },
         uid,
         e_x_children: _.get(item, 'e_x_children', []),
         e_x_parent: _.get(item, 'e_x_parent', []),

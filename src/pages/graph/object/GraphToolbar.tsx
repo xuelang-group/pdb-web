@@ -418,7 +418,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
           return {
             ...defaultInfo,
-            ...attrValue,
+            'x_attr_value': { ...attrValue },
             'e_x_parent': parents,
             'x_children': _.get(newValue, 'x_children', 0),
             currentParent: {

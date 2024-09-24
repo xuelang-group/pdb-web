@@ -319,9 +319,11 @@ export default function Right(props: RightProps) {
     setAttrLoading(true);
     getObject(uid, async (success: boolean, response: any) => {
       if (success && response) {
+        const infoIndex = _.get(response, 'tags.0.name') === 'v_node' ? 0 : 1,
+          attrIndex = infoIndex === 0 ? 1 : 0;
         const objectData = {
-          ...(_.get(response, 'tags.0.props', {})),
-          ...(_.get(response, 'tags.1.props', {})),
+          ...(_.get(response, `tags.${infoIndex}.props`, {})),
+          'x_attr_value': { ...(_.get(response, `tags.${attrIndex}.props`, {})) },
           uid: response.vid,
           'e_x_parent': _.get(response, 'e_x_parent', [])
         };
@@ -331,7 +333,7 @@ export default function Right(props: RightProps) {
               getCheckoutVersion(uid, (success: boolean, response: any) => {
                 if (success) {
                   const _attrs = _.get(response, 'e_v_attrs.tags.0.props', {});
-                  Object.assign(objectData, _attrs);
+                  Object.assign(objectData['x_attr_value'], _attrs);
                   setCheckoutVersion(response);
                 }
                 resolve(null);
@@ -370,18 +372,21 @@ export default function Right(props: RightProps) {
           key: currentGraphTab,
           config: { relationLines }
         }));
-        setCurrentEditDefaultData(objectData);
-        const filedValue = objectData;
+        const filedValue = objectData['x_attr_value'];
         const attFormValue = {};
         attrs && attrs.forEach((attr: AttrConfig) => {
           const { datetimeFormat, type, name } = attr;
           const value = filedValue[name] !== undefined ? filedValue[name] : attr.default;
           if (type === 'datetime') {
-            value && Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
+            if (value) {
+              Object.assign(objectData['x_attr_value'], { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
+              Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
+            }
           } else {
             Object.assign(attFormValue, { [name]: value });
           }
         });
+        setCurrentEditDefaultData(objectData);
         attrForm.setFieldsValue(attFormValue);
       } else if (!success) {
         notification.error({
@@ -533,7 +538,7 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
 
-    const { id, currentParent, collapsed, uid, ...newObject } = JSON.parse(JSON.stringify(object));
+    const { id, currentParent, collapsed, uid, x_attr_value, ...newObject } = JSON.parse(JSON.stringify(object));
     delete newObject['x_id'];
     const exparent = newObject['e_x_parent'].map((val: any) => ({
       'vid': val['dst'],
@@ -542,6 +547,7 @@ export default function Right(props: RightProps) {
     const params = {
       'set': [{
         ...newObject,
+        ...x_attr_value,
         'e_x_parent': exparent,
         'vid': uid
       }]
@@ -778,13 +784,22 @@ export default function Right(props: RightProps) {
 
       if (attr && attr.name && newValues[attr.name] === null) {
         delete newValues[attr.name];
-        const newData = JSON.parse(JSON.stringify(currentEditDefaultData));
+        const newData = JSON.parse(JSON.stringify({
+          ...currentEditDefaultData,
+          'x_attr_value': {
+            ...currentEditDefaultData['x_attr_value'],
+            ...newValues
+          }
+        }));
         delete newData[attr.name];
         updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
       } else {
         updateItemData({
           ...currentEditDefaultData,
-          [attr.name]: newValues[attr.name]
+          'x_attr_value': {
+            ...currentEditDefaultData['x_attr_value'],
+            ...newValues
+          }
         });
       }
     }).catch(err => {
