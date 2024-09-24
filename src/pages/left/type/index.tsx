@@ -637,7 +637,8 @@ export default function Left(props: any) {
             'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
             'x.type.version': values['x.type.version']
           });
-        } else if (prototype) {
+        }
+        if (prototype) {
           Object.assign(newType, { 'x.type.prototype': [prototype] });
           const new_attrs = JSON.parse(JSON.stringify(item['x.type.attrs'] || []));
           new_attrs.forEach((attr: AttrConfig) => {
