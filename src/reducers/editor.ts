@@ -38,6 +38,7 @@ export interface ObjectRelationConig {
   target: RelationTargetConfig
   relation: string
   override?: boolean
+  attrValue?: any
 }
 
 export interface RelationsConfig {

@@ -206,7 +206,8 @@ export const G6OperateFunctions = {
                       relation: relationKey,
                       target: {
                         uid: _.get(target, 'dst', '').toString()
-                      }
+                      },
+                      attrValue: _.get(target, 'props', {})
                     });
                   });
                 } else {
@@ -214,7 +215,8 @@ export const G6OperateFunctions = {
                     relation: relationKey,
                     target: {
                       uid: _.get(newValue[key], 'dst', '').toString()
-                    }
+                    },
+                    attrValue: _.get(newValue[key], 'props', {})
                   });
                 }
               }
@@ -714,7 +716,8 @@ export const G6OperateFunctions = {
                       relation: relationKey,
                       target: {
                         uid: _.get(target, 'dst', '').toString()
-                      }
+                      },
+                      attrValue: _.get(target, 'props', {})
                     });
                   });
                 } else {
@@ -722,7 +725,8 @@ export const G6OperateFunctions = {
                     relation: relationKey,
                     target: {
                       uid: _.get(newValue[key], 'dst', '').toString()
-                    }
+                    },
+                    attrValue: _.get(newValue[key], 'props', {})
                   });
                 }
               }
@@ -1505,7 +1509,8 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                           relation: relationKey,
                           target: {
                             uid: _.get(target, 'dst', '').toString()
-                          }
+                          },
+                          attrValue: _.get(target, 'props', {})
                         });
                       });
                     } else {
@@ -1513,7 +1518,8 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                         relation: relationKey,
                         target: {
                           uid: _.get(newValue[key], 'dst', '').toString()
-                        }
+                        },
+                        attrValue: _.get(newValue[key], 'props', {})
                       });
                     }
                   }

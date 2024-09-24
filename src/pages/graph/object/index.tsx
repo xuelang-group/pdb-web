@@ -124,7 +124,8 @@ export default function Editor(props: EditorProps) {
                         relation: relationKey,
                         target: {
                           uid: _.get(target, 'dst', '').toString()
-                        }
+                        },
+                        attrValue: _.get(target, 'props', {})
                       });
                     });
                   } else {
@@ -132,7 +133,8 @@ export default function Editor(props: EditorProps) {
                       relation: relationKey,
                       target: {
                         uid: _.get(newValue[key], 'dst', '').toString()
-                      }
+                      },
+                      attrValue: _.get(newValue[key], 'props', {})
                     });
                   }
                 }

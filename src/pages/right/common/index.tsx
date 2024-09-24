@@ -130,8 +130,8 @@ export default function Right(props: RightProps) {
           });
         } else if (currentEditType === 'relation') {
           let value = attr.default;
-          if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
-            value = currentEditModel.attrs[name];
+          if (currentEditModel && currentEditModel.data && currentEditModel.data.hasOwnProperty(name)) {
+            value = currentEditModel.data[name];
           }
           Object.assign(_currentEditDefaultData, {
             [name]: value
@@ -147,8 +147,8 @@ export default function Right(props: RightProps) {
     _attrs.forEach((attr: AttrConfig) => {
       const { type, name, datetimeFormat } = attr;
       let value = attr.default;
-      if (currentEditModel && currentEditModel.attrs && currentEditModel.attrs.hasOwnProperty(name)) {
-        value = currentEditModel.attrs[name];
+      if (currentEditModel && currentEditModel.data && currentEditModel.data.hasOwnProperty(name)) {
+        value = currentEditModel.data[name];
       }
       if (type === 'datetime') {
         value && Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
@@ -353,14 +353,18 @@ export default function Right(props: RightProps) {
                 relations.push({
                   relation: relationKey,
                   target: {
-                    uid: _.get(target, 'dst', '')
-                  }
+                    uid: _.get(target, 'dst', '').toString()
+                  },
+                  attrValue: _.get(target, 'props', {})
                 });
               });
             } else {
               relations.push({
                 relation: relationKey,
-                target: response[key]
+                target: {
+                  uid: _.get(response[key], 'dst', '').toString()
+                },
+                attrValue: _.get(response[key], 'props', {})
               });
             }
           }
@@ -471,11 +475,10 @@ export default function Right(props: RightProps) {
     const graph = (window as any).PDB_GRAPH;
     if (props.route === "object") {
       const { source, target, relationName } = currentEditModel;
-      const attrs = {}, modelAtts = {};
+      const modelAtts = {};
 
       Object.keys(relation).forEach(function (key) {
         if (!key.startsWith("r.type.")) {
-          Object.assign(attrs, { [`${relationName}|${key}`]: _.get(relation, key) });
           Object.assign(modelAtts, { [key]: _.get(relation, key) });
         }
       });
@@ -484,11 +487,11 @@ export default function Right(props: RightProps) {
         'vid': source,
         [relationName as string]: [{
           'vid': target,
-          ...attrs
+          ...modelAtts
         }]
       }], (success: boolean, response: any) => {
         if (success) {
-          graph.updateItem(currentEditModel.id, { attrs: modelAtts });
+          graph.updateItem(currentEditModel.id, { data: relation });
         } else {
           notification.error({
             message: '更新关系属性失败',
@@ -782,25 +785,42 @@ export default function Right(props: RightProps) {
         Object.assign(newValues, { [attr.name]: new Date(datetime) });
       }
 
-      if (attr && attr.name && newValues[attr.name] === null) {
-        delete newValues[attr.name];
-        const newData = JSON.parse(JSON.stringify({
-          ...currentEditDefaultData,
-          'x_attr_value': {
-            ...currentEditDefaultData['x_attr_value'],
-            ...newValues
-          }
-        }));
-        delete newData[attr.name];
-        updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
+      if (currentEditType === 'object') {
+        if (attr && attr.name && newValues[attr.name] === null) {
+          delete newValues[attr.name];
+          const newData = JSON.parse(JSON.stringify({
+            ...currentEditDefaultData,
+            'x_attr_value': {
+              ...currentEditDefaultData['x_attr_value'],
+              ...newValues
+            }
+          }));
+          delete newData['x_attr_value'][attr.name];
+          updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
+        } else {
+          updateItemData({
+            ...currentEditDefaultData,
+            'x_attr_value': {
+              ...currentEditDefaultData['x_attr_value'],
+              ...newValues
+            }
+          });
+        }
       } else {
-        updateItemData({
-          ...currentEditDefaultData,
-          'x_attr_value': {
-            ...currentEditDefaultData['x_attr_value'],
+        if (attr && attr.name && newValues[attr.name] === null) {
+          delete newValues[attr.name];
+          const newData = JSON.parse(JSON.stringify({
+            ...currentEditDefaultData,
             ...newValues
-          }
-        });
+          }));
+          delete newData[attr.name];
+          updateItemData(newData);
+        } else {
+          updateItemData({
+            ...currentEditDefaultData,
+            ...newValues
+          });
+        }
       }
     }).catch(err => {
       console.log(err)

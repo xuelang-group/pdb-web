@@ -468,7 +468,8 @@ export function convertResultData(
                 relation: relationKey,
                 target: {
                   uid: _.get(target, 'dst', '').toString()
-                }
+                },
+                attrValue: _.get(target, 'props', {})
               });
             });
           } else {
@@ -476,7 +477,8 @@ export function convertResultData(
               relation: relationKey,
               target: {
                 uid: _.get(item[key], 'dst', '').toString()
-              }
+              },
+              attrValue: _.get(item[key], 'props', {})
             });
           }
         }

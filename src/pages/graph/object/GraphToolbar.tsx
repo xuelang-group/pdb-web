@@ -193,7 +193,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     Object.keys(relationLines).forEach((objectUid: string) => {
       const relations = relationLines[objectUid];
       relations && relations.forEach((item: ObjectRelationConig) => {
-        const { relation, target } = item;
+        const { relation, target, attrValue } = item;
         if (!relation || !target) return;
         const edgeKey = `${objectUid}-${target.uid}`;
         const edgeId = `${edgeKey}-${relation}`;
@@ -242,20 +242,16 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
           }
 
-          const attrs = {};
-          Object.keys(target).forEach(function (key) {
-            if (key.startsWith(relation + "|")) {
-              Object.assign(attrs, { [key.replace(relation + "|", "")]: _.get(target, key) });
-            }
-          });
           const edgeOption = {
             id: edgeId,
             source: objectUid,
             target: target.uid.toString(),
             relationName: relation,
             name: relationMap[relation]['r.type.label'],
-            data: relationMap[relation],
-            attrs,
+            data: {
+              ...relationMap[relation],
+              ...attrValue
+            },
             type: edgeType,
             sourceIsRoot,
             sourceWidth,
@@ -399,7 +395,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                     relation: relationKey,
                     target: {
                       uid: _.get(target, 'dst', '').toString()
-                    }
+                    },
+                    attrValue: _.get(target, 'props', {})
                   });
                 });
               } else {
@@ -407,7 +404,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                   relation: relationKey,
                   target: {
                     uid: _.get(newValue[key], 'dst', '').toString()
-                  }
+                  },
+                  attrValue: _.get(newValue[key], 'props', {})
                 });
               }
             }
