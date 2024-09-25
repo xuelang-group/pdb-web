@@ -605,14 +605,8 @@ export const G6OperateFunctions = {
     copyObject({
       'vid': copyItem.uid,
       'e_x_parent': [{
-        'src': copyItem.uid,
-        'dst': newParent['uid'],
-        'type': 1,
-        'name': 'e_x_parent',
-        'ranking': 0,
-        'props': {
-          'x_index': newParent['x_index']
-        }
+        'vid': newParent['uid'],
+        'x_index': newParent['x_index']
       }],
       recurse: true
     }, (success: boolean, response: any) => {
