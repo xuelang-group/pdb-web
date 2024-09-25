@@ -62,8 +62,8 @@ export const operation = (route: string = '') => ({
 export const typeLabelMap: any = {
   整数: 'int',
   浮点数: 'float',
-  单行文本: 'string',
-  多行文本: 'text',
+  字符串: 'string',
+  // 多行文本: 'text',
   布尔值: 'boolean',
   日期时间: 'datetime',
   // 值列表: 'list',
@@ -73,8 +73,8 @@ export const typeMap: any = {
   type: {
     int: '整数',
     float: '浮点数',
-    string: '单行文本',
-    text: '多行文本',
+    string: '字符串',
+    // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
     // list: '值列表',
@@ -83,8 +83,8 @@ export const typeMap: any = {
   object: {
     int: '整数',
     float: '浮点数',
-    string: '单行文本',
-    text: '多行文本',
+    string: '字符串',
+    // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
     // list: '值列表',
@@ -93,7 +93,7 @@ export const typeMap: any = {
   relation: {
     int: '整数',
     float: '浮点数',
-    string: '单行文本',
+    string: '字符串',
     boolean: '布尔值',
     datetime: '日期时间',
   }
