@@ -431,8 +431,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               ...currentParent,
               id: rootId,
             },
-            'x.id': rootId + '.' + index,
-            id: newValue.uid
+            'x.id': rootId + '.' + index
           };
         });
         let graphData: any = {};

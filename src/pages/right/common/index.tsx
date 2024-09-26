@@ -526,7 +526,7 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
 
-    const { id, currentParent, collapsed, ...newObject } = JSON.parse(JSON.stringify(object));
+    const { currentParent, collapsed, ...newObject } = JSON.parse(JSON.stringify(object));
     delete newObject['x.id'];
 
     const params = { 'set': [newObject] };
@@ -1283,7 +1283,6 @@ export default function Right(props: RightProps) {
           <ParamEditor
             params={currentEditParam}
             attrs={attrs}
-            currentEditDefaultData={currentEditDefaultData}
             cancel={cancelEditParam}
             currentEditType={currentEditType}
           />}

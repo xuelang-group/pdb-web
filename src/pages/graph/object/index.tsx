@@ -139,8 +139,7 @@ export default function Editor(props: EditorProps) {
                   ...currentParent,
                   id: rootId,
                 },
-                'x.id': rootId + '.' + index,
-                id: newValue.uid
+                'x.id': rootId + '.' + index
               };
             });
             dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));

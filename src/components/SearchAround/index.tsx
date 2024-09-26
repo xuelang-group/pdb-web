@@ -79,8 +79,8 @@ export default function SearchAround() {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     if (prevActiveTabIndex && _.get(searchAroundOptions[Number(prevActiveTabIndex)], 'start')) {
-      (searchAroundOptions[Number(prevActiveTabIndex)].start || []).forEach(({ id }: any) => {
-        const nodeItem = graph.findById(id);
+      (searchAroundOptions[Number(prevActiveTabIndex)].start || []).forEach(({ uid }: any) => {
+        const nodeItem = graph.findById(uid);
         if (nodeItem) {
           nodeItem.setState('searchAround', false);
         }
@@ -93,8 +93,8 @@ export default function SearchAround() {
     if (tabIndex < 0 || !graph || !_.get(searchAroundOpts[tabIndex], 'start')) return;
     const { start } = searchAroundOpts[tabIndex];
     if (start && start.length > 0) {
-      start.forEach(({ id }: any) => {
-        const nodeItem = graph.findById(id);
+      start.forEach(({ uid }: any) => {
+        const nodeItem = graph.findById(uid);
         if (nodeItem) {
           nodeItem.setState('searchAround', true);
         }
@@ -192,7 +192,7 @@ export default function SearchAround() {
     const vertex = [];
     vertex.push({
       type: "object",
-      id: start.map((val: any) => val.id)
+      id: start.map((val: any) => val.uid)
     });
     options.map((opt: { object: string; id: string; conditions: any[]; }) => {
       const { object, id, conditions } = opt;

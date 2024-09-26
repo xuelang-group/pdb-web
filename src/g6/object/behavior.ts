@@ -65,10 +65,10 @@ export const G6OperateFunctions = {
 
         let newIndex = 0;
         const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
-          if (val.id === parentNodeId || val.uid === parentNodeId) {
+          if (val.uid === parentNodeId) {
             val['x.children'] = val['x.children'] ? val['x.children'] - 1 : 0;
           }
-          const shouldRemove = !removeIds.hasOwnProperty(val.id || val.uid);
+          const shouldRemove = !removeIds.hasOwnProperty(val.uid);
           if (val.currentParent.id === parentNodeId && shouldRemove && val['x.id']) {
             const xid = val['x.id'].split(".");
             xid.pop();
@@ -92,7 +92,6 @@ export const G6OperateFunctions = {
           }
           response.map((item: ObjectConfig) => {
             const newXid = rootId + '.' + lastRootNodeIndex;
-            const id = item.uid;
             const newParent = {
               "uid": rootId,
               "x.parent|x.index": (lastRootNodeIndex + 1) * 1024
@@ -104,12 +103,11 @@ export const G6OperateFunctions = {
                 "x.name": rootNode['x.name'],
                 id: rootId
               },
-              'x.id': newXid,
-              id
+              'x.id': newXid
             }
             _data.push(newObject);
             shouldUpdateObject.push({
-              uid: id,
+              uid: item.uid,
               "x.parent": [newParent]
             });
             lastRootNodeIndex++;
@@ -209,8 +207,7 @@ export const G6OperateFunctions = {
                 ...currentParent,
                 id
               },
-              'x.id': _xid,
-              id: newValue.uid
+              'x.id': _xid
             }
           });
           store.dispatch(setToolbarConfig({
@@ -223,7 +220,6 @@ export const G6OperateFunctions = {
             const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
             _data.push({
               uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
-              id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
               totalPage,
               currentParent: { id }
             });
@@ -302,13 +298,13 @@ export const G6OperateFunctions = {
 
     let shouldUpdateObject: ObjectConfig[] = [], dragItemIdMap = { [dragItemId]: dragItem };
 
-    allData.forEach(function (value) {
+    allData.forEach(function (value: CustomObjectConfig) {
       const xid = value['x.id'],
         parent: any = value['currentParent'].id;
       if (!parent) return;
-      if (value.id === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
+      if (value.uid === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
         dragItems.push({ ...value });
-        Object.assign(dragItemIdMap, { [value.id]: value });
+        Object.assign(dragItemIdMap, { [value.uid]: value });
       } else {
         if (parent === dragItemParent) {
           const dragItemIds = dragItemXid.split('.');
@@ -320,18 +316,18 @@ export const G6OperateFunctions = {
               'x.id': newId
             });
             Object.assign(modifyIdMaps, {
-              [value.id]: {
+              [value.uid]: {
                 new: newId,
                 old: xid
               }
             });
           }
-          if (value.id === dropItemId) {
+          if (value.uid === dropItemId) {
             Object.assign(obj, {
               'x.children': Number(value['x.children']) + 1,
               collapsed: false
             });
-          } else if (value.id === dragItemParent) {
+          } else if (value.uid === dragItemParent) {
             Object.assign(obj, {
               'x.children': Number(value['x.children']) - 1
             });
@@ -346,31 +342,31 @@ export const G6OperateFunctions = {
               'x.id': newId,
               'x.last_change': lastChangeTime
             };
-            if (value.id === dropItemId) {
+            if (value.uid === dropItemId) {
               Object.assign(data, {
                 'x.children': Number(value['x.children']) + 1,
                 collapsed: false
               });
-            } else if (value.id === dragItemParent) {
+            } else if (value.uid === dragItemParent) {
               Object.assign(data, {
                 'x.children': Number(value['x.children']) - 1
               });
             }
             newData.push(data);
             Object.assign(modifyIdMaps, {
-              [value.id]: {
+              [value.uid]: {
                 new: newId,
                 old: xid
               }
             });
           } else {
-            if (value.id === dropItemId) {
+            if (value.uid === dropItemId) {
               newData.push({
                 ...value,
                 'x.children': Number(value['x.children']) + 1,
                 collapsed: false
               });
-            } else if (value.id === dragItemParent) {
+            } else if (value.uid === dragItemParent) {
               newData.push({
                 ...value,
                 'x.children': Number(value['x.children']) - 1
@@ -382,7 +378,7 @@ export const G6OperateFunctions = {
         }
       }
 
-      if (value.id === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
+      if (value.uid === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
         dropItemLastChildrenXIndex = value?.currentParent['x.parent|x.index'];
       }
@@ -391,7 +387,7 @@ export const G6OperateFunctions = {
     const dragItemNewXid = (modifyIdMaps[dropItemId]?.new || dropItemXid) + '.' + dropItemLastChildrenIndex;
 
     dragItems = dragItems.map(function (value) {
-      if (value.id === dragItemId) {
+      if (value.uid === dragItemId) {
         value['x.parent'] = value['x.parent'].filter(val => val.uid !== dragItemParentUid);
         const newParent = {
           uid: dropItemModel.uid,
@@ -406,7 +402,7 @@ export const G6OperateFunctions = {
           }
         });
 
-        const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(value));
+        const { currentParent, collapsed, ...newObj } = JSON.parse(JSON.stringify(value));
         delete newObj['x.id'];
         shouldUpdateObject.push(newObj);
       }
@@ -569,7 +565,6 @@ export const G6OperateFunctions = {
         const newObj = {
           ...copyItem.data,
           uid: response.xid,
-          id: response.xid,
           "x.id": newXid,
           "x.parent": [newParent],
           currentParent: {
@@ -618,7 +613,7 @@ export const G6OperateFunctions = {
             childLen = parentModel.childLen;
           const comboId = `${id}-combo`;
           if (objectData) {
-            const index = objectData.findIndex((val: any) => val.id === parent);
+            const index = objectData.findIndex((val: any) => val.uid === parent);
             if (index > -1) {
               xid = objectData[index]['x.id'];
               childLen = objectData[index]['x.children'];
@@ -630,7 +625,6 @@ export const G6OperateFunctions = {
           if (params.hasOwnProperty("offset")) {
             _data.push({
               uid: 'pagination-' + parent + `-${_offset - limit}-prev`,
-              id: 'pagination-' + parent + `-${_offset - limit}-prev`,
               currentParent: { id }
             });
           }
@@ -671,8 +665,7 @@ export const G6OperateFunctions = {
                 ...currentParent,
                 id
               },
-              'x.id': _xid,
-              id: newValue.uid
+              'x.id': _xid
             }
           }));
           store.dispatch(setToolbarConfig({
@@ -687,7 +680,7 @@ export const G6OperateFunctions = {
           const allData = objectData || store.getState().object.data;
           allData.forEach(function (obj: any, index: number) {
             const parentId = _.get(obj, "currentParent.id", "");
-            if (obj.id === parent) {
+            if (obj.uid === parent) {
               parentChildLen = obj['x.children'];
             }
             if (obj['x.id'] === xid) {
@@ -699,27 +692,26 @@ export const G6OperateFunctions = {
               concatIndex = newData.length;
             }
             if (obj['x.id'] && obj['x.id'].startsWith(xid) && obj['x.id'].split(".").length === xidLen) {
-              Object.assign(removeChildrenMap, { [obj.id]: obj });
+              Object.assign(removeChildrenMap, { [obj.uid]: obj });
             }
             if ((!obj['x.id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x.id'] && !obj['x.id'].startsWith(xid)) && !removeChildrenMap[parentId]) {
               newData.push(obj);
             } else {
               if (obj['x.id'] && obj['x.id'].startsWith(xid) && obj['x.id'].split(".").length > xidLen || removeChildrenMap[parentId]) {
                 removeChildren.push(obj);
-                Object.assign(removeChildrenMap, { [obj.id]: obj });
+                Object.assign(removeChildrenMap, { [obj.uid]: obj });
               }
-              obj['x.id'] && Object.assign(removeMap, { [obj.id]: obj.collapsed });
+              obj['x.id'] && Object.assign(removeMap, { [obj.uid]: obj.collapsed });
             }
           });
 
           let concatData = [];
-          _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.id, true) }));
+          _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.uid, true) }));
 
           if (_offset >= 0 && limit > 0 && parentChildLen > limit) {
             const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
             _data.push({
               uid: 'pagination-' + parent + `-${_offset + limit}-next`,
-              id: 'pagination-' + parent + `-${_offset + limit}-next`,
               totalPage,
               nextDisabled: (_offset + data.length) >= parentChildLen,
               currentParent: { id }
@@ -736,11 +728,11 @@ export const G6OperateFunctions = {
                   const item = removeChildren[i];
                   const itemXid = item['x.id'];
                   if (itemXid && itemXid.startsWith(nodeXid)) {
-                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item, 'currentParent.id') !== val.id) {
+                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item, 'currentParent.id') !== val.uid) {
                       break;
                     }
                     concatData.push(item);
-                  } else if (item.id.startsWith("pagination-" + val.id)) {
+                  } else if (item.uid.startsWith("pagination-" + val.uid)) {
                     concatData.push(item);
                   } else {
                     newRemoveChildren.push(item);
@@ -924,7 +916,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
 
             _data.push(newObj);
             Object.assign(modifyIdMaps, {
-              [obj.id]: {
+              [obj.uid]: {
                 new: newId,
                 old: xid
               }
@@ -970,7 +962,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
         graph.changeData(graphData);
         graph.layout();
 
-        const item = graph.findById(newObj.id);
+        const item = graph.findById(newObj.uid);
         if (item) {
           graph.emit('node:click', {
             item: item,
@@ -1029,7 +1021,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
     const parent = obj['currentParent'].id,
       xid = obj['x.id'];
 
-    if (obj.id === sourceNodeId) {
+    if (obj.uid === sourceNodeId) {
       Object.assign(obj, { 'x.children': childLen });
     }
 
@@ -1104,14 +1096,14 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const curentGraphData: any = graph.save();
   const { nodes, edges, combos } = curentGraphData;
 
-  const { uid, id, } = newObj;
+  const { uid } = newObj;
   const name = newObj['x.name'],
     metadata = JSON.parse(newObj['x.metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
     iconKey = _.get(metadata, 'icon', '');
   const node = {
     uid,
-    id,
+    id: uid,
     xid: newObj['x.id'],
     parent: rootId,
     name: name,
@@ -1131,7 +1123,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   };
 
   const combo = {
-    id: `${id}-combo`,
+    id: `${uid}-combo`,
     parentId: rootId + '-combo',
     collapsed: true
   };
@@ -1200,10 +1192,8 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const id = newData.uid;
     const newObj = {
       ...newData,
-      id,
       "x.id": newXid,
       currentParent: {
         ...newParent,
@@ -1215,7 +1205,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     addNodeChildren(newObj, sourceNode, graph);
     store.dispatch(setGraphLoading(false));
 
-    const item = graph.findById(newObj.id);
+    const item = graph.findById(newObj.uid);
     if (!item) return;
     graph.emit('node:click', {
       item: item,
@@ -1269,7 +1259,6 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const id = newData.uid;
     const newObject = {
       ...newData,
       currentParent: {
@@ -1277,13 +1266,12 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
         "x.name": rootNode['x.name'],
         id: rootId
       },
-      'x.id': newXid,
-      id
+      'x.id': newXid
     };
     addRootNode(newObject, graph);
     store.dispatch(setGraphLoading(false));
 
-    const item = graph.findById(newObject.id);
+    const item = graph.findById(newObject.uid);
     if (!item) return;
     graph.emit('node:click', {
       item: item,
@@ -1353,7 +1341,6 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     "x.metadata": typeMetadata,
     ...typeAttrs
   }, (newData: any) => {
-    const id = newData.uid;
     const newObject = {
       ...newData,
       currentParent: {
@@ -1361,8 +1348,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
         "x.name": rootNode['x.name'],
         id: rootId
       },
-      'x.id': newXid,
-      id
+      'x.id': newXid
     }
 
     const updateGraphData = function () {
@@ -1373,7 +1359,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       graph.layout();
       store.dispatch(setGraphLoading(false));
 
-      const item = graph.findById(newObject.id);
+      const item = graph.findById(newObject.uid);
       if (!item) return;
       graph.emit('node:click', {
         item: item,
@@ -1434,8 +1420,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
                     ...currentParent,
                     id: rootId,
                   },
-                  'x.id': rootId + '.' + index,
-                  id: newValue.uid
+                  'x.id': rootId + '.' + index
                 };
               }));
 
@@ -1602,7 +1587,7 @@ export function registerBehavior() {
           dragItemParentUid = dragItemParentModel.uid;
         }
         if (dropItemParentId !== rootId) {
-          const dropItemParentModel = graph.findById(dropItemParentId).get('model');
+          dropItemParentModel = graph.findById(dropItemParentId).get('model');
           dropItemParentUid = dropItemParentModel.uid;
         }
         if (dropItemParentId !== rootId && dropItemParentId !== dragItemModel.parent) {
@@ -1623,7 +1608,7 @@ export function registerBehavior() {
 
         data.forEach(function (value) {
           if (value['x.id'] && value['x.id'] !== dragItemXid && value['x.id'] !== dropItemXid && value['x.id'].startsWith(dragItemXid + '.') || dragItemsIdMap[_.get(value, 'currentParent.id', '')]) {
-            Object.assign(dragItemsIdMap, { [value.id]: value })
+            Object.assign(dragItemsIdMap, { [value.uid]: value })
             originDragItems.push(value);
           }
         });
@@ -1700,7 +1685,7 @@ export function registerBehavior() {
               'x.last_change': lastChangeTime
             };
             newData.push(obj);
-            const { currentParent, collapsed, id, ...newObj } = JSON.parse(JSON.stringify(obj));
+            const { currentParent, collapsed, ...newObj } = JSON.parse(JSON.stringify(obj));
             delete newObj['x.id'];
             shouldUpdateObject.push(newObj);
 
@@ -1759,8 +1744,8 @@ export function registerBehavior() {
                 old: xid
               }
             });
-            if (modifyIdMaps[new_value.id]) {
-              Object.assign(modifyIdMaps[new_value.id], { new: new_value['x.id'] });
+            if (modifyIdMaps[new_value.uid]) {
+              Object.assign(modifyIdMaps[new_value.uid], { new: new_value['x.id'] });
             }
           }
 

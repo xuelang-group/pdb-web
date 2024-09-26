@@ -383,9 +383,9 @@ export function convertResultData(
         parentId = currentParentId || rootId;
       const collapsed = false;
       const node: any = {
-        id,
+        id, // antv画布需要节点id，等同实例uid
         xid: _xid,
-        uid,
+        uid, // 实例uid
         parent: parentId,
         isQueryNode: true,
         name,
@@ -396,8 +396,7 @@ export function convertResultData(
             ...currentParent,
             id: rootId,
           },
-          'x.id': xid,
-          id: uid
+          'x.id': xid
         },
         childLen,
         collapsed,

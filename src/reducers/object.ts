@@ -34,7 +34,6 @@ export interface CustomObjectConfig extends ObjectConfig {
   'currentParent': Parent
   'collapsed'?: boolean
   'x.id': string
-  'id': string
 }
 
 interface GraphDataState {
