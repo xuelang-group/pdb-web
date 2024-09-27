@@ -19,6 +19,7 @@ import TypeGraph from '@/pages/graph/type/index';
 import CommonHeader from '@/pages/header/index';
 import EditHeader from '@/pages/header/editHeader';
 import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';
+import Indicator from '@/pages/indicator/index';
 import PdbContent from '@/components/Content';
 
 import { StoreState } from '@/store';
@@ -46,7 +47,7 @@ function App(props: PdbConfig) {
         getAppFolderList(userId);
 
         if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
-          navigate(`/${graphId}`);
+          // navigate(`/${graphId}`);
           dispatch(setSystemInfo(response));
         } else {
           dispatch(setSystemInfo({ ...systemInfo, userId }));
@@ -91,20 +92,24 @@ function App(props: PdbConfig) {
         <Routes>
           <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
           <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
+          <Route path="/:id/indicator" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth}  />} />
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
             <Route path="/:id/template?" element={<ObjectLeft />} />
             <Route path="/:id/edit" element={<TypeLeft />} />
+            <Route path="/:id/indicator" element={<TypeLeft />} />
           </Routes>
           <PdbContent>
             <Routes>
               <Route path="/:id/template?" element={<ObjectGraph theme={theme} />} />
               <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
+              <Route path="/:id/indicator" element={<Indicator theme={theme} />} />
             </Routes>
             <Routes>
               <Route path="/:id/template?" element={<CommonRight route="object" />} />
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
+              <Route path="/:id/indicator" element={<CommonRight route='object' />} />
             </Routes>
           </PdbContent>
         </Content>
