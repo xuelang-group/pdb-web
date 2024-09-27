@@ -221,18 +221,18 @@ export default function Editor(props: EditorProps) {
           itemModel = evt.item.getModel();
         if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
 
-        if (itemType === "edge") {
+        // if (itemType === "edge") {
           return `<ul class="pdb-graph-node-contextmenu">
             <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
-        }
-        return `<ul class="pdb-graph-node-contextmenu">
-          <li title="探索">探索</li>
-          <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
-          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
-            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ""}
-        </ul>`;
+        // }
+        // return `<ul class="pdb-graph-node-contextmenu">
+        //   <li title="探索">探索</li>
+        //   <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+        //   <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+        //   ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+        //     '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ""}
+        // </ul>`;
       },
       handleMenuClick: (target: any, item) => {
         const itemModel = item.get("model");
@@ -282,19 +282,19 @@ export default function Editor(props: EditorProps) {
             type: 'zoom-canvas',
           }, // 画布缩放
           'collapse-expand',
-          {
-            type: 'drag-node',
-            updateEdge: false,
-            enableDelegate: true,
-            shouldBegin: function (event: IG6GraphEvent) {
-              if (!event.item) return false;
-              const model = event.item.get('model');
-              return model.parent !== rootNode?.uid;
-            },
-            shouldEnd: function (event: IG6GraphEvent) {
-              return false;
-            }
-          },
+          // {
+          //   type: 'drag-node',
+          //   updateEdge: false,
+          //   enableDelegate: true,
+          //   shouldBegin: function (event: IG6GraphEvent) {
+          //     if (!event.item) return false;
+          //     const model = event.item.get('model');
+          //     return model.parent !== rootNode?.uid;
+          //   },
+          //   shouldEnd: function (event: IG6GraphEvent) {
+          //     return false;
+          //   }
+          // },
           'drag-enter',
           'graph-select',
           // 'collapse-expand-combo'
@@ -453,19 +453,19 @@ export default function Editor(props: EditorProps) {
         //   // 回车键，创建兄弟节点
         //   addBrotherNode(selectedNode, graph);
         //   break;
-        case 67:
-          // ctrl + c
-          if (!currentEditModel) return;
-          if (ctrlKey) {
-            graphCopyItem = JSON.parse(JSON.stringify(currentEditModel));
-          }
-          break;
-        case 86:
-          // ctrl + v
-          if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
-            onPaste(currentEditModel);
-          }
-          break;
+        // case 67:
+        //   // ctrl + c
+        //   if (!currentEditModel) return;
+        //   if (ctrlKey) {
+        //     graphCopyItem = JSON.parse(JSON.stringify(currentEditModel));
+        //   }
+        //   break;
+        // case 86:
+        //   // ctrl + v
+        //   if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
+        //     onPaste(currentEditModel);
+        //   }
+        //   break;
         default:
           break;
       }
