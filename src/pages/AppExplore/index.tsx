@@ -134,13 +134,16 @@ export default function AppExplore() {
       if (prevSearchTagType === 'relation') {
         typeOptions.push(enterOption);
         const relationName = prevSearchTag['key'],
+          relationsIsReverse = prevSearchTag['isReverse'],
           sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
           targetTypeMap: any = {};
 
         if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
           relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
-            if (bind.source === sourceType) {
+            if (!relationsIsReverse && bind.source === sourceType) {
               Object.assign(targetTypeMap, { [bind.target]: bind.target });
+            } else if (relationsIsReverse && bind.target === sourceType) {
+              Object.assign(targetTypeMap, { [bind.source]: bind.source });
             }
           });
           _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
@@ -156,9 +159,18 @@ export default function AppExplore() {
       })));
     } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
       // 关系类型 - 关系必须在类型后面
-      const _relations = Array.from(new Set(_.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', [])))
+      const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+        targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+      // 正向关系数据
+      const positiveRelations = Array.from(new Set(sourceRelations))
         .map((id: string) => relationMap[id]);
-      const searchRelations = value ? _relations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : _relations;
+      const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+
+      // 反向关系数据
+      const reverseRelations = Array.from(new Set(targetRelations))
+        .map((id: string) => relationMap[id]);
+      const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
+
       relationOptions = [enterOption];
       if ("所属父级".indexOf(value) > -1) {
         relationOptions.push({
@@ -176,18 +188,36 @@ export default function AppExplore() {
           type: 'relation'
         });
       }
-      if (searchRelations.length > 0) {
+      if (positiveSearchRelations.length > 0) {
         if (relationOptions.length > 1) {
           relationOptions.push({
             type: "divider",
             disabled: true
           });
         }
-        relationOptions = relationOptions.concat(searchRelations.map((val: RelationConfig, index: number) => ({
+        relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
           label: val['r.type.label'],
           value: val['r.type.name'] + `-${currentTagLen}`,
           key: val['r.type.name'],
           type: 'relation',
+          isReverse: false,
+          data: val
+        })));
+      }
+
+      if (reverseSearchRelations.length > 0) {
+        if (relationOptions.length > 1) {
+          relationOptions.push({
+            type: "divider",
+            disabled: true
+          });
+        }
+        relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
+          label: "~" + val['r.type.label'],
+          value: val['r.type.name'] + `-${currentTagLen}`,
+          key: val['r.type.name'],
+          type: 'relation',
+          isReverse: true,
           data: val
         })));
       }

@@ -6,7 +6,7 @@ import moment from 'moment';
 
 import { typeMap } from '@/utils/common';
 import { StoreState } from '@/store';
-import { getType } from '@/actions/type';
+import { getTypeInfo } from '@/actions/type';
 import PdbPanel from '@/components/Panel';
 
 const { Option } = Select;
@@ -102,7 +102,7 @@ export default function ParamEditor(props: any) {
 
   useEffect(() => {
     if (referObject && props.currentEditType === 'type') {
-      getType(referObject, (success: boolean, response: any) => {
+      getTypeInfo(referObject, (success: boolean, response: any) => {
         if (success) {
           const info = response[0];
           if (info) {
