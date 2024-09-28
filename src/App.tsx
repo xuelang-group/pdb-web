@@ -125,7 +125,7 @@ function App(props: PdbConfig) {
               }, {
                 key: "indicator",
                 label: "初级指标",
-                children: <div></div>
+                children: <div className='pdb-graph'></div>
               }]}
               centered
             />
