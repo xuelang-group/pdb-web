@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import VTable from './components/VTable';
+import './index.less';
 
 export default function Indicator(props: any) {
 
@@ -8,7 +10,7 @@ export default function Indicator(props: any) {
 
   return (
     <div className='pdb-indicator' style={{ flex: 1, width: 0 }}>
-      指标表格
+      <VTable />
     </div>
   )
 }
