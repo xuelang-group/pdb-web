@@ -21,6 +21,9 @@ import EditHeader from '@/pages/header/editHeader';
 import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';
 import PdbContent from '@/components/Content';
 
+import IndicatorLeft from '@/pages/left/indicator';
+import IndicatorRight from '@/pages/right/indicator';
+
 import { StoreState } from '@/store';
 import { getFile, putFile } from '@/actions/minioOperate';
 import { getSystemInfo } from '@/actions/system';
@@ -89,7 +92,7 @@ function App(props: PdbConfig) {
   const renderCenterContent = function () {
     return (
       <Routes>
-        <Route path="/:id/template?" element={<ObjectGraph theme={theme} />} />
+        <Route path="/:id/*" element={<ObjectGraph theme={theme} />} />
         <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
       </Routes>
     )
@@ -103,18 +106,19 @@ function App(props: PdbConfig) {
       </Routes>
       <Layout className="pdb-layout">
         <Routes>
-          <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
-          {/* 类型管理界面导航栏 */}
+          <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+          {/* 类型管理顶部导航栏 */}
           <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
             <Route path="/:id/template?" element={<ObjectLeft />} />
-            {/* 类型管理界面左侧类型列表 */}
+            {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
+            {/* 初级指标左侧类型列表 */}
+            <Route path="/:id/indicator" element={<IndicatorLeft />} />
           </Routes>
           <PdbContent>
-
             {/*暂定：当顶部搜索框点击搜索后，才会出现初级指标的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
             <Tabs
               className={'pdb-graph-tab' + (currentGraphTab === "main" ? " pdb-graph-tab-header-hidden" : "")}
@@ -127,12 +131,22 @@ function App(props: PdbConfig) {
                 label: "初级指标",
                 children: <div className='pdb-graph'></div>
               }]}
+              onChange={(activeKey: string) => {
+                const { graphId } = systemInfo;
+                if (activeKey === "indicator") {
+                  navigate(`/${graphId}/indicator`);
+                } else {
+                  navigate(`/${graphId}`);
+                }
+              }}
               centered
             />
             <Routes>
               <Route path="/:id/template?" element={<CommonRight route="object" />} />
-              {/* 类型管理界面右侧列表 */}
+              {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
+              {/* 初级指标右侧列表 */}
+              <Route path="/:id/indicator" element={<IndicatorRight />} />
             </Routes>
           </PdbContent>
         </Content>
