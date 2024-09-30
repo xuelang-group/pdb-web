@@ -50,8 +50,8 @@ export const deleteType = (type, callback) => {
   });
 };
 
-// 获取类型数据
-export const getType = (type, callback) => {
+// 获取某个类型数据
+export const getTypeInfo = (type, callback) => {
   // mock
   // callback && callback(true);
   let params = { ...commonParams };

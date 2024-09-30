@@ -66,6 +66,12 @@ interface ToolbarConfig {
   [key: string]: ToolbarItemConfig
 }
 
+// 画布当前状态
+type GraphTabKey = 
+  "main" | // 全量的数据画布
+  "explore" | // 全局搜索后的数据画布
+  "vertex" // 探索后的数据画布
+
 interface EditorState {
   currentGraphTab: string // 对象管理 - 画布当前tab
   graphDataMap: any
@@ -114,7 +120,7 @@ const initialState: EditorState = {
     }
   },
   currentEditModel: null,
-  isEditing: true,
+  isEditing: false,
   typeRelationMap: {},
   showSearch: false, //显示搜索框
   graphLoading: false,
@@ -150,7 +156,7 @@ export const editorSlice = createSlice({
       state.currentEditModel = JSON.parse(JSON.stringify(action.payload));
     },
     setIsEditing: (state, action: PayloadAction<boolean>) => {
-      state.isEditing = action.payload;
+      // state.isEditing = action.payload;
     },
     setMultiEditModel: (state, action: PayloadAction<Array<NodeItemData | EdgeItemData | TypeItemData> | null>) => {
       state.multiEditModel = JSON.parse(JSON.stringify(action.payload));

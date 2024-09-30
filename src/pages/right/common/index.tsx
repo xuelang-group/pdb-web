@@ -1055,11 +1055,11 @@ export default function Right(props: RightProps) {
   }];
 
   if (currentEditType === 'type') {
-    rightPanelTabs.push({
-      key: 'common',
-      label: '高级配置',
-      children: renderCommon()
-    })
+    // rightPanelTabs.push({
+    //   key: 'common',
+    //   label: '高级配置',
+    //   children: renderCommon()
+    // });
   } else if (currentEditType === 'relation') {
     if (props.route === 'type' || location.pathname.endsWith("/template")) {
       rightPanelTabs.push({

@@ -722,11 +722,11 @@ export default function Left(props: any) {
               </Select>
             </Form.Item>
           }
-          {type === 'type' && modalType === 'add' &&
+          {/* {type === 'type' && modalType === 'add' &&
             <Form.Item name="x.type.version" label="开启版本控制">
               <Switch />
             </Form.Item>
-          }
+          } */}
         </Form>
       </Modal>
     )

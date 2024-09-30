@@ -1,4 +1,4 @@
-import { Layout, notification, Spin } from 'antd';
+import { Layout, notification, Spin, Tabs } from 'antd';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -22,6 +22,9 @@ import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';
 import Indicator from '@/pages/indicator/index';
 import PdbContent from '@/components/Content';
 
+import IndicatorLeft from '@/pages/left/indicator';
+import IndicatorRight from '@/pages/right/indicator';
+
 import { StoreState } from '@/store';
 import { getFile, putFile } from '@/actions/minioOperate';
 import { getSystemInfo } from '@/actions/system';
@@ -38,7 +41,8 @@ function App(props: PdbConfig) {
     location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
-    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
   useEffect(() => {
     dispatch(setPageLoading(true));
     getSystemInfo((success: boolean, response: any) => {
@@ -69,6 +73,10 @@ function App(props: PdbConfig) {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("currentGraphTab: ", currentGraphTab)
+  }, [currentGraphTab]);
+
   const getAppFolderList = function (userId: number) {
     const path = `studio/${userId}/pdb/config`;
     getFile(path).then(data => {
@@ -82,6 +90,15 @@ function App(props: PdbConfig) {
     });
   }
 
+  const renderCenterContent = function () {
+    return (
+      <Routes>
+        <Route path="/:id/*" element={<ObjectGraph theme={theme} />} />
+        <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
@@ -90,26 +107,48 @@ function App(props: PdbConfig) {
       </Routes>
       <Layout className="pdb-layout">
         <Routes>
-          <Route path="/:id/template?" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+          <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
+          {/* 类型管理顶部导航栏 */}
           <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
           <Route path="/:id/indicator" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth}  />} />
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
             <Route path="/:id/template?" element={<ObjectLeft />} />
+            {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
-            <Route path="/:id/indicator" element={<TypeLeft />} />
+            {/* 初级指标左侧类型列表 */}
+            <Route path="/:id/indicator" element={<IndicatorLeft />} />
           </Routes>
           <PdbContent>
-            <Routes>
-              <Route path="/:id/template?" element={<ObjectGraph theme={theme} />} />
-              <Route path="/:id/edit" element={<TypeGraph theme={theme} />} />
-              <Route path="/:id/indicator" element={<Indicator theme={theme} />} />
-            </Routes>
+            {/*暂定：当顶部搜索框点击搜索后，才会出现初级指标的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
+            <Tabs
+              className={'pdb-graph-tab' + (currentGraphTab === "main" ? " pdb-graph-tab-header-hidden" : "")}
+              items={[{
+                key: "pdb",
+                label: "模型画布",
+                children: renderCenterContent()
+              }, {
+                key: "indicator",
+                label: "初级指标",
+                children: <div className='pdb-graph'></div>
+              }]}
+              onChange={(activeKey: string) => {
+                const { graphId } = systemInfo;
+                if (activeKey === "indicator") {
+                  navigate(`/${graphId}/indicator`);
+                } else {
+                  navigate(`/${graphId}`);
+                }
+              }}
+              centered
+            />
             <Routes>
               <Route path="/:id/template?" element={<CommonRight route="object" />} />
+              {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
-              <Route path="/:id/indicator" element={<CommonRight route='object' />} />
+              {/* 初级指标右侧列表 */}
+              <Route path="/:id/indicator" element={<IndicatorRight />} />
             </Routes>
           </PdbContent>
         </Content>

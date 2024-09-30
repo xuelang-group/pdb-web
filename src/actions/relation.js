@@ -55,22 +55,6 @@ export const deleteRelation = (relation, callback) => {
 };
 
 // 获取类型数据
-export const getRelation = (relation, callback) => {
-  // mock
-  // callback && callback(true);
-  let params = { ...commonParams };
-  if (relation) {
-    Object.assign(params, { relation });
-  }
-
-  return axios.post(api['get'], params).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 获取类型数据
 export const getRelationByGraphId = (graphId, relation, callback) => {
   // mock
   // callback && callback(true);

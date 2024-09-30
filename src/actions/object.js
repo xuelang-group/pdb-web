@@ -310,8 +310,8 @@ export const getRelationTarget = (params, callback) => {
  */
 const graphApiPrefix = `${apiPrefix}/graph`
 const graphApi = {
-  type: `${graphApiPrefix}/type`,
-  relation: `${graphApiPrefix}/relation`,
+  // type: `${graphApiPrefix}/type`,
+  // relation: `${graphApiPrefix}/relation`,
   template: `${graphApiPrefix}/template`
 };
 
