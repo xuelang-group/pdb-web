@@ -324,9 +324,9 @@ export default function VTable() {
       // 冻结列效果
       frozenColumnLine: {
         shadow: {
-          width: 4,
-          startColor: 'rgba(00, 24, 47, 0.05)',
-          endColor: 'rgba(00, 24, 47, 0)'
+          width: 10,
+          startColor: 'rgba(0, 29, 77, 0.12)',
+          endColor: 'rgba(0, 29, 77, 0)'
         }
       },
       headerStyle: { 
