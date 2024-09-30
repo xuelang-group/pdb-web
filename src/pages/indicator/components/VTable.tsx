@@ -1,5 +1,19 @@
-import { ListTable, PivotTable } from '@visactor/react-vtable'
+import { ListTable, PivotTable, register } from '@visactor/react-vtable'
+import { TYPES } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
+import ICONS from './ICONS'
+
+Object.keys(ICONS).forEach(name => {
+  register.icon(name, {
+    name: name,
+    type: 'svg',
+    marginRight: 5,
+    positionType: TYPES.IconPosition.left,
+    width: 18,
+    height: 18,
+    svg: ICONS[name],
+  })
+})
 
 const data = [
   {
@@ -18,7 +32,7 @@ const data = [
     "Days Required": 14,
     "End Date": "2024/01/14",
     "Progress": 0.78
-  }, , {
+  }, {
     "Project Name": "Marketing",
     "Task Name": "Social Media Planning",
     "Assigned To": "Charlie",
@@ -166,61 +180,106 @@ const data = [
 ]
 
 const columns = [{
-  "field": "Project Name",
-  "title": "Project Name",
-  "dimensionKey": "Project Name",
-  "mergeCell": true,
-  "style": {
-    // "textStick": true,
-    "textAlign": "center"
-  }
-  // "type": "String",
+  "title": "单行文本",
+  "field": "String",
+  "columns":[{
+    "field": "Project Name",
+    "title": "Project Name",
+    "dimensionKey": "Project Name",
+    "mergeCell": true,
+    "style": {
+      // "textStick": true,
+      "textAlign": "center"
+    }
+  }],
+  "dimensionKey": "String",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "String"
 }, {
-  "field": "Task Name",
-  "title": "Task Name",
-  "dimensionKey": "Task Name",
-  // "type": "String",
+  "title": "单行文本",
+  "field": "String",
+  "columns":[{
+    "field": "Task Name",
+    "title": "Task Name",
+    "dimensionKey": "Task Name",
+  }],
+  "dimensionKey": "String",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "String"
 }, {
-  "field": "Assigned To",
-  "title": "Assigned to",
-  "dimensionKey": "Assigned to",
-  // "type": "String",
+  "title": "单行文本",
+  "field": "String",
+  "columns":[{
+    "field": "Assigned To",
+    "title": "Assigned to",
+    "dimensionKey": "Assigned to",
+  }],
+  "dimensionKey": "String",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "String"
 }, {
-  "field": "Start Date",
-  "title": "Start Date",
-  "dimensionKey": "Start Date",
-  "style": {
-    // "textStick": true,
-    "textAlign": "right"
-  }
-  // "type": "Date",
+  "title": "日期/时间",
+  "field": "Date",
+  "columns":[{
+    "field": "Start Date",
+    "title": "Start Date",
+    "dimensionKey": "Start Date",
+    "disableSelect": true,
+    "disableHeaderSelect": true,
+  }],
+  // "disableSelect": true,
+  // "disableHeaderSelect": true,
+  "dimensionKey": "Date",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "Date"
 }, {
-  "field": "Days Required",
-  "title": "Days Required",
-  "dimensionKey": "Days Required",
-  "style": {
-    // "textStick": true,
-    "textAlign": "right"
-  }
-  // "type": "Int",
+  "title": "整数",
+  "field": "Int",
+  "columns":[{
+    "field": "Days Required",
+    "title": "Days Required",
+    "dimensionKey": "Days Required",
+  }],
+  "dimensionKey": "Int",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "Number"
 }, {
-  "field": "End Date",
-  "title": "End Date",
-  "dimensionKey": "End Date",
-  "style": {
-    // "textStick": true,
-    "textAlign": "right"
-  }
-  // "type": "Date",
+  "title": "日期/时间",
+  "field": "Date",
+  "columns":[{
+    "field": "End Date",
+    "title": "End Date",
+    "dimensionKey": "End Date",
+  }],
+  "dimensionKey": "Date",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "Date"
 }, {
-  "field": "Progress",
-  "title": "Progress",
-  "dimensionKey": "Progress",
-  "style": {
-    // "textStick": true,
-    "textAlign": "right"
-  }
-  // "type": "Float",
+  "title": "浮点数",
+  "field": "Float",
+  "columns":[{
+    "field": "Progress",
+    "title": "Progress",
+    "dimensionKey": "Progress",
+    "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
+  }],
+  "dimensionKey": "Float",
+  "headerStyle": {
+    "bgColor": "#FFF",
+  },
+  "headerIcon": "Number"
 }]
 
 export default function VTable() {
@@ -234,9 +293,8 @@ export default function VTable() {
     autoFillWidth: true,
     rightFrozenColCount: 1,
     groupBy: "Project Name",
-    defaultRowHeight: 48,
+    defaultRowHeight: 46,
     theme: {
-      // cellInnerBorder: false,
       // 冻结列效果
       frozenColumnLine: {
         shadow: {
@@ -246,6 +304,8 @@ export default function VTable() {
         }
       },
       headerStyle: {
+        bgColor: "#F9FBFC",
+        // textBaseline: "middle",
         color: '#1C2126',
         fontSize: 14,
         fontWeight: 600,
@@ -255,13 +315,26 @@ export default function VTable() {
         color: '#4C5A67',
         fontSize: 14,
         // lineHeight: 22,
+        // textBaseline: "middle",
         borderColor: '#DCDEE1',
-        padding: [12, 15],
+        padding: [8, 15],
         autoWrapText: true,
         select: {
           inlineRowBgColor: '#F1F8FF',
           inlineColumnBgColor: '#F1F8FF'
         }
+      },
+      groupTitleStyle: {
+        color: '#1C2126',
+        borderColor: '#DCDEE1',
+        // textAlign: 'right'
+      },
+      scrollStyle: {
+        // visible: 'always',
+        scrollSliderColor: 'rgba(0,0,0,0.2)',
+        // scrollRailColor: '#bac3cc',
+        // hoverOn: false,
+        // barToSide: true
       },
       selectionStyle: {
         cellBgColor: 'rgba(139, 211, 255, 0.1)',
