@@ -333,8 +333,12 @@ export default function AppExplore() {
         let pqlItem: any = [];
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
+          let name = _.get(detail, 'label', '');
+          if (detail.isReverse) {
+            name = name.slice(1);
+          }
           let option = {
-            name: detail.label
+            name
           };
           if (detail.key === "e_x_parent" || detail.key === "~e_x_parent") {
             Object.assign(option, {
