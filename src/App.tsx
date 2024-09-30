@@ -123,7 +123,9 @@ function App(props: PdbConfig) {
           <PdbContent>
             {/*暂定：当顶部搜索框点击搜索后，才会出现初级指标的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
             <Tabs
-              className={'pdb-graph-tab' + (currentGraphTab === "main" ? " pdb-graph-tab-header-hidden" : "")}
+              className={'pdb-graph-tab'
+                //  + (currentGraphTab === "main" ? " pdb-graph-tab-header-hidden" : "")
+                }
               items={[{
                 key: "pdb",
                 label: "模型画布",
@@ -131,7 +133,7 @@ function App(props: PdbConfig) {
               }, {
                 key: "indicator",
                 label: "初级指标",
-                children: <div className='pdb-graph'></div>
+                children: <Indicator />
               }]}
               onChange={(activeKey: string) => {
                 const { graphId } = systemInfo;

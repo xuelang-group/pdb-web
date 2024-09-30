@@ -9,7 +9,7 @@ export default function Indicator(props: any) {
   }, [])
 
   return (
-    <div className='pdb-indicator' style={{ flex: 1, width: 0 }}>
+    <div className='pdb-indicator'>
       <VTable />
     </div>
   )
