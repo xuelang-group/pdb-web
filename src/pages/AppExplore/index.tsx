@@ -352,7 +352,7 @@ export default function AppExplore() {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
-              id: detail.key
+              id: (detail.isReverse ? "~" : "") + detail.key
             });
           }
           pqlItem.push(option);
