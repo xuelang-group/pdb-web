@@ -218,7 +218,6 @@ export default function Editor(props: EditorProps) {
     return () => {
       graph?.destroy();
       graph = null;
-      (window as any).PDB_GRAPH = null;
     }
   }, [graphRef, typeLoading, relationLoading]);
 

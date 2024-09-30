@@ -224,7 +224,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                     setFieldValue("keyword", null);
                   }
                   input = (
-                    <DatePicker locale={locale} />
+                    <DatePicker className="pdb-explore-filter-config-condition" locale={locale} />
                   );
                   break;
                 default:

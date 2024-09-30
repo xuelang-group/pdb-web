@@ -42,6 +42,7 @@ function App(props: PdbConfig) {
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
+
   useEffect(() => {
     dispatch(setPageLoading(true));
     getSystemInfo((success: boolean, response: any) => {
