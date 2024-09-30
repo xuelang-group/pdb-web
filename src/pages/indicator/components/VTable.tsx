@@ -1,18 +1,37 @@
 import { ListTable, PivotTable, register } from '@visactor/react-vtable'
 import { TYPES } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import ICONS from './ICONS'
+import {ICONS, getIconSvg, DLSVG} from './ICONS'
 
-Object.keys(ICONS).forEach(name => {
+ICONS.forEach(name => {
   register.icon(name, {
     name: name,
     type: 'svg',
-    marginRight: 5,
+    marginRight: 4,
     positionType: TYPES.IconPosition.left,
     width: 18,
     height: 18,
-    svg: ICONS[name],
+    svg: getIconSvg(name),
   })
+  register.icon(`${name}Disabled`, {
+    name: `${name}Disabled`,
+    type: 'svg',
+    marginRight: 4,
+    positionType: TYPES.IconPosition.left,
+    width: 18,
+    height: 18,
+    svg: getIconSvg(name, true),
+  })
+})
+// 度量列标签ICON
+register.icon('DLTAG', {
+  name: 'DLTAG',
+  type: 'svg',
+  marginLeft: 4,
+  positionType: TYPES.IconPosition.right,
+  width: 52,
+  height: 24,
+  svg: DLSVG,
 })
 
 const data = [
@@ -36,7 +55,7 @@ const data = [
     "Project Name": "Marketing",
     "Task Name": "Social Media Planning",
     "Assigned To": "Charlie",
-    "Start Date": "2024/01/01",
+    "Start Date": "2024/01/03",
     "Days Required": 22,
     "End Date": "2024/01/14",
     "Progress": 0.78
@@ -44,7 +63,7 @@ const data = [
     "Project Name": "Marketing",
     "Task Name": "Campaign Analysis",
     "Assigned To": "Daisy",
-    "Start Date": "2024/01/01",
+    "Start Date": "2024/01/03",
     "Days Required": 25,
     "End Date": "2024/01/14",
     "Progress": 0.78
@@ -68,7 +87,7 @@ const data = [
     "Project Name": "Product Dev",
     "Task Name": "User Interface Design",
     "Assigned To": "Gabriel",
-    "Start Date": "2024/01/01",
+    "Start Date": "2024/01/04",
     "Days Required": 25,
     "End Date": "2024/01/14",
     "Progress": 0.78
@@ -76,7 +95,7 @@ const data = [
     "Project Name": "Customer Svc",
     "Task Name": "Service Improvement",
     "Assigned To": "Hannah",
-    "Start Date": "2024/01/01",
+    "Start Date": "2024/01/04",
     "Days Required": 25,
     "End Date": "2024/01/14",
     "Progress": 0.78
@@ -226,16 +245,26 @@ const columns = [{
     "field": "Start Date",
     "title": "Start Date",
     "dimensionKey": "Start Date",
+    "mergeCell": true,
     "disableSelect": true,
     "disableHeaderSelect": true,
+    "style": {
+      "bgColor": "#F4F6F9",
+      "color": "#C2C7CC",
+    },
+    "headerStyle": {
+      "bgColor": "#F4F6F9",
+      "color": "#C2C7CC",
+      "fontWeight": 500
+    },
   }],
-  // "disableSelect": true,
-  // "disableHeaderSelect": true,
   "dimensionKey": "Date",
   "headerStyle": {
-    "bgColor": "#FFF",
+    "bgColor": "#F4F6F9",
+    "color": "#C2C7CC",
+    "fontWeight": 500
   },
-  "headerIcon": "Date"
+  "headerIcon": "DateDisabled"
 }, {
   "title": "整数",
   "field": "Int",
@@ -275,7 +304,7 @@ const columns = [{
   "headerStyle": {
     "bgColor": "#FFF",
   },
-  "headerIcon": "Number"
+  "headerIcon": ["Number", "DLTAG"]
 }]
 
 export default function VTable() {
@@ -288,8 +317,9 @@ export default function VTable() {
     // widthMode: "adaptive",
     autoFillWidth: true,
     rightFrozenColCount: 1,
-    groupBy: "Project Name",
+    // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
+    defaultColWidth: 180,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -299,9 +329,8 @@ export default function VTable() {
           endColor: 'rgba(00, 24, 47, 0)'
         }
       },
-      headerStyle: {
+      headerStyle: { 
         bgColor: "#F9FBFC",
-        // textBaseline: "middle",
         color: '#1C2126',
         fontSize: 14,
         fontWeight: 600,
@@ -310,8 +339,6 @@ export default function VTable() {
       bodyStyle: {
         color: '#4C5A67',
         fontSize: 14,
-        // lineHeight: 22,
-        // textBaseline: "middle",
         borderColor: '#DCDEE1',
         padding: [8, 15],
         autoWrapText: true,
@@ -323,14 +350,9 @@ export default function VTable() {
       groupTitleStyle: {
         color: '#1C2126',
         borderColor: '#DCDEE1',
-        // textAlign: 'right'
       },
       scrollStyle: {
-        // visible: 'always',
         scrollSliderColor: 'rgba(0,0,0,0.2)',
-        // scrollRailColor: '#bac3cc',
-        // hoverOn: false,
-        // barToSide: true
       },
       selectionStyle: {
         cellBgColor: 'rgba(139, 211, 255, 0.1)',
