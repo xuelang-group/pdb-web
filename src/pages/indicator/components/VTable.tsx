@@ -187,10 +187,6 @@ const columns = [{
     "title": "Project Name",
     "dimensionKey": "Project Name",
     "mergeCell": true,
-    "style": {
-      // "textStick": true,
-      "textAlign": "center"
-    }
   }],
   "dimensionKey": "String",
   "headerStyle": {
