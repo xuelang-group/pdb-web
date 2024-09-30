@@ -1,4 +1,4 @@
-import { notification } from 'antd';
+import { notification, Tabs } from 'antd';
 import _ from 'lodash';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
@@ -14,6 +14,8 @@ import { setTypes } from '@/reducers/type';
 import { setRelationLoading, setTypeLoading, setTypeRelationMap } from '@/reducers/editor';
 
 import PdbPanel from '@/components/Panel';
+import IndicatorList from '@/pages/left/indicator/list';
+
 import TypeList from './TypeList';
 import './index.less';
 
@@ -42,7 +44,7 @@ export default function Left() {
 
     dispatch(setTypeLoading(true));
     dispatch(setRelationLoading(true));
-    
+
     getTypeByGraphId(id, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes(response || []));
@@ -95,9 +97,28 @@ export default function Left() {
     });
   }
 
+  const tabs = [{
+    key: 'type',
+    label: '类型列表',
+    children: <div className='pdb-sider-content'><TypeList /></div>
+  }, {
+    key: 'indicator',
+    label: '指标列表',
+    children: <IndicatorList />
+  }]
+
+  const renderPanelContent = function () {
+    return (
+      <Tabs items={tabs} />
+    )
+  }
+
   return (
-    <PdbPanel className='pdb-type-left' title='类型列表' direction="left" canCollapsed={true}>
-      <TypeList />
-    </PdbPanel>
+    <PdbPanel
+      className='pdb-type-left'
+      direction="left"
+      canCollapsed={true}
+      customRender={renderPanelContent()}
+    />
   );
 }

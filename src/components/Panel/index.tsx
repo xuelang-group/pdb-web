@@ -5,14 +5,15 @@ import './index.less'
 interface PanelProps {
   title?: string // 面板标题
   className?: string
-  children: ReactNode // 面板自定义内容
+  children?: ReactNode // 面板自定义内容
   external?: ReactNode
   direction?: string
   canCollapsed?: boolean
   onRef?: any
+  customRender?: ReactNode // 整个自定义内容
 }
 
-export default function PdbPanel({ title, children, external, direction, canCollapsed, ...other }: PanelProps) {
+export default function PdbPanel({ title, children, external, direction, canCollapsed, customRender, ...other }: PanelProps) {
   const [siderHidden, _setSiderHidden] = useState(false);
   const siderHiddenRef = useRef(siderHidden);
   const setSiderHidden = function (value: boolean) {
@@ -51,6 +52,28 @@ export default function PdbPanel({ title, children, external, direction, canColl
     }
   }
 
+  const renderCollapsedBtn = function () {
+    return (
+      <Tooltip
+        title={(siderHidden ? '展开 ' : '折叠 ') + altKey + ` + ${direction === 'left' ? '[' : ']'}`}
+        placement={direction === 'left' ? 'right' : 'left'}
+      >
+        <button className="btn-aside-toggle" onClick={() => setSiderHidden(!siderHidden)}>
+          <i className={`spicon icon-shuangjiantou-${direction === 'left' ? 'zuo' : 'you'}`}></i>
+        </button>
+      </Tooltip>
+    )
+  }
+
+  if (customRender) {
+    return (
+      <div className={`pdb-content-sider pdb-${direction}-sider ${siderHidden ? `pdb-${direction}-sider-hidden ` : ''} ` + (other.className || '')}>
+        {customRender}
+        {canCollapsed && renderCollapsedBtn()}
+      </div>
+    )
+  }
+
   return (
     <div className={`pdb-content-sider pdb-${direction}-sider ${siderHidden ? `pdb-${direction}-sider-hidden ` : ''} ` + (other.className || '')}>
       {title &&
@@ -62,16 +85,7 @@ export default function PdbPanel({ title, children, external, direction, canColl
       <div className='pdb-sider-content'>
         {children}
       </div>
-      {canCollapsed &&
-        <Tooltip
-          title={(siderHidden ? '展开 ' : '折叠 ') + altKey + ` + ${direction === 'left' ? '[' : ']'}`}
-          placement={direction === 'left' ? 'right' : 'left'}
-        >
-          <button className="btn-aside-toggle" onClick={() => setSiderHidden(!siderHidden)}>
-            <i className={`spicon icon-shuangjiantou-${direction === 'left' ? 'zuo' : 'you'}`}></i>
-          </button>
-        </Tooltip>
-      }
+      {canCollapsed && renderCollapsedBtn()}
     </div>
   );
 }

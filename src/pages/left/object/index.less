@@ -2,36 +2,44 @@
   height: 100%;
   overflow: hidden;
 
+  .pdb-ant-tabs {
+    height: 100%;
+    overflow: hidden;
+
+    &-nav {
+      margin: 0 !important;
+      padding: 0 1.6rem;
+    }
+
+    .pdb-ant-tabs-nav-list {
+      width: 100%;
+    }
+
+    &-tab {
+      flex: 1;
+      padding: 1.3rem 0 !important;
+      color: var(--text-color1) !important;
+
+      &-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      &+.pdb-ant-tabs-tab {
+        margin: 0;
+      }
+    }
+
+    &-content,
+    &-tabpane {
+      height: 100%;
+    }
+  }
+
   .pdb-sider-content {
     overflow: hidden;
     padding: 0;
-
-    .pdb-ant-tabs {
-      height: 100%;
-      overflow: hidden;
-
-      .pdb-ant-tabs-nav-list {
-        width: 100%;
-      }
-
-      &-tab {
-        flex: 1;
-
-        &-btn {
-          width: 100%;
-          text-align: center;
-        }
-
-        &+.pdb-ant-tabs-tab {
-          margin: 0;
-        }
-      }
-
-      &-content,
-      &-tabpane {
-        height: 100%;
-      }
-    }
+    height: 100% !important;
 
     .list-container {
       height: 100%;
