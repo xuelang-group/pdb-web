@@ -1,38 +1,28 @@
-import { ListTable, PivotTable, register, Group, Text, Tag } from '@visactor/react-vtable'
+import { ListTable, Group, Text, Tag, ListColumn } from '@visactor/react-vtable'
 import { TYPES } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import {ICONS, getIconSvg, DLSVG, getColumns} from './CONSTS'
+import { Col, getColumns } from './CONSTS'
 
-ICONS.forEach(name => {
-  register.icon(name, {
-    name: name,
-    type: 'svg',
-    marginRight: 4,
-    positionType: TYPES.IconPosition.left,
-    width: 18,
-    height: 18,
-    svg: getIconSvg(name),
-  })
-  register.icon(`${name}Disabled`, {
-    name: `${name}Disabled`,
-    type: 'svg',
-    marginRight: 4,
-    positionType: TYPES.IconPosition.left,
-    width: 18,
-    height: 18,
-    svg: getIconSvg(name, true),
-  })
-})
-// 度量列标签ICON
-register.icon('DLTAG', {
-  name: 'DLTAG',
-  type: 'svg',
-  marginLeft: 4,
-  positionType: TYPES.IconPosition.right,
-  width: 52,
-  height: 24,
-  svg: DLSVG,
-})
+// ICONS.forEach(name => {
+//   register.icon(name, {
+//     name: name,
+//     type: 'svg',
+//     marginRight: 4,
+//     positionType: TYPES.IconPosition.left,
+//     width: 18,
+//     height: 18,
+//     svg: getIconSvg(name),
+//   })
+//   register.icon(`${name}Disabled`, {
+//     name: `${name}Disabled`,
+//     type: 'svg',
+//     marginRight: 4,
+//     positionType: TYPES.IconPosition.left,
+//     width: 18,
+//     height: 18,
+//     svg: getIconSvg(name, true),
+//   })
+// })
 
 const data = [
   {
@@ -195,18 +185,28 @@ const data = [
     "Days Required": 47,
     "End Date": "2024/01/14",
     "Progress": 0.01
+  }, {
+    "Project Name": "Production",
+    "Task Name": "Manu facture",
+    "Assigned To": "Tim Smith",
+    "Start Date": "2024/01/01",
+    "Days Required": 47,
+    "End Date": "2024/01/14",
+    "Progress": 0.01
   }
 ]
 
-const columns = [{
+const columns: Col[] = [{
   "field": "Project Name",
-  "type": "string"
+  "type": "string",
+  "mergeCell": true,
 }, {
   "field": "Task Name",
   "type": "string"
 }, {
-  "field": "Assigned to",
-  "type": "string"
+  "field": "Assigned To",
+  "type": "string",
+  "disabled": true
 }, {
   "field": "Start Date",
   "type": "datetime"
@@ -218,21 +218,29 @@ const columns = [{
   "type": "datetime"
 }, {
   "field": "Progress",
-  "type": "float"
+  "type": "float",
+  "checked": true,
+  "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
 }]
 
 export default function VTable() {
 
+  const tableInstance = useRef(null);
+  const groupRef = useRef(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
 
   const option = {
     autoFillWidth: true,
+    autoWrapText:true,
+    frozenColCount: 1,
     rightFrozenColCount: 1,
+    bottomFrozenRowCount: 1,
+    groupBy: "Project Name",
     // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
-    defaultColWidth: 180,
+    defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
     theme: {
       // 冻结列效果
@@ -257,6 +265,7 @@ export default function VTable() {
       groupTitleStyle: {
         color: '#1C2126',
         borderColor: '#DCDEE1',
+        bgColor: '#FFF'
       },
       scrollStyle: {
         scrollSliderColor: 'rgba(0,0,0,0.2)',
@@ -269,23 +278,76 @@ export default function VTable() {
       bottomFrozenStyle: {
         fontFamily: 'PingFang SC',
         fontWeight: 600,
-        // borderLineWidth: [1, 0, 1, 0],
-        color: 'green'
-      }
+        borderLineWidth: [1, 0, 1, 0],
+        color: 'green',
+        // textAlign: 'right',
+        bgColor: '#FFF'
+      },
     },
     records: data,
     columns: getColumns(columns),
-    bottomFrozenRowCount: 1,
+    // customMergeCell: (col:any, row:any, table: any) => {
+    //   console.log('row: ', row, table.rowCount)
+    //   console.log('table: ', table)
+    //   if (col >= 0 && col < table.colCount && row === table.rowCount - 1) {
+    //     return {
+    //       text: 'merge text',
+    //       range: {
+    //         start: {
+    //           col: 0,
+    //           row: table.rowCount - 1
+    //         },
+    //         end: {
+    //           col: table.colCount - 1,
+    //           row: table.rowCount - 1
+    //         }
+    //       },
+    //       style: {
+    //         // textAlign: 'right',
+    //         bgColor: '#fff'
+    //       }
+    //     };
+    //   }
+    // },
+    // groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
+    //   const { table, row, col, rect } = args;
+    //   const record = table.getCellOriginRecord(col, row);
+    //   // const { height, width } = rect ?? table.getCellRect(col, row);
+    //   const container = (
+    //     <Group
+    //       attribute={{
+    //         // width,
+    //         // height,
+    //         // id: 'container',
+    //         y: height / 2,
+    //         display: 'flex',
+    //         flexWrap: 'nowrap',
+    //         alignItems: 'center',
+    //         justifyContent: 'flex-end',
+    //       }}
+    //     >
+    //       <Text attribute={{
+    //         text: `小计 | ${record.vtableMergeName}- avgs: `,
+    //         fontSize: 14,
+    //         fill: 'red',
+    //         textAlign: 'right',
+    //         textBaseline: 'middle',
+    //         boundsPadding: [0, 10, 0, 10]
+    //       }} />
+    //     </Group>
+    //   )
+    //   return {
+    //     rootContainer: container,
+    //     renderDefault: false
+    //   };
+    // },
     aggregation(args: {col: number, field: string}) {
       if (args.field === "Progress") {
         return {
           aggregationType: TYPES.AggregationType.AVG,
+          // showOnTop: true,
           formatFun(value: number, col: any, row: any, table: { recordsCount: string }) {
-            // console.log('value: ', value)
-            // console.log('col: ', col)
-            // console.log('row: ', row)
-            // console.log('table: ', table)
-            return '合计:' + value;
+            return '合计:' + Math.round(value * 100) + '%';
           }
         };
       }
@@ -295,6 +357,7 @@ export default function VTable() {
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
     console.log('has ready')
+    // tableInstance.
   }
 
   const updateSize = () => {
@@ -312,6 +375,7 @@ export default function VTable() {
   return (
     <div ref={wrapRef} style={{height: '100%'}}>
       <ListTable
+        ref={tableInstance}
         width={width}
         height={height}
         option={option}

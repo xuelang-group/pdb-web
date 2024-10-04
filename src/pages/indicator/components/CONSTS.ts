@@ -20,74 +20,104 @@ export function getIconSvg(name: string, disabled=false): string {
   }
 }
 
-export const DLSVG = `
-  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" version="1.1" width="52" height="24" viewBox="0 0 52 24"><g><rect x="0" y="0" width="52" height="24" rx="2" fill="#E8F8FF" fill-opacity="1"/><rect x="0.5" y="0.5" width="51" height="23" rx="1.5" fill-opacity="0" stroke-opacity="1" stroke="#8BD3FF" fill="none" stroke-width="1"/><g><path d="M11.132,12.796L11.132,13.54L11.864,13.54C12.416,14.296,13.148,14.956,14.036,15.508C12.956,15.964,11.708,16.288,10.315999999999999,16.492L10.688,17.247999999999998C12.272,16.984,13.676,16.552,14.888,15.976C16.028,16.552,17.432000000000002,16.972,19.088,17.247999999999998L19.46,16.503999999999998C18.032,16.311999999999998,16.784,15.988,15.704,15.532C16.676000000000002,14.956,17.492,14.248,18.164,13.432L18.164,12.796L11.132,12.796ZM12.776,13.54L17.036,13.54C16.412,14.152,15.68,14.68,14.84,15.124C14.012,14.692,13.328,14.164,12.776,13.54ZM10.436,10.108L12.452,10.108L12.452,11.98L17.311999999999998,11.98L17.311999999999998,10.108L19.16,10.108L19.16,9.315999999999999L17.311999999999998,9.315999999999999L17.311999999999998,8.332L16.472,8.332L16.472,9.315999999999999L13.292,9.315999999999999L13.292,8.344000000000001L12.452,8.344000000000001L12.452,9.315999999999999L10.436,9.315999999999999L10.436,7.948L19.183999999999997,7.948L19.183999999999997,7.132L15.068,7.132C14.936,6.772,14.792,6.436,14.648,6.136L13.736,6.28C13.904,6.544,14.048,6.82,14.192,7.132L9.572,7.132L9.572,11.044C9.548,13.408,9.188,15.256,8.492,16.588L9.14,17.164C9.956,15.628,10.388,13.588,10.436,11.044L10.436,10.108ZM13.292,10.108L16.472,10.108L16.472,11.248L13.292,11.248L13.292,10.108ZM21.836,11.224L21.836,14.284L25.556,14.284L25.556,14.956L21.536,14.956L21.536,15.532L25.556,15.532L25.556,16.240000000000002L20.636,16.240000000000002L20.636,16.912L31.364,16.912L31.364,16.240000000000002L26.42,16.240000000000002L26.42,15.532L30.488,15.532L30.488,14.956L26.42,14.956L26.42,14.284L30.188,14.284L30.188,11.224L21.836,11.224ZM29.36,13.744L26.42,13.744L26.42,13.012L29.36,13.012L29.36,13.744ZM25.556,13.744L22.664,13.744L22.664,13.012L25.556,13.012L25.556,13.744ZM22.664,12.508L22.664,11.764L25.556,11.764L25.556,12.508L22.664,12.508ZM26.42,11.764L29.36,11.764L29.36,12.508L26.42,12.508L26.42,11.764ZM22.1,6.388L22.1,9.352L29.936,9.352L29.936,6.388L22.1,6.388ZM29.096,8.836L22.939999999999998,8.836L22.939999999999998,8.128L29.096,8.128L29.096,8.836ZM22.939999999999998,7.612L22.939999999999998,6.916L29.096,6.916L29.096,7.612L22.939999999999998,7.612ZM20.624000000000002,9.975999999999999L20.624000000000002,10.624L31.376,10.624L31.376,9.975999999999999L20.624000000000002,9.975999999999999ZM41.768,17.092C42.584,17.092,42.992,16.66,42.992,15.82L42.992,6.28L42.128,6.28L42.128,15.616C42.128,16.084,41.9,16.323999999999998,41.468,16.323999999999998C40.988,16.323999999999998,40.472,16.3,39.944,16.264L40.136,17.092L41.768,17.092ZM39.572,7.192L39.572,14.776L40.412,14.776L40.412,7.192L39.572,7.192ZM32.864000000000004,6.712L32.864000000000004,7.552L34.724000000000004,7.552C34.472,9.52,33.751999999999995,11.056,32.576,12.184L32.984,12.988C33.308,12.688,33.608000000000004,12.352,33.884,11.992C34.676,12.424,35.372,12.892,35.984,13.396C35.216,14.644,34.147999999999996,15.616,32.792,16.311999999999998L33.212,17.08C35.876000000000005,15.724,37.507999999999996,13.348,38.096000000000004,9.964L38.096000000000004,9.196L35.239999999999995,9.196C35.384,8.68,35.492000000000004,8.128,35.576,7.552L38.684,7.552L38.684,6.712L32.864000000000004,6.712ZM34.316,11.332C34.556,10.924,34.772,10.492,34.964,10.012L37.268,10.012C37.076,10.984,36.775999999999996,11.872,36.379999999999995,12.676C35.78,12.208,35.096000000000004,11.764,34.316,11.332Z" fill="#0084FF" fill-opacity="1"/></g></g></svg>
-`;
-
 const padding = [8, 15];
 const iconSize = 18;
-type Col = {
+export type Col = {
   field: string;
   type: string;
+  disabled?: boolean;
+  checked?: boolean;
+  mergeCell?: boolean;
+  fieldFormat?: (record:any) => any;
 }
 export function getColumns(cols: Col[]) {
-  return cols.map(({field, type}) => ({
-    // "headerType": "text",
-    // "cellType": "text",
+  return cols.map(({field, type, disabled, checked, mergeCell, fieldFormat}) => ({
     "field": field,
     "title": field,
     "dimensionKey": field,
-    "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
+    "mergeCell": mergeCell,
+    // "disableSelect": !!disabled,
+    // "disableHeaderSelect": !!disabled,
+    // "style": disabled ? {
+    //   "bgColor": "#F4F6F9",
+    //   "color": "#C2C7CC",
+    // } : {},
+    // "headerStyle": disabled ? {
+    //   "bgColor": "#F4F6F9",
+    //   "color": "#C2C7CC",
+    // } : {},
+    "fieldFormat": fieldFormat,
     "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
-      const { dataValue, rect } = args;
+      const { dataValue, rect, table, row } = args;
       const width = rect?.width || 180;
       const height = rect?.height || 92;
-      // console.log('width: ', rect?.width)
-      // console.log('height: ', rect?.height)
-      const rowHeight = height / 2
-      const elements: TYPES.ICustomRenderElements = [];
-      elements.push({
-        type: 'icon',
-        x: padding[1],
-        y: (rowHeight - iconSize) / 2,
-        width: iconSize,
-        height: iconSize,
-        svg: getIconSvg(type),
-      })
-      elements.push({
-        type: 'text',
-        x: padding[1] + iconSize + 4,
-        y: rowHeight / 2 + 1,
-        fill: '#1C2126',
-        fontSize: 14,
-        fontWeight: 600,
-        textBaseline: 'middle',
-        text: typeMap.type[type],
-      })
-      elements.push({
-        type: 'line',
-        points: [{x: 1, y: rowHeight + 0.5}, {x: width, y: rowHeight + 0.5}],
-        lineWidth: 1,
-        stroke: '#DCDEE1'
-      })
-      elements.push({
-        type: 'rect',
-        x: 1,
-        y: rowHeight + 1,
-        width: width - 2,
-        height: rowHeight - 2,
-        fill: '#F9FBFC',
-      })
-      elements.push({
-        type: 'text',
-        fill: '#1C2126',
-        fontSize: 14,
-        fontWeight: 600,
-        textBaseline: 'middle',
-        text: dataValue,
-        x: padding[1],
-        y: rowHeight + rowHeight / 2,
-      })
+      const rowHeight = height / 2;
+      const elements: TYPES.ICustomRenderElements = [
+        {
+          type: 'icon',
+          x: padding[1],
+          y: (rowHeight - iconSize) / 2,
+          width: iconSize,
+          height: iconSize,
+          svg: getIconSvg(type, disabled),
+        }, {
+          type: 'text',
+          x: padding[1] + iconSize + 5,
+          y: rowHeight / 2 + 1,
+          fill: disabled ? '#C2C7CC' : '#1C2126',
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: 'PingFang SC',
+          textBaseline: 'middle',
+          text: typeMap.type[type],
+        }, {
+          type: 'line',
+          points: [{x: 1, y: rowHeight + 0.5}, {x: width, y: rowHeight + 0.5}],
+          lineWidth: 1,
+          stroke: '#DCDEE1'
+        }, {
+          type: 'rect',
+          x: 1,
+          y: rowHeight + 1,
+          width: width - 2,
+          height: rowHeight - 2,
+          fill: disabled ? '#F4F6F9' : '#F9FBFC',
+        }, {
+          type: 'text',
+          fill: disabled ? '#C2C7CC' : '#1C2126',
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: 'PingFang SC',
+          textBaseline: 'middle',
+          text: dataValue,
+          x: padding[1],
+          y: rowHeight + rowHeight / 2 + 1,
+        }
+      ];
+      if (checked) {
+        elements.push({
+          type: 'rect',
+          x: width - 52 - padding[1],
+          y: (rowHeight - 24) / 2,
+          width: 52,
+          height: 24,
+          radius: 1,
+          fill: '#E8F8FF',
+          stroke: '#8BD3FF'
+        })
+        elements.push({
+          type: 'text',
+          x: width - 52/2 - padding[1],
+          y: rowHeight / 2 + 1,
+          fill: '#0084FF',
+          fontSize: 12,
+          fontWeight: 400,
+          fontFamily: 'PingFang SC',
+          textAlign: 'center',
+          textBaseline: 'middle',
+          text: '度量列',
+        })
+      }
       return {
         elements,
         expectedHeight: width,
@@ -98,7 +128,7 @@ export function getColumns(cols: Col[]) {
   }))
 }
 
-const columns = [{
+export const columns = [{
   "title": "单行文本",
   "field": "Project Name",
   "dimensionKey": "Project Name",

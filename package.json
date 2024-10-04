@@ -18,7 +18,7 @@
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
     "@types/react-resizable": "^3.0.7",
-    "@visactor/react-vtable": "^1.7.8",
+    "@visactor/react-vtable": "^1.8.2",
     "aliyun-sdk": "^1.12.10",
     "aliyun-sdk2": "^1.0.5",
     "antd": "^5.12.5",
