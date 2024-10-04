@@ -1,7 +1,7 @@
-import { ListTable, PivotTable, register } from '@visactor/react-vtable'
+import { ListTable, PivotTable, register, Group, Text, Tag } from '@visactor/react-vtable'
 import { TYPES } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import {ICONS, getIconSvg, DLSVG} from './ICONS'
+import {ICONS, getIconSvg, DLSVG, getColumns} from './CONSTS'
 
 ICONS.forEach(name => {
   register.icon(name, {
@@ -50,7 +50,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 14,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.68
   }, {
     "Project Name": "Marketing",
     "Task Name": "Social Media Planning",
@@ -58,7 +58,7 @@ const data = [
     "Start Date": "2024/01/03",
     "Days Required": 22,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.58
   }, {
     "Project Name": "Marketing",
     "Task Name": "Campaign Analysis",
@@ -66,7 +66,7 @@ const data = [
     "Start Date": "2024/01/03",
     "Days Required": 25,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.48
   }, {
     "Project Name": "Product Dev",
     "Task Name": "Prototype Development",
@@ -74,7 +74,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 18,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.38
   }, {
     "Project Name": "Product Dev",
     "Task Name": "Quality Assurance",
@@ -90,7 +90,7 @@ const data = [
     "Start Date": "2024/01/04",
     "Days Required": 25,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.28
   }, {
     "Project Name": "Customer Svc",
     "Task Name": "Service Improvement",
@@ -98,7 +98,7 @@ const data = [
     "Start Date": "2024/01/04",
     "Days Required": 25,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.18
   }, {
     "Project Name": "Customer Svc",
     "Task Name": "Ticket Resolution",
@@ -106,7 +106,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 22,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.08
   }, {
     "Project Name": "Customer Svc",
     "Task Name": "Customer Feedback",
@@ -122,7 +122,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 30,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.68
   }, {
     "Project Name": "Financial",
     "Task Name": "Financial Reporting",
@@ -130,7 +130,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 22,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.58
   }, {
     "Project Name": "Financial",
     "Task Name": "Investment Planning",
@@ -138,7 +138,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 21,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.48
   }, {
     "Project Name": "Research",
     "Task Name": "Market Trends Analysis",
@@ -146,7 +146,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 25,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.38
   }, {
     "Project Name": "Research",
     "Task Name": "Data Collection",
@@ -154,7 +154,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 23,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.28
   }, {
     "Project Name": "Research",
     "Task Name": "Research Paper Writing",
@@ -162,7 +162,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 32,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.18
   }, {
     "Project Name": "Development",
     "Task Name": "Software Development",
@@ -170,7 +170,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 27,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.08
   }, {
     "Project Name": "Development",
     "Task Name": "Feature Enhancement",
@@ -178,7 +178,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 36,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.88
   }, {
     "Project Name": "Development",
     "Task Name": "Code Review",
@@ -186,7 +186,7 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 30,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.98
   }, {
     "Project Name": "Production",
     "Task Name": "Manufacturing",
@@ -194,117 +194,31 @@ const data = [
     "Start Date": "2024/01/01",
     "Days Required": 47,
     "End Date": "2024/01/14",
-    "Progress": 0.78
+    "Progress": 0.01
   }
 ]
 
 const columns = [{
-  "title": "单行文本",
-  "field": "String",
-  "columns":[{
-    "field": "Project Name",
-    "title": "Project Name",
-    "dimensionKey": "Project Name",
-    "mergeCell": true,
-  }],
-  "dimensionKey": "String",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": "String"
+  "field": "Project Name",
+  "type": "string"
 }, {
-  "title": "单行文本",
-  "field": "String",
-  "columns":[{
-    "field": "Task Name",
-    "title": "Task Name",
-    "dimensionKey": "Task Name",
-  }],
-  "dimensionKey": "String",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": "String"
+  "field": "Task Name",
+  "type": "string"
 }, {
-  "title": "单行文本",
-  "field": "String",
-  "columns":[{
-    "field": "Assigned To",
-    "title": "Assigned to",
-    "dimensionKey": "Assigned to",
-  }],
-  "dimensionKey": "String",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": "String"
+  "field": "Assigned to",
+  "type": "string"
 }, {
-  "title": "日期/时间",
-  "field": "Date",
-  "columns":[{
-    "field": "Start Date",
-    "title": "Start Date",
-    "dimensionKey": "Start Date",
-    "mergeCell": true,
-    "disableSelect": true,
-    "disableHeaderSelect": true,
-    "style": {
-      "bgColor": "#F4F6F9",
-      "color": "#C2C7CC",
-    },
-    "headerStyle": {
-      "bgColor": "#F4F6F9",
-      "color": "#C2C7CC",
-      "fontWeight": 500
-    },
-  }],
-  "dimensionKey": "Date",
-  "headerStyle": {
-    "bgColor": "#F4F6F9",
-    "color": "#C2C7CC",
-    "fontWeight": 500
-  },
-  "headerIcon": "DateDisabled"
+  "field": "Start Date",
+  "type": "datetime"
 }, {
-  "title": "整数",
-  "field": "Int",
-  "columns":[{
-    "field": "Days Required",
-    "title": "Days Required",
-    "dimensionKey": "Days Required",
-  }],
-  "dimensionKey": "Int",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": "Number"
+  "field": "Days Required",
+  "type": "int"
 }, {
-  "title": "日期/时间",
-  "field": "Date",
-  "columns":[{
-    "field": "End Date",
-    "title": "End Date",
-    "dimensionKey": "End Date",
-  }],
-  "dimensionKey": "Date",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": "Date"
+  "field": "End Date",
+  "type": "datetime"
 }, {
-  "title": "浮点数",
-  "field": "Float",
-  "columns":[{
-    "field": "Progress",
-    "title": "Progress",
-    "dimensionKey": "Progress",
-    "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
-  }],
-  "dimensionKey": "Float",
-  "headerStyle": {
-    "bgColor": "#FFF",
-  },
-  "headerIcon": ["Number", "DLTAG"]
+  "field": "Progress",
+  "type": "float"
 }]
 
 export default function VTable() {
@@ -314,12 +228,12 @@ export default function VTable() {
   const [height, setHeight] = useState(500)
 
   const option = {
-    // widthMode: "adaptive",
     autoFillWidth: true,
     rightFrozenColCount: 1,
     // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
     defaultColWidth: 180,
+    defaultHeaderRowHeight: 92,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -329,14 +243,7 @@ export default function VTable() {
           endColor: 'rgba(0, 29, 77, 0)'
         }
       },
-      headerStyle: { 
-        bgColor: "#F9FBFC",
-        color: '#1C2126',
-        fontSize: 14,
-        fontWeight: 600,
-        borderColor: '#DCDEE1',
-      },
-      bodyStyle: {
+      defaultStyle: {
         color: '#4C5A67',
         fontSize: 14,
         borderColor: '#DCDEE1',
@@ -358,10 +265,32 @@ export default function VTable() {
         cellBgColor: 'rgba(139, 211, 255, 0.1)',
         cellBorderColor: '#8BD3FF',
         cellBorderLineWidth: 1,
+      },
+      bottomFrozenStyle: {
+        fontFamily: 'PingFang SC',
+        fontWeight: 600,
+        // borderLineWidth: [1, 0, 1, 0],
+        color: 'green'
       }
     },
     records: data,
-    columns: columns,
+    columns: getColumns(columns),
+    bottomFrozenRowCount: 1,
+    aggregation(args: {col: number, field: string}) {
+      if (args.field === "Progress") {
+        return {
+          aggregationType: TYPES.AggregationType.AVG,
+          formatFun(value: number, col: any, row: any, table: { recordsCount: string }) {
+            // console.log('value: ', value)
+            // console.log('col: ', col)
+            // console.log('row: ', row)
+            // console.log('table: ', table)
+            return '合计:' + value;
+          }
+        };
+      }
+      return null;
+    }
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
@@ -370,7 +299,7 @@ export default function VTable() {
 
   const updateSize = () => {
     const wrapper: any = wrapRef.current;
-    console.log(wrapper.offsetWidth, wrapper.offsetHeight)
+    // console.log(wrapper.offsetWidth, wrapper.offsetHeight)
     if (!wrapper || !wrapper.offsetWidth || !wrapper.offsetHeight) return
     setWidth(wrapper.offsetWidth)
     setHeight(wrapper.offsetHeight)
