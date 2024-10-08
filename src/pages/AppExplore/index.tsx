@@ -1,6 +1,6 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
+import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -99,8 +99,15 @@ export default function AppExplore() {
     // }
 
     // 首个tag必须为对象类型
-    if (newValue.length > 0 && newValue[0].split(".")[0] === "Type") {
+    const newValLen = newValue.length;
+    if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
       _tags = JSON.parse(JSON.stringify(newValue));
+    }
+
+    // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
+    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] === "Relation" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
+      const lastRelation = _tags.pop();
+      lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
     }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = _tags;
@@ -473,16 +480,18 @@ export default function AppExplore() {
     }
     if (_searchTags.length === 5) {
       tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
-    } else if (prevTagType && prevTagType !== "relation") {
-      tooltip = "当前关键词搜索结果包含：关系类型。";
-      if (prevTagType === 'type') {
-        tooltip += "若想搜索对象类型，请先回车换行。";
-      }
-    } else {
-      tooltip = "当前关键词搜索结果包含：对象类型。";
+    } else if (searchTabs === 'relation') {
+      tooltip = "两个对象类型之间必须以关系类型连接，请选择关系类型。"
     }
     return (
       <div className="pdb-explore-dropdown">
+        {tooltip &&
+          <Alert
+            message={tooltip}
+            type="warning"
+            showIcon
+          />
+        }
         {searchTabs === 'all' &&
           <Segmented
             value={currentSelectDropdownTab}
@@ -498,10 +507,6 @@ export default function AppExplore() {
           />
         }
         {originNode}
-        <div className="pdb-explore-dropdown-footer">
-          <i className="spicon icon-tishi" style={{ fontSize: 12, marginRight: 6 }}></i>
-          <span>{tooltip}</span>
-        </div>
       </div>
     );
   }
