@@ -1,6 +1,6 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Divider, Empty, message, notification, Popover, Select, Tag, Tooltip } from "antd";
+import { Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -45,7 +45,8 @@ export default function AppExplore() {
     [optionMap, setOptionMap] = useState<any>({}),
     [currentFocusIndex, setCurrentFocusIndex] = useState(-1),
     [currentSearchValue, setSearchValue] = useState<string>(''),
-    [selectedSearchTab, setSearchTab] = useState('all');
+    [searchTabs, setSearchTabs] = useState('all'), // 下拉框里显示的tab有哪些
+    [currentSelectDropdownTab, setSelectDropdownTab] = useState('type');
 
   useEffect(() => {
     document.addEventListener('keydown', onFocusSearch);
@@ -279,12 +280,12 @@ export default function AppExplore() {
   // 被选中时调用，参数为选中项的 value (或 key) 值
   const handleSelect = function (value: string, option: any, index: number) {
     if (searchLoading) return;
-    if (value === "__ENTER__") {
-      setSearchTagMap([...searchTagMap, {}]);
-      setSearchTags([...searchTags, []]);
-      setCurrentFocusIndex(searchTags.length);
-      return;
-    }
+    // if (value === "__ENTER__") {
+    //   setSearchTagMap([...searchTagMap, {}]);
+    //   setSearchTags([...searchTags, []]);
+    //   setCurrentFocusIndex(searchTags.length);
+    //   return;
+    // }
     const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
     Object.assign(newSearchTagsMap[index], { [value]: option });
     setSearchTagMap(newSearchTagsMap);
@@ -437,6 +438,21 @@ export default function AppExplore() {
       filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
       handleSearch(currentSearchValue, index);
     }
+
+    if (visible === false) {
+      // 关系下拉框弹窗时，判断当前搜索tags最后两项类型是否都是对象类型/关系类型，如果是的话，删除最后一项tag。
+      const currentSearchTags = JSON.parse(JSON.stringify(searchTags[index])),
+        currentSearchTagLen = currentSearchTags.length;
+      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].split(".")[0] === "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] === "Type"
+        || currentSearchTags[currentSearchTagLen - 2].split(".")[0] !== "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] !== "Type")) {
+        currentSearchTags.pop();
+        const newSearchTags = JSON.parse(JSON.stringify(searchTags));
+        newSearchTags[index] = currentSearchTags;
+        setSearchTags(newSearchTags);
+        return;
+      }
+    }
+
     setDropdownOpen(visible);
     setSearchValue("");
   }
@@ -467,6 +483,20 @@ export default function AppExplore() {
     }
     return (
       <div className="pdb-explore-dropdown">
+        {searchTabs === 'all' &&
+          <Segmented
+            value={currentSelectDropdownTab}
+            options={[{
+              label: '对象',
+              value: 'type'
+            }, {
+              label: '关系',
+              value: 'relation'
+            }]}
+            onChange={activeKey => { setSelectDropdownTab(activeKey); }}
+            block
+          />
+        }
         {originNode}
         <div className="pdb-explore-dropdown-footer">
           <i className="spicon icon-tishi" style={{ fontSize: 12, marginRight: 6 }}></i>
@@ -490,24 +520,7 @@ export default function AppExplore() {
         <Divider />
       );
     }
-    if (!option.label) {
-      const link = _.get(option, 'data.link', ''),
-        linkLabel = _.get(typeLabelMap, link, '');
-      return (
-        <span
-          className="pdb-explore-dropdown-more"
-          onClick={event => {
-            event.preventDefault();
-            event.stopPropagation();
-            setSearchTab(link);
-          }}
-        >
-          <i className="spicon icon-sousuo2" style={{ marginRight: 3 }}></i>
-          <span style={{ flex: 1 }}>在 <strong>{linkLabel}</strong> 中查找更多</span>
-          <span><i className="spicon icon-jiantou-you1"></i></span>
-        </span>
-      );
-    }
+
     const { label, data, value, key } = option;
     const _label = label.toString();
     const optionType = _.get(data, "type"),
@@ -533,9 +546,12 @@ export default function AppExplore() {
     if (value === ",") {
       return (<span style={{ margin: "0 5px", fontSize: 16 }}>,</span>);
     }
-    const tagType = _.get(searchTagMap[index][value], 'type'),
-      label = _.get(searchTagMap[index][value], 'label'),
-      filterLabel = _.get(searchTagMap[index][value], 'config.label');
+    const currentSearchTag = searchTagMap[index][value],
+      tagType = _.get(currentSearchTag, 'type'),
+      label = _.get(currentSearchTag, 'label'),
+      filterLabel = _.get(currentSearchTag, 'config.label'),
+      prevTagType = _.get(currentSearchTag, 'prevSearchTagType');
+
     if (tagType === 'type') {
       color = "processing";
       icon = "iconfont icon-duixiangleixing";
@@ -549,7 +565,7 @@ export default function AppExplore() {
     };
     const tagItem = (
       <Tag
-        className="pdb-explore-tag"
+        className={"pdb-explore-tag" + (prevTagType === tagType ? ' pdb-explore-tag-dashed' : '')}
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
@@ -621,7 +637,7 @@ export default function AppExplore() {
                 loading={filterLoading}
                 suffixIcon={null}
                 filterOption={false}
-                options={(optionMap[selectedSearchTab] || []).map((d: any) => d)}
+                options={(optionMap[currentSelectDropdownTab] || []).map((d: any) => d)}
                 notFoundContent={<Empty description="暂无相关结果" />}
                 open={currentFocusIndex === index && dropdownOpen}
                 // allowClear
@@ -641,11 +657,8 @@ export default function AppExplore() {
                 onFocus={() => handleFocus(index)}
                 onKeyDown={(event) => {
                   if (event.keyCode === 8 && _.isEmpty(currentSearchValue) && searchTags[currentFocusIndex].length === 0 && currentFocusIndex > 0) {
+                    // backspace删除键
                     handleClear(currentFocusIndex, currentFocusIndex - 1);
-                  } else if (event.keyCode === 13 && _.isEmpty(optionMap[selectedSearchTab]) && searchTags[searchTags.length - 1].length > 0) {
-                    setSearchTagMap([...searchTagMap, {}]);
-                    setSearchTags([...searchTags, []]);
-                    setCurrentFocusIndex(searchTags.length);
                   }
                 }}
                 onClear={() => handleClear(index)}
