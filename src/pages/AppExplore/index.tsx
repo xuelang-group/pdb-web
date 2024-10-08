@@ -105,7 +105,7 @@ export default function AppExplore() {
     }
 
     // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
-    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] === "Relation" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
+    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
       const lastRelation = _tags.pop();
       lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
     }
