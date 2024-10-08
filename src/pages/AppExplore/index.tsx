@@ -85,14 +85,21 @@ export default function AppExplore() {
       return;
     }
     if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
-    const _tags: string[] = [];
-    for (let i = 0; i < newValue.length; i++) {
-      if (i === 0 && newValue[0].split(".")[0] !== "Type") break;
-      _tags.push(newValue[i]);
-      if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
-        || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
-        break;
-      }
+    let _tags: string[] = [];
+    // for (let i = 0; i < newValue.length; i++) {
+    //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
+    //   _tags.push(newValue[i]);
+    //   // “当前tag为对象类型且下一个tag也为对象类型，当前tag为关系类型且下一个tag也为关系类型”这两种情况数据不符合条件。
+    //   //必须对象类型-关系类型或 关系类型-对象类型
+    //   if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
+    //     || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
+    //     break;
+    //   }
+    // }
+
+    // 首个tag必须为对象类型
+    if (newValue.length > 0 && newValue[0].split(".")[0] === "Type") {
+      _tags = JSON.parse(JSON.stringify(newValue));
     }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = _tags;
@@ -124,102 +131,138 @@ export default function AppExplore() {
     const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
     const optionMap = {};
     let typeOptions: any[] = [], relationOptions: any[] = [];
-    const enterOption = {
-      label: "回车换行",
-      value: "__ENTER__"
-    };
-    if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
-      //  对象类型 - 当前tag为首个类型选择或者前一个tag是关系类型
-      let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
+    // const enterOption = {
+    //   label: "回车换行",
+    //   value: "__ENTER__"
+    // };
+
+    if (searchTypes.length > 0) {
       if (prevSearchTagType === 'relation') {
-        typeOptions.push(enterOption);
-        const relationName = prevSearchTag['key'],
-          relationsIsReverse = prevSearchTag['isReverse'],
-          sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
-          targetTypeMap: any = {};
+        // 前一个tag是关系类型，当前下拉框只包含对象类型列表typeOptions
+        let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
+        if (prevSearchTagType === 'relation') {
+          // typeOptions.push(enterOption);
+          const relationName = prevSearchTag['key'],
+            relationsIsReverse = prevSearchTag['isReverse'],
+            sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
+            targetTypeMap: any = {};
 
-        if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
-          relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
-            if (!relationsIsReverse && bind.source === sourceType) {
-              Object.assign(targetTypeMap, { [bind.target]: bind.target });
-            } else if (relationsIsReverse && bind.target === sourceType) {
-              Object.assign(targetTypeMap, { [bind.source]: bind.source });
+          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
+            relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
+              if (!relationsIsReverse && bind.source === sourceType) {
+                Object.assign(targetTypeMap, { [bind.target]: bind.target });
+              } else if (relationsIsReverse && bind.target === sourceType) {
+                Object.assign(targetTypeMap, { [bind.source]: bind.source });
+              }
+            });
+            _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
+          }
+        }
+        typeOptions = typeOptions.concat(_types.map(val => ({
+          label: val['x.type.label'],
+          value: val['x.type.name'] + `-${currentTagLen}`,
+          key: val['x.type.name'],
+          type: 'type',
+          data: val,
+          prevSearchTagType
+        })));
+        setSearchTabs('type');
+        setSelectDropdownTab('type');
+      } else if (_.isEmpty(prevSearchTagType) || prevSearchTagType === 'type') {
+        // 当前tag为第一个或者前一个tag为对象类型，当前下拉框包含对象类型列表和关系类型列表typeOptions + relationOptions
+        // typeOptions为全量对象类型列表
+        const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+        typeOptions = searchTypes.map(val => ({
+          label: val['x.type.label'],
+          value: val['x.type.name'] + `-${currentTagLen}`,
+          key: val['x.type.name'],
+          type: 'type',
+          data: val,
+          prevSearchTagType
+        }));
+
+        if (currentTags.length > 1) {
+          // 前一个的前一个tag的类型
+          const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
+            priorSearchTagType = _.get(priorSearchTag, 'type', "");
+          //如果都为对象类型，下拉框选择只显示关系类型列表
+          if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
+            setSearchTabs('relation');
+            setSelectDropdownTab('relation');
+          } else {
+            setSearchTabs('all');
+            setSelectDropdownTab('type');
+          }
+        } else {
+          setSearchTabs('all');
+          setSelectDropdownTab('type');
+        }
+
+        // relationOptions根据前一个tag对象类型进行关系正向反向过滤
+        if (!_.isEmpty(prevSearchTagType)) {
+          const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+            targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+          // 正向关系数据
+          const positiveRelations = Array.from(new Set(sourceRelations))
+            .map((id: string) => relationMap[id]);
+          const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+
+          // 反向关系数据
+          const reverseRelations = Array.from(new Set(targetRelations))
+            .map((id: string) => relationMap[id]);
+          const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
+
+          // relationOptions = [enterOption];
+          if ("所属父级".indexOf(value) > -1) {
+            relationOptions.push({
+              label: "所属父级",
+              value: "e_x_parent" + `-${currentTagLen}`,
+              key: "e_x_parent",
+              type: 'relation'
+            });
+          }
+          if ("包含子级".indexOf(value) > -1) {
+            relationOptions.push({
+              label: "包含子级",
+              value: "~e_x_parent" + `-${currentTagLen}`,
+              key: "~e_x_parent",
+              type: 'relation'
+            });
+          }
+          if (positiveSearchRelations.length > 0) {
+            if (relationOptions.length > 1) {
+              relationOptions.push({
+                type: "divider",
+                disabled: true
+              });
             }
-          });
-          _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
-        }
-      }
-      typeOptions = typeOptions.concat(_types.map((val, index: number) => ({
-        label: val['x.type.label'],
-        value: val['x.type.name'] + `-${currentTagLen}`,
-        key: val['x.type.name'],
-        type: 'type',
-        data: val,
-        prevSearchTagType
-      })));
-    } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
-      // 关系类型 - 关系必须在类型后面
-      const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
-        targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
-      // 正向关系数据
-      const positiveRelations = Array.from(new Set(sourceRelations))
-        .map((id: string) => relationMap[id]);
-      const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+            relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
+              label: val['r.type.label'],
+              value: val['r.type.name'] + `-${currentTagLen}`,
+              key: val['r.type.name'],
+              type: 'relation',
+              isReverse: false,
+              data: val
+            })));
+          }
 
-      // 反向关系数据
-      const reverseRelations = Array.from(new Set(targetRelations))
-        .map((id: string) => relationMap[id]);
-      const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
-
-      relationOptions = [enterOption];
-      if ("所属父级".indexOf(value) > -1) {
-        relationOptions.push({
-          label: "所属父级",
-          value: "e_x_parent" + `-${currentTagLen}`,
-          key: "e_x_parent",
-          type: 'relation'
-        });
-      }
-      if ("包含子级".indexOf(value) > -1) {
-        relationOptions.push({
-          label: "包含子级",
-          value: "~e_x_parent" + `-${currentTagLen}`,
-          key: "~e_x_parent",
-          type: 'relation'
-        });
-      }
-      if (positiveSearchRelations.length > 0) {
-        if (relationOptions.length > 1) {
-          relationOptions.push({
-            type: "divider",
-            disabled: true
-          });
+          if (reverseSearchRelations.length > 0) {
+            if (relationOptions.length > 1) {
+              relationOptions.push({
+                type: "divider",
+                disabled: true
+              });
+            }
+            relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
+              label: "~" + val['r.type.label'],
+              value: val['r.type.name'] + `-${currentTagLen}`,
+              key: val['r.type.name'],
+              type: 'relation',
+              isReverse: true,
+              data: val
+            })));
+          }
         }
-        relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
-          label: val['r.type.label'],
-          value: val['r.type.name'] + `-${currentTagLen}`,
-          key: val['r.type.name'],
-          type: 'relation',
-          isReverse: false,
-          data: val
-        })));
-      }
-
-      if (reverseSearchRelations.length > 0) {
-        if (relationOptions.length > 1) {
-          relationOptions.push({
-            type: "divider",
-            disabled: true
-          });
-        }
-        relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
-          label: "~" + val['r.type.label'],
-          value: val['r.type.name'] + `-${currentTagLen}`,
-          key: val['r.type.name'],
-          type: 'relation',
-          isReverse: true,
-          data: val
-        })));
       }
     }
 
@@ -227,13 +270,7 @@ export default function AppExplore() {
       type: typeOptions,
       relation: relationOptions,
     });
-    if (typeOptions.length > 0) {
-      setSearchTab("type");
-    } else if (relationOptions.length > 0) {
-      setSearchTab("relation");
-    } else {
-      setSearchTab("");
-    }
+
     setOptionMap(optionMap);
     setFilterLoading(false);
     setSearchValue(value);
