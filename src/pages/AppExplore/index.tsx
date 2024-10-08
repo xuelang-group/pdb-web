@@ -107,7 +107,7 @@ export default function AppExplore() {
     if (index < 0 || !searchTags[index]) return;
     setFilterLoading(true);
 
-    let prevSearchTag = null, prevSearchTagType = "";
+    let prevSearchTag = null, prevSearchTagType = ""; // 前一个搜索tag信息
     const currentTags = searchTags[index],
       currentTagLen = currentTags.length;
 
@@ -123,13 +123,13 @@ export default function AppExplore() {
     }
     const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
     const optionMap = {};
-    let typeOptions: any[] = [], relationOptions: any[] = [], objectOptions: any[], allOptions: { label: string; key: string; options: any; }[] = [];
+    let typeOptions: any[] = [], relationOptions: any[] = [];
     const enterOption = {
       label: "回车换行",
       value: "__ENTER__"
     };
-    //  对象类型
     if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
+      //  对象类型 - 当前tag为首个类型选择或者前一个tag是关系类型
       let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
       if (prevSearchTagType === 'relation') {
         typeOptions.push(enterOption);
