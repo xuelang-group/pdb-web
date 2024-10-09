@@ -85,7 +85,10 @@ export default function AppExplore() {
       message.warning("正在搜索");
       return;
     }
-    if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
+    if (newValue.length > 0 && (
+      newValue[newValue.length - 1] === "__ENTER__" ||
+      newValue[newValue.length - 1] === "__NEW_RELATION__"
+    )) return;
     let _tags: string[] = [];
     // for (let i = 0; i < newValue.length; i++) {
     //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
@@ -303,6 +306,15 @@ export default function AppExplore() {
       }
     }
 
+    if (relationOptions.length > 0) {
+      relationOptions = relationOptions.concat([{
+        type: "divider",
+        disabled: true
+      }, {
+        value: "__NEW_RELATION__"
+      }]);
+    }
+
     Object.assign(optionMap, {
       type: typeOptions,
       relation: relationOptions,
@@ -316,6 +328,16 @@ export default function AppExplore() {
   // 被选中时调用，参数为选中项的 value (或 key) 值
   const handleSelect = function (value: string, option: any, index: number) {
     if (searchLoading) return;
+    // if (value === "__ENTER__") {
+    //   setSearchTagMap([...searchTagMap, {}]);
+    //   setSearchTags([...searchTags, []]);
+    //   setCurrentFocusIndex(searchTags.length);
+    //   return;
+    // }
+    if (value === "__NEW_RELATION__") {
+      setDropdownOpen(false);
+      return;
+    }
     setSearchTagMap((prevMap: any) => {
       const newMap = { ...prevMap };
       newMap[index] = { ...newMap[index], [value]: option };
@@ -498,13 +520,9 @@ export default function AppExplore() {
   }
 
   const dropdownRender = function (originNode: ReactNode, index: number) {
-    let tooltip = "", prevTagType = "";
+    let tooltip = "";
     const _searchTags = searchTags[index];
     if (!_searchTags) return (<></>);
-    const lastTag = _searchTags[_searchTags.length - 1];
-    if (lastTag && searchTagMap[index][lastTag]) {
-      prevTagType = searchTagMap[index][lastTag]["type"];
-    }
     if (_searchTags.length === 5) {
       tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
     } else if (searchTabs === 'relation') {
@@ -547,6 +565,16 @@ export default function AppExplore() {
         </span>
       );
     }
+
+    if (option.value === "__NEW_RELATION__") {
+      return (
+        <span className="pdb-explore-dropdown-add">
+          <i className="spicon icon-add"></i>
+          <span>创建自定义关系</span>
+        </span>
+      );
+    }
+
     if (_.get(option, "data.type") === "divider") {
       return (
         <Divider />
