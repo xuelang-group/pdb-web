@@ -1,8 +1,8 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _ from "lodash";
-import React from "react";
+import _, { last } from "lodash";
+import React, { useCallback } from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
@@ -104,10 +104,36 @@ export default function AppExplore() {
       _tags = JSON.parse(JSON.stringify(newValue));
     }
 
-    // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
-    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
+    if (newValLen > 1 && _tags[newValLen - 1].split(".")[0] === "Type" && _tags[newValLen - 2].split(".")[0] === "Type") {
+      // 判断最后两个类型是否为对象类型，如果是，则更新最后一个类型的prevSearchTagType
+      setSearchTagMap((prevMap: any) => {
+        const newMap = { ...prevMap };
+        const lastTag = _tags[newValLen - 1];
+        if (newMap[index] && newMap[index][lastTag]) {
+          newMap[index][lastTag] = {
+            ...newMap[index][lastTag],
+            prevSearchTagType: 'type',
+          };
+        }
+        return newMap;
+      });
+    } else if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" &&
+      _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type"
+    ) {
+      // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
       const lastRelation = _tags.pop();
       lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
+      setSearchTagMap((prevMap: any) => {
+        const newMap = { ...prevMap };
+        const lastTag = _tags[newValLen - 1];
+        if (newMap[index] && newMap[index][lastTag]) {
+          newMap[index][lastTag] = {
+            ...newMap[index][lastTag],
+            prevSearchTagType: 'relation',
+          };
+        }
+        return newMap;
+      });
     }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = _tags;
@@ -287,24 +313,22 @@ export default function AppExplore() {
   // 被选中时调用，参数为选中项的 value (或 key) 值
   const handleSelect = function (value: string, option: any, index: number) {
     if (searchLoading) return;
-    // if (value === "__ENTER__") {
-    //   setSearchTagMap([...searchTagMap, {}]);
-    //   setSearchTags([...searchTags, []]);
-    //   setCurrentFocusIndex(searchTags.length);
-    //   return;
-    // }
-    const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-    Object.assign(newSearchTagsMap[index], { [value]: option });
-    setSearchTagMap(newSearchTagsMap);
+    setSearchTagMap((prevMap: any) => {
+      const newMap = { ...prevMap };
+      newMap[index] = { ...newMap[index], [value]: option };
+      return newMap;
+    });
     setSearchValue("");
   }
 
   // 取消选中时调用
   const handleDeselect = function (value: string, index: number) {
     if (searchLoading) return;
-    const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-    delete newSearchTagsMap[index][value];
-    setSearchTagMap(newSearchTagsMap);
+    setSearchTagMap((prevMap: any) => {
+      const newMap = { ...prevMap };
+      delete newMap[index][value];
+      return newMap;
+    });
   }
 
   // 清空搜索
