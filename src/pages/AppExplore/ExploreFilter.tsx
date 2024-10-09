@@ -1,7 +1,7 @@
 import { Button, Checkbox, Divider, Segmented } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { optionLabelMap, optionSymbolMap } from "@/utils/common";
 import { typeLabelMap } from ".";
@@ -25,19 +25,26 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const { originType, saveConfig, close } = props;
   const childRef = React.createRef();
 
-  const tagType: string = _.get(originType, 'type', ''),
-    tagLabel: string = _.get(originType, 'label', ''),
-    tagTypeData = _.get(originType, 'data', {}),
-    tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
-    tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '',
-    tagTypeCsv = _.get(originType, 'csv', []);
 
-  const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => (`${attrId}|${attrName}|${attrType}`)),
-    allCheckedList = tagTypeAttr.map(({ name, display, type }: AttrConfig) => (`${name}|${display}|${type}`));
-  const [selectedTab, setSelectedTab] = useState(tagType === 'type' ? 'column' : 'filter'),
-    [checkedList, setCheckedList] = useState<string[]>(defaultCheckedList),
-    [indeterminate, setIndeterminate] = useState(defaultCheckedList.length !== allCheckedList.length),
-    [checkAll, setCheckAll] = useState(defaultCheckedList.length === allCheckedList.length);
+  const [allCheckedList, setAllCheckedList] = useState([]),
+    [selectedTab, setSelectedTab] = useState('filter'),
+    [checkedList, setCheckedList] = useState<string[]>([]),
+    [indeterminate, setIndeterminate] = useState(false),
+    [checkAll, setCheckAll] = useState(true);
+
+  useEffect(() => {
+    const tagType: string = _.get(originType, 'type', ''),
+      tagTypeData = _.get(originType, 'data', {}),
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
+      tagTypeCsv = _.get(originType, 'csv', []);
+
+    const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => (`${attrId}|${attrName}|${attrType}`));
+    setSelectedTab(_.get(originType, 'type', '') === 'type' ? 'column' : 'filter');
+    setCheckedList(defaultCheckedList);
+    setIndeterminate(defaultCheckedList.length !== tagTypeAttr.length);
+    setCheckAll(defaultCheckedList.length === tagTypeAttr.length);
+    setAllCheckedList(tagTypeAttr.map(({ name, display, type }: AttrConfig) => (`${name}|${display}|${type}`)));
+  }, [originType]);
 
   const save = function () {
     const { filterOptions } = childRef.current as any;
@@ -89,6 +96,10 @@ export default function ExploreFilter(props: ExploreFilterProps) {
 
     const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [];
     if (checkedList.length > 0) {
+      const tagType: string = _.get(originType, 'type', ''),
+        tagTypeData = _.get(originType, 'data', {}),
+        tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '';
+
       checkedList.forEach(function (value) {
         const valArr = value.split("|");
         csv.push({
@@ -108,19 +119,25 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   }
 
   const onChange = (list: any[]) => {
+    const tagType: string = _.get(originType, 'type', ''),
+      tagTypeData = _.get(originType, 'data', {}),
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [];
+
     setCheckedList(list);
     setIndeterminate(!!list.length && list.length < tagTypeAttr.length);
     setCheckAll(list.length === tagTypeAttr.length);
   };
 
   const onCheckAllChange = (e: any) => {
-    console.log(allCheckedList)
     setCheckedList(e.target.checked ? allCheckedList : []);
     setIndeterminate(false);
     setCheckAll(e.target.checked);
   };
 
   const renderColumnSelect = function () {
+    const tagType: string = _.get(originType, 'type', ''),
+      tagTypeData = _.get(originType, 'data', {}),
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [];
     return (
       <div className="pdb-explore-filter-column">
         <div className="pdb-explore-filter-column-all">
@@ -144,11 +161,11 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   return (
     <div className="pdb-explore-filter">
       <div className="pdb-explore-filter-header">
-        <span>{typeLabelMap[tagType]} - {tagLabel}</span>
+        <span>{typeLabelMap[_.get(originType, 'type', '')]} - {_.get(originType, 'label', '')}</span>
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
       <div className="pdb-explore-filter-container">
-        {tagType === 'type' &&
+        {_.get(originType, 'type', '') === 'type' &&
           <Segmented
             value={selectedTab}
             options={[{
