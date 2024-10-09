@@ -215,7 +215,10 @@ export default function AppExplore() {
           prevSearchTagType
         }));
 
-        if (currentTags.length > 1) {
+        if (currentTags.length === 0) {
+          setSearchTabs('type');
+          setSelectDropdownTab('type');
+        } else if (currentTags.length > 1) {
           // 前一个的前一个tag的类型
           const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
             priorSearchTagType = _.get(priorSearchTag, 'type', "");
@@ -225,11 +228,11 @@ export default function AppExplore() {
             setSelectDropdownTab('relation');
           } else {
             setSearchTabs('all');
-            setSelectDropdownTab('type');
+            setSelectDropdownTab('relation');
           }
         } else {
           setSearchTabs('all');
-          setSelectDropdownTab('type');
+          setSelectDropdownTab('relation');
         }
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
@@ -520,11 +523,11 @@ export default function AppExplore() {
           <Segmented
             value={currentSelectDropdownTab}
             options={[{
-              label: '对象',
-              value: 'type'
-            }, {
               label: '关系',
               value: 'relation'
+            }, {
+              label: '对象',
+              value: 'type'
             }]}
             onChange={activeKey => { setSelectDropdownTab(activeKey); }}
             block
@@ -707,7 +710,7 @@ export default function AppExplore() {
           ></i>
         </Tooltip>
       }
-      <Tooltip title="展开">
+      {/* <Tooltip title="展开">
         <i
           className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
           onClick={event => {
@@ -715,8 +718,8 @@ export default function AppExplore() {
             setExploreExpand(!exploreExpand);
           }}
         ></i>
-      </Tooltip>
-      <ExportApi
+      </Tooltip> */}
+      {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
           const tagType = tag.startsWith("Type.") ? "type" : "relation";
           let attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.constraints"), [])));
@@ -737,7 +740,7 @@ export default function AppExplore() {
           const graphId = routerParams.id;
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
-      />
+      /> */}
       <Tooltip title="清空">
         <i
           className="spicon icon-shibai"
