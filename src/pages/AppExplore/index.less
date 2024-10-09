@@ -202,7 +202,7 @@
   }
 
   &-filter {
-    width: 40rem;
+    width: 50rem;
     max-height: 60rem;
     overflow: hidden;
     display: flex;
@@ -213,13 +213,15 @@
     }
 
     &-header {
-      padding: .8rem 1.6rem;
+      padding: 1.1rem 2.4rem;
       border-bottom: 1px solid var(--border-color2);
       display: flex;
       align-items: center;
 
       span {
         flex: 1;
+        color: var(--text-color1);
+        font-weight: 600;
       }
 
       .spicon {
@@ -233,27 +235,59 @@
       }
     }
 
-    &-content {
-      padding: 1.6rem;
+    &-container {
+      padding: 2rem 2.4rem;
       flex: 1;
+      height: 0;
       overflow: auto;
+
+      .pdb-ant-segmented {
+        margin-bottom: 1.6rem;
+      }
     }
 
     &-add {
-      padding: .8rem 1.6rem;
-      display: flex;
-      border-top: 1px solid var(--border-color2);
+      margin-top: 1.6rem;
 
       .pdb-ant-btn {
-        flex: 1;
+        width: 100%;
 
         .spicon {
           font-size: 1.4rem;
         }
+      }
+    }
 
-        &:last-child {
-          margin-left: 1rem;
+    &-column {
+      border: 1px solid var(--border-color2);
+      border-radius: 2px;
+
+      &-all {
+        padding: .8rem 2.4rem;
+        border-bottom: 1px solid var(--border-color2);
+      }
+
+      .pdb-ant-checkbox-group {
+        padding: .8rem 2.4rem;
+        flex-direction: column;
+        max-height: 31.2rem;
+        flex-wrap: nowrap;
+        overflow: auto;
+        width: 100%;
+
+        .pdb-ant-checkbox-wrapper {
+          padding: .5rem 0;
         }
+      }
+    }
+
+    &-footer {
+      text-align: right;
+      padding: 1.2rem 2.4rem;
+      border-top: 1px solid var(--border-color2);
+
+      .pdb-ant-btn {
+        margin-left: .8rem;
       }
     }
 

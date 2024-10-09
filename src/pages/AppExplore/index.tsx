@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
-import { TypeConfig } from "@/reducers/type";
+import { AttrConfig, TypeConfig } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { api, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
@@ -341,6 +341,22 @@ export default function AppExplore() {
     setSearchTagMap((prevMap: any) => {
       const newMap = { ...prevMap };
       newMap[index] = { ...newMap[index], [value]: option };
+
+      const { type, data } = option;
+      if (type === 'type' && data['x.type.attrs']) {
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [],
+          typeId = data['x.type.name'];
+        data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+          csv.push({
+            typeId: typeId,
+            attrId: name,
+            attrName: display,
+            attrType: type
+          });
+        });
+        Object.assign(newMap[index][value], { csv });
+      }
+
       return newMap;
     });
     setSearchValue("");
@@ -421,10 +437,10 @@ export default function AppExplore() {
   }
 
   const getPQL = function (_searchTagMap = searchTagMap) {
-    const pql: any = [], relationNames: string[] = [];
+    const pql: any = [], relationNames: string[] = [], csv: any = [];
     searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
-        let pqlItem: any = [];
+        let pqlItem: any[] = [], csvItem: any[] = [];
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
           let name = _.get(detail, 'label', '');
@@ -448,17 +464,23 @@ export default function AppExplore() {
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
+            const objectCsvOpt =  _.get(detail, 'csv');
+            if (type === "object" && objectCsvOpt) {
+              csvItem = csvItem.concat(objectCsvOpt);
+            }
           }
           pqlItem.push(option);
         });
         pql.push(pqlItem);
+        csv.push(csvItem);
       }
     });
-    return { pql, relationNames };
+    return { pql, csv, relationNames };
   }
 
   const searchPQL = function (_searchTagMap = searchTagMap) {
-    const { pql, relationNames } = getPQL(_searchTagMap);
+    const { pql, relationNames, csv } = getPQL(_searchTagMap);
+    console.log(csv)
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
@@ -675,9 +697,9 @@ export default function AppExplore() {
                   close={() => {
                     setFilterPanelOpenKey(null);
                   }}
-                  saveConfig={(config: any) => {
+                  saveConfig={(config: any, csv: any) => {
                     const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                    Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config } });
+                    Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
                     setSearchTagMap(newSearchTagsMap);
                     setFilterPanelOpenKey(null);
                   }}

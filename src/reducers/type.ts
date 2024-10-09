@@ -6,7 +6,7 @@ export interface AttrConfig {
   // 主键
   "name": string
   // 展示名称
-  "label": string
+  "display": string
   // 是否必填
   "required": true
   // 默认值

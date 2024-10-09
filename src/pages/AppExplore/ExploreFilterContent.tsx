@@ -10,7 +10,7 @@ interface ExploreFilterProps {
   originType: any
   onRef: any
   onSave?: Function
-  extraContent: any
+  visible: boolean
 }
 
 const operators: any = {
@@ -21,7 +21,7 @@ const operators: any = {
 export default function ExploreFilterContent(props: ExploreFilterProps) {
   const [configForm] = Form.useForm();
 
-  const { originType, onSave, extraContent } = props;
+  const { originType, onSave, visible } = props;
 
   const [filterOptions, setFilterOption] = useState<any>(_.get(originType, 'config.options', [])),
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
@@ -288,7 +288,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
   }
 
   return (
-    <>
+    <div style={{display: visible? 'block': 'none'}}>
       <div className="pdb-explore-filter-content">
         {filterOptions.map((opt: any, index: number) => {
           const condition = _.get(opt, 'condition.value', ""),
@@ -336,7 +336,14 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           </Card>
         }
       </div>
-      {extraContent(isNew, editConditionIndex, add)}
-    </>
+      {/* {extraContent(isNew, editConditionIndex, add)} */}
+      <div className="pdb-explore-filter-add">
+        <Button
+          icon={<i className="spicon icon-add"></i>}
+          onClick={add}
+          disabled={isNew || editConditionIndex > -1}
+        >添加条件</Button>
+      </div>
+    </div>
   )
 }
