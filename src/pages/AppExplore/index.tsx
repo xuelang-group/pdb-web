@@ -17,6 +17,7 @@ import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
 import ExportApi from "@/components/ExportApi";
+import { initialParams, setQueryState } from "@/reducers/query";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -392,6 +393,8 @@ export default function AppExplore() {
 
     setSearchTagMap(newSearchTagsMap);
     setSearchTags(newSearchTags);
+    dispatch(setQueryState(initialParams));
+
 
     if (newSearchTags.length === 0 || (newSearchTags.length === 1 && _.isEmpty(newSearchTags[0]))) {
       const graph = (window as any).PDB_GRAPH;
@@ -464,7 +467,7 @@ export default function AppExplore() {
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
-            const objectCsvOpt =  _.get(detail, 'csv');
+            const objectCsvOpt = _.get(detail, 'csv');
             if (type === "object" && objectCsvOpt) {
               csvItem = csvItem.concat(objectCsvOpt);
             }
@@ -480,12 +483,12 @@ export default function AppExplore() {
 
   const searchPQL = function (_searchTagMap = searchTagMap) {
     const { pql, relationNames, csv } = getPQL(_searchTagMap);
-    console.log(csv)
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
-    const graphId = routerParams.id;
+    const graphId = routerParams.id || '';
+    dispatch(setQueryState({ graphId, pql, csv }));
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
         getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
@@ -678,6 +681,7 @@ export default function AppExplore() {
     graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
     graph.render();
     graph.zoom(1);
+    dispatch(setQueryState(initialParams));
   }
 
   return (

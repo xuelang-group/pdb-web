@@ -72,7 +72,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof _.get(opt, 'keyword', "") === "string" ? `'${keywordValue}'` : keywordValue}`;
         }
         Object.assign(conditionDetail, {
-          raw,
+          // raw,
           name: attrValue,
           function: optionSymbolMap[condition] || "",
           value: keywordValue,

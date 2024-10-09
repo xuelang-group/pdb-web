@@ -1,5 +1,4 @@
-import G6, { ComboConfig, EdgeConfig, IG6GraphEvent } from '@antv/g6';
-import { LoadingOutlined } from '@ant-design/icons';
+import G6, { IG6GraphEvent } from '@antv/g6';
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Checkbox, Modal, notification, Spin, Tabs } from 'antd';
@@ -7,7 +6,7 @@ import { useResizeDetector } from 'react-resize-detector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
-import { convertResultData, covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
+import { covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
 import store from '@/store';
 import { initG6 } from '@/g6';
@@ -16,8 +15,10 @@ import { G6OperateFunctions } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
-import { QueryResultState, setResult } from '@/reducers/query';
-import { NodeItemData, setCurrentGraphTab, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData, TypeItemData, setShowSearch, setSearchAround, setGraphDataMap, setGraphLoading, setScreenShootTimestamp } from '@/reducers/editor';
+import {
+  NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp
+} from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import TemplateGraph from '@/pages/graph/template/index';
@@ -43,8 +44,6 @@ export default function Editor(props: EditorProps) {
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     relations = useSelector((state: StoreState) => state.relation.data),
-    queryStatus = useSelector((state: StoreState) => state.query.status),
-    queryResult = useSelector((state: StoreState) => state.query.result),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
@@ -222,7 +221,7 @@ export default function Editor(props: EditorProps) {
         if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
 
         // if (itemType === "edge") {
-          return `<ul class="pdb-graph-node-contextmenu">
+        return `<ul class="pdb-graph-node-contextmenu">
             <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         // }
@@ -538,51 +537,6 @@ export default function Editor(props: EditorProps) {
     }
   }
 
-  useEffect(() => {
-    if (currentGraphTab !== 'main') {
-      updateGraphData(currentGraphTab);
-    }
-  }, [queryResult[Number(currentGraphTab)]]);
-
-  const updateGraphData = function (activeKey: string) {
-    const index = Number(activeKey);
-    const data = _.get(queryResult[index], 'data');
-    if (!data) return;
-    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
-    dispatch(setToolbarConfig({
-      key: activeKey,
-      config: { relationLines }
-    }));
-    graph.data({ nodes, edges, combos });
-    graph.render();
-    graph.zoom(1);
-  }
-
-  const selectTab = function (activeKey: string) {
-    if (currentGraphTab === activeKey) return;
-    dispatch(setGraphDataMap({ ...graphDataMap, [currentGraphTab]: graph.save() }));
-    if (graphDataMap[activeKey]) {
-      graph.data(JSON.parse(JSON.stringify(graphDataMap[activeKey])));
-      graph.render();
-      graph.zoom(1);
-    } else {
-      updateGraphData(activeKey);
-    }
-    dispatch(setCurrentGraphTab(activeKey));
-  }
-
-  const handleEditTab = function (targetKey: any) {
-    const newQueryResult = JSON.parse(JSON.stringify(queryResult));
-    newQueryResult.splice(targetKey, 1);
-    dispatch(setResult(newQueryResult));
-    dispatch(setCurrentGraphTab('main'));
-
-    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
-    graph.render();
-    graph.zoom(1);
-  }
-
   const handleChangeRemoveAll = function (event: any, currentEditModel: any) {
     deleteConfirmModal && deleteConfirmModal.update({
       onOk: () => handleModalOk(currentEditModel, event.target.checked)
@@ -671,29 +625,8 @@ export default function Editor(props: EditorProps) {
   return (
     <div className='pdb-object-graph-container'>
       <div className="pdb-graph pdb-object-graph">
-        {queryResult.length > 0 &&
-          <Tabs
-            type="editable-card"
-            hideAdd
-            activeKey={currentGraphTab}
-            items={[
-              { key: 'main', label: '主画布', closable: false },
-              ...(queryResult.map(({ index, name }: QueryResultState, i: number) => {
-                let item = { key: i.toString(), label: `${name} 查询结果` };
-                if (_.get(queryStatus[index], 'loading')) {
-                  Object.assign(item, {
-                    icon: <LoadingOutlined spin />
-                  });
-                }
-                return item;
-              }))
-            ]}
-            onChange={selectTab}
-            onEdit={handleEditTab}
-          />
-        }
         <Spin spinning={graphLoading && !pageLoading}>
-          <div className={"pdb-object-graph-content" + (queryResult.length > 0 ? ' has-tabs' : '')}>
+          <div className="pdb-object-graph-content">
             <GraphToolbar theme={props.theme} />
             <div ref={graphRef} className="graph" id="object-graph"></div>
             {userId && routerParams?.id &&
