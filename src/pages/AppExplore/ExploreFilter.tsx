@@ -28,13 +28,13 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const tagType: string = _.get(originType, 'type', ''),
     tagLabel: string = _.get(originType, 'label', ''),
     tagTypeData = _.get(originType, 'data', {}),
-    tagTypeAttr = tagTypeData['x.type.attrs'],
-    tagTypeId = tagTypeData['x.type.name'],
-    tagTypeCsv = _.get(originType, 'csv', '');
+    tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
+    tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '',
+    tagTypeCsv = _.get(originType, 'csv', []);
 
   const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => (`${attrId}|${attrName}|${attrType}`)),
     allCheckedList = tagTypeAttr.map(({ name, display, type }: AttrConfig) => (`${name}|${display}|${type}`));
-  const [selectedTab, setSelectedTab] = useState("column"),
+  const [selectedTab, setSelectedTab] = useState(tagType === 'type' ? 'column' : 'filter'),
     [checkedList, setCheckedList] = useState<string[]>(defaultCheckedList),
     [indeterminate, setIndeterminate] = useState(defaultCheckedList.length !== allCheckedList.length),
     [checkAll, setCheckAll] = useState(defaultCheckedList.length === allCheckedList.length);
@@ -148,18 +148,20 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
       <div className="pdb-explore-filter-container">
-        <Segmented
-          value={selectedTab}
-          options={[{
-            label: '字段筛选',
-            value: 'column'
-          }, {
-            label: '数据过滤',
-            value: 'filter'
-          }]}
-          onChange={key => { setSelectedTab(key); }}
-          block
-        />
+        {tagType === 'type' &&
+          <Segmented
+            value={selectedTab}
+            options={[{
+              label: '字段筛选',
+              value: 'column'
+            }, {
+              label: '数据过滤',
+              value: 'filter'
+            }]}
+            onChange={key => { setSelectedTab(key); }}
+            block
+          />
+        }
         <ExploreFilterContent
           visible={selectedTab === 'filter'}
           onRef={childRef}
