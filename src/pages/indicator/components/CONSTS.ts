@@ -1,7 +1,7 @@
 import { TYPES } from '@visactor/vtable'
 import { typeMap } from '@/utils/common'
 
-export const ICONS = Object.keys(typeMap.type);
+export const ICONS = typeMap.type;
 
 export function getIconSvg(name: string, disabled=false): string {
   const fillColor = disabled ? '#DCDEE1' : '#0084FF'
@@ -36,69 +36,28 @@ export function getColumns(cols: Col[]) {
     "title": field,
     "dimensionKey": field,
     "mergeCell": mergeCell,
-    // "disableSelect": !!disabled,
-    // "disableHeaderSelect": !!disabled,
-    // "style": disabled ? {
-    //   "bgColor": "#F4F6F9",
-    //   "color": "#C2C7CC",
-    // } : {},
-    // "headerStyle": disabled ? {
-    //   "bgColor": "#F4F6F9",
-    //   "color": "#C2C7CC",
-    // } : {},
+    "disableSelect": !!disabled,
+    "disableHeaderSelect": !!disabled,
+    "style": disabled ? {
+      "bgColor": "#F4F6F9",
+      "color": "#C2C7CC",
+    } : {},
+    "headerStyle": disabled ? {
+      "bgColor": "#F4F6F9",
+      "color": "#C2C7CC",
+    } : {},
     "fieldFormat": fieldFormat,
+    "headerIcon": disabled ? `${type}Disabled` : type,
     "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
       const { dataValue, rect, table, row } = args;
       const width = rect?.width || 180;
-      const height = rect?.height || 92;
-      const rowHeight = height / 2;
-      const elements: TYPES.ICustomRenderElements = [
-        {
-          type: 'icon',
-          x: padding[1],
-          y: (rowHeight - iconSize) / 2,
-          width: iconSize,
-          height: iconSize,
-          svg: getIconSvg(type, disabled),
-        }, {
-          type: 'text',
-          x: padding[1] + iconSize + 5,
-          y: rowHeight / 2 + 1,
-          fill: disabled ? '#C2C7CC' : '#1C2126',
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: 'PingFang SC',
-          textBaseline: 'middle',
-          text: typeMap.type[type],
-        }, {
-          type: 'line',
-          points: [{x: 1, y: rowHeight + 0.5}, {x: width, y: rowHeight + 0.5}],
-          lineWidth: 1,
-          stroke: '#DCDEE1'
-        }, {
-          type: 'rect',
-          x: 1,
-          y: rowHeight + 1,
-          width: width - 2,
-          height: rowHeight - 2,
-          fill: disabled ? '#F4F6F9' : '#F9FBFC',
-        }, {
-          type: 'text',
-          fill: disabled ? '#C2C7CC' : '#1C2126',
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: 'PingFang SC',
-          textBaseline: 'middle',
-          text: dataValue,
-          x: padding[1],
-          y: rowHeight + rowHeight / 2 + 1,
-        }
-      ];
+      const height = rect?.height || 46;
+      const elements: TYPES.ICustomRenderElements = []
       if (checked) {
         elements.push({
           type: 'rect',
           x: width - 52 - padding[1],
-          y: (rowHeight - 24) / 2,
+          y: (height - 24) / 2,
           width: 52,
           height: 24,
           radius: 1,
@@ -108,7 +67,7 @@ export function getColumns(cols: Col[]) {
         elements.push({
           type: 'text',
           x: width - 52/2 - padding[1],
-          y: rowHeight / 2 + 1,
+          y: height / 2 + 1,
           fill: '#0084FF',
           fontSize: 12,
           fontWeight: 400,
@@ -122,9 +81,87 @@ export function getColumns(cols: Col[]) {
         elements,
         expectedHeight: width,
         expectedWidth: height,
-        renderDefault: false,
+        renderDefault: true,
       }
     },
+    // "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
+    //   const { dataValue, rect, table, row } = args;
+    //   const width = rect?.width || 180;
+    //   const height = rect?.height || 92;
+    //   const rowHeight = height / 2;
+    //   const elements: TYPES.ICustomRenderElements = [
+    //     {
+    //       type: 'icon',
+    //       x: padding[1],
+    //       y: (rowHeight - iconSize) / 2,
+    //       width: iconSize,
+    //       height: iconSize,
+    //       svg: getIconSvg(type, disabled),
+    //     }, {
+    //       type: 'text',
+    //       x: padding[1] + iconSize + 5,
+    //       y: rowHeight / 2 + 1,
+    //       fill: disabled ? '#C2C7CC' : '#1C2126',
+    //       fontSize: 14,
+    //       fontWeight: 600,
+    //       fontFamily: 'PingFang SC',
+    //       textBaseline: 'middle',
+    //       text: typeMap.type[type],
+    //     }, {
+    //       type: 'line',
+    //       points: [{x: 1, y: rowHeight + 0.5}, {x: width, y: rowHeight + 0.5}],
+    //       lineWidth: 1,
+    //       stroke: '#DCDEE1'
+    //     }, {
+    //       type: 'rect',
+    //       x: 1,
+    //       y: rowHeight + 1,
+    //       width: width - 2,
+    //       height: rowHeight - 2,
+    //       fill: disabled ? '#F4F6F9' : '#F9FBFC',
+    //     }, {
+    //       type: 'text',
+    //       fill: disabled ? '#C2C7CC' : '#1C2126',
+    //       fontSize: 14,
+    //       fontWeight: 600,
+    //       fontFamily: 'PingFang SC',
+    //       textBaseline: 'middle',
+    //       text: dataValue,
+    //       x: padding[1],
+    //       y: rowHeight + rowHeight / 2 + 1,
+    //     }
+    //   ];
+    //   if (checked) {
+    //     elements.push({
+    //       type: 'rect',
+    //       x: width - 52 - padding[1],
+    //       y: (rowHeight - 24) / 2,
+    //       width: 52,
+    //       height: 24,
+    //       radius: 1,
+    //       fill: '#E8F8FF',
+    //       stroke: '#8BD3FF'
+    //     })
+    //     elements.push({
+    //       type: 'text',
+    //       x: width - 52/2 - padding[1],
+    //       y: rowHeight / 2 + 1,
+    //       fill: '#0084FF',
+    //       fontSize: 12,
+    //       fontWeight: 400,
+    //       fontFamily: 'PingFang SC',
+    //       textAlign: 'center',
+    //       textBaseline: 'middle',
+    //       text: '度量列',
+    //     })
+    //   }
+    //   return {
+    //     elements,
+    //     expectedHeight: width,
+    //     expectedWidth: height,
+    //     renderDefault: true,
+    //   }
+    // },
   }))
 }
 

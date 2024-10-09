@@ -1,28 +1,47 @@
-import { ListTable, Group, Text, Tag, ListColumn } from '@visactor/react-vtable'
-import { TYPES } from '@visactor/vtable'
+import { ListTable, register, Group, Text, Tag, ListColumn } from '@visactor/react-vtable'
+import { TYPES, CustomLayout } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import { Col, getColumns } from './CONSTS'
+import { ICONS, Col, getColumns, getIconSvg } from './CONSTS'
 
-// ICONS.forEach(name => {
-//   register.icon(name, {
-//     name: name,
-//     type: 'svg',
-//     marginRight: 4,
-//     positionType: TYPES.IconPosition.left,
-//     width: 18,
-//     height: 18,
-//     svg: getIconSvg(name),
-//   })
-//   register.icon(`${name}Disabled`, {
-//     name: `${name}Disabled`,
-//     type: 'svg',
-//     marginRight: 4,
-//     positionType: TYPES.IconPosition.left,
-//     width: 18,
-//     height: 18,
-//     svg: getIconSvg(name, true),
-//   })
-// })
+Object.keys(ICONS).forEach(name => {
+  register.icon(name, {
+    name: name,
+    type: 'svg',
+    marginRight: 4,
+    positionType: TYPES.IconPosition.left,
+    width: 18,
+    height: 18,
+    svg: getIconSvg(name),
+    hover: {
+      // 热区大小
+      width: 26,
+      height: 26,
+      bgColor: 'rgba(22,44,66,0.1)'
+    },
+    tooltip: {
+      style: {
+        arrowMark: false,
+        padding: [2, 4],
+        bgColor: 'rgba(0,0,0,0.4)',
+        color: 'white',
+        fontSize: 12
+      },
+      // 气泡框，按钮的的解释信息
+      title: ICONS[name],
+      placement: TYPES.Placement.left
+    },
+    cursor: 'pointer'
+  })
+  register.icon(`${name}Disabled`, {
+    name: `${name}Disabled`,
+    type: 'svg',
+    marginRight: 4,
+    positionType: TYPES.IconPosition.left,
+    width: 18,
+    height: 18,
+    svg: getIconSvg(name, true),
+  })
+})
 
 const data = [
   {
@@ -193,6 +212,15 @@ const data = [
     "Days Required": 47,
     "End Date": "2024/01/14",
     "Progress": 0.01
+  }, {
+    "Project Name": "Marketing",
+    "Start Date": "2024/01/01",
+    "Algo": "avg",
+    "Progress": 0.58
+  }, {
+    "Project Name": "Product Dev",
+    "Algo": "avg",
+    "Progress": 0.98
   }
 ]
 
@@ -201,15 +229,16 @@ const columns: Col[] = [{
   "type": "string",
   "mergeCell": true,
 }, {
+  "field": "Start Date",
+  "type": "datetime",
+  "mergeCell": true,
+}, {
   "field": "Task Name",
   "type": "string"
 }, {
   "field": "Assigned To",
   "type": "string",
   "disabled": true
-}, {
-  "field": "Start Date",
-  "type": "datetime"
 }, {
   "field": "Days Required",
   "type": "int"
@@ -226,22 +255,21 @@ const columns: Col[] = [{
 export default function VTable() {
 
   const tableInstance = useRef(null);
-  const groupRef = useRef(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
 
   const option = {
     autoFillWidth: true,
-    autoWrapText:true,
-    frozenColCount: 1,
+    autoWrapText: true,
+    // frozenColCount: 1,
     rightFrozenColCount: 1,
-    bottomFrozenRowCount: 1,
+    // bottomFrozenRowCount: 1, 
     groupBy: "Project Name",
     // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
-    defaultColWidth: 150,
-    defaultHeaderRowHeight: 92,
+    defaultColWidth: 180,
+    // defaultHeaderRowHeight: 92,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -262,10 +290,16 @@ export default function VTable() {
           inlineColumnBgColor: '#F1F8FF'
         }
       },
+      headerStyle: {
+        color: '#1C2126',
+        bgColor: '#F9FBFC',
+        fontWeight: 600,
+      },
       groupTitleStyle: {
         color: '#1C2126',
+        fontWeight: 500,
         borderColor: '#DCDEE1',
-        bgColor: '#FFF'
+        bgColor: '#fafafa'
       },
       scrollStyle: {
         scrollSliderColor: 'rgba(0,0,0,0.2)',
@@ -275,89 +309,114 @@ export default function VTable() {
         cellBorderColor: '#8BD3FF',
         cellBorderLineWidth: 1,
       },
-      bottomFrozenStyle: {
-        fontFamily: 'PingFang SC',
-        fontWeight: 600,
-        borderLineWidth: [1, 0, 1, 0],
-        color: 'green',
-        // textAlign: 'right',
-        bgColor: '#FFF'
-      },
+      // bottomFrozenStyle: {
+      //   fontFamily: 'PingFang SC',
+      //   fontWeight: 600,
+      //   borderLineWidth: [1, 0, 1, 0],
+      //   color: 'green',
+      //   // textAlign: 'right',
+      //   bgColor: '#FFF'
+      // },
     },
     records: data,
     columns: getColumns(columns),
-    // customMergeCell: (col:any, row:any, table: any) => {
-    //   console.log('row: ', row, table.rowCount)
-    //   console.log('table: ', table)
-    //   if (col >= 0 && col < table.colCount && row === table.rowCount - 1) {
+    customMergeCell: (col: any, row: any, table: any) => {
+      // console.log('table: ', table)
+      if (col >= 0 && row == 6) {
+        return {
+          text: 'merge text',
+          range: {
+            start: {
+              col: 0,
+              row: 6
+            },
+            end: {
+              col: table.colCount - 1,
+              row: 6
+            }
+          },
+        };
+      }
+    },
+    groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
+      const { table, row, col, rect } = args;
+      const record = table.getCellOriginRecord(col, row);
+      const { height, width } = rect ?? table.getCellRect(col, row);
+      const container = new CustomLayout.Group({
+        height,
+        width,
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'nowrap',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+      });
+      const count = record.children.map((item: { Progress: any }) => item.Progress).reduce((prev: any, curr: any) => prev + curr)
+      const info = new CustomLayout.Text({
+        text: `小计 | avgs: ${count}`,
+        fontSize: 14,
+        // fontWeight: 600,
+        textAlign: 'right',
+        marginRight: 16
+      });
+      container.add(info);
+      return {
+        rootContainer: container,
+        renderDefault: true
+      };
+    },
+    menu: {
+      defaultHeaderMenuItems: [{
+        text:'不使用',
+        // type: 'item',
+        menuKey: 'enable'
+      }]
+    }
+    // aggregation(args: {col: number, field: string}) {
+    //   if (args.field === "Progress") {
     //     return {
-    //       text: 'merge text',
-    //       range: {
-    //         start: {
-    //           col: 0,
-    //           row: table.rowCount - 1
-    //         },
-    //         end: {
-    //           col: table.colCount - 1,
-    //           row: table.rowCount - 1
-    //         }
-    //       },
-    //       style: {
-    //         // textAlign: 'right',
-    //         bgColor: '#fff'
+    //       aggregationType: TYPES.AggregationType.AVG,
+    //       // showOnTop: true,
+    //       formatFun(value: number, col: any, row: any, table: { recordsCount: string }) {
+    //         return '合计:' + Math.round(value * 100) + '%';
     //       }
     //     };
     //   }
-    // },
-    // groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
-    //   const { table, row, col, rect } = args;
-    //   const record = table.getCellOriginRecord(col, row);
-    //   // const { height, width } = rect ?? table.getCellRect(col, row);
-    //   const container = (
-    //     <Group
-    //       attribute={{
-    //         // width,
-    //         // height,
-    //         // id: 'container',
-    //         y: height / 2,
-    //         display: 'flex',
-    //         flexWrap: 'nowrap',
-    //         alignItems: 'center',
-    //         justifyContent: 'flex-end',
-    //       }}
-    //     >
-    //       <Text attribute={{
-    //         text: `小计 | ${record.vtableMergeName}- avgs: `,
-    //         fontSize: 14,
-    //         fill: 'red',
-    //         textAlign: 'right',
-    //         textBaseline: 'middle',
-    //         boundsPadding: [0, 10, 0, 10]
-    //       }} />
-    //     </Group>
-    //   )
-    //   return {
-    //     rootContainer: container,
-    //     renderDefault: false
-    //   };
-    // },
-    aggregation(args: {col: number, field: string}) {
-      if (args.field === "Progress") {
-        return {
-          aggregationType: TYPES.AggregationType.AVG,
-          // showOnTop: true,
-          formatFun(value: number, col: any, row: any, table: { recordsCount: string }) {
-            return '合计:' + Math.round(value * 100) + '%';
-          }
-        };
-      }
-      return null;
-    }
+    //   return null;
+    // }
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
-    console.log('has ready')
-    // tableInstance.
+    const { rowCount, colCount } = tableInstance
+    // console.log('has ready：', rowCount, colCount)
+    // tableInstance.clearSelected();
+    tableInstance.selectCells([{start: {col: colCount, row: 0}, end: {col: colCount, row: rowCount}}]);
+    tableInstance.on('dropdown_menu_click', (args: any) => {
+      console.log('dropdown_menu_click', args);
+      if (args.menuKey === 'enable') {
+        // copyData = tableInstance.getCopyValue();
+      }
+    });
+    // tableInstance.on('mousemove_cell', (args: any) => {
+    //   const { x, y, col, row, targetIcon } = args;
+    //   console.log('mousemove_cell', args)
+    //   if (!row) {
+    //     const rect = tableInstance.getCellRect(col, row)
+    //       tableInstance.showTooltip(col, row, {
+    //         content: '数据类型：' + tableInstance.getCellValue(col, row),
+    //         position: {x: x - 24, y: y - 32},
+    //         // referencePosition: { rect, placement: TYPES.Placement.bottom }, //TODO
+    //         style: {
+    //           bgColor: 'black',
+    //           color: 'white',
+    //           font: 'normal bold normal 14px/1 STKaiti',
+    //           padding: [4, 8],
+    //           // arrowMark: true
+    //         }
+    //       });
+    //     // }
+    //   }
+    // })
   }
 
   const updateSize = () => {
@@ -369,18 +428,27 @@ export default function VTable() {
   }
 
   useEffect(() => {
-    updateSize()
+    updateSize();
+    window.addEventListener('resize', updateSize)
+    return () => {
+      window.removeEventListener('resize', updateSize)
+    }
   }, [])
 
   return (
-    <div ref={wrapRef} style={{height: '100%'}}>
-      <ListTable
-        ref={tableInstance}
-        width={width}
-        height={height}
-        option={option}
-        onReady={onReady}
-      />
+    <div className='pdb-vtable' style={{position: 'relative', paddingBottom: 48}}>
+      <div ref={wrapRef} style={{ height: '100%' }}>
+        <ListTable
+          ref={tableInstance}
+          width={width}
+          height={height}
+          option={option}
+          onReady={onReady}
+        />
+      </div>
+      <div className='pdb-vtable-footer' style={{position: 'absolute', height: 48}}>
+
+      </div>
     </div>
   )
 }

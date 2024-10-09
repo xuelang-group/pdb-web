@@ -58,7 +58,12 @@ module.exports = {
         //   // 设置Cookie
         //   proxyReq.setHeader('Cookie', 'os.sid=s%3AulMkyM8OURwh3O1HDKz3OIRzM4hevtmG.z7OEj7FlH%2BqXougGOYU%2FgiARC998UjjPHfAM4lXqFUI; Path=/; Expires=Tue, 26 Mar 2024 11:51:16 GMT; HttpOnly');
         // },
-      },
+      },  
+      '/indicator': {
+        target: "http://sp10.xuelangyun.com:30080/proxr/80210299/56648/5db701007e0711ef95b3e5448473221c/8000",
+        changeOrigin: true,
+        pathRewrite: { '^/indicator' : '' },
+      }
     },
   }
 }
