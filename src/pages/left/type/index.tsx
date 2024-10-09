@@ -1,4 +1,4 @@
-import { Checkbox, Dropdown, Form, Input, InputRef, Modal, notification, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
+import { Checkbox, Dropdown, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -39,7 +39,7 @@ export default function Left(props: any) {
     [searchValue, setSearchValue] = useState(''),
     [filterValue, setFilterValue] = useState(''),
     [isSearched, setSearchedStatus] = useState(false),
-    [currentTab, setCurrentTab] = useState('type');
+    [currentTab, setCurrentTab] = useState('对象');
   const searchRef = useRef<InputRef>(null);
 
   const dispatch = useDispatch();
@@ -199,7 +199,7 @@ export default function Left(props: any) {
   }
 
   useEffect(() => {
-    const tab = _.get(location, 'state.tab', 'type');
+    const tab = _.get(location, 'state.tab', '对象');
     if (tab !== currentTab) setCurrentTab(tab);
   }, [location]);
 
@@ -448,7 +448,7 @@ export default function Left(props: any) {
         content: (
           <>
             <div className='pdb-confirm-info'>是否删除 “{item[nameLabel]}” {typeLabel[type]}类型 ?</div>
-            {currentTab === "type" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
+            {currentTab === "对象" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
           </>
         ),
         okButtonProps: {
@@ -734,7 +734,16 @@ export default function Left(props: any) {
 
   return (
     <PdbPanel className='pdb-type-left' title='类型列表' direction='left' canCollapsed={true}>
-      <Tabs defaultActiveKey="type" items={tabs} activeKey={currentTab} onChange={handleChangeTab} />
+      {/* <Tabs defaultActiveKey="type" items={tabs} activeKey={currentTab} onChange={handleChangeTab} /> */}
+      <div className='pdb-type-list'>
+        <Segmented
+          value={currentTab}
+          options={['对象', '关系']}
+          onChange={handleChangeTab}
+          block
+        />
+        {currentTab === '对象' ? renderTypeTree('type') : renderList('relation')}
+      </div>
       {renderModal()}
       {contextHolder}
     </PdbPanel>

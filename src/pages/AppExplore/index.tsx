@@ -1,6 +1,6 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Divider, Empty, message, notification, Popover, Select, Tag, Tooltip } from "antd";
+import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
 import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -45,7 +45,8 @@ export default function AppExplore() {
     [optionMap, setOptionMap] = useState<any>({}),
     [currentFocusIndex, setCurrentFocusIndex] = useState(-1),
     [currentSearchValue, setSearchValue] = useState<string>(''),
-    [selectedSearchTab, setSearchTab] = useState('all');
+    [searchTabs, setSearchTabs] = useState('all'), // 下拉框里显示的tab有哪些
+    [currentSelectDropdownTab, setSelectDropdownTab] = useState('type');
 
   useEffect(() => {
     document.addEventListener('keydown', onFocusSearch);
@@ -85,14 +86,28 @@ export default function AppExplore() {
       return;
     }
     if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
-    const _tags: string[] = [];
-    for (let i = 0; i < newValue.length; i++) {
-      if (i === 0 && newValue[0].split(".")[0] !== "Type") break;
-      _tags.push(newValue[i]);
-      if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
-        || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
-        break;
-      }
+    let _tags: string[] = [];
+    // for (let i = 0; i < newValue.length; i++) {
+    //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
+    //   _tags.push(newValue[i]);
+    //   // “当前tag为对象类型且下一个tag也为对象类型，当前tag为关系类型且下一个tag也为关系类型”这两种情况数据不符合条件。
+    //   //必须对象类型-关系类型或 关系类型-对象类型
+    //   if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
+    //     || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
+    //     break;
+    //   }
+    // }
+
+    // 首个tag必须为对象类型
+    const newValLen = newValue.length;
+    if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
+      _tags = JSON.parse(JSON.stringify(newValue));
+    }
+
+    // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
+    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
+      const lastRelation = _tags.pop();
+      lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
     }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = _tags;
@@ -107,7 +122,7 @@ export default function AppExplore() {
     if (index < 0 || !searchTags[index]) return;
     setFilterLoading(true);
 
-    let prevSearchTag = null, prevSearchTagType = "";
+    let prevSearchTag = null, prevSearchTagType = ""; // 前一个搜索tag信息
     const currentTags = searchTags[index],
       currentTagLen = currentTags.length;
 
@@ -123,103 +138,139 @@ export default function AppExplore() {
     }
     const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
     const optionMap = {};
-    let typeOptions: any[] = [], relationOptions: any[] = [], objectOptions: any[], allOptions: { label: string; key: string; options: any; }[] = [];
-    const enterOption = {
-      label: "回车换行",
-      value: "__ENTER__"
-    };
-    //  对象类型
-    if (searchTypes.length > 0 && (prevSearchTagType === 'relation' || _.isEmpty(prevSearchTagType))) {
-      let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
+    let typeOptions: any[] = [], relationOptions: any[] = [];
+    // const enterOption = {
+    //   label: "回车换行",
+    //   value: "__ENTER__"
+    // };
+
+    if (searchTypes.length > 0) {
       if (prevSearchTagType === 'relation') {
-        typeOptions.push(enterOption);
-        const relationName = prevSearchTag['key'],
-          relationsIsReverse = prevSearchTag['isReverse'],
-          sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
-          targetTypeMap: any = {};
+        // 前一个tag是关系类型，当前下拉框只包含对象类型列表typeOptions
+        let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
+        if (prevSearchTagType === 'relation') {
+          // typeOptions.push(enterOption);
+          const relationName = prevSearchTag['key'],
+            relationsIsReverse = prevSearchTag['isReverse'],
+            sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
+            targetTypeMap: any = {};
 
-        if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
-          relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
-            if (!relationsIsReverse && bind.source === sourceType) {
-              Object.assign(targetTypeMap, { [bind.target]: bind.target });
-            } else if (relationsIsReverse && bind.target === sourceType) {
-              Object.assign(targetTypeMap, { [bind.source]: bind.source });
+          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
+            relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
+              if (!relationsIsReverse && bind.source === sourceType) {
+                Object.assign(targetTypeMap, { [bind.target]: bind.target });
+              } else if (relationsIsReverse && bind.target === sourceType) {
+                Object.assign(targetTypeMap, { [bind.source]: bind.source });
+              }
+            });
+            _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
+          }
+        }
+        typeOptions = typeOptions.concat(_types.map(val => ({
+          label: val['x.type.label'],
+          value: val['x.type.name'] + `-${currentTagLen}`,
+          key: val['x.type.name'],
+          type: 'type',
+          data: val,
+          prevSearchTagType
+        })));
+        setSearchTabs('type');
+        setSelectDropdownTab('type');
+      } else if (_.isEmpty(prevSearchTagType) || prevSearchTagType === 'type') {
+        // 当前tag为第一个或者前一个tag为对象类型，当前下拉框包含对象类型列表和关系类型列表typeOptions + relationOptions
+        // typeOptions为全量对象类型列表
+        const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+        typeOptions = searchTypes.map(val => ({
+          label: val['x.type.label'],
+          value: val['x.type.name'] + `-${currentTagLen}`,
+          key: val['x.type.name'],
+          type: 'type',
+          data: val,
+          prevSearchTagType
+        }));
+
+        if (currentTags.length > 1) {
+          // 前一个的前一个tag的类型
+          const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
+            priorSearchTagType = _.get(priorSearchTag, 'type', "");
+          //如果都为对象类型，下拉框选择只显示关系类型列表
+          if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
+            setSearchTabs('relation');
+            setSelectDropdownTab('relation');
+          } else {
+            setSearchTabs('all');
+            setSelectDropdownTab('type');
+          }
+        } else {
+          setSearchTabs('all');
+          setSelectDropdownTab('type');
+        }
+
+        // relationOptions根据前一个tag对象类型进行关系正向反向过滤
+        if (!_.isEmpty(prevSearchTagType)) {
+          const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+            targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+          // 正向关系数据
+          const positiveRelations = Array.from(new Set(sourceRelations))
+            .map((id: string) => relationMap[id]);
+          const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+
+          // 反向关系数据
+          const reverseRelations = Array.from(new Set(targetRelations))
+            .map((id: string) => relationMap[id]);
+          const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
+
+          // relationOptions = [enterOption];
+          if ("所属父级".indexOf(value) > -1) {
+            relationOptions.push({
+              label: "所属父级",
+              value: "e_x_parent" + `-${currentTagLen}`,
+              key: "e_x_parent",
+              type: 'relation'
+            });
+          }
+          if ("包含子级".indexOf(value) > -1) {
+            relationOptions.push({
+              label: "包含子级",
+              value: "~e_x_parent" + `-${currentTagLen}`,
+              key: "~e_x_parent",
+              type: 'relation'
+            });
+          }
+          if (positiveSearchRelations.length > 0) {
+            if (relationOptions.length > 1) {
+              relationOptions.push({
+                type: "divider",
+                disabled: true
+              });
             }
-          });
-          _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
-        }
-      }
-      typeOptions = typeOptions.concat(_types.map((val, index: number) => ({
-        label: val['x.type.label'],
-        value: val['x.type.name'] + `-${currentTagLen}`,
-        key: val['x.type.name'],
-        type: 'type',
-        data: val,
-        prevSearchTagType
-      })));
-    } else if (searchTags[index].length > 0 && prevSearchTagType === 'type') {
-      // 关系类型 - 关系必须在类型后面
-      const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
-        targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
-      // 正向关系数据
-      const positiveRelations = Array.from(new Set(sourceRelations))
-        .map((id: string) => relationMap[id]);
-      const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+            relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
+              label: val['r.type.label'],
+              value: val['r.type.name'] + `-${currentTagLen}`,
+              key: val['r.type.name'],
+              type: 'relation',
+              isReverse: false,
+              data: val
+            })));
+          }
 
-      // 反向关系数据
-      const reverseRelations = Array.from(new Set(targetRelations))
-        .map((id: string) => relationMap[id]);
-      const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
-
-      relationOptions = [enterOption];
-      if ("所属父级".indexOf(value) > -1) {
-        relationOptions.push({
-          label: "所属父级",
-          value: "e_x_parent" + `-${currentTagLen}`,
-          key: "e_x_parent",
-          type: 'relation'
-        });
-      }
-      if ("包含子级".indexOf(value) > -1) {
-        relationOptions.push({
-          label: "包含子级",
-          value: "~e_x_parent" + `-${currentTagLen}`,
-          key: "~e_x_parent",
-          type: 'relation'
-        });
-      }
-      if (positiveSearchRelations.length > 0) {
-        if (relationOptions.length > 1) {
-          relationOptions.push({
-            type: "divider",
-            disabled: true
-          });
+          if (reverseSearchRelations.length > 0) {
+            if (relationOptions.length > 1) {
+              relationOptions.push({
+                type: "divider",
+                disabled: true
+              });
+            }
+            relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
+              label: "~" + val['r.type.label'],
+              value: val['r.type.name'] + `-${currentTagLen}`,
+              key: val['r.type.name'],
+              type: 'relation',
+              isReverse: true,
+              data: val
+            })));
+          }
         }
-        relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
-          label: val['r.type.label'],
-          value: val['r.type.name'] + `-${currentTagLen}`,
-          key: val['r.type.name'],
-          type: 'relation',
-          isReverse: false,
-          data: val
-        })));
-      }
-
-      if (reverseSearchRelations.length > 0) {
-        if (relationOptions.length > 1) {
-          relationOptions.push({
-            type: "divider",
-            disabled: true
-          });
-        }
-        relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
-          label: "~" + val['r.type.label'],
-          value: val['r.type.name'] + `-${currentTagLen}`,
-          key: val['r.type.name'],
-          type: 'relation',
-          isReverse: true,
-          data: val
-        })));
       }
     }
 
@@ -227,13 +278,7 @@ export default function AppExplore() {
       type: typeOptions,
       relation: relationOptions,
     });
-    if (typeOptions.length > 0) {
-      setSearchTab("type");
-    } else if (relationOptions.length > 0) {
-      setSearchTab("relation");
-    } else {
-      setSearchTab("");
-    }
+
     setOptionMap(optionMap);
     setFilterLoading(false);
     setSearchValue(value);
@@ -242,12 +287,12 @@ export default function AppExplore() {
   // 被选中时调用，参数为选中项的 value (或 key) 值
   const handleSelect = function (value: string, option: any, index: number) {
     if (searchLoading) return;
-    if (value === "__ENTER__") {
-      setSearchTagMap([...searchTagMap, {}]);
-      setSearchTags([...searchTags, []]);
-      setCurrentFocusIndex(searchTags.length);
-      return;
-    }
+    // if (value === "__ENTER__") {
+    //   setSearchTagMap([...searchTagMap, {}]);
+    //   setSearchTags([...searchTags, []]);
+    //   setCurrentFocusIndex(searchTags.length);
+    //   return;
+    // }
     const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
     Object.assign(newSearchTagsMap[index], { [value]: option });
     setSearchTagMap(newSearchTagsMap);
@@ -333,8 +378,12 @@ export default function AppExplore() {
         let pqlItem: any = [];
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
+          let name = _.get(detail, 'label', '');
+          if (detail.isReverse) {
+            name = name.slice(1);
+          }
           let option = {
-            name: detail.label
+            name
           };
           if (detail.key === "e_x_parent" || detail.key === "~e_x_parent") {
             Object.assign(option, {
@@ -348,7 +397,7 @@ export default function AppExplore() {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
-              id: detail.key
+              id: (detail.isReverse ? "~" : "") + detail.key
             });
           }
           pqlItem.push(option);
@@ -396,6 +445,21 @@ export default function AppExplore() {
       filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
       handleSearch(currentSearchValue, index);
     }
+
+    if (visible === false) {
+      // 关系下拉框弹窗时，判断当前搜索tags最后两项类型是否都是对象类型/关系类型，如果是的话，删除最后一项tag。
+      const currentSearchTags = JSON.parse(JSON.stringify(searchTags[index])),
+        currentSearchTagLen = currentSearchTags.length;
+      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].split(".")[0] === "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] === "Type"
+        || currentSearchTags[currentSearchTagLen - 2].split(".")[0] !== "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] !== "Type")) {
+        currentSearchTags.pop();
+        const newSearchTags = JSON.parse(JSON.stringify(searchTags));
+        newSearchTags[index] = currentSearchTags;
+        setSearchTags(newSearchTags);
+        return;
+      }
+    }
+
     setDropdownOpen(visible);
     setSearchValue("");
   }
@@ -416,21 +480,33 @@ export default function AppExplore() {
     }
     if (_searchTags.length === 5) {
       tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
-    } else if (prevTagType && prevTagType !== "relation") {
-      tooltip = "当前关键词搜索结果包含：关系类型。";
-      if (prevTagType === 'type') {
-        tooltip += "若想搜索对象类型，请先回车换行。";
-      }
-    } else {
-      tooltip = "当前关键词搜索结果包含：对象类型。";
+    } else if (searchTabs === 'relation') {
+      tooltip = "两个对象类型之间必须以关系类型连接，请选择关系类型。"
     }
     return (
       <div className="pdb-explore-dropdown">
+        {tooltip &&
+          <Alert
+            message={tooltip}
+            type="warning"
+            showIcon
+          />
+        }
+        {searchTabs === 'all' &&
+          <Segmented
+            value={currentSelectDropdownTab}
+            options={[{
+              label: '对象',
+              value: 'type'
+            }, {
+              label: '关系',
+              value: 'relation'
+            }]}
+            onChange={activeKey => { setSelectDropdownTab(activeKey); }}
+            block
+          />
+        }
         {originNode}
-        <div className="pdb-explore-dropdown-footer">
-          <i className="spicon icon-tishi" style={{ fontSize: 12, marginRight: 6 }}></i>
-          <span>{tooltip}</span>
-        </div>
       </div>
     );
   }
@@ -449,24 +525,7 @@ export default function AppExplore() {
         <Divider />
       );
     }
-    if (!option.label) {
-      const link = _.get(option, 'data.link', ''),
-        linkLabel = _.get(typeLabelMap, link, '');
-      return (
-        <span
-          className="pdb-explore-dropdown-more"
-          onClick={event => {
-            event.preventDefault();
-            event.stopPropagation();
-            setSearchTab(link);
-          }}
-        >
-          <i className="spicon icon-sousuo2" style={{ marginRight: 3 }}></i>
-          <span style={{ flex: 1 }}>在 <strong>{linkLabel}</strong> 中查找更多</span>
-          <span><i className="spicon icon-jiantou-you1"></i></span>
-        </span>
-      );
-    }
+
     const { label, data, value, key } = option;
     const _label = label.toString();
     const optionType = _.get(data, "type"),
@@ -492,9 +551,12 @@ export default function AppExplore() {
     if (value === ",") {
       return (<span style={{ margin: "0 5px", fontSize: 16 }}>,</span>);
     }
-    const tagType = _.get(searchTagMap[index][value], 'type'),
-      label = _.get(searchTagMap[index][value], 'label'),
-      filterLabel = _.get(searchTagMap[index][value], 'config.label');
+    const currentSearchTag = searchTagMap[index][value],
+      tagType = _.get(currentSearchTag, 'type'),
+      label = _.get(currentSearchTag, 'label'),
+      filterLabel = _.get(currentSearchTag, 'config.label'),
+      prevTagType = _.get(currentSearchTag, 'prevSearchTagType');
+
     if (tagType === 'type') {
       color = "processing";
       icon = "iconfont icon-duixiangleixing";
@@ -508,7 +570,7 @@ export default function AppExplore() {
     };
     const tagItem = (
       <Tag
-        className="pdb-explore-tag"
+        className={"pdb-explore-tag" + (prevTagType === tagType ? ' pdb-explore-tag-dashed' : '')}
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
@@ -580,7 +642,7 @@ export default function AppExplore() {
                 loading={filterLoading}
                 suffixIcon={null}
                 filterOption={false}
-                options={(optionMap[selectedSearchTab] || []).map((d: any) => d)}
+                options={(optionMap[currentSelectDropdownTab] || []).map((d: any) => d)}
                 notFoundContent={<Empty description="暂无相关结果" />}
                 open={currentFocusIndex === index && dropdownOpen}
                 // allowClear
@@ -600,11 +662,8 @@ export default function AppExplore() {
                 onFocus={() => handleFocus(index)}
                 onKeyDown={(event) => {
                   if (event.keyCode === 8 && _.isEmpty(currentSearchValue) && searchTags[currentFocusIndex].length === 0 && currentFocusIndex > 0) {
+                    // backspace删除键
                     handleClear(currentFocusIndex, currentFocusIndex - 1);
-                  } else if (event.keyCode === 13 && _.isEmpty(optionMap[selectedSearchTab]) && searchTags[searchTags.length - 1].length > 0) {
-                    setSearchTagMap([...searchTagMap, {}]);
-                    setSearchTags([...searchTags, []]);
-                    setCurrentFocusIndex(searchTags.length);
                   }
                 }}
                 onClear={() => handleClear(index)}
