@@ -2,11 +2,12 @@ import { AttrConfig } from "@/reducers/type";
 import { Button, Form, Input, Radio, Select } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ExploreFilterProps {
   sourceTag: any
   targetTag: any
+  initialValue: any
   saveConfig: Function
   close: Function
 }
@@ -17,14 +18,22 @@ export const operators: any = {
 };
 
 export default function NewRelation(props: ExploreFilterProps) {
-  const { close, sourceTag, targetTag, saveConfig } = props;
+  const { close, sourceTag, targetTag, saveConfig, initialValue } = props;
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    form && form.setFieldsValue(initialValue.data);
+  }, [initialValue]);
 
   const save = function () {
     form.validateFields().then(values => {
-      saveConfig(values);
+      saveConfig({
+        ...initialValue,
+        label: values['r.type.label'],
+        data: values
+      });
       close();
-    }).catch(err => {});
+    }).catch(err => { });
   }
 
   // 数据连接
@@ -33,15 +42,6 @@ export default function NewRelation(props: ExploreFilterProps) {
       <Form
         form={form}
         layout="vertical"
-        initialValues={{
-          "r.type.constraints": {
-            "r.binds": {
-              "source": sourceTag.key,
-              "target": targetTag.key
-            }
-          },
-          "group": "inner"
-        }}
       >
         <div className="pdb-explore-group">
           <div className="pdb-explore-group-item" style={{ marginBottom: 24 }}>

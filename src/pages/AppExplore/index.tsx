@@ -660,6 +660,7 @@ export default function AppExplore() {
     const currentSearchTag = searchTagMap[index][value],
       tagType = _.get(currentSearchTag, 'type'),
       label = _.get(currentSearchTag, 'label'),
+      key = _.get(currentSearchTag, 'key'),
       filterLabel = _.get(currentSearchTag, 'config.label'),
       prevTagType = _.get(currentSearchTag, 'prevSearchTagType');
 
@@ -676,7 +677,7 @@ export default function AppExplore() {
     };
     const tagItem = (
       <Tag
-        className={"pdb-explore-tag" + (prevTagType === tagType ? ' pdb-explore-tag-dashed' : '')}
+        className={"pdb-explore-tag" + ((prevTagType === tagType || key.startsWith("__NEW_RELATION__")) ? ' pdb-explore-tag-dashed' : '')}
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
@@ -718,47 +719,76 @@ export default function AppExplore() {
             <Popover
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
                 !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey)) ||
-                (searchTags[index] && searchTags[index].length > 1 && filterPanelOpenKey === "__NEW_RELATION__")
+                (searchTags[index] && searchTags[index].length > 1 && filterPanelOpenKey.startsWith("__NEW_RELATION__"))
               ) && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
               }
               rootClassName="pdb-explore-setting-popover"
               placement="bottomLeft"
-              content={
-                filterPanelOpenKey === "__NEW_RELATION__" ?
-                  <NewRelation
-                    sourceTag={searchTagMap[index][searchTags[index][searchTags[index].length - 2]] || {}}
-                    targetTag={searchTagMap[index][searchTags[index][searchTags[index].length - 1]] || {}}
-                    close={() => {
-                      setFilterPanelOpenKey(null);
-                      removeLastTypeTag(index);
-                    }}
-                    saveConfig={(values: any) => {
-                      const newRelationId = "__NEW_RELATION__" + (searchTags[index].length - 1);
-                      setSearchTagMap((prevMap: any) => {
-                        const newTagMap = JSON.parse(JSON.stringify(prevMap));
-                        const value = {
-                          label: values['r.type.label'],
-                          value: newRelationId,
-                          key: newRelationId,
-                          type: 'relation',
-                          isReverse: false,
-                          data: values
-                        };
-                        Object.assign(newTagMap[index], { [newRelationId]: value });
+              content={() => {
+                if (filterPanelOpenKey.startsWith("__NEW_RELATION__")) {
+                  let sourceTag = {}, targetTag = {};
+                  const initialValue = _.get(searchTagMap[index], filterPanelOpenKey, {});
+                  if (!_.isEmpty(initialValue)) {
+                    const tagIndex = searchTags[index].findIndex(val => val === filterPanelOpenKey);
+                    sourceTag = _.get(searchTagMap[index], searchTags[index][tagIndex - 1], {});
+                    targetTag = _.get(searchTagMap[index], searchTags[index][tagIndex + 1], {});
+                  } else {
+                    const tags = searchTags[index], tagsLen = tags.length;
+                    sourceTag = searchTagMap[index][tags[tagsLen - 2]] || {};
+                    targetTag = searchTagMap[index][tags[tagsLen - 1]] || {};
+                    Object.assign(initialValue, {
+                      "data": {
+                        "r.type.constraints": {
+                          "r.binds": {
+                            "source": _.get(sourceTag, "key", ""),
+                            "target": _.get(targetTag, "key", "")
+                          }
+                        },
+                        "group": "inner"
+                      }
+                    });
+                  }
+                  return (
+                    <NewRelation
+                      sourceTag={sourceTag}
+                      targetTag={targetTag}
+                      initialValue={initialValue}
+                      close={() => {
+                        setFilterPanelOpenKey(null);
+                        removeLastTypeTag(index);
+                      }}
+                      saveConfig={(values: any) => {
+                        const newRelationId = values.key || "__NEW_RELATION__" + (searchTags[index].length - 1);
+                        setSearchTagMap((prevMap: any) => {
+                          const newTagMap = JSON.parse(JSON.stringify(prevMap));
+                          const value = {
+                            ...values,
+                            value: newRelationId,
+                            key: newRelationId,
+                            type: 'relation',
+                            isReverse: false
+                          };
+                          Object.assign(newTagMap[index], { [newRelationId]: value });
 
-                        const lastTagId = searchTags[index][searchTags[index].length - 1];
-                        Object.assign(newTagMap[index][lastTagId], { prevSearchTagType: 'relation' });
-                        console.log(lastTagId, newTagMap)
-                        return newTagMap;
-                      });
-                      setSearchTags((prevTags: any) => {
-                        const newTags = JSON.parse(JSON.stringify(prevTags));
-                        newTags[index].splice(newTags[index].length - 1, 0, newRelationId);
-                        console.log(newTags)
-                        return newTags;
-                      });
-                    }}
-                  /> :
+                          if (filterPanelOpenKey === "__NEW_RELATION__") {
+                            const lastTagId = searchTags[index][searchTags[index].length - 1];
+                            Object.assign(newTagMap[index][lastTagId], { prevSearchTagType: 'relation' });
+                          }
+                          return newTagMap;
+                        });
+                        if (filterPanelOpenKey === "__NEW_RELATION__") {
+                          setSearchTags((prevTags: any) => {
+                            const newTags = JSON.parse(JSON.stringify(prevTags));
+                            newTags[index].splice(newTags[index].length - 1, 0, newRelationId);
+                            console.log(newTags)
+                            return newTags;
+                          });
+                        }
+                      }}
+                    />
+                  );
+                }
+                return (
                   <ExploreFilter
                     isLastTag={searchTags[index] && searchTags[index].length > 0 ? searchTags[index][searchTags[index].length - 1] === filterPanelOpenKey : false}
                     originType={_.get(searchTagMap[index], filterPanelOpenKey)}
@@ -772,7 +802,8 @@ export default function AppExplore() {
                       setFilterPanelOpenKey(null);
                     }}
                   />
-              }
+                );
+              }}
               arrow={false}
               destroyTooltipOnHide
             >

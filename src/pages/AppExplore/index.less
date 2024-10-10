@@ -191,12 +191,16 @@
     }
 
     &-dashed {
-      border: 1px dashed #8BD3FF !important;
+      border-style: dashed !important;
       background: #fff !important;
-      color: #8BD3FF !important;
 
-      .spicon {
+      &.pdb-ant-tag-processing {
+        border-color: #8BD3FF !important;
         color: #8BD3FF !important;
+
+        .spicon {
+          color: #8BD3FF !important;
+        }
       }
     }
   }
