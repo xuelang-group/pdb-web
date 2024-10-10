@@ -85,7 +85,7 @@ export const getCsv = (callback) => {
         }
     }
 }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
+    callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);
   });
