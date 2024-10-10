@@ -17,7 +17,7 @@ const store = configureStore({
     template: templateReducer,
     query: queryReducer,
     app: appReducer,
-    indicator: indicatorReducer,
+    indicator: indicatorReducer
   }
 });
 

@@ -104,7 +104,7 @@ export default function Left() {
   }, {
     key: 'indicator',
     label: '指标列表',
-    children: <IndicatorList />
+    children: <div className='pdb-sider-content'><IndicatorList /></div>
   }]
 
   const renderPanelContent = function () {

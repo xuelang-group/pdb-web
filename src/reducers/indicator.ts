@@ -12,6 +12,7 @@ interface IndicatorState {
   dimention: string;  // 指标度量
   func: string;       // 统计算法
   groupBy: string[];  // Group By
+  list: any[];
 }
 
 // 使用该类型定义初始 state
@@ -21,6 +22,7 @@ const initialState: IndicatorState = {
   dimention: '',
   func: '',
   groupBy: [],
+  list: [],
 }
 
 export const indicatorSlice = createSlice({
@@ -51,8 +53,11 @@ export const indicatorSlice = createSlice({
       state.records = records;
       state.columns = columns;
     },
+    setMetrics: (state, action: PayloadAction<any>) => {
+      state.list = action.payload;
+    }
   }
 })
 
-export const { setTableData } = indicatorSlice.actions
+export const { setTableData, setMetrics } = indicatorSlice.actions
 export default indicatorSlice.reducer

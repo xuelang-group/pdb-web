@@ -3,6 +3,7 @@ import { EdgeConfig, NodeConfig } from '@antv/g6';
 import { TypeConfig } from './type';
 import { ObjectConfig } from './object';
 import { RelationConfig } from './relation';
+import { set } from 'lodash';
 
 export interface EdgeItemData extends EdgeConfig {
   style?: any
@@ -86,6 +87,7 @@ interface EditorState {
   graphLoading: boolean
   typeLoading: boolean
   relationLoading: boolean
+  indicatorLoading: boolean
   searchAround: any
   screenShootTimestamp: number
   templateScreenShootTimestamp: number
@@ -126,6 +128,7 @@ const initialState: EditorState = {
   graphLoading: false,
   typeLoading: false,
   relationLoading: false,
+  indicatorLoading: false,
   searchAround: {
     show: false,
     options: []
@@ -203,6 +206,9 @@ export const editorSlice = createSlice({
     setRelationLoading: (state, action: PayloadAction<boolean>) => {
       state.relationLoading = action.payload;
     },
+    setIndicatorLoading: (state, action: PayloadAction<boolean>) => {
+      state.indicatorLoading = action.payload;
+    },
     setSearchAround: (state, action: PayloadAction<any>) => {
       state.searchAround = action.payload;
     },
@@ -225,7 +231,7 @@ export const editorSlice = createSlice({
 });
 
 export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, 
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, setIndicatorLoading,
   setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp, setIsEditing
 } = editorSlice.actions
 export default editorSlice.reducer

@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42011123",
+      "name": "数据类型-字符串",
+      "font_class": "shujuleixing-zifuchuan",
+      "unicode": "e81d",
+      "unicode_decimal": 59421
+    },
+    {
+      "icon_id": "42011122",
+      "name": "数据类型-整数浮点数",
+      "font_class": "shujuleixing-zhengshufudianshu",
+      "unicode": "e81e",
+      "unicode_decimal": 59422
+    },
+    {
+      "icon_id": "42011121",
+      "name": "数据类型-布尔值",
+      "font_class": "shujuleixing-buerzhi",
+      "unicode": "e81f",
+      "unicode_decimal": 59423
+    },
+    {
+      "icon_id": "42011120",
+      "name": "数据类型-日期时间",
+      "font_class": "shujuleixing-riqishijian",
+      "unicode": "e820",
+      "unicode_decimal": 59424
+    },
+    {
+      "icon_id": "42011124",
+      "name": "指标",
+      "font_class": "zhibiao",
+      "unicode": "e81c",
+      "unicode_decimal": 59420
+    },
+    {
       "icon_id": "40804064",
       "name": "编辑角标",
       "font_class": "bianjijiaobiao",
