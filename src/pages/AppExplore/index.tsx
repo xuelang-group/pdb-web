@@ -694,7 +694,7 @@ export default function AppExplore() {
               open={currentFocusIndex === index && filterPanelOpenKey !== null && !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey))
                 && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
               }
-              rootClassName="pdb-explore-filter-popover"
+              rootClassName="pdb-explore-setting-popover"
               placement="bottomLeft"
               content={
                 <ExploreFilter
