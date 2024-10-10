@@ -223,7 +223,7 @@ export default function SearchAround() {
           raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof _.get(opt, 'keyword', "") === "string" ? `'${keywordValue}'` : keywordValue}`;
         }
         Object.assign(conditionDetail, {
-          raw,
+          // raw,
           name: attrValue,
           function: optionSymbolMap[condition] || "",
           value: keywordValue,
@@ -317,20 +317,21 @@ export default function SearchAround() {
           ></Select>
           <span className="pdb-search-around-card-label">过滤条件</span>
           <ExploreFilterContent
+            visible={true}
             onRef={childRef}
             originType={{ data: option.data, type: "relation", config: { options: _.get(searchAroundOptions, `${tabIndex}.options.${index}.conditions`, []) } }}
             onSave={(value: any) => changeValue(tabIndex, index, 'conditions', value)}
-            extraContent={(isNew: boolean, editConditionIndex: number, add: any) => (
-              <Button
-                className="pdb-search-around-condition-add"
-                type="dashed"
-                icon={<i className="spicon icon-tianjia" />}
-                block
-                ghost
-                onClick={add}
-                disabled={isNew || editConditionIndex > -1}
-              > 添加条件 </Button>
-            )}
+          // extraContent={(isNew: boolean, editConditionIndex: number, add: any) => (
+          //   <Button
+          //     className="pdb-search-around-condition-add"
+          //     type="dashed"
+          //     icon={<i className="spicon icon-tianjia" />}
+          //     block
+          //     ghost
+          //     onClick={add}
+          //     disabled={isNew || editConditionIndex > -1}
+          //   > 添加条件 </Button>
+          // )}
           />
 
           <span className="pdb-search-around-card-label">对象</span>

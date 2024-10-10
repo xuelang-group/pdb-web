@@ -1,14 +1,14 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _ from "lodash";
-import React from "react";
+import _, { last } from "lodash";
+import React, { useCallback } from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
-import { TypeConfig } from "@/reducers/type";
+import { AttrConfig, TypeConfig } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { api, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
@@ -17,6 +17,7 @@ import ExploreFilter from "./ExploreFilter";
 
 import './index.less';
 import ExportApi from "@/components/ExportApi";
+import { initialParams, setQueryState } from "@/reducers/query";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -85,7 +86,10 @@ export default function AppExplore() {
       message.warning("正在搜索");
       return;
     }
-    if (newValue.length > 0 && newValue[newValue.length - 1] === "__ENTER__") return;
+    if (newValue.length > 0 && (
+      newValue[newValue.length - 1] === "__ENTER__" ||
+      newValue[newValue.length - 1] === "__NEW_RELATION__"
+    )) return;
     let _tags: string[] = [];
     // for (let i = 0; i < newValue.length; i++) {
     //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
@@ -104,10 +108,36 @@ export default function AppExplore() {
       _tags = JSON.parse(JSON.stringify(newValue));
     }
 
-    // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
-    if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" && _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type") {
+    if (newValLen > 1 && _tags[newValLen - 1].split(".")[0] === "Type" && _tags[newValLen - 2].split(".")[0] === "Type") {
+      // 判断最后两个类型是否为对象类型，如果是，则更新最后一个类型的prevSearchTagType
+      setSearchTagMap((prevMap: any) => {
+        const newMap = { ...prevMap };
+        const lastTag = _tags[newValLen - 1];
+        if (newMap[index] && newMap[index][lastTag]) {
+          newMap[index][lastTag] = {
+            ...newMap[index][lastTag],
+            prevSearchTagType: 'type',
+          };
+        }
+        return newMap;
+      });
+    } else if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" &&
+      _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type"
+    ) {
+      // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
       const lastRelation = _tags.pop();
       lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
+      setSearchTagMap((prevMap: any) => {
+        const newMap = { ...prevMap };
+        const lastTag = _tags[newValLen - 1];
+        if (newMap[index] && newMap[index][lastTag]) {
+          newMap[index][lastTag] = {
+            ...newMap[index][lastTag],
+            prevSearchTagType: 'relation',
+          };
+        }
+        return newMap;
+      });
     }
     const newSearchTags = JSON.parse(JSON.stringify(searchTags));
     newSearchTags[index] = _tags;
@@ -189,7 +219,10 @@ export default function AppExplore() {
           prevSearchTagType
         }));
 
-        if (currentTags.length > 1) {
+        if (currentTags.length === 0) {
+          setSearchTabs('type');
+          setSelectDropdownTab('type');
+        } else if (currentTags.length > 1) {
           // 前一个的前一个tag的类型
           const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
             priorSearchTagType = _.get(priorSearchTag, 'type', "");
@@ -199,11 +232,11 @@ export default function AppExplore() {
             setSelectDropdownTab('relation');
           } else {
             setSearchTabs('all');
-            setSelectDropdownTab('type');
+            setSelectDropdownTab('relation');
           }
         } else {
           setSearchTabs('all');
-          setSelectDropdownTab('type');
+          setSelectDropdownTab('relation');
         }
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
@@ -274,6 +307,15 @@ export default function AppExplore() {
       }
     }
 
+    if (relationOptions.length > 0) {
+      relationOptions = relationOptions.concat([{
+        type: "divider",
+        disabled: true
+      }, {
+        value: "__NEW_RELATION__"
+      }]);
+    }
+
     Object.assign(optionMap, {
       type: typeOptions,
       relation: relationOptions,
@@ -293,18 +335,42 @@ export default function AppExplore() {
     //   setCurrentFocusIndex(searchTags.length);
     //   return;
     // }
-    const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-    Object.assign(newSearchTagsMap[index], { [value]: option });
-    setSearchTagMap(newSearchTagsMap);
+    if (value === "__NEW_RELATION__") {
+      setDropdownOpen(false);
+      return;
+    }
+    setSearchTagMap((prevMap: any) => {
+      const newMap = { ...prevMap };
+      newMap[index] = { ...newMap[index], [value]: option };
+
+      const { type, data } = option;
+      if (type === 'type' && data['x.type.attrs']) {
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [],
+          typeId = data['x.type.name'];
+        data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+          csv.push({
+            typeId: typeId,
+            attrId: name,
+            attrName: display,
+            attrType: type
+          });
+        });
+        Object.assign(newMap[index][value], { csv });
+      }
+
+      return newMap;
+    });
     setSearchValue("");
   }
 
   // 取消选中时调用
   const handleDeselect = function (value: string, index: number) {
     if (searchLoading) return;
-    const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-    delete newSearchTagsMap[index][value];
-    setSearchTagMap(newSearchTagsMap);
+    setSearchTagMap((prevMap: any) => {
+      const newMap = { ...prevMap };
+      delete newMap[index][value];
+      return newMap;
+    });
   }
 
   // 清空搜索
@@ -327,6 +393,8 @@ export default function AppExplore() {
 
     setSearchTagMap(newSearchTagsMap);
     setSearchTags(newSearchTags);
+    dispatch(setQueryState(initialParams));
+
 
     if (newSearchTags.length === 0 || (newSearchTags.length === 1 && _.isEmpty(newSearchTags[0]))) {
       const graph = (window as any).PDB_GRAPH;
@@ -372,10 +440,10 @@ export default function AppExplore() {
   }
 
   const getPQL = function (_searchTagMap = searchTagMap) {
-    const pql: any = [], relationNames: string[] = [];
+    const pql: any = [], relationNames: string[] = [], csv: any = [];
     searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
-        let pqlItem: any = [];
+        let pqlItem: any[] = [], csvItem: any[] = [];
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
           let name = _.get(detail, 'label', '');
@@ -399,22 +467,28 @@ export default function AppExplore() {
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
+            const objectCsvOpt = _.get(detail, 'csv');
+            if (type === "object" && objectCsvOpt) {
+              csvItem = csvItem.concat(objectCsvOpt);
+            }
           }
           pqlItem.push(option);
         });
         pql.push(pqlItem);
+        csv.push(csvItem);
       }
     });
-    return { pql, relationNames };
+    return { pql, csv, relationNames };
   }
 
   const searchPQL = function (_searchTagMap = searchTagMap) {
-    const { pql, relationNames } = getPQL(_searchTagMap);
+    const { pql, relationNames, csv } = getPQL(_searchTagMap);
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
-    const graphId = routerParams.id;
+    const graphId = routerParams.id || '';
+    dispatch(setQueryState({ graphId, pql, csv }));
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
         getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
@@ -471,13 +545,9 @@ export default function AppExplore() {
   }
 
   const dropdownRender = function (originNode: ReactNode, index: number) {
-    let tooltip = "", prevTagType = "";
+    let tooltip = "";
     const _searchTags = searchTags[index];
     if (!_searchTags) return (<></>);
-    const lastTag = _searchTags[_searchTags.length - 1];
-    if (lastTag && searchTagMap[index][lastTag]) {
-      prevTagType = searchTagMap[index][lastTag]["type"];
-    }
     if (_searchTags.length === 5) {
       tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
     } else if (searchTabs === 'relation') {
@@ -496,11 +566,11 @@ export default function AppExplore() {
           <Segmented
             value={currentSelectDropdownTab}
             options={[{
-              label: '对象',
-              value: 'type'
-            }, {
               label: '关系',
               value: 'relation'
+            }, {
+              label: '对象',
+              value: 'type'
             }]}
             onChange={activeKey => { setSelectDropdownTab(activeKey); }}
             block
@@ -520,6 +590,16 @@ export default function AppExplore() {
         </span>
       );
     }
+
+    if (option.value === "__NEW_RELATION__") {
+      return (
+        <span className="pdb-explore-dropdown-add">
+          <i className="spicon icon-add"></i>
+          <span>创建自定义关系</span>
+        </span>
+      );
+    }
+
     if (_.get(option, "data.type") === "divider") {
       return (
         <Divider />
@@ -601,6 +681,7 @@ export default function AppExplore() {
     graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
     graph.render();
     graph.zoom(1);
+    dispatch(setQueryState(initialParams));
   }
 
   return (
@@ -620,9 +701,9 @@ export default function AppExplore() {
                   close={() => {
                     setFilterPanelOpenKey(null);
                   }}
-                  saveConfig={(config: any) => {
+                  saveConfig={(config: any, csv: any) => {
                     const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                    Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config } });
+                    Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
                     setSearchTagMap(newSearchTagsMap);
                     setFilterPanelOpenKey(null);
                   }}
@@ -683,7 +764,7 @@ export default function AppExplore() {
           ></i>
         </Tooltip>
       }
-      <Tooltip title="展开">
+      {/* <Tooltip title="展开">
         <i
           className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
           onClick={event => {
@@ -691,8 +772,8 @@ export default function AppExplore() {
             setExploreExpand(!exploreExpand);
           }}
         ></i>
-      </Tooltip>
-      <ExportApi
+      </Tooltip> */}
+      {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
           const tagType = tag.startsWith("Type.") ? "type" : "relation";
           let attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.constraints"), [])));
@@ -713,7 +794,7 @@ export default function AppExplore() {
           const graphId = routerParams.id;
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
-      />
+      /> */}
       <Tooltip title="清空">
         <i
           className="spicon icon-shibai"
