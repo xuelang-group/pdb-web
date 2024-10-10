@@ -445,6 +445,28 @@
           }
         }
       }
+
+      &-select {
+        display: inline-block;
+        width: calc(50% - 8px);
+
+        &:nth-child(1) {
+          margin-right: 16px;
+        }
+
+        .pdb-ant-select {
+          width: 100%;
+        }
+      }
+
+      .pdb-ant-form-item {
+        margin-bottom: 0;
+
+        .pdb-ant-form-item-label>label {
+          display: block;
+          color: var(--text-color3);
+        }
+      }
     }
   }
 
