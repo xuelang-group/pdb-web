@@ -698,6 +698,7 @@ export default function AppExplore() {
               placement="bottomLeft"
               content={
                 <ExploreFilter
+                  isLastTag={searchTags[index] && searchTags[index].length > 0 ? searchTags[index][searchTags[index].length - 1] === filterPanelOpenKey : false}
                   originType={_.get(searchTagMap[index], filterPanelOpenKey)}
                   close={() => {
                     setFilterPanelOpenKey(null);
