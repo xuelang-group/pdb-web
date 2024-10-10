@@ -123,10 +123,23 @@ export default function AppExplore() {
     //   }
     // }
 
+    for (let i = 0; i < newValue.length; i++) {
+      // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
+      // 当前两个tag都不为对象类型，满足当前条件
+      if (i < newValue.length - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
+        newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type" && !(
+          i === newValue.length - 2 || i === newValue.length - 3 && newValue[newValue.length - 1].split(".")[0] !== "Type"
+        )))) {
+        return;
+      }
+    }
+
     // 首个tag必须为对象类型
     const newValLen = newValue.length;
     if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
       _tags = JSON.parse(JSON.stringify(newValue));
+    } else {
+      return;
     }
 
     if (newValLen > 1 && _tags[newValLen - 1].split(".")[0] === "Type" && _tags[newValLen - 2].split(".")[0] === "Type") {
@@ -386,6 +399,19 @@ export default function AppExplore() {
   // 取消选中时调用
   const handleDeselect = function (value: string, index: number) {
     if (searchLoading) return;
+
+    setSearchTags((prevTags: any) => {
+      const newTags = JSON.parse(JSON.stringify(prevTags));
+      const tags = [];
+      for (let i = 0; i < prevTags[index].length; i++) {
+        if (prevTags[index][i] === value) break;
+        tags.push(prevTags[index][i]);
+      }
+      if (tags[tags.length - 1].startsWith("__NEW_RELATION__")) tags.pop();
+      newTags[index] = tags;
+      return newTags;
+    });
+
     setSearchTagMap((prevMap: any) => {
       const newMap = JSON.parse(JSON.stringify(prevMap));
       delete newMap[index][value];
@@ -575,7 +601,7 @@ export default function AppExplore() {
     const _searchTags = searchTags[index];
     if (!_searchTags) return (<></>);
     if (_searchTags.length === 5) {
-      tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
+      tooltip = "对象类型最多与2个对象类型关联。";
     } else if (searchTabs === 'relation') {
       tooltip = "两个对象类型之间必须以关系类型连接，请选择关系类型。"
     }
