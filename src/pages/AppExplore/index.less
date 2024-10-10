@@ -248,12 +248,20 @@
 
     &-add {
       margin-top: 1.6rem;
+      display: flex;
+      justify-content: center;
 
       .pdb-ant-btn {
         width: 100%;
 
         .spicon {
           font-size: 1.4rem;
+        }
+      }
+
+      &.empty-filter-add {
+        .pdb-ant-btn {
+          width: 10.8rem;
         }
       }
     }
@@ -381,6 +389,12 @@
         left: 1.4rem;
         position: absolute;
         top: 0;
+      }
+    }
+
+    &-content {
+      .pdb-ant-empty-description {
+        color: var(--text-color3) !important;
       }
     }
   }

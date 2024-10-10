@@ -5,7 +5,7 @@ import _ from "lodash";
 import { useEffect, useImperativeHandle, useState } from "react";
 
 import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
-
+import EmptyImage from "@/assets/images/empty.svg";
 interface ExploreFilterProps {
   originType: any
   onRef: any
@@ -288,7 +288,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
   }
 
   return (
-    <div style={{display: visible? 'block': 'none'}}>
+    <div style={{ display: visible ? 'block' : 'none' }}>
       <div className="pdb-explore-filter-content">
         {filterOptions.map((opt: any, index: number) => {
           const condition = _.get(opt, 'condition.value', ""),
@@ -323,7 +323,11 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           )
         })}
         {filterOptions.length === 0 && !isNew &&
-          <Empty description="暂无过滤条件" />
+          <Empty
+            image={EmptyImage}
+            imageStyle={{ height: 120 }}
+            description="暂无过滤条件"
+          />
         }
         {isNew &&
           <Card
@@ -337,13 +341,15 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
         }
       </div>
       {/* {extraContent(isNew, editConditionIndex, add)} */}
-      <div className="pdb-explore-filter-add">
-        <Button
-          icon={<i className="spicon icon-add"></i>}
-          onClick={add}
-          disabled={isNew || editConditionIndex > -1}
-        >添加条件</Button>
-      </div>
+      {!(isNew || editConditionIndex > -1) &&
+        <div className={"pdb-explore-filter-add" + (filterOptions.length === 0 && !isNew ? " empty-filter-add" : "")}>
+          <Button
+            icon={<i className="spicon icon-add"></i>}
+            onClick={add}
+            // disabled={isNew || editConditionIndex > -1}
+          >添加条件</Button>
+        </div>
+      }
     </div>
   )
 }

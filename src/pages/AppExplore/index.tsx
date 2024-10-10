@@ -121,6 +121,7 @@ export default function AppExplore() {
         }
         return newMap;
       });
+      setDropdownOpen(true);
     } else if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" &&
       _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type"
     ) {
