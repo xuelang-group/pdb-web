@@ -1,10 +1,11 @@
-import { register } from '@visactor/react-vtable'
-import { TYPES } from '@visactor/vtable'
+import React from 'react';
+import { register, Group, Text, Rect, Checkbox } from '@visactor/react-vtable'
+import { TYPES, CustomLayout } from '@visactor/vtable'
 import { typeMap } from '@/utils/common'
 
 export const ICONS = typeMap.type;
 
-export function getIconSvg(name: string, disabled=false): string {
+export function getIconSvg(name: string, disabled = false): string {
   const fillColor = disabled ? '#DCDEE1' : '#0084FF'
   switch (name) {
     case 'string':
@@ -13,8 +14,8 @@ export function getIconSvg(name: string, disabled=false): string {
       return `<svg t="1727660734561" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3378" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M880 184H712v-64A8.0256 8.0256 0 0 0 704 112h-56a8.0256 8.0256 0 0 0-8 8v64H384v-64a8.0256 8.0256 0 0 0-8-8H320a8.0256 8.0256 0 0 0-8 8v64H144a31.9616 31.9616 0 0 0-32 32V880c0 17.7024 14.2976 32 32 32h736c17.7024 0 32-14.2976 32-32V216c0-17.7024-14.2976-32-32-32z m-40 656h-656V459.9936h656v380.0064z m-656-448V256h128v48c0 4.4032 3.5968 8 8 8h56A8.0256 8.0256 0 0 0 384 304V256h256v48c0 4.4032 3.5968 8 8 8H704a8.0256 8.0256 0 0 0 8-8V256h128v136h-656z" fill="${fillColor}" p-id="3379"></path></svg>`
     case "boolean":
       return `<svg t="1727660727442" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3239" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M807.1424 203.7376L210.88 894.144a14.0416 14.0416 0 0 1-19.712 1.4208l-45.376-39.0656a13.9776 13.9776 0 0 1-1.4208-19.84l596.1856-690.4704a13.952 13.952 0 0 1 19.776-1.3568l45.44 39.1424c5.8496 5.0688 6.4384 13.9136 1.3696 19.7632h0.064-0.064z m103.1168 264.2176v82.7008H710.656v92.1344h199.6032v79.4496H710.656v164.48h-85.952V467.968H910.336h-0.064zM456.64 125.0048v79.1168H328.2304v360h-89.0752V204.1216H113.5488V125.0048h343.0912z" fill="${fillColor}" p-id="3240"></path></svg>`
-    case "int": 
-    case "float": 
+    case "int":
+    case "float":
       return `<svg t="1727660719239" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3100" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M872 393.9968a8.0256 8.0256 0 0 0 8-8V326.016a8.0256 8.0256 0 0 0-8-8H707.9936V152a8.0256 8.0256 0 0 0-7.9872-8h-64a8.0256 8.0256 0 0 0-8.0128 8v166.0032H400V152a8.0256 8.0256 0 0 0-8-8h-64a8.0256 8.0256 0 0 0-8 8v166.0032H152a8.0256 8.0256 0 0 0-8 8v59.9936c0 4.4032 3.5968 8 8 8H320V630.016H152a8.0256 8.0256 0 0 0-8 8v59.9936c0 4.4032 3.5968 8 8 8H320v166.0032c0 4.4032 3.5968 8 8 8h64a8.0256 8.0256 0 0 0 8-8V705.9968h228.0064v166.0032c0 4.4032 3.584 8 7.9872 8h64a8.0256 8.0256 0 0 0 8.0128-8V705.9968h163.9936a8.0256 8.0256 0 0 0 8-8v-59.9936a8.0256 8.0256 0 0 0-8-8H707.9936V393.984h164.0064zM627.9936 630.016H400V393.984h228.0064V630.016z" fill="${fillColor}" p-id="3101"></path></svg>`
     default:
       return ''
@@ -83,10 +84,10 @@ export type Col = {
   disabled?: boolean;
   checked?: boolean;
   mergeCell?: boolean;
-  fieldFormat?: (record:any) => any;
+  fieldFormat?: (record: any) => any;
 }
 export function getColumns(cols: Col[]) {
-  return cols.map(({field, type, disabled, checked, mergeCell, fieldFormat}) => ({
+  return cols.map(({ field, type, disabled, checked, mergeCell, fieldFormat }) => ({
     "field": field,
     "title": field,
     "dimensionKey": field,
@@ -103,94 +104,17 @@ export function getColumns(cols: Col[]) {
     } : {},
     "fieldFormat": fieldFormat,
     "headerIcon": disabled ? `${type}Disabled` : type,
-    "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
-      const { dataValue, rect, table, row } = args;
-      const width = rect?.width || 180;
-      const height = rect?.height || 46;
-      const elements: TYPES.ICustomRenderElements = []
-      if (checked) {
-        elements.push({
-          type: 'rect',
-          x: width - 52 - padding[1],
-          y: (height - 24) / 2,
-          width: 52,
-          height: 24,
-          radius: 1,
-          fill: '#E8F8FF',
-          stroke: '#8BD3FF'
-        })
-        elements.push({
-          type: 'text',
-          x: width - 52/2 - padding[1],
-          y: height / 2 + 1,
-          fill: '#0084FF',
-          fontSize: 12,
-          fontWeight: 400,
-          fontFamily: 'PingFang SC',
-          textAlign: 'center',
-          textBaseline: 'middle',
-          text: '度量列',
-        })
-      }
-      return {
-        elements,
-        expectedHeight: width,
-        expectedWidth: height,
-        renderDefault: true,
-      }
-    },
+    // 只有一行的表头
     // "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
-    //   const { dataValue, rect, table, row } = args;
+    //   const { rect } = args;
     //   const width = rect?.width || 180;
-    //   const height = rect?.height || 92;
-    //   const rowHeight = height / 2;
-    //   const elements: TYPES.ICustomRenderElements = [
-    //     {
-    //       type: 'icon',
-    //       x: padding[1],
-    //       y: (rowHeight - iconSize) / 2,
-    //       width: iconSize,
-    //       height: iconSize,
-    //       svg: getIconSvg(type, disabled),
-    //     }, {
-    //       type: 'text',
-    //       x: padding[1] + iconSize + 5,
-    //       y: rowHeight / 2 + 1,
-    //       fill: disabled ? '#C2C7CC' : '#1C2126',
-    //       fontSize: 14,
-    //       fontWeight: 600,
-    //       fontFamily: 'PingFang SC',
-    //       textBaseline: 'middle',
-    //       text: typeMap.type[type],
-    //     }, {
-    //       type: 'line',
-    //       points: [{x: 1, y: rowHeight + 0.5}, {x: width, y: rowHeight + 0.5}],
-    //       lineWidth: 1,
-    //       stroke: '#DCDEE1'
-    //     }, {
-    //       type: 'rect',
-    //       x: 1,
-    //       y: rowHeight + 1,
-    //       width: width - 2,
-    //       height: rowHeight - 2,
-    //       fill: disabled ? '#F4F6F9' : '#F9FBFC',
-    //     }, {
-    //       type: 'text',
-    //       fill: disabled ? '#C2C7CC' : '#1C2126',
-    //       fontSize: 14,
-    //       fontWeight: 600,
-    //       fontFamily: 'PingFang SC',
-    //       textBaseline: 'middle',
-    //       text: dataValue,
-    //       x: padding[1],
-    //       y: rowHeight + rowHeight / 2 + 1,
-    //     }
-    //   ];
+    //   const height = rect?.height || 46;
+    //   const elements: TYPES.ICustomRenderElements = []
     //   if (checked) {
     //     elements.push({
     //       type: 'rect',
     //       x: width - 52 - padding[1],
-    //       y: (rowHeight - 24) / 2,
+    //       y: (height - 24) / 2,
     //       width: 52,
     //       height: 24,
     //       radius: 1,
@@ -200,7 +124,7 @@ export function getColumns(cols: Col[]) {
     //     elements.push({
     //       type: 'text',
     //       x: width - 52/2 - padding[1],
-    //       y: rowHeight / 2 + 1,
+    //       y: height / 2 + 1,
     //       fill: '#0084FF',
     //       fontSize: 12,
     //       fontWeight: 400,
@@ -217,6 +141,172 @@ export function getColumns(cols: Col[]) {
     //     renderDefault: true,
     //   }
     // },
+    // 两行的表头
+    "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
+      const { dataValue, rect, table, row } = args;
+      const width = rect?.width || 180;
+      const height = rect?.height || 92;
+      const rowHeight = height / 2;
+      const elements: TYPES.ICustomRenderElements = [
+        {
+          type: 'icon',
+          x: padding[1],
+          y: (rowHeight - iconSize) / 2,
+          width: iconSize,
+          height: iconSize,
+          svg: getIconSvg(type, disabled),
+        }, {
+          type: 'text',
+          x: padding[1] + iconSize + 5,
+          y: rowHeight / 2 + 1,
+          fill: disabled ? '#C2C7CC' : '#1C2126',
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: 'PingFang SC',
+          textBaseline: 'middle',
+          text: typeMap.type[type],
+        }, {
+          type: 'line',
+          points: [{ x: 1, y: rowHeight + 0.5 }, { x: width, y: rowHeight + 0.5 }],
+          lineWidth: 1,
+          stroke: '#DCDEE1'
+        }, {
+          type: 'rect',
+          x: 1,
+          y: rowHeight + 1,
+          width: width - 2,
+          height: rowHeight - 2,
+          fill: disabled ? '#F4F6F9' : '#F9FBFC',
+        }, {
+          type: 'text',
+          fill: disabled ? '#C2C7CC' : '#1C2126',
+          fontSize: 14,
+          fontWeight: 600,
+          fontFamily: 'PingFang SC',
+          textBaseline: 'middle',
+          text: dataValue,
+          x: padding[1],
+          y: rowHeight + rowHeight / 2 + 1,
+        }
+      ];
+      if (checked) {
+        elements.push({
+          type: 'rect',
+          x: width - 52 - padding[1],
+          y: (rowHeight - 24) / 2,
+          width: 52,
+          height: 24,
+          radius: 1,
+          fill: '#E8F8FF',
+          stroke: '#8BD3FF'
+        })
+        elements.push({
+          type: 'text',
+          x: width - 52 / 2 - padding[1],
+          y: rowHeight / 2 + 1,
+          fill: '#0084FF',
+          fontSize: 12,
+          fontWeight: 400,
+          fontFamily: 'PingFang SC',
+          textAlign: 'center',
+          textBaseline: 'middle',
+          text: '度量列',
+        })
+      }
+      return {
+        elements,
+        expectedHeight: width,
+        expectedWidth: height,
+        renderDefault: false,
+      }
+    },
+    // customLayout表头
+    // "headerCustomLayout": (args: TYPES.CustomRenderFunctionArg) => {
+    //   const { dataValue, rect, table, col, row } = args;
+    //   const width = rect?.width || 180;
+    //   const height = rect?.height || 92;
+    //   const rowHeight = height / 2;
+
+    //   const container = new CustomLayout.Group({
+    //     height,
+    //     width,
+    //   });
+    //   const typeIcon = new CustomLayout.Icon({
+    //     x: padding[1],
+    //     y: (rowHeight - iconSize) / 2,
+    //     width: iconSize,
+    //     height: iconSize,
+    //     svg: getIconSvg(type, disabled),
+    //   })
+    //   const typeText = new CustomLayout.Text({
+    //     x: padding[1] + iconSize + 5,
+    //     y: (rowHeight - 12) / 2,
+    //     text: typeMap.type[type],
+    //     fontSize: 14,
+    //     fontWeight: 600,
+    //     fontFamily: 'PingFang SC',
+    //     fill: disabled ? '#C2C7CC' : '#1C2126',
+    //   });
+    //   const line = new CustomLayout.Line({
+    //     points: [{ x: 1, y: rowHeight + 0.5 }, { x: width, y: rowHeight + 0.5 }],
+    //     lineWidth: 1,
+    //     stroke: '#DCDEE1'
+    //   })
+    //   const title = new CustomLayout.Text({
+    //     x: padding[1],
+    //     y: rowHeight + (rowHeight - 14) / 2,
+    //     text: dataValue,
+    //     fontSize: 14,
+    //     fontWeight: 600,
+    //     fontFamily: 'PingFang SC',
+    //     fill: disabled ? '#C2C7CC' : '#1C2126',
+    //   });
+    //   container.add(typeIcon)
+    //   container.add(typeText)
+    //   container.add(line)
+    //   container.add(title)
+    //   if (checked) {
+    //     const dlBg = new CustomLayout.Rect({
+    //       x: width - 52 - padding[1],
+    //       y: (rowHeight - 24) / 2,
+    //       width: 52,
+    //       height: 24,
+    //       cornerRadius: 1,
+    //       fill: '#E8F8FF',
+    //       stroke: '#8BD3FF'
+    //     })
+    //     const dlTxt = new CustomLayout.Text({
+    //       x: width - 52 / 2 - padding[1],
+    //       y: rowHeight / 2 + 1,
+    //       fill: '#0084FF',
+    //       fontSize: 12,
+    //       fontWeight: 400,
+    //       fontFamily: 'PingFang SC',
+    //       textAlign: 'center',
+    //       textBaseline: 'middle',
+    //       text: '度量列',
+    //     })
+    //     container.add(dlBg)
+    //     container.add(dlTxt)
+    //   }
+    //   // if (disabled) {
+    //   //   const checkbox = new CustomLayout.Rect({
+    //   //     x: width - 16 - padding[1],
+    //   //     y: rowHeight + (rowHeight - 16) / 2,
+    //   //     width: 16,
+    //   //     height: 16,
+    //   //     cornerRadius: 2,
+    //   //     fill: '#fff',
+    //   //     stroke: '#DCDEE1',
+    //   //     cursor: 'pointer'
+    //   //   })
+    //   //   container.add(checkbox)
+    //   // }
+    //   return {
+    //     rootContainer: container,
+    //     renderDefault: false
+    //   }
+    // }
   }))
 }
 
@@ -224,7 +314,7 @@ export const columns = [{
   "title": "单行文本",
   "field": "Project Name",
   "dimensionKey": "Project Name",
-  "columns":[{
+  "columns": [{
     "field": "Project Name",
     "title": "Project Name",
     "dimensionKey": "Project Name",
@@ -238,7 +328,7 @@ export const columns = [{
   "title": "单行文本",
   "field": "Task Name",
   "dimensionKey": "Task Name",
-  "columns":[{
+  "columns": [{
     "field": "Task Name",
     "title": "Task Name",
     "dimensionKey": "Task Name",
@@ -251,7 +341,7 @@ export const columns = [{
   "title": "单行文本",
   "field": "Assigned to",
   "dimensionKey": "Assigned to",
-  "columns":[{
+  "columns": [{
     "field": "Assigned To",
     "title": "Assigned to",
     "dimensionKey": "Assigned to",
@@ -264,7 +354,7 @@ export const columns = [{
   "title": "日期/时间",
   "field": "Start Date",
   "dimensionKey": "Start Date",
-  "columns":[{
+  "columns": [{
     "field": "Start Date",
     "title": "Start Date",
     "dimensionKey": "Start Date",
@@ -291,7 +381,7 @@ export const columns = [{
   "title": "整数",
   "field": "Days Required",
   "dimensionKey": "Days Required",
-  "columns":[{
+  "columns": [{
     "field": "Days Required",
     "title": "Days Required",
     "dimensionKey": "Days Required",
@@ -304,7 +394,7 @@ export const columns = [{
   "title": "日期/时间",
   "field": "End Date",
   "dimensionKey": "End Date",
-  "columns":[{
+  "columns": [{
     "field": "End Date",
     "title": "End Date",
     "dimensionKey": "End Date",
@@ -317,7 +407,7 @@ export const columns = [{
   "title": "浮点数",
   "field": "Progress",
   "dimensionKey": "Progress",
-  "columns":[{
+  "columns": [{
     "field": "Progress",
     "title": "Progress",
     "dimensionKey": "Progress",

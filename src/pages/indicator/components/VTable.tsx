@@ -222,14 +222,12 @@ export default function VTable() {
   const option = {
     autoFillWidth: true,
     autoWrapText: true,
-    // frozenColCount: 1,
     rightFrozenColCount: 1,
-    // bottomFrozenRowCount: 1, 
     groupBy: "Project Name",
     // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
     defaultColWidth: 180,
-    // defaultHeaderRowHeight: 92,
+    defaultHeaderRowHeight: 92,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -269,14 +267,6 @@ export default function VTable() {
         cellBorderColor: '#8BD3FF',
         cellBorderLineWidth: 1,
       },
-      // bottomFrozenStyle: {
-      //   fontFamily: 'PingFang SC',
-      //   fontWeight: 600,
-      //   borderLineWidth: [1, 0, 1, 0],
-      //   color: 'green',
-      //   // textAlign: 'right',
-      //   bgColor: '#FFF'
-      // },
     },
     records: data,
     columns: getColumns(columns),
@@ -325,45 +315,35 @@ export default function VTable() {
         renderDefault: true
       };
     },
-    menu: {
-      defaultHeaderMenuItems: [{
-        text: '启用/禁用',
-        // type: 'item',
-        menuKey: 'enable',
-        // selectedIcon: 'checked',
-        // icon: 'unchecked'
-      }],
-    }
-    // aggregation(args: {col: number, field: string}) {
-    //   if (args.field === "Progress") {
-    //     return {
-    //       aggregationType: TYPES.AggregationType.AVG,
-    //       // showOnTop: true,
-    //       formatFun(value: number, col: any, row: any, table: { recordsCount: string }) {
-    //         return '合计:' + Math.round(value * 100) + '%';
-    //       }
-    //     };
-    //   }
-    //   return null;
-    // }
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
     const { rowCount, colCount } = tableInstance
     // console.log('has ready：', rowCount, colCount)
     // tableInstance.clearSelected();
+    // 默认选中最后一列
     tableInstance.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+    // 点击禁用
     tableInstance.on('dropdown_menu_click', (args: any) => {
-      console.log('dropdown_menu_click', args);
-      if (args.menuKey === 'enable') {
-        // copyData = tableInstance.getCopyValue();
+      if (args.menuKey === 'disabled') {
+        // tableInstance.setDropDownMenuHighlight([args]);
+        const { col } = args;
+        columns[col].disabled = !columns[col].disabled;
+        tableInstance.updateColumns(getColumns(columns))
       }
     });
-    tableInstance.on('dropdown_icon_click', (args: any) => {
-      console.log('DROPDOWN_ICON_CLICK', args);
-    })
-    tableInstance.on('show_menu', (args: any) => {
-      console.log('show_menu', args);
+    // 表头右键菜单
+    tableInstance.on('contextmenu_cell', (args: any) => {
+      const { col, row } = args;
+      // if(row == 0 && !columns[col].disabled) {
+      if(row == 0) {
+        tableInstance.showDropDownMenu(col, row, {
+          content: [{
+            text: columns[col].disabled ? '启用' : '禁用',
+            menuKey: 'disabled',
+          }],
+        })
+      }
     })
   }
 
