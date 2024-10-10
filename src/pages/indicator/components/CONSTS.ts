@@ -68,18 +68,12 @@ Object.keys(ICONS).forEach(name => {
 register.icon('dropdownIcon', {
   name: 'dropdownIcon',
   type: 'svg',
-  positionType: TYPES.IconPosition.absoluteRight,
+  positionType: TYPES.IconPosition.right,
   funcType: TYPES.IconFuncTypeEnum.dropDown,
-  width: 20,
-  height: 20,
-  svg: "https://lf9-dp-fe-cms-tos.byteorg.com/obj/bit-cloud/VTable/dropdown.svg",
+  width: 16,
+  height: 16,
+  svg: '<svg t="1728526714477" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="61549" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><path d="M561.339 711.843c-10.558 10.557-24.886 20.361-38.46 17.344-13.575 2.263-26.395-8.295-36.952-17.344L159.39 383.799c-16.59-16.59-16.59-43.74 0-60.33s43.74-16.59 60.33 0l303.912 312.207L828.299 323.47c16.59-16.59 43.739-16.59 60.33 0s16.59 43.74 0 60.33l-327.29 328.044z" p-id="61550" fill="#4C5A67"></path></svg>',
   marginLeft: 4,
-  // tooltip: {
-  //   style: { arrowMark: true, fontSize: 10, bgColor: 'white', color: 'black' },
-  //   // 气泡框，按钮的的解释信息
-  //   title: 'sort data',
-  //   placement: TYPES.Placement.right,
-  // },
   visibleTime: 'mouseenter_cell',
 });
 

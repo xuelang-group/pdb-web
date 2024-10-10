@@ -1,7 +1,7 @@
-import { ListTable, register, Group, Text, Tag, ListColumn } from '@visactor/react-vtable'
+import { ListTable } from '@visactor/react-vtable'
 import { TYPES, CustomLayout } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import { ICONS, Col, getColumns, getIconSvg } from './CONSTS'
+import { Col, getColumns } from './CONSTS'
 
 const data = [
   {
@@ -327,10 +327,12 @@ export default function VTable() {
     },
     menu: {
       defaultHeaderMenuItems: [{
-        text: '不使用',
+        text: '启用/禁用',
         // type: 'item',
-        menuKey: 'enable'
-      }]
+        menuKey: 'enable',
+        // selectedIcon: 'checked',
+        // icon: 'unchecked'
+      }],
     }
     // aggregation(args: {col: number, field: string}) {
     //   if (args.field === "Progress") {
@@ -357,26 +359,12 @@ export default function VTable() {
         // copyData = tableInstance.getCopyValue();
       }
     });
-    // tableInstance.on('mousemove_cell', (args: any) => {
-    //   const { x, y, col, row, targetIcon } = args;
-    //   console.log('mousemove_cell', args)
-    //   if (!row) {
-    //     const rect = tableInstance.getCellRect(col, row)
-    //       tableInstance.showTooltip(col, row, {
-    //         content: '数据类型：' + tableInstance.getCellValue(col, row),
-    //         position: {x: x - 24, y: y - 32},
-    //         // referencePosition: { rect, placement: TYPES.Placement.bottom }, //TODO
-    //         style: {
-    //           bgColor: 'black',
-    //           color: 'white',
-    //           font: 'normal bold normal 14px/1 STKaiti',
-    //           padding: [4, 8],
-    //           // arrowMark: true
-    //         }
-    //       });
-    //     // }
-    //   }
-    // })
+    tableInstance.on('dropdown_icon_click', (args: any) => {
+      console.log('DROPDOWN_ICON_CLICK', args);
+    })
+    tableInstance.on('show_menu', (args: any) => {
+      console.log('show_menu', args);
+    })
   }
 
   const updateSize = () => {
