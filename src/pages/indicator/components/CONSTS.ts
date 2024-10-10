@@ -1,3 +1,4 @@
+import { register } from '@visactor/react-vtable'
 import { TYPES } from '@visactor/vtable'
 import { typeMap } from '@/utils/common'
 
@@ -22,6 +23,66 @@ export function getIconSvg(name: string, disabled=false): string {
 
 const padding = [8, 15];
 const iconSize = 18;
+
+Object.keys(ICONS).forEach(name => {
+  register.icon(name, {
+    name: name,
+    type: 'svg',
+    marginRight: 4,
+    positionType: TYPES.IconPosition.left,
+    width: iconSize,
+    height: iconSize,
+    svg: getIconSvg(name),
+    hover: {
+      // 热区大小
+      width: iconSize + 8,
+      height: iconSize + 8,
+      bgColor: 'rgba(22,44,66,0.1)'
+    },
+    tooltip: {
+      style: {
+        arrowMark: false,
+        padding: [2, 4],
+        bgColor: 'rgba(0,0,0,0.4)',
+        color: 'white',
+        fontSize: 12
+      },
+      // 气泡框，按钮的的解释信息
+      title: ICONS[name],
+      placement: TYPES.Placement.left
+    },
+    cursor: 'pointer'
+  })
+
+  register.icon(`${name}Disabled`, {
+    name: `${name}Disabled`,
+    type: 'svg',
+    marginRight: 4,
+    positionType: TYPES.IconPosition.left,
+    width: 18,
+    height: 18,
+    svg: getIconSvg(name, true),
+  })
+});
+
+register.icon('dropdownIcon', {
+  name: 'dropdownIcon',
+  type: 'svg',
+  positionType: TYPES.IconPosition.absoluteRight,
+  funcType: TYPES.IconFuncTypeEnum.dropDown,
+  width: 20,
+  height: 20,
+  svg: "https://lf9-dp-fe-cms-tos.byteorg.com/obj/bit-cloud/VTable/dropdown.svg",
+  marginLeft: 4,
+  // tooltip: {
+  //   style: { arrowMark: true, fontSize: 10, bgColor: 'white', color: 'black' },
+  //   // 气泡框，按钮的的解释信息
+  //   title: 'sort data',
+  //   placement: TYPES.Placement.right,
+  // },
+  visibleTime: 'mouseenter_cell',
+});
+
 export type Col = {
   field: string;
   type: string;

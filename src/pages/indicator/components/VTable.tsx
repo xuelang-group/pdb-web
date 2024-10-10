@@ -3,46 +3,6 @@ import { TYPES, CustomLayout } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
 import { ICONS, Col, getColumns, getIconSvg } from './CONSTS'
 
-Object.keys(ICONS).forEach(name => {
-  register.icon(name, {
-    name: name,
-    type: 'svg',
-    marginRight: 4,
-    positionType: TYPES.IconPosition.left,
-    width: 18,
-    height: 18,
-    svg: getIconSvg(name),
-    hover: {
-      // 热区大小
-      width: 26,
-      height: 26,
-      bgColor: 'rgba(22,44,66,0.1)'
-    },
-    tooltip: {
-      style: {
-        arrowMark: false,
-        padding: [2, 4],
-        bgColor: 'rgba(0,0,0,0.4)',
-        color: 'white',
-        fontSize: 12
-      },
-      // 气泡框，按钮的的解释信息
-      title: ICONS[name],
-      placement: TYPES.Placement.left
-    },
-    cursor: 'pointer'
-  })
-  register.icon(`${name}Disabled`, {
-    name: `${name}Disabled`,
-    type: 'svg',
-    marginRight: 4,
-    positionType: TYPES.IconPosition.left,
-    width: 18,
-    height: 18,
-    svg: getIconSvg(name, true),
-  })
-})
-
 const data = [
   {
     "Project Name": "Marketing",
@@ -367,7 +327,7 @@ export default function VTable() {
     },
     menu: {
       defaultHeaderMenuItems: [{
-        text:'不使用',
+        text: '不使用',
         // type: 'item',
         menuKey: 'enable'
       }]
@@ -390,7 +350,7 @@ export default function VTable() {
     const { rowCount, colCount } = tableInstance
     // console.log('has ready：', rowCount, colCount)
     // tableInstance.clearSelected();
-    tableInstance.selectCells([{start: {col: colCount, row: 0}, end: {col: colCount, row: rowCount}}]);
+    tableInstance.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     tableInstance.on('dropdown_menu_click', (args: any) => {
       console.log('dropdown_menu_click', args);
       if (args.menuKey === 'enable') {
@@ -436,7 +396,7 @@ export default function VTable() {
   }, [])
 
   return (
-    <div className='pdb-vtable' style={{position: 'relative', paddingBottom: 48}}>
+    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: 48 }}>
       <div ref={wrapRef} style={{ height: '100%' }}>
         <ListTable
           ref={tableInstance}
@@ -446,7 +406,7 @@ export default function VTable() {
           onReady={onReady}
         />
       </div>
-      <div className='pdb-vtable-footer' style={{position: 'absolute', height: 48}}>
+      <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
 
       </div>
     </div>
