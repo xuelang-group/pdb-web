@@ -20,8 +20,11 @@ export const indicatorSlice = createSlice({
     getCsv: (state, action: PayloadAction<any>) => {
       state.graphSavedMsg = JSON.parse(JSON.stringify({ ...state.graphSavedMsg, ...action.payload }));
     },
+    setMetrics: (state, action: PayloadAction<any>) => {
+      state.list = action.payload;
+    }
   }
 })
 
-export const { getCsv } = indicatorSlice.actions
+export const { getCsv, setMetrics } = indicatorSlice.actions
 export default indicatorSlice.reducer

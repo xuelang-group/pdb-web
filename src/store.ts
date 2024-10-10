@@ -16,7 +16,8 @@ const store = configureStore({
     relation: relationReducer,
     template: templateReducer,
     query: queryReducer,
-    app: appReducer
+    app: appReducer,
+    indicator: indicatorReducer
   }
 });
 
