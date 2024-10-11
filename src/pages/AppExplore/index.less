@@ -476,7 +476,12 @@
         .pdb-ant-form-item-label>label {
           display: block;
           color: var(--text-color3);
+
+          &.pdb-ant-form-item-required::before {
+            display: none !important;
+          }
         }
+
       }
     }
   }

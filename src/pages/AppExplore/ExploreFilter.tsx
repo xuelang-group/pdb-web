@@ -20,7 +20,7 @@ export const operators: any = {
   "OR": "或"
 };
 
-const joinTypes: any = {
+export const joinTypes: any = {
   "all": "全联接",
   "left": "左联接",
   "right": "右联接",
