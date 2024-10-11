@@ -16,8 +16,8 @@ export default function VTable() {
   const columns = useSelector((state: StoreState) => state.indicator.columns);
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
   const groupBy = useSelector((state: StoreState) => state.indicator.groupBy);
+  const mergeCell = useSelector((state: StoreState) => state.indicator.mergeCell);
   const func = useSelector((state: StoreState) => state.indicator.func);
-  const funcResults = useSelector((state: StoreState) => state.indicator.funcResults);
 
   const option = {
     autoFillWidth: true,
@@ -68,24 +68,29 @@ export default function VTable() {
     },
     records: records,
     columns: getColumns(columns),
-    // customMergeCell: (col: any, row: any, table: any) => {
-    //   // console.log('table: ', table)
-    //   if (col >= 0 && row == 6) {
-    //     return {
-    //       text: 'merge text',
-    //       range: {
-    //         start: {
-    //           col: 0,
-    //           row: 6
-    //         },
-    //         end: {
-    //           col: table.colCount - 1,
-    //           row: 6
-    //         }
-    //       },
-    //     };
-    //   }
-    // },
+    customMergeCell: (col: any, row: any, table: any) => {
+      if (mergeCell.row.includes(row)) {
+        const item = records[row-1];
+        if (col >= item.merge-1 && col < table.colCount) {
+          const key = groupBy[item.merge-1];
+          const name = item[key];
+          console.log('merge key: ', name, table.colCount - 1)
+          return {
+            text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}_${func}`],
+            range: {
+              start: {
+                col: item.merge,
+                row: row
+              },
+              end: {
+                col: table.colCount - 1,
+                row: row
+              }
+            },
+          };
+        }
+      }
+    },
     // groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
     //   const { table, row, col, rect } = args;
     //   const record = table.getCellOriginRecord(col, row);
@@ -119,33 +124,6 @@ export default function VTable() {
     if (isFirst) {
       vtable.current = tableInstance
     }
-    // const { rowCount, colCount } = tableInstance
-    // console.log('has ready：', rowCount, colCount)
-    // tableInstance.clearSelected();
-    // 默认选中最后一列
-    // tableInstance.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
-    // 点击禁用
-    // tableInstance.on('dropdown_menu_click', (args: any) => {
-    //   if (args.menuKey === 'disabled') {
-    //     // tableInstance.setDropDownMenuHighlight([args]);
-    //     const { col } = args;
-    //     columns[col].disabled = !columns[col].disabled;
-    //     tableInstance.updateColumns(getColumns(columns))
-    //   }
-    // });
-    // // 表头右键菜单
-    // tableInstance.on('contextmenu_cell', (args: any) => {
-    //   const { col, row } = args;
-    //   // if(row == 0 && !columns[col].disabled) {
-    //   if(row == 0) {
-    //     tableInstance.showDropDownMenu(col, row, {
-    //       content: [{
-    //         text: columns[col].disabled ? '启用' : '禁用',
-    //         menuKey: 'disabled',
-    //       }],
-    //     })
-    //   }
-    // })
   }
 
   const onDropdownMenuClick = (args: any) => {
