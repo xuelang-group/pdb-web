@@ -1,6 +1,218 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
 import { Col } from '@/pages/indicator/components/CONSTS'
+import { findIndex, isEmpty, remove } from 'lodash';
+
+// demo 数据
+// const records = [
+//   {
+//     "Project Name": "Marketing",
+//     "Task Name": "Market Research",
+//     "Assigned To": "Alice",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 13,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.78
+//   }, {
+//     "Project Name": "Marketing",
+//     "Task Name": "Content Creation",
+//     "Assigned To": "Bob",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 14,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.68
+//   }, {
+//     "Project Name": "Marketing",
+//     "Task Name": "Social Media Planning",
+//     "Assigned To": "Charlie",
+//     "Start Date": "2024/01/03",
+//     "Days Required": 22,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.58
+//   }, {
+//     "Project Name": "Marketing",
+//     "Task Name": "Campaign Analysis",
+//     "Assigned To": "Daisy",
+//     "Start Date": "2024/01/03",
+//     "Days Required": 25,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.48
+//   }, {
+//     "Project Name": "Product Dev",
+//     "Task Name": "Prototype Development",
+//     "Assigned To": "Ethan",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 18,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.38
+//   }, {
+//     "Project Name": "Product Dev",
+//     "Task Name": "Quality Assurance",
+//     "Assigned To": "Fiona",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 10,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.78
+//   }, {
+//     "Project Name": "Product Dev",
+//     "Task Name": "User Interface Design",
+//     "Assigned To": "Gabriel",
+//     "Start Date": "2024/01/04",
+//     "Days Required": 25,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.28
+//   }, {
+//     "Project Name": "Customer Svc",
+//     "Task Name": "Service Improvement",
+//     "Assigned To": "Hannah",
+//     "Start Date": "2024/01/04",
+//     "Days Required": 25,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.18
+//   }, {
+//     "Project Name": "Customer Svc",
+//     "Task Name": "Ticket Resolution",
+//     "Assigned To": "lan",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 22,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.08
+//   }, {
+//     "Project Name": "Customer Svc",
+//     "Task Name": "Customer Feedback",
+//     "Assigned To": "Julia",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 25,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.78
+//   }, {
+//     "Project Name": "Financial",
+//     "Task Name": "Budget Analysis",
+//     "Assigned To": "Kevin",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 30,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.68
+//   }, {
+//     "Project Name": "Financial",
+//     "Task Name": "Financial Reporting",
+//     "Assigned To": "Mark",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 22,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.58
+//   }, {
+//     "Project Name": "Financial",
+//     "Task Name": "Investment Planning",
+//     "Assigned To": "Sam",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 21,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.48
+//   }, {
+//     "Project Name": "Research",
+//     "Task Name": "Market Trends Analysis",
+//     "Assigned To": "Nathan",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 25,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.38
+//   }, {
+//     "Project Name": "Research",
+//     "Task Name": "Data Collection",
+//     "Assigned To": "Olivia",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 23,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.28
+//   }, {
+//     "Project Name": "Research",
+//     "Task Name": "Research Paper Writing",
+//     "Assigned To": "Peter",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 32,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.18
+//   }, {
+//     "Project Name": "Development",
+//     "Task Name": "Software Development",
+//     "Assigned To": "Quinn",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 27,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.08
+//   }, {
+//     "Project Name": "Development",
+//     "Task Name": "Feature Enhancement",
+//     "Assigned To": "Rachel",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 36,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.88
+//   }, {
+//     "Project Name": "Development",
+//     "Task Name": "Code Review",
+//     "Assigned To": "Sam",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 30,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.98
+//   }, {
+//     "Project Name": "Production",
+//     "Task Name": "Manufacturing",
+//     "Assigned To": "Tim",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 47,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.01
+//   }, {
+//     "Project Name": "Production",
+//     "Task Name": "Manu facture",
+//     "Assigned To": "Tim Smith",
+//     "Start Date": "2024/01/01",
+//     "Days Required": 47,
+//     "End Date": "2024/01/14",
+//     "Progress": 0.01
+//   }, {
+//     "Project Name": "Marketing",
+//     "Start Date": "2024/01/01",
+//     "Algo": "avg",
+//     "Progress": 0.58
+//   }, {
+//     "Project Name": "Product Dev",
+//     "Algo": "avg",
+//     "Progress": 0.98
+//   }
+// ]
+
+// const columns: Col[] = [{
+//   "field": "Project Name",
+//   "type": "string",
+//   "mergeCell": true,
+// }, {
+//   "field": "Start Date",
+//   "type": "datetime",
+//   "mergeCell": true,
+// }, {
+//   "field": "Task Name",
+//   "type": "string"
+// }, {
+//   "field": "Assigned To",
+//   "type": "string",
+//   "disabled": true
+// }, {
+//   "field": "Days Required",
+//   "type": "int"
+// }, {
+//   "field": "End Date",
+//   "type": "datetime"
+// }, {
+//   "field": "Progress",
+//   "type": "float",
+//   "checked": true,
+//   "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
+// }]
+
 
 interface Record {
   [key: string]: any;
@@ -19,9 +231,9 @@ interface IndicatorState {
 const initialState: IndicatorState = {
   records: [],
   columns: [],
-  dimention: '',
+  dimention: '序号',
   func: '',
-  groupBy: [],
+  groupBy: ['机型'],
   list: [],
 }
 
@@ -34,9 +246,38 @@ export const indicatorSlice = createSlice({
       const result = papa.parse<any[]>(action.payload);
       const cols: string[] = result.data[0];  // CSV的第一行：表头
       const types: string[] = result.data[1]; // CSV的第二行：数据类型
+      const columns: Col[] = cols.map((field, i) => {
+        const col: Col = { field, type: types[i] };
+        if (!isEmpty(state.groupBy)) {
+          // 分组合并单元格
+          col.mergeCell = state.groupBy.includes(field)
+        }
+        if (state.dimention && state.dimention === field) {
+          // 指标度量
+          col.checked = true
+        }
+        if (col.type === 'float') {
+          col["fieldFormat"] = (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`;
+        }
+        return col;
+      });
       // 指标度量在倒数第一列，若未设置将整数或浮点数作为度量列
-      const index = cols.indexOf(state.dimention);
-      const columns: Col[] = cols.map((field, i) => ({field, type: types[i]}));
+      if (state.dimention) {
+        const col = remove(columns, (item) => item.field === state.dimention);
+        if (!isEmpty(col)) {
+          columns.push(col[0])
+        }
+      }
+      // 分组在右侧，指标度量在左侧
+      if (!isEmpty(state.groupBy)) {
+        state.groupBy.forEach((field, i) => {
+          const col = remove(columns, (item) => item.field === field);
+          if (!isEmpty(col)) {
+            columns.splice(i, 0, col[0])
+          }
+        })
+      }
+      
       const records = result.data.slice(2).map((row) => {
         const item: Record = {}
         row.forEach((value, i) => {
@@ -44,12 +285,7 @@ export const indicatorSlice = createSlice({
         })
         return item;
       })
-      if (index > -1) {
-        columns[index].checked = true;
-        if (columns[index].type === 'float') {
-          columns[index]["fieldFormat"] = (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`;
-        }
-      }
+      console.log('columns: ', columns)
       state.records = records;
       state.columns = columns;
     },

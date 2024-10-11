@@ -108,7 +108,7 @@ export function getColumns(cols: Col[]) {
     // 只有一行的表头
     // "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
     //   const { rect } = args;
-    //   const width = rect?.width || 180;
+    //   const width = rect?.width || 150;
     //   const height = rect?.height || 46;
     //   const elements: TYPES.ICustomRenderElements = []
     //   if (checked) {
@@ -145,7 +145,7 @@ export function getColumns(cols: Col[]) {
     // 两行的表头
     "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
       const { dataValue, rect, table, row } = args;
-      const width = rect?.width || 180;
+      const width = rect?.width || 150;
       const height = rect?.height || 92;
       const rowHeight = height / 2;
       const elements: TYPES.ICustomRenderElements = [

@@ -1,232 +1,32 @@
+import { useDispatch, useSelector } from "react-redux";
 import { ListTable } from '@visactor/react-vtable'
 import { TYPES, CustomLayout } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
 import { Col, getColumns } from './CONSTS'
-
-const data = [
-  {
-    "Project Name": "Marketing",
-    "Task Name": "Market Research",
-    "Assigned To": "Alice",
-    "Start Date": "2024/01/01",
-    "Days Required": 13,
-    "End Date": "2024/01/14",
-    "Progress": 0.78
-  }, {
-    "Project Name": "Marketing",
-    "Task Name": "Content Creation",
-    "Assigned To": "Bob",
-    "Start Date": "2024/01/01",
-    "Days Required": 14,
-    "End Date": "2024/01/14",
-    "Progress": 0.68
-  }, {
-    "Project Name": "Marketing",
-    "Task Name": "Social Media Planning",
-    "Assigned To": "Charlie",
-    "Start Date": "2024/01/03",
-    "Days Required": 22,
-    "End Date": "2024/01/14",
-    "Progress": 0.58
-  }, {
-    "Project Name": "Marketing",
-    "Task Name": "Campaign Analysis",
-    "Assigned To": "Daisy",
-    "Start Date": "2024/01/03",
-    "Days Required": 25,
-    "End Date": "2024/01/14",
-    "Progress": 0.48
-  }, {
-    "Project Name": "Product Dev",
-    "Task Name": "Prototype Development",
-    "Assigned To": "Ethan",
-    "Start Date": "2024/01/01",
-    "Days Required": 18,
-    "End Date": "2024/01/14",
-    "Progress": 0.38
-  }, {
-    "Project Name": "Product Dev",
-    "Task Name": "Quality Assurance",
-    "Assigned To": "Fiona",
-    "Start Date": "2024/01/01",
-    "Days Required": 10,
-    "End Date": "2024/01/14",
-    "Progress": 0.78
-  }, {
-    "Project Name": "Product Dev",
-    "Task Name": "User Interface Design",
-    "Assigned To": "Gabriel",
-    "Start Date": "2024/01/04",
-    "Days Required": 25,
-    "End Date": "2024/01/14",
-    "Progress": 0.28
-  }, {
-    "Project Name": "Customer Svc",
-    "Task Name": "Service Improvement",
-    "Assigned To": "Hannah",
-    "Start Date": "2024/01/04",
-    "Days Required": 25,
-    "End Date": "2024/01/14",
-    "Progress": 0.18
-  }, {
-    "Project Name": "Customer Svc",
-    "Task Name": "Ticket Resolution",
-    "Assigned To": "lan",
-    "Start Date": "2024/01/01",
-    "Days Required": 22,
-    "End Date": "2024/01/14",
-    "Progress": 0.08
-  }, {
-    "Project Name": "Customer Svc",
-    "Task Name": "Customer Feedback",
-    "Assigned To": "Julia",
-    "Start Date": "2024/01/01",
-    "Days Required": 25,
-    "End Date": "2024/01/14",
-    "Progress": 0.78
-  }, {
-    "Project Name": "Financial",
-    "Task Name": "Budget Analysis",
-    "Assigned To": "Kevin",
-    "Start Date": "2024/01/01",
-    "Days Required": 30,
-    "End Date": "2024/01/14",
-    "Progress": 0.68
-  }, {
-    "Project Name": "Financial",
-    "Task Name": "Financial Reporting",
-    "Assigned To": "Mark",
-    "Start Date": "2024/01/01",
-    "Days Required": 22,
-    "End Date": "2024/01/14",
-    "Progress": 0.58
-  }, {
-    "Project Name": "Financial",
-    "Task Name": "Investment Planning",
-    "Assigned To": "Sam",
-    "Start Date": "2024/01/01",
-    "Days Required": 21,
-    "End Date": "2024/01/14",
-    "Progress": 0.48
-  }, {
-    "Project Name": "Research",
-    "Task Name": "Market Trends Analysis",
-    "Assigned To": "Nathan",
-    "Start Date": "2024/01/01",
-    "Days Required": 25,
-    "End Date": "2024/01/14",
-    "Progress": 0.38
-  }, {
-    "Project Name": "Research",
-    "Task Name": "Data Collection",
-    "Assigned To": "Olivia",
-    "Start Date": "2024/01/01",
-    "Days Required": 23,
-    "End Date": "2024/01/14",
-    "Progress": 0.28
-  }, {
-    "Project Name": "Research",
-    "Task Name": "Research Paper Writing",
-    "Assigned To": "Peter",
-    "Start Date": "2024/01/01",
-    "Days Required": 32,
-    "End Date": "2024/01/14",
-    "Progress": 0.18
-  }, {
-    "Project Name": "Development",
-    "Task Name": "Software Development",
-    "Assigned To": "Quinn",
-    "Start Date": "2024/01/01",
-    "Days Required": 27,
-    "End Date": "2024/01/14",
-    "Progress": 0.08
-  }, {
-    "Project Name": "Development",
-    "Task Name": "Feature Enhancement",
-    "Assigned To": "Rachel",
-    "Start Date": "2024/01/01",
-    "Days Required": 36,
-    "End Date": "2024/01/14",
-    "Progress": 0.88
-  }, {
-    "Project Name": "Development",
-    "Task Name": "Code Review",
-    "Assigned To": "Sam",
-    "Start Date": "2024/01/01",
-    "Days Required": 30,
-    "End Date": "2024/01/14",
-    "Progress": 0.98
-  }, {
-    "Project Name": "Production",
-    "Task Name": "Manufacturing",
-    "Assigned To": "Tim",
-    "Start Date": "2024/01/01",
-    "Days Required": 47,
-    "End Date": "2024/01/14",
-    "Progress": 0.01
-  }, {
-    "Project Name": "Production",
-    "Task Name": "Manu facture",
-    "Assigned To": "Tim Smith",
-    "Start Date": "2024/01/01",
-    "Days Required": 47,
-    "End Date": "2024/01/14",
-    "Progress": 0.01
-  }, {
-    "Project Name": "Marketing",
-    "Start Date": "2024/01/01",
-    "Algo": "avg",
-    "Progress": 0.58
-  }, {
-    "Project Name": "Product Dev",
-    "Algo": "avg",
-    "Progress": 0.98
-  }
-]
-
-const columns: Col[] = [{
-  "field": "Project Name",
-  "type": "string",
-  "mergeCell": true,
-}, {
-  "field": "Start Date",
-  "type": "datetime",
-  "mergeCell": true,
-}, {
-  "field": "Task Name",
-  "type": "string"
-}, {
-  "field": "Assigned To",
-  "type": "string",
-  "disabled": true
-}, {
-  "field": "Days Required",
-  "type": "int"
-}, {
-  "field": "End Date",
-  "type": "datetime"
-}, {
-  "field": "Progress",
-  "type": "float",
-  "checked": true,
-  "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
-}]
+import { StoreState } from "@/store";
 
 export default function VTable() {
 
-  const tableInstance = useRef(null);
+  // const tableRef = useRef(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
+  const records = useSelector((state: StoreState) => state.indicator.records);
+  const columns = useSelector((state: StoreState) => state.indicator.columns);
+  const dimention = useSelector((state: StoreState) => state.indicator.dimention);
+  const groupBy = useSelector((state: StoreState) => state.indicator.groupBy);
+  const func = useSelector((state: StoreState) => state.indicator.func);
+
+  let vtable: any
 
   const option = {
     autoFillWidth: true,
     autoWrapText: true,
-    rightFrozenColCount: 1,
-    groupBy: "Project Name",
+    // rightFrozenColCount: 1,
+    // groupBy: "机型",
     // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
-    defaultColWidth: 180,
+    defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
     theme: {
       // 冻结列效果
@@ -268,56 +68,59 @@ export default function VTable() {
         cellBorderLineWidth: 1,
       },
     },
-    records: data,
+    records: records,
     columns: getColumns(columns),
-    customMergeCell: (col: any, row: any, table: any) => {
-      // console.log('table: ', table)
-      if (col >= 0 && row == 6) {
-        return {
-          text: 'merge text',
-          range: {
-            start: {
-              col: 0,
-              row: 6
-            },
-            end: {
-              col: table.colCount - 1,
-              row: 6
-            }
-          },
-        };
-      }
-    },
-    groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
-      const { table, row, col, rect } = args;
-      const record = table.getCellOriginRecord(col, row);
-      const { height, width } = rect ?? table.getCellRect(col, row);
-      const container = new CustomLayout.Group({
-        height,
-        width,
-        display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'nowrap',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-      });
-      const count = record.children.map((item: { Progress: any }) => item.Progress).reduce((prev: any, curr: any) => prev + curr)
-      const info = new CustomLayout.Text({
-        text: `小计 | avgs: ${count}`,
-        fontSize: 14,
-        // fontWeight: 600,
-        textAlign: 'right',
-        marginRight: 16
-      });
-      container.add(info);
-      return {
-        rootContainer: container,
-        renderDefault: true
-      };
-    },
+    // customMergeCell: (col: any, row: any, table: any) => {
+    //   // console.log('table: ', table)
+    //   if (col >= 0 && row == 6) {
+    //     return {
+    //       text: 'merge text',
+    //       range: {
+    //         start: {
+    //           col: 0,
+    //           row: 6
+    //         },
+    //         end: {
+    //           col: table.colCount - 1,
+    //           row: 6
+    //         }
+    //       },
+    //     };
+    //   }
+    // },
+    // groupTitleCustomLayout: (args: TYPES.CustomRenderFunctionArg) => {
+    //   const { table, row, col, rect } = args;
+    //   const record = table.getCellOriginRecord(col, row);
+    //   const { height, width } = rect ?? table.getCellRect(col, row);
+    //   const container = new CustomLayout.Group({
+    //     height,
+    //     width,
+    //     display: 'flex',
+    //     flexDirection: 'row',
+    //     flexWrap: 'nowrap',
+    //     alignItems: 'center',
+    //     justifyContent: 'flex-end',
+    //   });
+    //   // const count = record.children.map((item: any) => item[dimention]).reduce((prev: any, curr: any) => prev + curr)
+    //   const info = new CustomLayout.Text({
+    //     text: `小计 | avgs`,
+    //     fontSize: 14,
+    //     // fontWeight: 600,
+    //     textAlign: 'right',
+    //     marginRight: 16
+    //   });
+    //   container.add(info);
+    //   return {
+    //     rootContainer: container,
+    //     renderDefault: true
+    //   };
+    // },
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
+    // console.log('table: ', tableInstance)
+    // console.log('tableRef: ', tableRef)
+    vtable = tableInstance
     const { rowCount, colCount } = tableInstance
     // console.log('has ready：', rowCount, colCount)
     // tableInstance.clearSelected();
@@ -363,11 +166,26 @@ export default function VTable() {
     }
   }, [])
 
+  useEffect(() => {
+    if (vtable) {
+      // vtable.updateColumns(getColumns(columns))
+      // vtable.setRecords(records)
+      console.log('groupBy: ', groupBy)
+      vtable.updateOption({
+        ...option,
+        columns: getColumns(columns),
+        records: records,
+        // groupBy: groupBy
+      })
+    }
+
+  }, [columns, dimention, groupBy, func])
+
   return (
     <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: 48 }}>
       <div ref={wrapRef} style={{ height: '100%' }}>
         <ListTable
-          ref={tableInstance}
+          // ref={tableRef}
           width={width}
           height={height}
           option={option}
