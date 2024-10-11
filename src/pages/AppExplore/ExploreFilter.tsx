@@ -20,6 +20,13 @@ export const operators: any = {
   "OR": "或"
 };
 
+const joinTypes: any = {
+  "all": "全联接",
+  "left": "左联接",
+  "right": "右联接",
+  "inner": "内联接"
+}
+
 const CheckboxGroup = Checkbox.Group;
 
 export default function ExploreFilter(props: ExploreFilterProps) {
@@ -31,8 +38,14 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     [checkedList, setCheckedList] = useState<string[]>([]),
     [indeterminate, setIndeterminate] = useState(false),
     [checkAll, setCheckAll] = useState(true),
-    [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]),
-    [groupMethod, setGroupMethod] = useState("inner");
+    [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]);
+    // [groupMethod, setGroupMethod] = useState("inner");
+
+  const [joinType, setJoinType] = useState("all"),
+    [leftSelected, setLeftSelected] = useState(true),
+    [rightSelected, setRightSelected] = useState(true),
+    [ovalSelected, setOvalSelected] = useState(true);
+
   useEffect(() => {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
@@ -175,6 +188,40 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     )
   }
 
+  const changeJoinType = function (_left: boolean, _right: boolean, _oval: boolean) {
+    let joinType = '';
+    if (_left && !_right) {
+      joinType = 'left';
+    } else if (!_left && _right) {
+      joinType = 'right';
+    } else if (_oval && !_left && !_right) {
+      joinType = 'inner';
+    } else if (_left && _right) {
+      joinType = 'all';
+    }
+    setJoinType(joinType);
+  }
+
+
+  const changeLeftSelect = function (event: any) {
+    setLeftSelected(!leftSelected);
+    setOvalSelected(false);
+    changeJoinType(!leftSelected, rightSelected, false);
+  }
+
+  const changeRightSelect = function (event: any) {
+    setRightSelected(!rightSelected);
+    setOvalSelected(false);
+    changeJoinType(leftSelected, !rightSelected, false);
+  }
+
+  const changeOvalSelect = function (event: any) {
+    setLeftSelected(false);
+    setRightSelected(false);
+    setOvalSelected(!ovalSelected);
+    changeJoinType(false, false, !ovalSelected);
+  }
+
   // 数据连接
   const renderGroupSetting = function () {
     if (isLastTag) {
@@ -187,15 +234,24 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         <div className="pdb-explore-group-item">
           <div className="pdb-explore-group-item-header">
             <span></span>
-            <span>计算方式</span>
+            <span>计算方式 - {joinType ? joinTypes[joinType] : "?"}</span>
+            <span>(请单击图形更改联接类型)</span>
           </div>
           <div className="pdb-explore-group-item-content">
-            <Radio.Group value={groupMethod} onChange={e => { setGroupMethod(e.target.value); }}>
+            {/* <Radio.Group value={groupMethod} onChange={e => { setGroupMethod(e.target.value); }}>
               <Radio.Button value="inner">内联接</Radio.Button>
               <Radio.Button value="left">左联接</Radio.Button>
               <Radio.Button value="right ">右联接</Radio.Button>
               <Radio.Button value="all">全联接</Radio.Button>
-            </Radio.Group>
+            </Radio.Group> */}
+            <div className="join-cirle">
+              <div className="join-cirle-left" onClick={changeLeftSelect} style={leftSelected ? { background: '#80808061' } : { background: 'none' }}>
+              </div>
+              <div className="join-cirle-right" onClick={changeRightSelect} style={rightSelected ? { background: '#80808061' } : { background: 'none' }}>
+              </div>
+              <div className="join-cirle-oval" onClick={changeOvalSelect} style={ovalSelected ? { background: '#80808061' } : { background: 'none' }}>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -224,7 +280,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       </div>
       <div className="pdb-explore-setting-footer">
         <Button onClick={() => close()}>取消</Button>
-        <Button type="primary" onClick={save}>确定</Button>
+        <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>
       </div>
     </div>
   )
