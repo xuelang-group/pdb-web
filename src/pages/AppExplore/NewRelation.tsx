@@ -1,8 +1,10 @@
 import { AttrConfig } from "@/reducers/type";
+import { StoreState } from "@/store";
 import { Button, Divider, Form, Input, Radio, Select } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { joinTypes } from "./ExploreFilter";
 
 interface ExploreFilterProps {
@@ -11,6 +13,7 @@ interface ExploreFilterProps {
   initialValue: any
   saveConfig: Function
   close: Function
+  tagsLen: number
 }
 
 export const operators: any = {
@@ -19,14 +22,21 @@ export const operators: any = {
 };
 
 export default function NewRelation(props: ExploreFilterProps) {
-  const { close, sourceTag, targetTag, saveConfig, initialValue } = props;
+  const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen } = props;
   const [form] = Form.useForm();
+
+  const types = useSelector((state: StoreState) => state.type.data);
+
   const [joinType, setJoinType] = useState("all"),
     [leftSelected, setLeftSelected] = useState(true),
     [rightSelected, setRightSelected] = useState(true),
-    [ovalSelected, setOvalSelected] = useState(true);
+    [ovalSelected, setOvalSelected] = useState(true),
+    [currTargetTag, setCurrTargetTag] = useState(targetTag);
+
   useEffect(() => {
-    form && form.setFieldsValue(initialValue.data);
+    if (form && !_.isEqual(form.getFieldsValue(), initialValue.data)) {
+      form.setFieldsValue({ ...initialValue.data });
+    }
   }, [initialValue]);
 
   const save = function () {
@@ -35,7 +45,7 @@ export default function NewRelation(props: ExploreFilterProps) {
         ...initialValue,
         label: values['r.type.label'],
         data: values
-      });
+      }, currTargetTag);
       close();
     }).catch(err => { });
   }
@@ -53,7 +63,6 @@ export default function NewRelation(props: ExploreFilterProps) {
     }
     setJoinType(joinType);
   }
-
 
   const changeLeftSelect = function (event: any) {
     setLeftSelected(!leftSelected);
@@ -118,30 +127,52 @@ export default function NewRelation(props: ExploreFilterProps) {
                 rules={[{ required: true, message: "目标对象不能为空" }]}
               >
                 <Select
-                  options={[{
-                    label: targetTag.label,
-                    value: targetTag.key
-                  }]}
-                  disabled
+                  options={types}
+                  fieldNames={{
+                    label: "x.type.label",
+                    value: "x.type.name"
+                  }}
+                  disabled={!_.isEmpty(targetTag)}
+                  onChange={(value, option: any) => {
+                    setCurrTargetTag({
+                      label: option['x.type.label'],
+                      value: option['x.type.name'] + `-${tagsLen}`,
+                      key: option['x.type.name'],
+                      type: 'type',
+                      data: option,
+                      prevSearchTagType: "relation"
+                    });
+                    // form.setFieldValue(["r.type.constraints", "r.binds", "target.attr"], "");
+                  }}
                 />
               </Form.Item>
             </div>
             <div className="pdb-explore-group-item-select">
               <Form.Item
-                name={["r.type.constraints", "r.binds", "target.attr"]}
-                label="目标对象-关联字段"
-                rules={[{ required: true, message: "目标对象属性不能为空" }]}
+                noStyle
+                shouldUpdate={(prevValues, curValues) => _.get(_.get(prevValues, "r.type.constraints"), "r.binds", {})["target"] !== _.get(_.get(curValues, "r.type.constraints"), "r.binds", {})}
               >
-                <Select
-                  options={(_.get(targetTag, 'data', {})['x.type.attrs'] || []).map(
-                    ({ display, name }: AttrConfig) => ({ label: display, value: name })
-                  )}
-                />
+                {({ getFieldValue, setFieldValue }) => {
+                  return (
+                    <Form.Item
+                      name={["r.type.constraints", "r.binds", "target.attr"]}
+                      label="目标对象-关联字段"
+                      rules={[{ required: true, message: "目标对象属性不能为空" }]}
+                    >
+                      <Select
+                        options={(_.get(currTargetTag, 'data', {})['x.type.attrs'] || []).map(
+                          ({ display, name }: AttrConfig) => ({ label: display, value: name })
+                        )}
+                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"])}
+                      />
+                    </Form.Item>
+                  )
+                }}
               </Form.Item>
             </div>
             <div className="pdb-explore-group-item-input">
               <Form.Item name="r.type.label" label="关系名称：" rules={[{ required: true, message: "关系名称不能为空" }]}>
-                <Input />
+                <Input autoComplete="off"  />
               </Form.Item>
             </div>
           </div>
