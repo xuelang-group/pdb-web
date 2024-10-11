@@ -114,11 +114,14 @@ export default function Left() {
   }
 
   return (
-    <PdbPanel
-      className='pdb-type-left'
-      direction="left"
-      canCollapsed={true}
-      customRender={renderPanelContent()}
-    />
+    // <PdbPanel
+    //   className='pdb-type-left'
+    //   direction="left"
+    //   canCollapsed={true}
+    //   customRender={renderPanelContent()}
+    // />
+    <PdbPanel className='pdb-type-left' title='类型列表' direction="left" canCollapsed={true}>
+      <TypeList />
+    </PdbPanel>
   );
 }

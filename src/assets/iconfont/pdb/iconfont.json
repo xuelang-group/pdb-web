@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "42071466",
+      "name": "正向关系",
+      "font_class": "zhengxiangguanxi",
+      "unicode": "e821",
+      "unicode_decimal": 59425
+    },
+    {
+      "icon_id": "42071465",
+      "name": "反向关系",
+      "font_class": "fanxiangguanxi",
+      "unicode": "e822",
+      "unicode_decimal": 59426
+    },
+    {
       "icon_id": "42011123",
       "name": "数据类型-字符串",
       "font_class": "shujuleixing-zifuchuan",
