@@ -14,6 +14,7 @@ import { api, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
+import NewRelation from "./NewRelation";
 
 import './index.less';
 import ExportApi from "@/components/ExportApi";
@@ -86,10 +87,30 @@ export default function AppExplore() {
       message.warning("正在搜索");
       return;
     }
-    if (newValue.length > 0 && (
-      newValue[newValue.length - 1] === "__ENTER__" ||
-      newValue[newValue.length - 1] === "__NEW_RELATION__"
-    )) return;
+    if (newValue.length > 0) {
+      if (
+        newValue[newValue.length - 1] === "__ENTER__" ||
+        newValue[newValue.length - 1] === "__NEW_RELATION__"
+      ) return;
+
+      if (newValue[newValue.length - 1].startsWith("__NEW_RELATION__")) {
+        let removeTag = "";
+        setSearchTags((prevTags: any) => {
+          const newTags = JSON.parse(JSON.stringify(prevTags));
+          const newVal = JSON.parse(JSON.stringify(newValue));
+          removeTag = newVal.pop();
+          newTags[index] = newVal;
+          return newTags;
+        });
+        setSearchTagMap((prevMap: any) => {
+          const newMap = JSON.parse(JSON.stringify(prevMap));
+          if (removeTag) delete newMap[index][removeTag];
+          return newMap;
+        });
+        return;
+      }
+    }
+
     let _tags: string[] = [];
     // for (let i = 0; i < newValue.length; i++) {
     //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
@@ -102,16 +123,29 @@ export default function AppExplore() {
     //   }
     // }
 
+    for (let i = 0; i < newValue.length; i++) {
+      // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
+      // 当前两个tag都不为对象类型，满足当前条件
+      if (i < newValue.length - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
+        newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type" && !(
+          i === newValue.length - 2 || i === newValue.length - 3 && newValue[newValue.length - 1].split(".")[0] !== "Type"
+        )))) {
+        return;
+      }
+    }
+
     // 首个tag必须为对象类型
     const newValLen = newValue.length;
     if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
       _tags = JSON.parse(JSON.stringify(newValue));
+    } else {
+      return;
     }
 
     if (newValLen > 1 && _tags[newValLen - 1].split(".")[0] === "Type" && _tags[newValLen - 2].split(".")[0] === "Type") {
       // 判断最后两个类型是否为对象类型，如果是，则更新最后一个类型的prevSearchTagType
       setSearchTagMap((prevMap: any) => {
-        const newMap = { ...prevMap };
+        const newMap = JSON.parse(JSON.stringify(prevMap));
         const lastTag = _tags[newValLen - 1];
         if (newMap[index] && newMap[index][lastTag]) {
           newMap[index][lastTag] = {
@@ -121,6 +155,7 @@ export default function AppExplore() {
         }
         return newMap;
       });
+      setDropdownOpen(true);
     } else if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" &&
       _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type"
     ) {
@@ -128,7 +163,7 @@ export default function AppExplore() {
       const lastRelation = _tags.pop();
       lastRelation && _tags.splice(newValLen - 2, 0, lastRelation);
       setSearchTagMap((prevMap: any) => {
-        const newMap = { ...prevMap };
+        const newMap = JSON.parse(JSON.stringify(prevMap));
         const lastTag = _tags[newValLen - 1];
         if (newMap[index] && newMap[index][lastTag]) {
           newMap[index][lastTag] = {
@@ -185,7 +220,7 @@ export default function AppExplore() {
             sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
             targetTypeMap: any = {};
 
-          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent") {
+          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent" && !relationName.startsWith("__NEW_RELATION__")) {
             relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
               if (!relationsIsReverse && bind.source === sourceType) {
                 Object.assign(targetTypeMap, { [bind.target]: bind.target });
@@ -218,26 +253,6 @@ export default function AppExplore() {
           data: val,
           prevSearchTagType
         }));
-
-        if (currentTags.length === 0) {
-          setSearchTabs('type');
-          setSelectDropdownTab('type');
-        } else if (currentTags.length > 1) {
-          // 前一个的前一个tag的类型
-          const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
-            priorSearchTagType = _.get(priorSearchTag, 'type', "");
-          //如果都为对象类型，下拉框选择只显示关系类型列表
-          if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
-            setSearchTabs('relation');
-            setSelectDropdownTab('relation');
-          } else {
-            setSearchTabs('all');
-            setSelectDropdownTab('relation');
-          }
-        } else {
-          setSearchTabs('all');
-          setSelectDropdownTab('relation');
-        }
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
@@ -304,16 +319,33 @@ export default function AppExplore() {
             })));
           }
         }
-      }
-    }
 
-    if (relationOptions.length > 0) {
-      relationOptions = relationOptions.concat([{
-        type: "divider",
-        disabled: true
-      }, {
-        value: "__NEW_RELATION__"
-      }]);
+        if (currentTags.length === 0) {
+          setSearchTabs('type');
+          setSelectDropdownTab('type');
+        } else if (currentTags.length > 1) {
+          // 前一个的前一个tag的类型
+          const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
+            priorSearchTagType = _.get(priorSearchTag, 'type', "");
+          //如果都为对象类型，下拉框选择只显示关系类型列表
+          if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
+            setSearchTabs('relation');
+            setSelectDropdownTab('relation');
+            relationOptions = relationOptions.concat([{
+              type: "divider",
+              disabled: true
+            }, {
+              value: "__NEW_RELATION__"
+            }]);
+          } else {
+            setSearchTabs('all');
+            setSelectDropdownTab('relation');
+          }
+        } else {
+          setSearchTabs('all');
+          setSelectDropdownTab('relation');
+        }
+      }
     }
 
     Object.assign(optionMap, {
@@ -337,10 +369,11 @@ export default function AppExplore() {
     // }
     if (value === "__NEW_RELATION__") {
       setDropdownOpen(false);
+      setFilterPanelOpenKey("__NEW_RELATION__");
       return;
     }
     setSearchTagMap((prevMap: any) => {
-      const newMap = { ...prevMap };
+      const newMap = JSON.parse(JSON.stringify(prevMap));
       newMap[index] = { ...newMap[index], [value]: option };
 
       const { type, data } = option;
@@ -366,8 +399,21 @@ export default function AppExplore() {
   // 取消选中时调用
   const handleDeselect = function (value: string, index: number) {
     if (searchLoading) return;
+
+    setSearchTags((prevTags: any) => {
+      const newTags = JSON.parse(JSON.stringify(prevTags));
+      const tags = [];
+      for (let i = 0; i < prevTags[index].length; i++) {
+        if (prevTags[index][i] === value) break;
+        tags.push(prevTags[index][i]);
+      }
+      if (tags[tags.length - 1].startsWith("__NEW_RELATION__")) tags.pop();
+      newTags[index] = tags;
+      return newTags;
+    });
+
     setSearchTagMap((prevMap: any) => {
-      const newMap = { ...prevMap };
+      const newMap = JSON.parse(JSON.stringify(prevMap));
       delete newMap[index][value];
       return newMap;
     });
@@ -514,6 +560,21 @@ export default function AppExplore() {
     });
   }
 
+  const removeLastTypeTag = function (index: number) {
+    // 判断当前搜索tags最后两项类型是否都是对象类型/关系类型，如果是的话，删除最后一项tag。
+    setSearchTags((prevTags: any) => {
+      const currentSearchTags = JSON.parse(JSON.stringify(prevTags[index])),
+        currentSearchTagLen = currentSearchTags.length;
+      const newSearchTags = JSON.parse(JSON.stringify(prevTags));
+      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].split(".")[0] === "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] === "Type"
+        || currentSearchTags[currentSearchTagLen - 2].split(".")[0] !== "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] !== "Type")) {
+        currentSearchTags.pop();
+        newSearchTags[index] = currentSearchTags;
+      }
+      return newSearchTags
+    });
+  }
+
   const handleDropdownVisibleChange = function (visible: boolean, index: number) {
     if (visible) {
       filterPanelOpenKey !== null && setFilterPanelOpenKey(null);
@@ -522,16 +583,7 @@ export default function AppExplore() {
 
     if (visible === false) {
       // 关系下拉框弹窗时，判断当前搜索tags最后两项类型是否都是对象类型/关系类型，如果是的话，删除最后一项tag。
-      const currentSearchTags = JSON.parse(JSON.stringify(searchTags[index])),
-        currentSearchTagLen = currentSearchTags.length;
-      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].split(".")[0] === "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] === "Type"
-        || currentSearchTags[currentSearchTagLen - 2].split(".")[0] !== "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] !== "Type")) {
-        currentSearchTags.pop();
-        const newSearchTags = JSON.parse(JSON.stringify(searchTags));
-        newSearchTags[index] = currentSearchTags;
-        setSearchTags(newSearchTags);
-        return;
-      }
+      removeLastTypeTag(index);
     }
 
     setDropdownOpen(visible);
@@ -549,7 +601,7 @@ export default function AppExplore() {
     const _searchTags = searchTags[index];
     if (!_searchTags) return (<></>);
     if (_searchTags.length === 5) {
-      tooltip = "对象类型最多与2个对象类型关联。若想继续搜索对象类型，请回车换行。";
+      tooltip = "对象类型最多与2个对象类型关联。";
     } else if (searchTabs === 'relation') {
       tooltip = "两个对象类型之间必须以关系类型连接，请选择关系类型。"
     }
@@ -634,6 +686,7 @@ export default function AppExplore() {
     const currentSearchTag = searchTagMap[index][value],
       tagType = _.get(currentSearchTag, 'type'),
       label = _.get(currentSearchTag, 'label'),
+      key = _.get(currentSearchTag, 'key'),
       filterLabel = _.get(currentSearchTag, 'config.label'),
       prevTagType = _.get(currentSearchTag, 'prevSearchTagType');
 
@@ -650,7 +703,7 @@ export default function AppExplore() {
     };
     const tagItem = (
       <Tag
-        className={"pdb-explore-tag" + (prevTagType === tagType ? ' pdb-explore-tag-dashed' : '')}
+        className={"pdb-explore-tag" + ((prevTagType === tagType || key.startsWith("__NEW_RELATION__")) ? ' pdb-explore-tag-dashed' : '')}
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
@@ -690,25 +743,93 @@ export default function AppExplore() {
         <div className="pdb-explore-search-group">
           {searchTags.map((item, index) => (
             <Popover
-              open={currentFocusIndex === index && filterPanelOpenKey !== null && !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey))
-                && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
+              open={currentFocusIndex === index && filterPanelOpenKey !== null && (
+                !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey)) ||
+                (searchTags[index] && searchTags[index].length > 1 && filterPanelOpenKey.startsWith("__NEW_RELATION__"))
+              ) && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
               }
-              rootClassName="pdb-explore-filter-popover"
+              rootClassName="pdb-explore-setting-popover"
               placement="bottomLeft"
-              content={
-                <ExploreFilter
-                  originType={_.get(searchTagMap[index], filterPanelOpenKey)}
-                  close={() => {
-                    setFilterPanelOpenKey(null);
-                  }}
-                  saveConfig={(config: any, csv: any) => {
-                    const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                    Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
-                    setSearchTagMap(newSearchTagsMap);
-                    setFilterPanelOpenKey(null);
-                  }}
-                />
-              }
+              content={() => {
+                if (filterPanelOpenKey.startsWith("__NEW_RELATION__")) {
+                  let sourceTag = {}, targetTag = {};
+                  const initialValue = _.get(searchTagMap[index], filterPanelOpenKey, {});
+                  if (!_.isEmpty(initialValue)) {
+                    const tagIndex = searchTags[index].findIndex(val => val === filterPanelOpenKey);
+                    sourceTag = _.get(searchTagMap[index], searchTags[index][tagIndex - 1], {});
+                    targetTag = _.get(searchTagMap[index], searchTags[index][tagIndex + 1], {});
+                  } else {
+                    const tags = searchTags[index], tagsLen = tags.length;
+                    sourceTag = searchTagMap[index][tags[tagsLen - 2]] || {};
+                    targetTag = searchTagMap[index][tags[tagsLen - 1]] || {};
+                    Object.assign(initialValue, {
+                      "data": {
+                        "r.type.constraints": {
+                          "r.binds": {
+                            "source": _.get(sourceTag, "key", ""),
+                            "target": _.get(targetTag, "key", "")
+                          }
+                        },
+                        "group": "inner"
+                      }
+                    });
+                  }
+                  return (
+                    <NewRelation
+                      sourceTag={sourceTag}
+                      targetTag={targetTag}
+                      initialValue={initialValue}
+                      close={() => {
+                        setFilterPanelOpenKey(null);
+                        removeLastTypeTag(index);
+                      }}
+                      saveConfig={(values: any) => {
+                        const newRelationId = values.key || "__NEW_RELATION__" + (searchTags[index].length - 1);
+                        setSearchTagMap((prevMap: any) => {
+                          const newTagMap = JSON.parse(JSON.stringify(prevMap));
+                          const value = {
+                            ...values,
+                            value: newRelationId,
+                            key: newRelationId,
+                            type: 'relation',
+                            isReverse: false
+                          };
+                          Object.assign(newTagMap[index], { [newRelationId]: value });
+
+                          if (filterPanelOpenKey === "__NEW_RELATION__") {
+                            const lastTagId = searchTags[index][searchTags[index].length - 1];
+                            Object.assign(newTagMap[index][lastTagId], { prevSearchTagType: 'relation' });
+                          }
+                          return newTagMap;
+                        });
+                        if (filterPanelOpenKey === "__NEW_RELATION__") {
+                          setSearchTags((prevTags: any) => {
+                            const newTags = JSON.parse(JSON.stringify(prevTags));
+                            newTags[index].splice(newTags[index].length - 1, 0, newRelationId);
+                            console.log(newTags)
+                            return newTags;
+                          });
+                        }
+                      }}
+                    />
+                  );
+                }
+                return (
+                  <ExploreFilter
+                    isLastTag={searchTags[index] && searchTags[index].length > 0 ? searchTags[index][searchTags[index].length - 1] === filterPanelOpenKey : false}
+                    originType={_.get(searchTagMap[index], filterPanelOpenKey)}
+                    close={() => {
+                      setFilterPanelOpenKey(null);
+                    }}
+                    saveConfig={(config: any, csv: any) => {
+                      const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
+                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
+                      setSearchTagMap(newSearchTagsMap);
+                      setFilterPanelOpenKey(null);
+                    }}
+                  />
+                );
+              }}
               arrow={false}
               destroyTooltipOnHide
             >
