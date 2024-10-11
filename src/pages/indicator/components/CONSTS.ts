@@ -150,6 +150,13 @@ export function getColumns(cols: Col[]) {
       const rowHeight = height / 2;
       const elements: TYPES.ICustomRenderElements = [
         {
+          type: 'rect',
+          x: 1,
+          y: 1,
+          width: width - 2,
+          height: rowHeight - 2,
+          fill: disabled ? '#F4F6F9' : '#FFF',
+        }, {
           type: 'icon',
           x: padding[1],
           y: (rowHeight - iconSize) / 2,
@@ -171,13 +178,6 @@ export function getColumns(cols: Col[]) {
           points: [{ x: 1, y: rowHeight + 0.5 }, { x: width, y: rowHeight + 0.5 }],
           lineWidth: 1,
           stroke: '#DCDEE1'
-        }, {
-          type: 'rect',
-          x: 1,
-          y: rowHeight + 1,
-          width: width - 2,
-          height: rowHeight - 2,
-          fill: disabled ? '#F4F6F9' : '#F9FBFC',
         }, {
           type: 'text',
           fill: disabled ? '#C2C7CC' : '#1C2126',
