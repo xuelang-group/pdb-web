@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { findIndex, isEmpty, orderBy, remove, findLastIndex } from 'lodash';
+import { findIndex, isEmpty, orderBy, remove, findLastIndex, set } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 
 // demo 数据
@@ -226,7 +226,7 @@ const initialState: IndicatorState = {
   dimention: 'Progress',
   func: '',
   funcResults: [{"Project Name": "Customer Svc", "Progress": 1}, {"Project Name": "Development", "Progress": 2}],
-  groupBy: ['Project Name', 'Start Date'],
+  groupBy: [],
   list: [],
 }
 
@@ -308,9 +308,18 @@ export const indicatorSlice = createSlice({
     },
     setMetrics: (state, action: PayloadAction<any>) => {
       state.list = action.payload;
-    }
+    },
+    setGroupBy: (state, action: PayloadAction<any>) => {
+      state.groupBy = action.payload;
+    },
+    setDimention: (state, action: PayloadAction<any>) => {
+      state.dimention = action.payload;
+    },
+    setFunc: (state, action: PayloadAction<any>) => {
+      state.func = action.payload;
+    },
   }
 })
 
-export const { setTableData, setMetrics } = indicatorSlice.actions
+export const { setTableData, setMetrics, setGroupBy, setDimention, setFunc } = indicatorSlice.actions
 export default indicatorSlice.reducer
