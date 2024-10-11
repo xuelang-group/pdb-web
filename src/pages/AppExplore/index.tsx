@@ -218,7 +218,7 @@ export default function AppExplore() {
         if (prevSearchTagType === 'relation') {
           // typeOptions.push(enterOption);
           const relationName = prevSearchTag['key'],
-            relationsIsReverse = prevSearchTag['isReverse'],
+            relationsIsReverse = prevSearchTag['isReverse'], // isReverse: false，正向关系；true，反向关系。
             sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
             targetTypeMap: any = {};
 
@@ -294,14 +294,17 @@ export default function AppExplore() {
                 disabled: true
               });
             }
-            relationOptions = relationOptions.concat(positiveSearchRelations.map((val: RelationConfig, index: number) => ({
-              label: val['r.type.label'],
-              value: val['r.type.name'] + `-${currentTagLen}`,
-              key: val['r.type.name'],
-              type: 'relation',
-              isReverse: false,
-              data: val
-            })));
+            relationOptions.push({
+              label: "正向关系",
+              options: positiveSearchRelations.map((val: RelationConfig, index: number) => ({
+                label: val['r.type.label'],
+                value: val['r.type.name'] + `-${currentTagLen}`,
+                key: val['r.type.name'],
+                type: 'relation',
+                isReverse: false,
+                data: val
+              }))
+            });
           }
 
           if (reverseSearchRelations.length > 0) {
@@ -311,14 +314,17 @@ export default function AppExplore() {
                 disabled: true
               });
             }
-            relationOptions = relationOptions.concat(reverseSearchRelations.map((val: RelationConfig, index: number) => ({
-              label: "~" + val['r.type.label'],
-              value: val['r.type.name'] + `-${currentTagLen}`,
-              key: val['r.type.name'],
-              type: 'relation',
-              isReverse: true,
-              data: val
-            })));
+            relationOptions.push({
+              label: "反向关系",
+              options: reverseSearchRelations.map((val: RelationConfig, index: number) => ({
+                label: "~" + val['r.type.label'],
+                value: val['r.type.name'] + `-${currentTagLen}`,
+                key: val['r.type.name'],
+                type: 'relation',
+                isReverse: true,
+                data: val
+              }))
+            });
           }
         }
 
@@ -402,7 +408,7 @@ export default function AppExplore() {
   // 取消选中时调用
   const handleDeselect = function (value: string, index: number) {
     if (searchLoading) return;
-
+    setFilterPanelOpenKey(null);
     setSearchTags((prevTags: any) => {
       const newTags = JSON.parse(JSON.stringify(prevTags));
       const tags = [];
@@ -666,6 +672,7 @@ export default function AppExplore() {
       lastLabel = _label.slice(findIndex + currentSearchValue.length);
     return (
       <>
+        {key.startsWith("Relation") && <i className={`iconfont icon-${data.isReverse ? "fanxiangguanxi" : "zhengxiangguanxi"}`}></i>}
         <span className="pdb-explore-dropdown-label">
           <span>{prevLabel}</span>
           <span style={{ color: 'red' }}>{centerLabel}</span>
@@ -738,7 +745,7 @@ export default function AppExplore() {
       icon = "iconfont icon-duixiangleixing";
     } else if (tagType === 'relation') {
       color = "gold";
-      icon = "iconfont icon-guanxileixing";
+      icon = `iconfont icon-${currentSearchTag.isReverse ? "fanxiangguanxi" : "zhengxiangguanxi"}`;
     }
     const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
       event.preventDefault();
@@ -748,7 +755,7 @@ export default function AppExplore() {
     if (value === "__TEMPORARY_RELATION__") {
       label = "临时关系";
       color = "gold";
-      icon = "iconfont icon-guanxileixing";
+      icon = "iconfont icon-zhengxiangguanxi";
       closable = false;
     }
 
@@ -767,7 +774,7 @@ export default function AppExplore() {
         style={{ marginRight: 3 }}
       >
         <span style={{ display: "inline-flex" }}>
-          <span>{label}</span>
+          <span style={{ textOverflow: "ellipsis", maxWidth: 120, overflow: "hidden" }}>{label}</span>
           {!_.isEmpty(filterLabel) && <span> (</span>}
           {!_.isEmpty(filterLabel) && <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 120 }}>{filterLabel}</span>}
           {!_.isEmpty(filterLabel) && <span>)</span>}
