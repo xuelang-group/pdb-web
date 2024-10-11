@@ -152,10 +152,17 @@
 
     .pdb-ant-select-item-option-content {
       display: flex;
-      justify-content: space-between;
+      align-items: center;
       flex-wrap: nowrap;
       align-items: center;
 
+      .iconfont {
+        margin-right: 4px;
+        color: #FAAD14;
+      }
+      .pdb-explore-dropdown-label {
+        flex: 1;
+      }
       .spicon {
         font-size: 1.2rem;
         color: var(--text-color3);
@@ -200,6 +207,15 @@
 
         .spicon {
           color: #8BD3FF !important;
+        }
+      }
+
+      &.pdb-ant-tag-gold {
+        border-color: #FFC53D !important;
+        color: #FFC53D !important;
+
+        .spicon {
+          color: #FFC53D !important;
         }
       }
     }
@@ -430,6 +446,13 @@
           font-weight: 600;
           color: var(--text-color1);
         }
+
+        span:nth-child(3) {
+          color: var(--text-color3);
+          font-weight: normal;
+          font-size: 1.2rem;
+          margin-left: .8rem;
+        }
       }
 
       &-content {
@@ -469,7 +492,12 @@
         .pdb-ant-form-item-label>label {
           display: block;
           color: var(--text-color3);
+
+          &.pdb-ant-form-item-required::before {
+            display: none !important;
+          }
         }
+
       }
     }
   }
@@ -489,5 +517,64 @@
 
   .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
     background-color: #fff !important;
+  }
+}
+
+
+.join-cirle {
+  padding: 20px 0 20px 40px;
+  text-align: center;
+
+  &-left {
+    position: relative;
+    display: inline-block;
+    left: 0;
+    width: 80px;
+    height: 80px;
+    border: 2px solid #40a9ff;
+    border-radius: 80px;
+    opacity: 0.8;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &-right {
+    display: inline-block;
+    left: -30px;
+    width: 80px;
+    height: 80px;
+    border: 2px solid #ff4a4a;
+    border-radius: 80px;
+    position: relative;
+    opacity: 0.8;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &-oval {
+    display: inline-block;
+    position: relative;
+    top: -21px;
+    left: -120px;
+    width: 42px;
+    height: 42px;
+    border-radius: 40px 0px;
+    transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  .select {
+    opacity: 1;
   }
 }
