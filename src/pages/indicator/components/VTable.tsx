@@ -2,12 +2,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { ListTable } from '@visactor/react-vtable'
 import { TYPES, CustomLayout } from '@visactor/vtable'
 import { useEffect, useRef, useState } from 'react'
-import { Col, getColumns } from './CONSTS'
+import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
+import { findLastIndex, isEmpty, lastIndexOf } from "lodash";
 
 export default function VTable() {
 
-  // const tableRef = useRef(null);
+  const vtable = useRef<any>(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
@@ -16,15 +17,12 @@ export default function VTable() {
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
   const groupBy = useSelector((state: StoreState) => state.indicator.groupBy);
   const func = useSelector((state: StoreState) => state.indicator.func);
-
-  let vtable: any
+  const funcResults = useSelector((state: StoreState) => state.indicator.funcResults);
 
   const option = {
     autoFillWidth: true,
     autoWrapText: true,
     // rightFrozenColCount: 1,
-    // groupBy: "机型",
-    // groupBy: ["Project Name", "Start Date"],
     defaultRowHeight: 46,
     defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
@@ -118,36 +116,57 @@ export default function VTable() {
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
-    // console.log('table: ', tableInstance)
-    // console.log('tableRef: ', tableRef)
-    vtable = tableInstance
-    const { rowCount, colCount } = tableInstance
+    if (isFirst) {
+      vtable.current = tableInstance
+    }
+    // const { rowCount, colCount } = tableInstance
     // console.log('has ready：', rowCount, colCount)
     // tableInstance.clearSelected();
     // 默认选中最后一列
-    tableInstance.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+    // tableInstance.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     // 点击禁用
-    tableInstance.on('dropdown_menu_click', (args: any) => {
-      if (args.menuKey === 'disabled') {
-        // tableInstance.setDropDownMenuHighlight([args]);
-        const { col } = args;
-        columns[col].disabled = !columns[col].disabled;
-        tableInstance.updateColumns(getColumns(columns))
-      }
-    });
-    // 表头右键菜单
-    tableInstance.on('contextmenu_cell', (args: any) => {
-      const { col, row } = args;
-      // if(row == 0 && !columns[col].disabled) {
-      if(row == 0) {
-        tableInstance.showDropDownMenu(col, row, {
-          content: [{
-            text: columns[col].disabled ? '启用' : '禁用',
-            menuKey: 'disabled',
-          }],
-        })
-      }
-    })
+    // tableInstance.on('dropdown_menu_click', (args: any) => {
+    //   if (args.menuKey === 'disabled') {
+    //     // tableInstance.setDropDownMenuHighlight([args]);
+    //     const { col } = args;
+    //     columns[col].disabled = !columns[col].disabled;
+    //     tableInstance.updateColumns(getColumns(columns))
+    //   }
+    // });
+    // // 表头右键菜单
+    // tableInstance.on('contextmenu_cell', (args: any) => {
+    //   const { col, row } = args;
+    //   // if(row == 0 && !columns[col].disabled) {
+    //   if(row == 0) {
+    //     tableInstance.showDropDownMenu(col, row, {
+    //       content: [{
+    //         text: columns[col].disabled ? '启用' : '禁用',
+    //         menuKey: 'disabled',
+    //       }],
+    //     })
+    //   }
+    // })
+  }
+
+  const onDropdownMenuClick = (args: any) => {
+    if (args.menuKey === 'disabled') {
+      // tableInstance.setDropDownMenuHighlight([args]);
+      const { col } = args;
+      columns[col].disabled = !columns[col].disabled;
+      vtable.current?.updateColumns(getColumns(columns))
+    }
+  }
+
+  const onContextMenuCell = (args: any) => {
+    const { col, row } = args;
+    if(row == 0) {
+      vtable.current?.showDropDownMenu(col, row, {
+        content: [{
+          text: columns[col].disabled ? '启用' : '禁用',
+          menuKey: 'disabled',
+        }],
+      })
+    }
   }
 
   const updateSize = () => {
@@ -167,29 +186,39 @@ export default function VTable() {
   }, [])
 
   useEffect(() => {
-    if (vtable) {
+    if (vtable.current) {
       // vtable.updateColumns(getColumns(columns))
       // vtable.setRecords(records)
-      console.log('groupBy: ', groupBy)
-      vtable.updateOption({
+      // vtable.rightFrozenColCount = dimention ? 1 : 0
+      vtable.current.updateOption({
         ...option,
         columns: getColumns(columns),
         records: records,
-        // groupBy: groupBy
-      })
+        rightFrozenColCount: dimention ? 1 : 0,
+      });
+      const colCount = columns.length - 1;
+      const rowCount = records.length;
+      vtable.current.clearSelected();
+      vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     }
 
-  }, [columns, dimention, groupBy, func])
+  }, [columns, dimention, func])
+
+  // useEffect(() => {
+  //   if (vtable.current && !isEmpty(funcResults)) {
+  //   }
+  // }, [funcResults])
 
   return (
     <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: 48 }}>
       <div ref={wrapRef} style={{ height: '100%' }}>
         <ListTable
-          // ref={tableRef}
           width={width}
           height={height}
           option={option}
           onReady={onReady}
+          onDropdownMenuClick={onDropdownMenuClick}
+          onContextMenuCell={onContextMenuCell}
         />
       </div>
       <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
