@@ -87,13 +87,15 @@ export default function AppExplore() {
       message.warning("正在搜索");
       return;
     }
-    if (newValue.length > 0) {
+    const newValLen = newValue.length;
+
+    if (newValLen > 0) {
       if (
-        newValue[newValue.length - 1] === "__ENTER__" ||
-        newValue[newValue.length - 1] === "__NEW_RELATION__"
+        newValue[newValLen - 1] === "__ENTER__" ||
+        newValue[newValLen - 1] === "__NEW_RELATION__"
       ) return;
 
-      if (newValue[newValue.length - 1].startsWith("__NEW_RELATION__")) {
+      if (newValue[newValLen - 1].startsWith("__NEW_RELATION__")) {
         let removeTag = "";
         setSearchTags((prevTags: any) => {
           const newTags = JSON.parse(JSON.stringify(prevTags));
@@ -112,30 +114,30 @@ export default function AppExplore() {
     }
 
     let _tags: string[] = [];
-    // for (let i = 0; i < newValue.length; i++) {
+    // for (let i = 0; i < newValLen; i++) {
     //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
     //   _tags.push(newValue[i]);
     //   // “当前tag为对象类型且下一个tag也为对象类型，当前tag为关系类型且下一个tag也为关系类型”这两种情况数据不符合条件。
     //   //必须对象类型-关系类型或 关系类型-对象类型
-    //   if (i < newValue.length - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
+    //   if (i < newValLen - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
     //     || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
     //     break;
     //   }
     // }
 
-    for (let i = 0; i < newValue.length; i++) {
-      // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
-      // 当前两个tag都不为对象类型，满足当前条件
-      if (i < newValue.length - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
-        newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type" && !(
-          i === newValue.length - 2 || i === newValue.length - 3 && newValue[newValue.length - 1].split(".")[0] !== "Type"
-        )))) {
-        return;
+    // 删除操作
+    if (newValLen < searchTags[index].length) {
+      for (let i = 0; i < newValLen; i++) {
+        // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
+        // 当前两个tag都不为对象类型，满足当前条件
+        if (i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
+          newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) {
+          return;
+        }
       }
     }
 
     // 首个tag必须为对象类型
-    const newValLen = newValue.length;
     if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
       _tags = JSON.parse(JSON.stringify(newValue));
     } else {
@@ -407,7 +409,7 @@ export default function AppExplore() {
         if (prevTags[index][i] === value) break;
         tags.push(prevTags[index][i]);
       }
-      if (tags[tags.length - 1].startsWith("__NEW_RELATION__")) tags.pop();
+      if (tags.length > 0 && tags[tags.length - 1].startsWith("__NEW_RELATION__")) tags.pop();
       newTags[index] = tags;
       return newTags;
     });
