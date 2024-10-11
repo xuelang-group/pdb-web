@@ -116,20 +116,20 @@ function App(props: PdbConfig) {
             <Route path="/:id/template?" element={<ObjectLeft />} />
             {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
-            {/* 初级指标左侧类型列表 */}
+            {/* 指标设计左侧类型列表 */}
             <Route path="/:id/indicator" element={<IndicatorLeft />} />
           </Routes>
           <PdbContent>
-            {/*暂定：当顶部搜索框点击搜索后，才会出现初级指标的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
+            {/*暂定：当顶部搜索框点击搜索后，才会出现指标设计的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
             <Tabs
-              className={'pdb-graph-tab' + (currentGraphTab === "main" ? " pdb-graph-tab-header-hidden" : "")}
+              className="pdb-graph-tab"
               items={[{
                 key: "pdb",
                 label: "模型画布",
                 children: renderCenterContent()
               }, {
                 key: "indicator",
-                label: "初级指标",
+                label: "指标设计",
                 children: <div className='pdb-graph'></div>
               }]}
               onChange={(activeKey: string) => {
@@ -146,7 +146,7 @@ function App(props: PdbConfig) {
               <Route path="/:id/template?" element={<CommonRight route="object" />} />
               {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
-              {/* 初级指标右侧列表 */}
+              {/* 指标设计右侧列表 */}
               <Route path="/:id/indicator" element={<IndicatorRight />} />
             </Routes>
           </PdbContent>

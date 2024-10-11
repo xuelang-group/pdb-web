@@ -27,9 +27,9 @@ export default function NewRelation(props: ExploreFilterProps) {
 
   const types = useSelector((state: StoreState) => state.type.data);
 
-  const [joinType, setJoinType] = useState("all"),
-    [leftSelected, setLeftSelected] = useState(true),
-    [rightSelected, setRightSelected] = useState(true),
+  const [joinType, setJoinType] = useState("inner"),
+    [leftSelected, setLeftSelected] = useState(false),
+    [rightSelected, setRightSelected] = useState(false),
     [ovalSelected, setOvalSelected] = useState(true),
     [currTargetTag, setCurrTargetTag] = useState(targetTag);
 
@@ -172,7 +172,7 @@ export default function NewRelation(props: ExploreFilterProps) {
             </div>
             <div className="pdb-explore-group-item-input">
               <Form.Item name="r.type.label" label="关系名称：" rules={[{ required: true, message: "关系名称不能为空" }]}>
-                <Input autoComplete="off"  />
+                <Input />
               </Form.Item>
             </div>
           </div>

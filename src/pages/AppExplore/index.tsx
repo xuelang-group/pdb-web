@@ -880,6 +880,7 @@ export default function AppExplore() {
                 );
               }}
               arrow={false}
+              trigger="click"
               destroyTooltipOnHide
             >
               <Select
