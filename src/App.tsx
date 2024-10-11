@@ -1,5 +1,5 @@
 import { Layout, notification, Spin, Tabs } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
@@ -44,8 +44,10 @@ function App(props: PdbConfig) {
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
 
+  const [selectedTab, setSelectedTab] = useState("pdb");
   useEffect(() => {
     dispatch(setPageLoading(true));
+    setSelectedTab(location.pathname.endsWith("/indicator") ? "indicator" : "pdb");
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
@@ -111,7 +113,7 @@ function App(props: PdbConfig) {
           <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
           {/* 类型管理顶部导航栏 */}
           <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
-          <Route path="/:id/indicator" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth}  />} />
+          <Route path="/:id/indicator" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
@@ -125,6 +127,7 @@ function App(props: PdbConfig) {
             {/*暂定：当顶部搜索框点击搜索后，才会出现指标设计的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
             <Tabs
               className="pdb-graph-tab"
+              activeKey={selectedTab}
               items={[{
                 key: "pdb",
                 label: "模型画布",
@@ -141,6 +144,7 @@ function App(props: PdbConfig) {
                 } else {
                   navigate(`/${graphId}`);
                 }
+                setSelectedTab(activeKey);
               }}
               centered
             />
