@@ -22,10 +22,10 @@ export const operators: any = {
 };
 
 export const joinTypes: any = {
-  "all": "全联接",
-  "left": "左联接",
-  "right": "右联接",
-  "inner": "内联接"
+  "fulljoin": "全联接",
+  "leftjoin": "左联接",
+  "rightjoin": "右联接",
+  "innerjoin": "内联接"
 }
 
 const CheckboxGroup = Checkbox.Group;
@@ -40,9 +40,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     [indeterminate, setIndeterminate] = useState(false),
     [checkAll, setCheckAll] = useState(true),
     [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]);
-  // [groupMethod, setGroupMethod] = useState("inner");
 
-  const [joinType, setJoinType] = useState("all"),
+  const [joinType, setJoinType] = useState("innerjoin"),
     [leftSelected, setLeftSelected] = useState(true),
     [rightSelected, setRightSelected] = useState(true),
     [ovalSelected, setOvalSelected] = useState(true);
@@ -51,8 +50,35 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
       tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
-      tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : "",
+      tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : '',
       tagTypeCsv = _.get(originType, 'csv', []);
+
+    if (tagType === 'relation') {
+      const bindType = _.get(originType, 'bindType', 'innerjoin')
+      setJoinType(bindType);
+      switch (bindType) {
+        case 'innerjoin':
+          setLeftSelected(false);
+          setRightSelected(false);
+          setOvalSelected(true);
+          break;
+        case 'leftjoin':
+          setLeftSelected(true);
+          setRightSelected(false);
+          setOvalSelected(false);
+          break;
+        case 'rightjoin':
+          setLeftSelected(false);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+        default:
+          setLeftSelected(true);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+      }
+    }
 
     const _segmentedOpt = [];
     _segmentedOpt.push(tagType === 'type' ? {
@@ -201,13 +227,13 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const changeJoinType = function (_left: boolean, _right: boolean, _oval: boolean) {
     let joinType = '';
     if (_left && !_right) {
-      joinType = 'left';
+      joinType = 'leftjoin';
     } else if (!_left && _right) {
-      joinType = 'right';
+      joinType = 'rightjoin';
     } else if (_oval && !_left && !_right) {
-      joinType = 'inner';
+      joinType = 'innerjoin';
     } else if (_left && _right) {
-      joinType = 'all';
+      joinType = 'fulljoin';
     }
     setJoinType(joinType);
   }
@@ -249,10 +275,10 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           </div>
           <div className="pdb-explore-group-item-content">
             {/* <Radio.Group value={groupMethod} onChange={e => { setGroupMethod(e.target.value); }}>
-              <Radio.Button value="inner">内联接</Radio.Button>
-              <Radio.Button value="left">左联接</Radio.Button>
-              <Radio.Button value="right ">右联接</Radio.Button>
-              <Radio.Button value="all">全联接</Radio.Button>
+              <Radio.Button value="innerjoin">内联接</Radio.Button>
+              <Radio.Button value="leftjoin">左联接</Radio.Button>
+              <Radio.Button value="rightjoin">右联接</Radio.Button>
+              <Radio.Button value="fulljoin">全联接</Radio.Button>
             </Radio.Group> */}
             <div className="join-cirle">
               <div className="join-cirle-left" onClick={changeLeftSelect} style={leftSelected ? { background: '#80808061' } : { background: 'none' }}>

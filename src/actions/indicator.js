@@ -5,6 +5,7 @@ const api = {
   csv: apiPrefix + '/execute_pdb',  // 执行pdb查询获取原始数据表
   calc: apiPrefix + '/calc',        // 直接执行计算
   getMetrics: apiPrefix + '/metrics',        // 获取metrics列表
+  addMetric: apiPrefix + '/add_metric',        // 获取metrics列表
 };
 
 // 获取模板列表
@@ -44,6 +45,16 @@ export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
 // 获取metrics列表
 export const getMetrics = (callback) => {
   return axios.get(api['getMetrics']).then(({ data }) => {
+    callback && callback(data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+
+// 新增metric
+export const addMetric = (params, callback) => {
+  return axios.post(api['addMetric'], params).then(({ data }) => {
     callback && callback(data);
   }, (err) => {
     callback && callback(false, err);

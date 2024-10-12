@@ -50,6 +50,9 @@ export interface RelationMapConfig {
   [key: string]: RelationConfig
 }
 
+interface TypeMapConfig {
+  [key: string]: TypeConfig
+}
 interface FilterConfig {
   target: string
   typeName: string
@@ -68,7 +71,7 @@ interface ToolbarConfig {
 }
 
 // 画布当前状态
-type GraphTabKey = 
+type GraphTabKey =
   "main" | // 全量的数据画布
   "explore" | // 全局搜索后的数据画布
   "vertex" // 探索后的数据画布
@@ -79,6 +82,7 @@ interface EditorState {
   multiEditModel: Array<NodeItemData | EdgeItemData | TypeItemData> | null // 对象管理 - 多个选中编辑
   rootNode: ObjectConfig | null // 对象管理 - 根节点数据
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
+  typeMap: TypeMapConfig // 对象管理 - 对象类型Map，根据关系ID快速获取对象类型信息
   toolbarConfig: ToolbarConfig // 对象管理 - 工具栏,每个tab都有对应的工具栏
   currentEditModel: NodeItemData | EdgeItemData | TypeItemData | null // 所有 - 单个选中编辑
   isEditing: boolean
@@ -100,6 +104,7 @@ const initialState: EditorState = {
   multiEditModel: null,
   rootNode: null,
   relationMap: {},
+  typeMap: {},
   toolbarConfig: {
     'main': {
       relationLines: {},
@@ -146,7 +151,7 @@ export const editorSlice = createSlice({
     setRootNode: (state, action: PayloadAction<any>) => {
       state.rootNode = action.payload;
     },
-    setGraphDataMap:(state, action: PayloadAction<any>) => {
+    setGraphDataMap: (state, action: PayloadAction<any>) => {
       state.graphDataMap = JSON.parse(JSON.stringify(action.payload));
     },
     setTypeRelationMap: (state, action: PayloadAction<any>) => {
@@ -166,6 +171,9 @@ export const editorSlice = createSlice({
     },
     setRelationMap: (state, action: PayloadAction<RelationMapConfig>) => {
       state.relationMap = JSON.parse(JSON.stringify(action.payload));
+    },
+    setTypeMap: (state, action: PayloadAction<TypeMapConfig>) => {
+      state.typeMap = JSON.parse(JSON.stringify(action.payload));
     },
     setToolbarConfig: (state, action: PayloadAction<{ config: any, key: string }>) => {
       const { key, config } = action.payload;
@@ -230,8 +238,8 @@ export const editorSlice = createSlice({
   }
 });
 
-export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setMultiEditModel, setToolbarConfig, setSearchAround,
-  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading, setIndicatorLoading,
-  setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp, setIsEditing
+export const { setCurrentEditModel, reset, setRootNode, setRelationMap, setTypeMap, setMultiEditModel, setToolbarConfig, setSearchAround,
+  addToolbarConfig, deleteToolbarConfig, setCurrentGraphTab, setShowSearch, setTypeRelationMap, setGraphLoading,
+  setRelationLoading, setTypeLoading, setGraphDataMap, setScreenShootTimestamp, setTScreenShootTimestamp, setIsEditing, setIndicatorLoading
 } = editorSlice.actions
 export default editorSlice.reducer

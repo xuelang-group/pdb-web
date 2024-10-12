@@ -330,6 +330,19 @@ export const optionLabelMap: any = {
   'allofterms': '所有包含'
 };
 
+export const functionSymbolMap: any = {
+  '=': 'eq',
+  '<=': 'le',
+  '<': 'lt',
+  '>=': 'ge',
+  '>': 'gt',
+  'HAS': 'has',
+  '<>': 'not eq',
+  'ANYOFTERMS': 'anyofterms',
+  'ALLOFTERMS': 'allofterms',
+  'BETWEEN': 'between',
+};
+
 export const optionSymbolMap: any = {
   'eq': '=',
   'le': '<=',
