@@ -387,7 +387,7 @@ export default function AppExplore() {
 
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
-        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [],
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number}[] = [],
           typeId = data['x.type.name'],
           typeLabel = data['x.type.label'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
@@ -395,7 +395,8 @@ export default function AppExplore() {
             typeId: typeId,
             attrId: name,
             attrName: display + '_' + typeLabel,
-            attrType: type
+            attrType: type,
+            index: searchTags[index].length
           });
         });
         Object.assign(newMap[index][value], { csv });
@@ -873,6 +874,7 @@ export default function AppExplore() {
                 }
                 return (
                   <ExploreFilter
+                    tagIndex={tags.findIndex(val => val === filterPanelOpenKey)}
                     isLastTag={tags && tagsLen > 0 ? tags[tagsLen - 1] === filterPanelOpenKey : false}
                     originType={_.get(searchTagMap[index], filterPanelOpenKey)}
                     close={() => {
