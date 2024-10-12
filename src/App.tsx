@@ -120,9 +120,8 @@ function App(props: PdbConfig) {
             <Route path="/:id/indicator" element={<IndicatorLeft />} />
           </Routes>
           <PdbContent>
-            {/*暂定：当顶部搜索框点击搜索后，才会出现指标设计的Tab切换。开发时可将pdb-graph-tab-header-hidden先删除。 */}
             <Tabs
-              className="pdb-graph-tab"
+              className={"pdb-graph-tab" + (location.pathname.endsWith("/edit") ? " pdb-graph-tab-header-hidden" : "")}
               items={[{
                 key: "pdb",
                 label: "模型画布",
