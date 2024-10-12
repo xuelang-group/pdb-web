@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { findIndex, isEmpty, orderBy, remove, findLastIndex, set } from 'lodash';
+import { findIndex, isEmpty, orderBy, remove, findLastIndex, each, filter, set } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 
 // demo 数据
@@ -209,6 +209,11 @@ interface Record {
   [key: string]: any;
 }
 
+interface MergeCell {
+  col: number[];
+  row: number[];
+}
+
 interface IndicatorState {
   records: Record[];
   columns: Col[];
@@ -216,6 +221,7 @@ interface IndicatorState {
   func: string;       // 统计算法
   funcResults: Record[];
   groupBy: string[];  // Group By
+  mergeCell: MergeCell;
   list: any[];
 }
 
@@ -224,9 +230,10 @@ const initialState: IndicatorState = {
   records: records,
   columns: columns,
   dimention: 'Progress',
-  func: '',
-  funcResults: [{"Project Name": "Customer Svc", "Progress": 1}, {"Project Name": "Development", "Progress": 2}],
-  groupBy: [],
+  func: 'sum',
+  funcResults: [{"Project Name": "Customer Svc", "Progress_sum": 1}, {"Project Name": "Customer Svc", "Start Date": "2024/01/01", "Progress_sum": 1}, {"Project Name": "Development", "Progress_sum": 2}],
+  groupBy: ['Project Name', 'Start Date'],
+  mergeCell: { col: [], row: [] },
   list: [],
 }
 
@@ -235,10 +242,10 @@ export const indicatorSlice = createSlice({
   initialState,
   reducers: {
     setTableData: (state, action: PayloadAction<any>) => {
-      const result = papa.parse<any[]>(action.payload);
-      const cols: string[] = result.data[0];  // CSV的第一行：表头
-      const types: string[] = result.data[1]; // CSV的第二行：数据类型
-      const dataSource = result.data.slice(2);
+      // const result = papa.parse<any[]>(action.payload);
+      // const cols: string[] = result.data[0];  // CSV的第一行：表头
+      // const types: string[] = result.data[1]; // CSV的第二行：数据类型
+      // const dataSource = result.data.slice(2);
 
       // const columns: Col[] = cols.map((field, i) => {
       //   const col: Col = { field, type: types[i] };
@@ -285,24 +292,31 @@ export const indicatorSlice = createSlice({
         _records = orderBy(records, state.groupBy)
       }
 
+      const mergeCell: MergeCell = { col: state.groupBy.map((gb, i) => i), row: [] }
       state.funcResults.forEach(item => {
-        const group = item[state.groupBy[0]]
-        const dimension = item[state.dimention]
-        const record = {
-          [`${state.groupBy[0]}`]: group,
-          [`${state.dimention}`]: dimension,
-          "func": state.func
+        // 计算结果中的分组
+        const keys = Object.keys(item).filter(key => key.indexOf(`_${state.func}`) == -1);
+        const record: Record = {
+          ...item,
+          // [`${state.dimention}`]: item[`${state.dimention}_${state.func}`],
+          merge: keys.length
         }
-        const index = findLastIndex(_records, (row: any) => row[state.groupBy[0]] == group)
-        console.log('record: ', index, record)
+        const index = findLastIndex(_records, (row: any) => {
+          const count = filter(keys, (gb) => row[gb] === record[gb])
+          return count.length === keys.length
+        })
         // const recordIndex= vtable.current.getRecordShowIndexByCell(0, index + 1);
         // console.log('recordIndex: ', recordIndex)
         // vtable.current.addRecord(record, recordIndex + 1)
         _records.splice(index+1, 0, record)
       })
+      _records.forEach((row, i) => {
+        if (row["merge"]) mergeCell.row.push(i+1)
+      })
       // console.log('columns: ', columns)
       // state.dimention = '序号'
       // state.groupBy = ['机型']
+      state.mergeCell = mergeCell;
       state.records = _records;
       state.columns = columns;
     },

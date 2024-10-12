@@ -10,6 +10,7 @@ export default function Indicator(props: any) {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    dispatch(setTableData(""));
     getCsv(function (success: boolean, response: any) {
       if (success) {
         dispatch(setTableData(response.trim()));
