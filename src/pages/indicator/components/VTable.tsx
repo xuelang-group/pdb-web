@@ -9,14 +9,15 @@ import { StoreState } from "@/store";
 import { setFuncResult } from "@/reducers/indicator";
 import { getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
+import { getCsv } from "@/actions/indicator";
+import { setTableData } from "@/reducers/indicator";
 
-export default function VTable() {
+export default function VTable(props: {width: number, height: number}) {
+  const {width, height} = props
+
   const dispatch = useDispatch()
 
   const vtable = useRef<any>(null);
-  const wrapRef = useRef(null);
-  const [width, setWidth] = useState(1000)
-  const [height, setHeight] = useState(500)
 
   const query = useSelector((state: StoreState) => state.query.params);
   const records = useSelector((state: StoreState) => state.indicator.records);
@@ -157,6 +158,16 @@ export default function VTable() {
     // },
   }
 
+  useEffect(() => {
+    getCsv(query, function (success: boolean, response: any) {
+      if (success) {
+        dispatch(setTableData(response.trim()));
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+    })
+  }, [query])
+
   const onReady = (tableInstance: any, isFirst: Boolean) => {
     if (isFirst) {
       vtable.current = tableInstance
@@ -183,28 +194,6 @@ export default function VTable() {
       })
     }
   }
-
-  const updateSize = () => {
-    const wrapper: any = wrapRef.current;
-    if (!wrapper || !wrapper.offsetWidth || !wrapper.offsetHeight) return
-    console.log('updateSize: ', wrapper.offsetWidth, wrapper.offsetHeight)
-    setWidth(wrapper.offsetWidth)
-    setHeight(wrapper.offsetHeight)
-  }
-
-  useEffect(() => {
-    updateSize();
-    window.addEventListener('resize', updateSize)
-    return () => {
-      window.removeEventListener('resize', updateSize)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (vtable.current) {
-      vtable.current.setCanvasSize(width, height)
-    }
-  }, [width])
 
   useEffect(() => {
     if (vtable.current) {
@@ -251,26 +240,26 @@ export default function VTable() {
       </div>
     )
   }
-
+  const showFoot = !isEmpty(result)
   return (
-    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: !isEmpty(result) ? 48 : 0 }}>
-      <div ref={wrapRef} style={{ height: '100%' }}>
+    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: showFoot ? 48 : 0 }}>
+      <div style={{ width: '100%', height: '100%' }}>
         <ListTable
           width={width}
-          height={height}
+          height={showFoot ? height - 48 : height}
           option={option}
           onReady={onReady}
           onDropdownMenuClick={onDropdownMenuClick}
           onContextMenuCell={onContextMenuCell}
         />
       </div>
-      {!isEmpty(result) && (
+      {showFoot && (
         <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
           <Space>
             <span>合计 | </span> 
             {
               result.map(item => (
-                <span key={item.index}>{dimention} : {item[dimention]}</span>
+                <span key={item.index}>{func} : {item[dimention]}</span>
               ))
             }
           </Space>

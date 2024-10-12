@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { findIndex, isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, groupBy, cloneDeep } from 'lodash';
+import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 
 const funcOptionsObj = {
@@ -27,9 +27,9 @@ interface MetricParams {
   groupBy: string[];        // Group By
 }
 interface IndicatorState {
-  csv: any[];
   checkId: string | null;
   editId: string | null;
+  csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
   dimention: string;        // 指标度量
@@ -44,20 +44,16 @@ interface IndicatorState {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
-  csv: [],
   checkId: null,
   editId: null,
+  csv: [],
   records: [],
   columns: [],
   dimention: '',
   func: '',
-  groupByResult: [
-    // {"Project Name": "Customer Svc", "Progress_sum": 1}, {"Project Name": "Customer Svc", "Start Date": "2024/01/01", "Progress_sum": 1}, {"Project Name": "Development", "Progress_sum": 2}
-  ],
+  groupByResult: [],
   result: [],
-  groupBy: [
-    // 'Project Name', 'Start Date'
-  ],
+  groupBy: [],
   funcOptions: [],
   mergeCell: { col: [], row: [] },
   list: [],

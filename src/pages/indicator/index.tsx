@@ -1,29 +1,33 @@
-import { useEffect } from 'react';
-import { message } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useRef, useState } from 'react'
 import VTable from './components/VTable';
-import { getCsv } from "@/actions/indicator";
-import { setTableData } from "@/reducers/indicator";
-import { StoreState } from "@/store";
 import './index.less';
 
 export default function Indicator(props: any) {
-  const dispatch = useDispatch();
-  const query = useSelector((state: StoreState) => state.query.params);
+  const wrapRef = useRef(null);
+  const [width, setWidth] = useState(1000)
+  const [height, setHeight] = useState(500)
+
+  const PADDING = 24
+
+  const updateSize = () => {
+    const wrapper: any = wrapRef.current;
+    if (!wrapper || !wrapper.offsetWidth || !wrapper.offsetHeight) return
+    setWidth(wrapper.offsetWidth)
+    setHeight(wrapper.offsetHeight)
+  }
 
   useEffect(() => {
-    getCsv(query, function (success: boolean, response: any) {
-      if (success) {
-        dispatch(setTableData(response.trim()));
-      } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
-      }
-    })
-  }, [query])
+    updateSize();
+    window.addEventListener('resize', updateSize)
+    
+    return () => {
+      window.removeEventListener('resize', updateSize)
+    }
+  }, [])
 
   return (
-    <div className='pdb-indicator'>
-      <VTable />
+    <div className='pdb-indicator' ref={wrapRef}>
+      <VTable width={width - PADDING * 2} height={height - PADDING} />
     </div>
   )
 }
