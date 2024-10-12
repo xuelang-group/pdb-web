@@ -91,7 +91,7 @@ export default function Editor(props: any) {
   }, []);
 
   return (
-    <div className="pdb-graph" style={{ flex: 1, width: 0 }}>
+    <div className="pdb-graph">
       <div ref={graphRef} className="graph" id="type-graph"></div>
     </div>
   );

@@ -39,7 +39,7 @@ export default function Left(props: any) {
     [searchValue, setSearchValue] = useState(''),
     [filterValue, setFilterValue] = useState(''),
     [isSearched, setSearchedStatus] = useState(false),
-    [currentTab, setCurrentTab] = useState('对象');
+    [currentTab, setCurrentTab] = useState('type');
   const searchRef = useRef<InputRef>(null);
 
   const dispatch = useDispatch();
@@ -199,7 +199,7 @@ export default function Left(props: any) {
   }
 
   useEffect(() => {
-    const tab = _.get(location, 'state.tab', '对象');
+    const tab = _.get(location, 'state.tab', 'type');
     if (tab !== currentTab) setCurrentTab(tab);
   }, [location]);
 
@@ -448,7 +448,7 @@ export default function Left(props: any) {
         content: (
           <>
             <div className='pdb-confirm-info'>是否删除 “{item[nameLabel]}” {typeLabel[type]}类型 ?</div>
-            {currentTab === "对象" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
+            {currentTab === "type" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
           </>
         ),
         okButtonProps: {
@@ -604,15 +604,15 @@ export default function Left(props: any) {
     );
   }, [types, currentEditModel?.id, treeData, searchValue, typeLoading]);
 
-  const tabs = [{
-    key: 'type',
-    label: '对象',
-    children: renderTypeTree('type')
-  }, {
-    key: 'relation',
-    label: '关系',
-    children: renderList('relation')
-  }];
+  // const tabs = [{
+  //   key: 'type',
+  //   label: '对象',
+  //   children: renderTypeTree('type')
+  // }, {
+  //   key: 'relation',
+  //   label: '关系',
+  //   children: renderList('relation')
+  // }];
 
   // 弹窗 - 确定
   const handleModalOk = function () {
@@ -738,11 +738,17 @@ export default function Left(props: any) {
       <div className='pdb-type-list'>
         <Segmented
           value={currentTab}
-          options={['对象', '关系']}
+          options={[{
+            label: '对象',
+            value: 'type'
+          }, {
+            label: '关系',
+            value: 'relation'
+          }]}
           onChange={handleChangeTab}
           block
         />
-        {currentTab === '对象' ? renderTypeTree('type') : renderList('relation')}
+        {currentTab === 'type' ? renderTypeTree('type') : renderList('relation')}
       </div>
       {renderModal()}
       {contextHolder}
