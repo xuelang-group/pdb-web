@@ -1,7 +1,7 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { last } from "lodash";
+import _, { last, values } from "lodash";
 import React, { useCallback } from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +18,10 @@ import NewRelation from "./NewRelation";
 
 import './index.less';
 import ExportApi from "@/components/ExportApi";
-import { initialParams, setQueryParams } from "@/reducers/query";
+import { ConditionState, initialParams, setQueryParams } from "@/reducers/query";
+import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
+import dayjs from "dayjs";
+import moment from "moment";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -33,10 +36,12 @@ export default function AppExplore() {
 
   const types = useSelector((state: StoreState) => state.type.data),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
+    typeMap = useSelector((state: StoreState) => state.editor.typeMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     showSearch = useSelector((state: StoreState) => state.editor.showSearch),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
+    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
+    queryParams = useSelector((state: StoreState) => state.query.params);
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
     [filterPanelOpenKey, setFilterPanelOpenKey] = useState<any>(null),
@@ -57,6 +62,117 @@ export default function AppExplore() {
       document.removeEventListener('keydown', onFocusSearch);
     }
   }, []);
+
+  useEffect(() => {
+    console.log(queryParams, searchTagMap)
+
+    // 反向解析
+    if (_.isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
+      const { pql, csv } = queryParams;
+      const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
+      _.get(csv, "header", []).forEach(function (val) {
+        const { typeId, index } = val;
+        const _id = typeId + "-" + index;
+        if (typeCsvMap[_id]) {
+          typeCsvMap[_id].push(val);
+        } else {
+          Object.assign(typeCsvMap, { [_id]: [val] });
+        }
+      });
+      pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
+        let typeId = id;
+        if (type !== "object" && id.startsWith("~Relation.")) typeId = id.slice(1);
+        const _id = (typeId ? (typeId + "-") : ("__TEMPORARY_RELATION__")) + index;
+        _tags.push(_id);
+
+        const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
+        let conditionLabel = "";
+        if (!_.isEmpty(conditionRaw) && id) {
+          let attrMap: any = {};
+          if (type === "object") {
+            _.get(typeMap[typeId], "x.type.attrs", []).forEach((val: any) => {
+              Object.assign(attrMap, { [val?.name]: val });
+            });
+          } else {
+            attrMap = _.get(relationMap[typeId], "r.type.constraints", {});
+            delete attrMap['r.binds'];
+            delete attrMap['r.constraints'];
+          }
+          conditions.forEach((val: ConditionState) => {
+            const attrName = val.name,
+              functionVal = functionSymbolMap[val.function],
+              attrLabel = _.get(attrMap[attrName], "display", ""),
+              attrData = attrMap[attrName] || {};
+            const attr = {
+              value: attrName,
+              label: attrLabel,
+              data: attrData
+            },
+              condition = {
+                value: functionVal,
+                label: _.get(optionLabelMap, functionVal)
+              },
+              isNot = val.not,
+              operator = val.connectives;
+
+            let keyword = val.value, keywordLabel = val.value;
+            if (attrData.type === "datetime") {
+              keywordLabel = moment(keyword).format(attrData.datetimeFormat);
+              keyword = dayjs(keywordLabel, attrData.datetimeFormat);
+            }
+
+            conditionOptions.push({
+              attr, condition, isNot, keyword, operator
+            });
+
+            if (functionVal === "has") {
+              conditionLabel += `存在属性 ${attrLabel}`;
+            } else {
+              const label = (functionVal === "anyofterms" || functionVal === "allofterms" ? optionLabelMap[functionVal] : optionSymbolMap[functionVal]) || ""
+              conditionLabel += `${val.not ? "NOT " : ""}${attrLabel} ${label} ${keywordLabel}`;
+            }
+          });
+        }
+
+        Object.assign(_tagsMap, {
+          [_id]: {
+            key: typeId,
+            value: _id,
+            type: type === "object" ? "type" : type,
+            prevSearchTagType: index === 0 ? "" : (type === "object" ? "relation" : "type"),
+            label: name,
+            config: {
+              conditions,
+              key: conditionRaw,
+              options: conditionOptions,
+              label: conditionLabel
+            }
+          }
+        });
+        if (type === "object") {
+          Object.assign(_tagsMap[_id], { csv: typeCsvMap[_id], data: typeMap[typeId] });
+        } else {
+          const { binds, bindType } = other;
+          Object.assign(_tagsMap[_id], { bindType });
+          if (!typeId) {
+            Object.assign(_tagsMap[_id], {
+              key: _id,
+              binds,
+              data: {
+                "r.type.constraints": { "r.binds": binds[0] },
+                "r.type.label": name
+              }
+            });
+          } else {
+            Object.assign(_tagsMap[_id], { data: relationMap[typeId], isReverse: id.startsWith("~Relation.") });
+          }
+        }
+      });
+      setSearchTags([_tags]);
+      setSearchTagMap([_tagsMap]);
+    }
+  }, [queryParams, typeMap]);
+
   useEffect(() => {
     handleSearch(currentSearchValue, currentFocusIndex);
   }, [searchTags]);
@@ -387,7 +503,7 @@ export default function AppExplore() {
 
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
-        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number}[] = [],
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
           typeId = data['x.type.name'],
           typeLabel = data['x.type.label'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
@@ -400,6 +516,10 @@ export default function AppExplore() {
           });
         });
         Object.assign(newMap[index][value], { csv });
+      }
+
+      if (type === 'relation') {
+        Object.assign(newMap[index][value], { bindType: "innerjoin" });
       }
 
       return newMap;
@@ -514,13 +634,26 @@ export default function AppExplore() {
             });
           } else {
             const type = detail.type === "type" ? "object" : detail.type;
-            if (type === "relation") relationNames.push(detail.key.replace('.', '_'));
             Object.assign(option, {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
+
+            if (type === "relation") {
+              relationNames.push(detail.key.replace('.', '_'));
+              Object.assign(option, {
+                bindType: _.get(detail, "bindType", "innerjoin")
+              });
+              if (detail.value.startsWith("__TEMPORARY_RELATION__")) {
+                Object.assign(option, {
+                  id: "",
+                  binds: _.get(detail, "binds", [])
+                });
+              }
+            }
+
             const objectCsvOpt = _.get(detail, 'csv');
             if (type === "object" && objectCsvOpt) {
               csvItem = csvItem.concat(objectCsvOpt);
@@ -543,8 +676,8 @@ export default function AppExplore() {
     dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
     dispatch(setQueryParams({
-      graphId, 
-      pql, 
+      graphId,
+      pql,
       csv: {
         header: csv
       }
@@ -695,7 +828,7 @@ export default function AppExplore() {
   // 保存临时关系
   const handleSaveTemporayRelation = function (index: number, values: any, currTargetTag: any, prevTargetTag: any) {
     const tags = searchTags[index], tagsLen = tags.length;
-    const newRelationId = values.key || "__TEMPORARY_RELATION__" + (tagsLen - 1);
+    const newRelationId = values.key || "__TEMPORARY_RELATION__" + tagsLen;
     /**
      * 临时关系保存的搜索框数据的两种情况
      * 1. 对象类型 - 临时关系：prevTargetTag为空，需要存目标对象数据和临时关系数据

@@ -7,11 +7,12 @@ export interface CsvState {
   header: CsvHeaderState[]
 }
 
-interface ConditionState {
+export interface ConditionState {
   name: string
   function: string
   value: any
-  not: boolean
+  not?: boolean
+  connectives?: string
 }
 
 export interface PqlState {
