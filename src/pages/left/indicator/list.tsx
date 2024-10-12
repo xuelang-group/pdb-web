@@ -1,13 +1,14 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Input, InputRef, Spin, message } from 'antd';
+import { Input, InputRef, Spin, message, Dropdown, Tag } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getMetrics } from "@/actions/indicator";
 import { useParams, useNavigate } from 'react-router-dom';
-import _ from 'lodash';
-import { setMetrics } from "@/reducers/indicator";
+import _, { set } from 'lodash';
+import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
+import ChechDrawer from './CheckDrawer'
 import './index.less';
 
 export default function List(props: any) {
@@ -15,6 +16,10 @@ export default function List(props: any) {
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
   const indicatorLoading = useSelector((state: StoreState) => state.editor.indicatorLoading)
+  const checkId = useSelector((state: StoreState) => state.indicator.checkId);
+  const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const [showCheckDrawer, setShowCheckDrawer] = useState(false);
+  const [checkData, setCheckData] = useState(null);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams()
   const dispatch = useDispatch();
@@ -70,6 +75,25 @@ export default function List(props: any) {
     setIndicatorList(indicators);
   }
 
+  const handleClickMenu = (item: any, menu: any) => {
+    if (menu.key === 'check1') {
+      setShowCheckDrawer(true)
+      setCheckData(item)
+    }
+    if (menu.key === 'check2') {
+      dispatch(setCheckId(item.id));
+      dispatch(setDimention(item.metric_params.dimention));
+      dispatch(setFunc(item.metric_params.func));
+      dispatch(setGroupBy(item.metric_params.group_by));
+    }
+    if (menu.key === 'edit') {
+      dispatch(setEditId(item.id));
+      dispatch(setDimention(item.metric_params.dimention));
+      dispatch(setFunc(item.metric_params.func));
+      dispatch(setGroupBy(item.metric_params.group_by));
+    }
+  }
+
   const renderIndicatorTree = useCallback((type: string) => {
     let indList = JSON.parse(JSON.stringify(indicatorList));
     return (
@@ -99,12 +123,39 @@ export default function List(props: any) {
             {!indicatorLoading && indList.map((item: any, index: number) => {
               const label: any = item['name']
               return (
-                <span
-                  className='type-item'
+                <Dropdown
+                  overlayClassName='pdb-dropdown-menu'
+                  menu={{
+                    items: [
+                      {
+                        label: '查看基础信息',
+                        key: 'check1',
+                      },
+                      {
+                        label: '查看指标定义',
+                        key: 'check2',
+                      },
+                      {
+                        type: 'divider',
+                      },
+                      {
+                        label: '编辑',
+                        key: 'edit',
+                      },
+                    ],
+                    onClick: (menu) => handleClickMenu(item, menu)
+                  }}
+                  trigger={['contextMenu']}
                 >
-                  <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
-                  {(<span className='type-item-label'>{label}</span>)}
-                </span>
+                  <span
+                    className={`type-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+                  >
+                    <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
+                    {(<span className='type-item-label'>{label}</span>)}
+                    {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
+                    {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
+                  </span>
+                </Dropdown>
               );
             })}
           </div>
@@ -117,11 +168,12 @@ export default function List(props: any) {
         </div>
       </div>
     );
-  }, [indicatorList, routerParams?.id, indicatorLoading]);
+  }, [indicatorList, routerParams?.id, indicatorLoading, checkId, editId]);
 
     return (
       <div className='pdb-type-list'>
         {renderIndicatorTree('indicator')}
+        <ChechDrawer isOpen={showCheckDrawer} onClose={() => setShowCheckDrawer(false)} data={checkData}/>
       </div>
     )
   }

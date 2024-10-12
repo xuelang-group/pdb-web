@@ -204,6 +204,14 @@ import { Col } from '@/pages/indicator/components/CONSTS'
 //   "fieldFormat": (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`,
 // }]
 
+const funcOptionsObj = {
+  'string': ["count", "most frequent"],
+  'int': ["sum", "avg", "median", "min", "max"],
+  'float': ["sum", "avg", "median", "min", "max"],
+  'datetime': ["最早", "最晚"],
+  'boolean': ["count", "占比"],
+}
+
 
 interface Record {
   [key: string]: any;
@@ -216,6 +224,8 @@ interface MergeCell {
 
 interface IndicatorState {
   dataSource: Record[];
+  checkId: string | null;
+  editId: string | null;
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
   dimention: string;        // 指标度量
@@ -224,12 +234,15 @@ interface IndicatorState {
   result: Record[];         // 总计的计算结果
   groupBy: string[];        // Group By
   mergeCell: MergeCell;     // 分组的计算结果在表格中合并单元格
+  funcOptions: string[]; // 统计算法选项
   list: any[];
 }
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
   dataSource: [],
+  checkId: null,
+  editId: null,
   records: [],
   columns: [],
   dimention: '',
@@ -241,6 +254,7 @@ const initialState: IndicatorState = {
   groupBy: [
     // 'Project Name', 'Start Date'
   ],
+  funcOptions: [],
   mergeCell: { col: [], row: [] },
   list: [],
 }
@@ -386,12 +400,31 @@ export const indicatorSlice = createSlice({
       }
       state.dimention = dimention;
       state.columns = map(state.columns, col => ({...col, checked: col.field === dimention}));
+      state.func = '';
+      const colObj = state.columns.find(item => item.field === dimention)
+      if (colObj && colObj.type in funcOptionsObj) {
+        state.funcOptions = funcOptionsObj[colObj.type as keyof typeof funcOptionsObj];
+      } else {
+        state.funcOptions = []
+      }
     },
     setFunc: (state, action: PayloadAction<any>) => {
       state.func = action.payload;
     },
+    setCheckId: (state, action: PayloadAction<any>) => {
+      state.checkId = action.payload;
+      state.editId = null;
+    },
+    setEditId: (state, action: PayloadAction<any>) => {
+      state.editId = action.payload;
+      state.checkId = null;
+    },
+    exit: (state) => {
+      state.editId = null;
+      state.checkId = null;
+    },
   }
 })
 
-export const { setTableData, setMetrics, setGroupBy, setDimention, setFunc } = indicatorSlice.actions
+export const { setTableData, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, exit } = indicatorSlice.actions
 export default indicatorSlice.reducer
