@@ -492,7 +492,8 @@ export default function AppExplore() {
   }
 
   const getPQL = function (_searchTagMap = searchTagMap) {
-    const pql: any = [], relationNames: string[] = [], csv: any = [];
+    const pql: any = [], relationNames: string[] = [];
+    let csv: any = [];
     searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
         let pqlItem: any[] = [], csvItem: any[] = [];
@@ -527,7 +528,7 @@ export default function AppExplore() {
           pqlItem.push(option);
         });
         pql.push(pqlItem);
-        csv.push(csvItem);
+        csv = csv.concat(csvItem);
       }
     });
     return { pql, csv, relationNames };
