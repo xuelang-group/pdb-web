@@ -1,7 +1,7 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { last } from "lodash";
+import _, { last, values } from "lodash";
 import React, { useCallback } from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -387,7 +387,7 @@ export default function AppExplore() {
 
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
-        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number}[] = [],
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
           typeId = data['x.type.name'],
           typeLabel = data['x.type.label'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
@@ -400,6 +400,10 @@ export default function AppExplore() {
           });
         });
         Object.assign(newMap[index][value], { csv });
+      }
+
+      if (type === 'relation') {
+        Object.assign(newMap[index][value], { bindType: "innerjoin" });
       }
 
       return newMap;
@@ -514,13 +518,26 @@ export default function AppExplore() {
             });
           } else {
             const type = detail.type === "type" ? "object" : detail.type;
-            if (type === "relation") relationNames.push(detail.key.replace('.', '_'));
             Object.assign(option, {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
+
+            if (type === "relation") {
+              relationNames.push(detail.key.replace('.', '_'));
+              Object.assign(option, {
+                bindType: _.get(detail, "bindType", "innerjoin")
+              });
+              if (detail.value.startsWith("__TEMPORARY_RELATION__")) {
+                Object.assign(option, {
+                  id: "",
+                  binds: _.get(detail, "binds", [])
+                });
+              }
+            }
+
             const objectCsvOpt = _.get(detail, 'csv');
             if (type === "object" && objectCsvOpt) {
               csvItem = csvItem.concat(objectCsvOpt);
@@ -543,8 +560,8 @@ export default function AppExplore() {
     dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
     dispatch(setQueryParams({
-      graphId, 
-      pql, 
+      graphId,
+      pql,
       csv: {
         header: csv
       }

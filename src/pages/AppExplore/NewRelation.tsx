@@ -25,9 +25,10 @@ export default function NewRelation(props: ExploreFilterProps) {
   const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen } = props;
   const [form] = Form.useForm();
 
-  const types = useSelector((state: StoreState) => state.type.data);
+  const types = useSelector((state: StoreState) => state.type.data),
+    relations = useSelector((state: StoreState) => state.relation.data);
 
-  const [joinType, setJoinType] = useState("inner"),
+  const [joinType, setJoinType] = useState("innerjoin"),
     [leftSelected, setLeftSelected] = useState(false),
     [rightSelected, setRightSelected] = useState(false),
     [ovalSelected, setOvalSelected] = useState(true),
@@ -41,10 +42,13 @@ export default function NewRelation(props: ExploreFilterProps) {
 
   const save = function () {
     form.validateFields().then(values => {
+      const binds = [_.get(values["r.type.constraints"], "r.binds", {})];
       saveConfig({
         ...initialValue,
         label: values['r.type.label'],
-        data: values
+        data: values,
+        bindType: joinType,
+        binds
       }, currTargetTag);
       close();
     }).catch(err => { });
@@ -53,13 +57,13 @@ export default function NewRelation(props: ExploreFilterProps) {
   const changeJoinType = function (_left: boolean, _right: boolean, _oval: boolean) {
     let joinType = '';
     if (_left && !_right) {
-      joinType = 'left';
+      joinType = 'leftjoin';
     } else if (!_left && _right) {
-      joinType = 'right';
+      joinType = 'rightjoin';
     } else if (_oval && !_left && !_right) {
-      joinType = 'inner';
+      joinType = 'innerjoin';
     } else if (_left && _right) {
-      joinType = 'all';
+      joinType = 'fulljoin';
     }
     setJoinType(joinType);
   }
@@ -171,7 +175,22 @@ export default function NewRelation(props: ExploreFilterProps) {
               </Form.Item>
             </div>
             <div className="pdb-explore-group-item-input">
-              <Form.Item name="r.type.label" label="关系名称：" rules={[{ required: true, message: "关系名称不能为空" }]}>
+              <Form.Item
+                name="r.type.label"
+                label="关系名称："
+                rules={[
+                  { required: true, message: "关系名称不能为空" },
+                  {
+                    validator: async (_, value) => {
+                      if (value.length > 50) {
+                        throw new Error('类型名称最多支持50个字符');
+                      } else if (relations && relations.findIndex((_rel: any, index: number) => _rel['r.type.label'] === value) > -1) {
+                        throw new Error('该名称已被使用');
+                      }
+                    }
+                  }
+                ]}
+              >
                 <Input />
               </Form.Item>
             </div>
@@ -186,10 +205,10 @@ export default function NewRelation(props: ExploreFilterProps) {
             <div className="pdb-explore-group-item-content">
               {/* <Form.Item name="group" label="">
                 <Radio.Group>
-                  <Radio.Button value="inner">内联接</Radio.Button>
-                  <Radio.Button value="left">左联接</Radio.Button>
-                  <Radio.Button value="right ">右联接</Radio.Button>
-                  <Radio.Button value="all">全联接</Radio.Button>
+                  <Radio.Button value="innerjoin">内联接</Radio.Button>
+                  <Radio.Button value="leftjoin">左联接</Radio.Button>
+                  <Radio.Button value="rightjoin ">右联接</Radio.Button>
+                  <Radio.Button value="fulljoin">全联接</Radio.Button>
                 </Radio.Group>
               </Form.Item> */}
               <div className="join-cirle">
