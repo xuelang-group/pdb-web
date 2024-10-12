@@ -202,9 +202,12 @@ export default function VTable() {
 
   useEffect(() => {
     if (vtable.current) {
-      // vtable.current.setRecords(records)
-      // vtable.current.updateColumns(getColumns(columns))
-      // vtable.current.rightFrozenColCount = dimention ? 1 : 0
+      vtable.current.setCanvasSize(width, height)
+    }
+  }, [width])
+
+  useEffect(() => {
+    if (vtable.current) {
       vtable.current.updateOption({
         ...option,
         columns: getColumns(columns),
@@ -216,7 +219,6 @@ export default function VTable() {
       vtable.current.clearSelected();
       vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     }
-    console.log('records: ', records)
   }, [columns])
 
   useEffect(() => {
