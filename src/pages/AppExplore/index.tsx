@@ -18,7 +18,7 @@ import NewRelation from "./NewRelation";
 
 import './index.less';
 import ExportApi from "@/components/ExportApi";
-import { initialParams, setQueryState } from "@/reducers/query";
+import { initialParams, setQueryParams } from "@/reducers/query";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -388,12 +388,13 @@ export default function AppExplore() {
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [],
-          typeId = data['x.type.name'];
+          typeId = data['x.type.name'],
+          typeLabel = data['x.type.label'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
             attrId: name,
-            attrName: display,
+            attrName: display + '_' + typeLabel,
             attrType: type
           });
         });
@@ -448,7 +449,7 @@ export default function AppExplore() {
 
     setSearchTagMap(newSearchTagsMap);
     setSearchTags(newSearchTags);
-    dispatch(setQueryState(initialParams));
+    dispatch(setQueryParams(initialParams));
 
 
     if (newSearchTags.length === 0 || (newSearchTags.length === 1 && _.isEmpty(newSearchTags[0]))) {
@@ -539,7 +540,13 @@ export default function AppExplore() {
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
-    dispatch(setQueryState({ graphId, pql, csv }));
+    dispatch(setQueryParams({
+      graphId, 
+      pql, 
+      csv: {
+        header: csv
+      }
+    }));
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
         getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
@@ -795,7 +802,7 @@ export default function AppExplore() {
     graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
     graph.render();
     graph.zoom(1);
-    dispatch(setQueryState(initialParams));
+    dispatch(setQueryParams(initialParams));
   }
 
   return (

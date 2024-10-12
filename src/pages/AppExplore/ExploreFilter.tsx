@@ -39,7 +39,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     [indeterminate, setIndeterminate] = useState(false),
     [checkAll, setCheckAll] = useState(true),
     [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]);
-    // [groupMethod, setGroupMethod] = useState("inner");
+  // [groupMethod, setGroupMethod] = useState("inner");
 
   const [joinType, setJoinType] = useState("all"),
     [leftSelected, setLeftSelected] = useState(true),
@@ -50,6 +50,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
       tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
+      tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : "",
       tagTypeCsv = _.get(originType, 'csv', []);
 
     const _segmentedOpt = [];
@@ -65,7 +66,13 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       value: 'filter'
     });
 
-    const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => (`${attrId}|${attrName}|${attrType}`));
+    const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => {
+      let _attrName = attrName;
+      if (tagTypeLabel && _attrName.endsWith('_' + tagTypeLabel)) {
+        _attrName = _attrName.slice(0, -(tagTypeLabel.length + 1));
+      }
+      return `${attrId}|${_attrName}|${attrType}`
+    });
     setSelectedTab(_.get(originType, 'type', '') === 'type' ? 'column' : 'group');
     setCheckedList(defaultCheckedList);
     setIndeterminate(defaultCheckedList.length !== tagTypeAttr.length);
@@ -126,14 +133,15 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     if (checkedList.length > 0) {
       const tagType: string = _.get(originType, 'type', ''),
         tagTypeData = _.get(originType, 'data', {}),
-        tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '';
+        tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '',
+        tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : '';
 
       checkedList.forEach(function (value) {
         const valArr = value.split("|");
         csv.push({
           typeId: tagTypeId,
           attrId: valArr[0],
-          attrName: valArr[1],
+          attrName: valArr[1] + "_" + tagTypeLabel,
           attrType: valArr[2]
         })
       });
