@@ -2,10 +2,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from 'react'
 import { message } from "antd";
 import { ListTable } from '@visactor/react-vtable'
-import { TYPES, CustomLayout } from '@visactor/vtable'
+import { CustomLayout } from '@visactor/vtable'
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { getFuncResult } from "@/actions/indicator";
+import { isEmpty } from "lodash";
 
 export default function VTable() {
   const dispatch = useDispatch()
@@ -14,6 +15,7 @@ export default function VTable() {
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
+
   const query = useSelector((state: StoreState) => state.query.params);
   const records = useSelector((state: StoreState) => state.indicator.records);
   const columns = useSelector((state: StoreState) => state.indicator.columns);
@@ -21,11 +23,11 @@ export default function VTable() {
   const groupBy = useSelector((state: StoreState) => state.indicator.groupBy);
   const mergeCell = useSelector((state: StoreState) => state.indicator.mergeCell);
   const func = useSelector((state: StoreState) => state.indicator.func);
+  const result = useSelector((state: StoreState) => state.indicator.result);
 
   const option = {
     autoFillWidth: true,
     autoWrapText: true,
-    // rightFrozenColCount: 1,
     defaultRowHeight: 46,
     defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
@@ -196,24 +198,28 @@ export default function VTable() {
     }
   }, [])
 
+  // useEffect(() => {
+  //   if (vtable.current) {
+  //     vtable.current.setRecords(records)
+  //     vtable.current.updateColumns(getColumns(columns))
+  //     vtable.current.rightFrozenColCount = dimention ? 1 : 0
+  //     vtable.current.updateOption({
+  //       ...option,
+  //       columns: getColumns(columns),
+  //       records: records,
+  //       // rightFrozenColCount: dimention ? 1 : 0,
+  //     });
+  //   }
+  // }, [columns])
+
   useEffect(() => {
     if (vtable.current) {
-      vtable.current.updateColumns(getColumns(columns))
-      vtable.current.setRecords(records)
-      // vtable.current.rightFrozenColCount = dimention ? 1 : 0
-      // vtable.current.updateOption({
-      //   ...option,
-      //   columns: getColumns(columns),
-      //   records: records,
-      //   // rightFrozenColCount: dimention ? 1 : 0,
-      // });
       const colCount = columns.length - 1;
       const rowCount = records.length;
       vtable.current.clearSelected();
       vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     }
-
-  }, [columns, dimention])
+  }, [dimention])
 
   useEffect(() => {
     func && getFuncResult({dimention, func, groupBy, query}, function(success: boolean, response: any) {
@@ -223,10 +229,10 @@ export default function VTable() {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
     })
-  }, [func])
+  }, [func, dimention, groupBy])
 
   return (
-    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: func ? 48 : 0 }}>
+    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: !isEmpty(result) ? 48 : 0 }}>
       <div ref={wrapRef} style={{ height: '100%' }}>
         <ListTable
           width={width}
@@ -237,9 +243,16 @@ export default function VTable() {
           onContextMenuCell={onContextMenuCell}
         />
       </div>
-      <div className='pdb-vtable-footer' style={{ position: 'absolute', height: func ? 48 : 0 }}>
-        合计 | {func} : 
-      </div>
+      {!isEmpty(result) && (
+        <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
+          <span>合计 | </span> 
+          {
+            result.map(item => (
+              <span key={item.index}>{dimention} : {item[dimention]}</span>
+            ))
+          }
+        </div>
+      )}
     </div>
   )
 }
