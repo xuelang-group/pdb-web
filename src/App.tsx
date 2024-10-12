@@ -32,6 +32,10 @@ import { getSystemInfo } from '@/actions/system';
 import { PdbConfig } from '.';
 import './App.less';
 import List from './pages/list';
+import { getTypeByGraphId } from './actions/type';
+import { getRelationByGraphId } from './actions/relation';
+import { setRelations } from '@/reducers/relation';
+import { setTypeLoading } from '@/reducers/editor';
 
 const { Content } = Layout;
 function App(props: PdbConfig) {
@@ -52,9 +56,9 @@ function App(props: PdbConfig) {
       if (success) {
         const { userId, graphId } = response;
         getAppFolderList(userId);
-
-        if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && !location.pathname.endsWith(`/web/${graphId}/edit`)) {
-          // navigate(`/${graphId}`);
+        graphId && getCommonData(graphId);
+        if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/web/${graphId}`) && location.pathname.indexOf(`/web/${graphId}/`) === -1) {
+          navigate(`/${graphId}`);
           dispatch(setSystemInfo(response));
         } else {
           dispatch(setSystemInfo({ ...systemInfo, userId }));
@@ -76,9 +80,58 @@ function App(props: PdbConfig) {
     };
   }, []);
 
-  useEffect(() => {
-    console.log("currentGraphTab: ", currentGraphTab)
-  }, [currentGraphTab]);
+  const getCommonData = function (graphId: String) {
+    getTypeByGraphId(graphId, null, (success: boolean, response: any) => {
+      if (success) {
+        dispatch(Type.setTypes(response || []));
+      } else {
+        notification.error({
+          message: '获取对象类型列表失败',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(setTypeLoading(false));
+    });
+
+    getRelationByGraphId(graphId, null, (success: boolean, response: any) => {
+      let typeRelationMap: any = {};
+      if (success) {
+        dispatch(setRelations(response || []));
+        (response || []).forEach(function (relation: Relation.RelationConfig) {
+          const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
+            relationId = relation['r.type.name'];
+          binds.forEach(function (bind) {
+            const { source, target } = bind;
+            if (typeRelationMap[source]) {
+              if (typeRelationMap[source]['source']) {
+                typeRelationMap[source]['source'].push(relationId);
+              } else {
+                Object.assign(typeRelationMap[source], { source: [relationId] });
+              }
+            } else {
+              Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
+            }
+            if (typeRelationMap[target]) {
+              if (typeRelationMap[target]['target']) {
+                typeRelationMap[target]['target'].push(relationId);
+              } else {
+                Object.assign(typeRelationMap[target], { target: [relationId] });
+              }
+            } else {
+              Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
+            }
+          });
+        });
+      } else {
+        notification.error({
+          message: '获取关系列表失败',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(Editor.setRelationLoading(false));
+      dispatch(Editor.setTypeRelationMap(typeRelationMap));
+    });
+  }
 
   const getAppFolderList = function (userId: number) {
     const path = `studio/${userId}/pdb/config`;
