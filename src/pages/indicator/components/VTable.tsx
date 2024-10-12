@@ -1,12 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from 'react'
-import { message } from "antd";
+import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
+import { isEmpty } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
+import { setFuncResult } from "@/reducers/indicator";
 import { getFuncResult } from "@/actions/indicator";
-import { isEmpty } from "lodash";
+import EmptyImage from "@/assets/images/vtable_empty.svg";
 
 export default function VTable() {
   const dispatch = useDispatch()
@@ -184,8 +186,8 @@ export default function VTable() {
 
   const updateSize = () => {
     const wrapper: any = wrapRef.current;
-    // console.log(wrapper.offsetWidth, wrapper.offsetHeight)
     if (!wrapper || !wrapper.offsetWidth || !wrapper.offsetHeight) return
+    console.log('updateSize: ', wrapper.offsetWidth, wrapper.offsetHeight)
     setWidth(wrapper.offsetWidth)
     setHeight(wrapper.offsetHeight)
   }
@@ -198,38 +200,55 @@ export default function VTable() {
     }
   }, [])
 
-  // useEffect(() => {
-  //   if (vtable.current) {
-  //     vtable.current.setRecords(records)
-  //     vtable.current.updateColumns(getColumns(columns))
-  //     vtable.current.rightFrozenColCount = dimention ? 1 : 0
-  //     vtable.current.updateOption({
-  //       ...option,
-  //       columns: getColumns(columns),
-  //       records: records,
-  //       // rightFrozenColCount: dimention ? 1 : 0,
-  //     });
-  //   }
-  // }, [columns])
-
   useEffect(() => {
     if (vtable.current) {
+      // vtable.current.setRecords(records)
+      // vtable.current.updateColumns(getColumns(columns))
+      // vtable.current.rightFrozenColCount = dimention ? 1 : 0
+      vtable.current.updateOption({
+        ...option,
+        columns: getColumns(columns),
+        records: records,
+        // rightFrozenColCount: dimention ? 1 : 0,
+      });
       const colCount = columns.length - 1;
       const rowCount = records.length;
       vtable.current.clearSelected();
       vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     }
-  }, [dimention])
+    console.log('records: ', records)
+  }, [columns])
 
   useEffect(() => {
     func && getFuncResult({dimention, func, groupBy, query}, function(success: boolean, response: any) {
       if (success) {
-        // dispatch(setFuncResult(response));
+        dispatch(setFuncResult(response));
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
     })
   }, [func, dimention, groupBy])
+
+  if (isEmpty(columns)) {
+    return (
+      <div className="pdb-vtable-empty">
+        <Empty
+          image={EmptyImage}
+          imageStyle={{ height: 240, marginBottom: 0 }}
+          description={
+            <Space direction="vertical" size={4}>
+            <Typography.Text >
+              暂无数据
+            </Typography.Text>
+            <Typography.Text type="secondary" style={{fontSize: 12}}>
+              查看、创建、编辑指标以展示数据
+            </Typography.Text>
+            </Space>
+          }
+        />
+      </div>
+    )
+  }
 
   return (
     <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: !isEmpty(result) ? 48 : 0 }}>
@@ -245,12 +264,14 @@ export default function VTable() {
       </div>
       {!isEmpty(result) && (
         <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
-          <span>合计 | </span> 
-          {
-            result.map(item => (
-              <span key={item.index}>{dimention} : {item[dimention]}</span>
-            ))
-          }
+          <Space>
+            <span>合计 | </span> 
+            {
+              result.map(item => (
+                <span key={item.index}>{dimention} : {item[dimention]}</span>
+              ))
+            }
+          </Space>
         </div>
       )}
     </div>

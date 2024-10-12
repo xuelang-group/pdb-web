@@ -13,7 +13,7 @@ export const getCsv = (query, callback) => {
     "api": "/pdb/api/v1/object/search/pql",
     "params": query
   }).then(({data}) => {
-    console.log(data)
+    // console.log(data)
     callback && callback(data.success, data.success ? data.data: data);
   }, (err) => {
     callback && callback(false, err);
@@ -21,11 +21,13 @@ export const getCsv = (query, callback) => {
 };
 
 // 执行计算
-export const getFuncResult = ({dimention, groupBy, func, query}, callback) => {
+export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
   return axios.post(api['calc'], {
-    "dimention": dimention,
-    "group_by": groupBy,
-    "func": func,
+    "metric_params": {
+      dimention,
+      func,
+      group_by: groupBy
+    },
     "pql_params": {
       "api": "/pdb/api/v1/object/search/pql",
       "params": query
@@ -33,6 +35,7 @@ export const getFuncResult = ({dimention, groupBy, func, query}, callback) => {
   }).then(({data}) => {
     console.log(data)
     // callback && callback(data.success, data.success ? data.data: data);
+    callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);
   });

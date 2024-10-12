@@ -214,8 +214,14 @@ interface MergeCell {
   row: number[];
 }
 
+
+interface MetricParams {
+  dimention: string;        // 指标度量
+  func: string;             // 统计算法
+  groupBy: string[];        // Group By
+}
 interface IndicatorState {
-  dataSource: Record[];
+  csv: any[];
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
   dimention: string;        // 指标度量
@@ -229,7 +235,7 @@ interface IndicatorState {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
-  dataSource: [],
+  csv: [],
   records: [],
   columns: [],
   dimention: '',
@@ -245,8 +251,54 @@ const initialState: IndicatorState = {
   list: [],
 }
 
-const getRecords = (source: Record[], func: string, groupBy: string[], groupByResult: Record[]) => {
-  let records: Record[] = cloneDeep(source);
+const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[]) => {
+  const cols: string[] = data[0];  // CSV的第一行：表头
+  const types: string[] = data[1]; // CSV的第二行：数据类型
+  const rows = data.slice(2);  
+
+  const { dimention, func, groupBy } = metricParams;
+      
+  /** 表头数据 */
+  const columns: Col[] = map(cols, (field, i) => {
+    const col: Col = { field, type: types[i] };
+    if (!isEmpty(groupBy)) {
+      // 分组合并单元格
+      col.mergeCell = groupBy.includes(field)
+    }
+    if (dimention && dimention === field) {
+      // 指标度量
+      col.checked = true
+    }
+    // if (col.type === 'float') {
+    //   col["fieldFormat"] = (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`;
+    // }
+    return col;
+  });
+
+  // 指标度量在倒数第一列，若未设置将整数或浮点数作为度量列
+  if (dimention) {
+    const col = remove(columns, (item) => item.field === dimention);
+    if (!isEmpty(col)) {
+      columns.push(col[0])
+    }
+  }
+  // 分组在右侧，指标度量在左侧
+  if (!isEmpty(groupBy)) {
+    forEach(groupBy, (field, i) => {
+      const col = remove(columns, (item) => item.field === field);
+      if (!isEmpty(col)) {
+        columns.splice(i, 0, col[0])
+      }
+    })
+  } 
+
+  let records: Record[] = map(rows, (row) => {
+    const item: Record = {}
+    row.forEach((value: any, i: number) => {
+      item[`${cols[i]}`] = value;
+    })
+    return item;
+  });
   // groupBy 不为空时，根据groupBy排序
   if (!isEmpty(groupBy)) {
     records = orderBy(records, groupBy)
@@ -260,13 +312,19 @@ const getRecords = (source: Record[], func: string, groupBy: string[], groupByRe
         merge: keys.length
       }
       const index = findLastIndex(records, (row: any) => {
-        const count = filter(keys, (gb) => row[gb] === record[gb])
+        const count = filter(keys, (gb) => row[gb] == record[gb])
         return count.length === keys.length
       })
       records.splice(index+1, 0, record)
     })
   }
-  return records
+  
+  const mergeCell: MergeCell = { col: groupBy.map((gb, i) => i), row: [] }
+  records.forEach((row, i) => {
+    if (row["merge"]) mergeCell.row.push(i+1)
+  })
+
+  return { columns, records, mergeCell}
 }
 
 export const indicatorSlice = createSlice({
@@ -275,60 +333,10 @@ export const indicatorSlice = createSlice({
   reducers: {
     setTableData: (state, action: PayloadAction<any>) => {
       const result = papa.parse<any[]>(action.payload);
-      const cols: string[] = result.data[0];  // CSV的第一行：表头
-      const types: string[] = result.data[1]; // CSV的第二行：数据类型
-      const rows = result.data.slice(2);
+      state.csv = result.data;
       
-      /** 表头数据 */
-      const columns: Col[] = map(cols, (field, i) => {
-        const col: Col = { field, type: types[i] };
-        if (!isEmpty(state.groupBy)) {
-          // 分组合并单元格
-          col.mergeCell = state.groupBy.includes(field)
-        }
-        if (state.dimention && state.dimention === field) {
-          // 指标度量
-          col.checked = true
-        }
-        if (col.type === 'float') {
-          col["fieldFormat"] = (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`;
-        }
-        return col;
-      });
-      // 指标度量在倒数第一列，若未设置将整数或浮点数作为度量列
-      if (state.dimention) {
-        const col = remove(columns, (item) => item.field === state.dimention);
-        if (!isEmpty(col)) {
-          columns.push(col[0])
-        }
-      }
-      // 分组在右侧，指标度量在左侧
-      if (!isEmpty(state.groupBy)) {
-        forEach(state.groupBy, (field, i) => {
-          const col = remove(columns, (item) => item.field === field);
-          if (!isEmpty(col)) {
-            columns.splice(i, 0, col[0])
-          }
-        })
-      } 
-
-      /** 表格数据 */
-      const dataSource = rows.map((row) => {
-        const item: Record = {}
-        row.forEach((value, i) => {
-          item[`${cols[i]}`] = value;
-        })
-        return item;
-      })
-
-      state.dataSource = dataSource;
-
-      const records = getRecords(dataSource, state.func, state.groupBy, state.groupByResult);
-
-      const mergeCell: MergeCell = { col: state.groupBy.map((gb, i) => i), row: [] }
-      records.forEach((row, i) => {
-        if (row["merge"]) mergeCell.row.push(i+1)
-      })
+      const { dimention, func, groupBy, groupByResult } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
 
       state.mergeCell = mergeCell;
       state.records = records;
@@ -336,56 +344,39 @@ export const indicatorSlice = createSlice({
     },
     setFuncResult: (state, action: PayloadAction<any>) => {
       const { group_by_result, result } = action.payload;
+      
       state.groupByResult = group_by_result;
       state.result = result;
 
-      const records = getRecords(state.dataSource, state.func, state.groupBy, state.groupByResult);
-
-      const mergeCell: MergeCell = { col: state.groupBy.map((gb, i) => i), row: [] }
-      records.forEach((row, i) => {
-        if (row["merge"]) mergeCell.row.push(i+1)
-      })
+      const { dimention, func, groupBy, groupByResult } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
     
       state.mergeCell = mergeCell;
       state.records = records;
+      state.columns = columns;
     },
     setMetrics: (state, action: PayloadAction<any>) => {
       state.list = action.payload;
     },
     setGroupBy: (state, action: PayloadAction<any>) => {
       state.groupBy = action.payload; 
-      // 分组在右侧列
-      if (!isEmpty(state.groupBy)) {
-        state.groupBy.forEach((field, i) => {
-          const col = remove(state.columns, (item) => item.field === field);
-          if (!isEmpty(col)) {
-            state.columns.splice(i, 0, col[0])
-          }
-        })
 
-        // 根据分组排序
-        const records = getRecords(state.dataSource, state.func, state.groupBy, state.groupByResult);
-
-        const mergeCell: MergeCell = { col: state.groupBy.map((gb, i) => i), row: [] }
-        records.forEach((row, i) => {
-          if (row["merge"]) mergeCell.row.push(i+1)
-        })
-        state.mergeCell = mergeCell;
-        state.records = records;
-        // 分组列合并单元格
-        state.columns = map(state.columns, (col) => ({...col, mergeCel: state.groupBy.includes(col.field)}))
-      } 
-
+      const { dimention, func, groupBy, groupByResult } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+    
+      state.mergeCell = mergeCell;
+      state.records = records;
+      state.columns = columns;
     },
     setDimention: (state, action: PayloadAction<any>) => {
-      const dimention = action.payload;
-      // 度量列调整
-      const col = remove(state.columns, (item) => item.field === dimention);
-      if (!isEmpty(col)) {
-        state.columns.push(col[0])
-      }
-      state.dimention = dimention;
-      state.columns = map(state.columns, col => ({...col, checked: col.field === dimention}));
+      state.dimention = action.payload;
+
+      const { dimention, func, groupBy, groupByResult } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+    
+      state.mergeCell = mergeCell;
+      state.records = records;
+      state.columns = columns;
     },
     setFunc: (state, action: PayloadAction<any>) => {
       state.func = action.payload;
@@ -393,5 +384,5 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setTableData, setMetrics, setGroupBy, setDimention, setFunc } = indicatorSlice.actions
+export const { setTableData, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc } = indicatorSlice.actions
 export default indicatorSlice.reducer
