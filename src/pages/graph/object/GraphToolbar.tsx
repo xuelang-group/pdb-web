@@ -60,6 +60,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
+    indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId),
+    indicatorEditId = useSelector((state: StoreState) => state.indicator.editId),
     typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
     relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
@@ -68,7 +70,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [pageSize, setPageSize] = useState<number | undefined>(2),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
-    [uploading, setUploading] = useState(false); // 上传xlsx文件中
+    [uploading, setUploading] = useState(false), // 上传xlsx文件中
+    [resetDisabled, setResetDisabled] = useState(false); // 重置按钮灰化
   const [filterForm] = Form.useForm();
   let uploadCofirm: any;
 
@@ -95,6 +98,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       graph.zoom(1);
     }
   }];
+
+  useEffect(() => {
+    setResetDisabled(Boolean(indicatorCheckId || indicatorEditId));
+  }, [indicatorCheckId, indicatorEditId]);
 
   useEffect(() => {
     filterForm.resetFields();
@@ -1229,7 +1236,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           >
             <Tooltip title={tab.label} placement="right">
               <div
-                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && currentGraphTab === 'main' ? 'disabled' : ''}`}
+                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && (currentGraphTab === 'main' || resetDisabled) ? 'disabled' : ''}`}
                 onClick={() => {
                   if (tab.key === 'reset' && currentGraphTab === 'main') return;
                   if (tab.popover) {
