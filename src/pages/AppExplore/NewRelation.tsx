@@ -140,7 +140,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
                       label: option['x.type.label'],
-                      value: option['x.type.name'] + `-${tagsLen}`,
+                      value: option['x.type.name'] + `-${tagsLen + 1}`,
                       key: option['x.type.name'],
                       type: 'type',
                       data: option,

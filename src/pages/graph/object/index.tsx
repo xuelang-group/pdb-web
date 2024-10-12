@@ -17,7 +17,7 @@ import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import { RelationConfig } from '@/reducers/relation';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap
 } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
@@ -25,6 +25,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
+import { TypeConfig } from '@/reducers/type';
 
 interface EditorProps {
   theme: string
@@ -44,6 +45,7 @@ export default function Editor(props: EditorProps) {
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     relations = useSelector((state: StoreState) => state.relation.data),
+    types = useSelector((state: StoreState) => state.type.data),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
@@ -85,6 +87,16 @@ export default function Editor(props: EditorProps) {
     });
     dispatch(setRelationMap(relationMap));
   }, [relations]);
+
+  useEffect(() => {
+    const typeMap = {};
+    types.forEach((item: TypeConfig) => {
+      Object.assign(typeMap, {
+        [item['x.type.name']]: { ...item }
+      });
+    });
+    dispatch(setTypeMap(typeMap));
+  }, [types]);
 
   function getRootsData() {
     dispatch(setGraphLoading(true));
