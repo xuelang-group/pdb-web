@@ -1,17 +1,20 @@
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useRef, useState } from 'react'
+import { message } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { TYPES, CustomLayout } from '@visactor/vtable'
-import { useEffect, useRef, useState } from 'react'
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { findLastIndex, isEmpty, lastIndexOf } from "lodash";
+import { getFuncResult } from "@/actions/indicator";
 
 export default function VTable() {
+  const dispatch = useDispatch()
 
   const vtable = useRef<any>(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
+  const query = useSelector((state: StoreState) => state.query.params);
   const records = useSelector((state: StoreState) => state.indicator.records);
   const columns = useSelector((state: StoreState) => state.indicator.columns);
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
@@ -74,12 +77,11 @@ export default function VTable() {
         if (col >= item.merge-1 && col < table.colCount) {
           const key = groupBy[item.merge-1];
           const name = item[key];
-          console.log('merge key: ', name, table.colCount - 1)
           return {
-            text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}_${func}`],
+            text: '小计',
             range: {
               start: {
-                col: item.merge,
+                col: item.merge - 1,
                 row: row
               },
               end: {
@@ -87,6 +89,37 @@ export default function VTable() {
                 row: row
               }
             },
+            style: {
+              fontWeight: 600,
+              // textAlign: 'right',
+            },
+            customLayout: (args: any) => {
+              const { width, height } = args.rect;
+              const container = new CustomLayout.Group({
+                height,
+                width: width,
+                display: 'flex',
+                flexWrap: 'nowrap',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+              });
+              const text = new CustomLayout.Text({
+                x: width - 15,
+                y: height / 2 + 1,
+                text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}_${func}`],
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: 'PingFang SC',
+                fill: '#1C2126',
+                textBaseline: 'middle',
+                boundsPadding: [0, 15]
+              });
+              container.add(text)
+              return {
+                rootContainer: container,
+                renderDefault: false,
+              }
+            }
           };
         }
       }
@@ -165,30 +198,35 @@ export default function VTable() {
 
   useEffect(() => {
     if (vtable.current) {
-      // vtable.updateColumns(getColumns(columns))
-      // vtable.setRecords(records)
-      // vtable.rightFrozenColCount = dimention ? 1 : 0
-      vtable.current.updateOption({
-        ...option,
-        columns: getColumns(columns),
-        records: records,
-        rightFrozenColCount: dimention ? 1 : 0,
-      });
+      vtable.current.updateColumns(getColumns(columns))
+      vtable.current.setRecords(records)
+      // vtable.current.rightFrozenColCount = dimention ? 1 : 0
+      // vtable.current.updateOption({
+      //   ...option,
+      //   columns: getColumns(columns),
+      //   records: records,
+      //   // rightFrozenColCount: dimention ? 1 : 0,
+      // });
       const colCount = columns.length - 1;
       const rowCount = records.length;
       vtable.current.clearSelected();
       vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
     }
 
-  }, [columns, dimention, func])
+  }, [columns, dimention])
 
-  // useEffect(() => {
-  //   if (vtable.current && !isEmpty(funcResults)) {
-  //   }
-  // }, [funcResults])
+  useEffect(() => {
+    func && getFuncResult({dimention, func, groupBy, query}, function(success: boolean, response: any) {
+      if (success) {
+        // dispatch(setFuncResult(response));
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+    })
+  }, [func])
 
   return (
-    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: 48 }}>
+    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: func ? 48 : 0 }}>
       <div ref={wrapRef} style={{ height: '100%' }}>
         <ListTable
           width={width}
@@ -199,8 +237,8 @@ export default function VTable() {
           onContextMenuCell={onContextMenuCell}
         />
       </div>
-      <div className='pdb-vtable-footer' style={{ position: 'absolute', height: 48 }}>
-
+      <div className='pdb-vtable-footer' style={{ position: 'absolute', height: func ? 48 : 0 }}>
+        合计 | {func} : 
       </div>
     </div>
   )
