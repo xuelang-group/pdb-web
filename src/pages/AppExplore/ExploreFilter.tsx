@@ -13,6 +13,7 @@ interface ExploreFilterProps {
   saveConfig: Function
   close: Function
   isLastTag: boolean
+  tagIndex: number
 }
 
 export const operators: any = {
@@ -30,7 +31,7 @@ export const joinTypes: any = {
 const CheckboxGroup = Checkbox.Group;
 
 export default function ExploreFilter(props: ExploreFilterProps) {
-  const { originType, saveConfig, close, isLastTag } = props;
+  const { originType, saveConfig, close, isLastTag, tagIndex } = props;
   const childRef = React.createRef();
 
   const [allCheckedList, setAllCheckedList] = useState([]),
@@ -129,7 +130,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       });
     }
 
-    const csv: { typeId: any; attrId: string; attrName: string; attrType: string; }[] = [];
+    const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [];
     if (checkedList.length > 0) {
       const tagType: string = _.get(originType, 'type', ''),
         tagTypeData = _.get(originType, 'data', {}),
@@ -142,7 +143,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           typeId: tagTypeId,
           attrId: valArr[0],
           attrName: valArr[1] + "_" + tagTypeLabel,
-          attrType: valArr[2]
+          attrType: valArr[2],
+          index: tagIndex
         })
       });
     }
