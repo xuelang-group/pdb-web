@@ -1,7 +1,20 @@
 import { Modal, Form, Input, Select} from "antd";
+import { StoreState } from '@/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { setGroupBy, setDimention, setFunc, exit, setEditId } from "@/reducers/indicator";
+import { useEffect } from "react";
 
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
+  const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+
+  useEffect(() => {
+    if (editId) {
+      const { name, en_name, unit, desc } = allIndicators.find((item: any) => item.id === editId) || {}
+      infoForm.setFieldsValue({ name, en_name, unit, desc })
+    }
+  }, [editId])
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
@@ -11,8 +24,8 @@ export default function SaveModal(props: any) {
 
   return (
     <Modal
-      visible={props.visible}
-      title="保存指标"
+      open={props.visible}
+      title={editId? '编辑指标' : '保存指标'}
       onOk={onOk}
       onCancel={props.onCancel}
       okText="保存"

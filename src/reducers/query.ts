@@ -45,14 +45,18 @@ export const initialParams = {
 export const querySlice = createSlice({
   name: 'query',
   initialState: {
+    api: '',
     params: initialParams
   },
   reducers: {
+    setApi: (state, action: PayloadAction<string>) => {
+      state.api = action.payload;
+    },
     setQueryParams: (state, action: PayloadAction<ParamsState>) => {
       state.params = JSON.parse(JSON.stringify(action.payload));
     }
   }
 });
 
-export const { setQueryParams } = querySlice.actions;
+export const { setQueryParams, setApi } = querySlice.actions;
 export default querySlice.reducer;

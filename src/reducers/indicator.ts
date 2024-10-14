@@ -135,6 +135,18 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   return { columns, records, mergeCell}
 }
 
+const updateFuncOptions = (columns: any[], dimention: string) => {
+  const colObj = columns.find(item => item.field === dimention)
+  let funcOptions: string[] = [];
+  if (colObj && colObj.type in funcOptionsObj) {
+    funcOptions = funcOptionsObj[colObj.type as keyof typeof funcOptionsObj];
+  } else {
+    funcOptions = []
+  }
+
+  return funcOptions
+}
+
 export const indicatorSlice = createSlice({
   name: 'indicator',
   initialState,
@@ -149,6 +161,7 @@ export const indicatorSlice = createSlice({
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
+      state.funcOptions = updateFuncOptions(columns, dimention);
     },
     updateColumn: (state, action: PayloadAction<any>) => {
       const { col, key, value } = action.payload;
@@ -174,6 +187,7 @@ export const indicatorSlice = createSlice({
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
+      state.funcOptions = updateFuncOptions(columns, dimention);
     },
     setMetrics: (state, action: PayloadAction<any>) => {
       state.list = action.payload;
@@ -187,17 +201,12 @@ export const indicatorSlice = createSlice({
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
+      state.funcOptions = updateFuncOptions(columns, dimention);
     },
     setDimention: (state, action: PayloadAction<any>) => {
       state.dimention = action.payload;
       
       state.func = '';
-      const colObj = state.columns.find(item => item.field === state.dimention)
-      if (colObj && colObj.type in funcOptionsObj) {
-        state.funcOptions = funcOptionsObj[colObj.type as keyof typeof funcOptionsObj];
-      } else {
-        state.funcOptions = []
-      }
 
       const { dimention, func, groupBy, groupByResult } = state;
       const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
@@ -205,6 +214,7 @@ export const indicatorSlice = createSlice({
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
+      state.funcOptions = updateFuncOptions(columns, dimention);
     },
     setFunc: (state, action: PayloadAction<any>) => {
       state.func = action.payload;

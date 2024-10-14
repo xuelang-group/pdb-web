@@ -10,7 +10,7 @@ import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc } 
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import './index.less';
-import { initialParams, setQueryParams } from '@/reducers/query';
+import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 
 export default function List(props: any) {
   const [isIndSearched, setIndSearchedStatus] = useState(false);
@@ -28,6 +28,14 @@ export default function List(props: any) {
   const { Search } = Input;
 
   useEffect(() => {
+    updateList()
+  }, [])
+
+  useEffect(() => {
+    setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
+  }, [allIndicators]);
+
+  const updateList = () => {
     dispatch(setIndicatorLoading(true));
     getMetrics(function (response: any) {
       if (response) {
@@ -37,11 +45,7 @@ export default function List(props: any) {
       }
       dispatch(setIndicatorLoading(false));
     })
-  }, [])
-
-  useEffect(() => {
-    setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
-  }, [allIndicators]);
+  }
 
   const getIndicatorList = function (indList: Array<any>, keyWord: string): Array<any> {
     var arr = [];
@@ -86,6 +90,7 @@ export default function List(props: any) {
       dispatch(setDimention(item.metric_params.dimention));
       dispatch(setFunc(item.metric_params.func));
       dispatch(setGroupBy(item.metric_params.group_by));
+      dispatch(setApi(item.pql_params.api));
       dispatch(setQueryParams(item.pql_params.params));
     }
     if (menu.key === 'edit') {
@@ -93,6 +98,7 @@ export default function List(props: any) {
       dispatch(setDimention(item.metric_params.dimention));
       dispatch(setFunc(item.metric_params.func));
       dispatch(setGroupBy(item.metric_params.group_by));
+      dispatch(setApi(item.pql_params.api));
       dispatch(setQueryParams(item.pql_params.params));
     }
   }
