@@ -114,7 +114,7 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   if (!isEmpty(groupByResult)) {
     forEach(groupByResult, item => {
       // 计算结果中的分组
-      const keys = Object.keys(item).filter(key => key.indexOf(`_${func}`) == -1);
+      const keys = Object.keys(item).filter(key => key !== dimention);
       const record: Record = {
         ...item,
         merge: keys.length

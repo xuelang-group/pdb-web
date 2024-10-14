@@ -34,6 +34,8 @@ export default function VTable(props: {width: number, height: number}) {
     defaultRowHeight: 46,
     defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
+    rightFrozenColCount: dimention ? 1 : 0,
+    frozenColCount: groupBy.length,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -111,7 +113,7 @@ export default function VTable(props: {width: number, height: number}) {
               const text = new CustomLayout.Text({
                 x: width - 15,
                 y: height / 2 + 1,
-                text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}_${func}`],
+                text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}`],
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: 'PingFang SC',
@@ -201,7 +203,6 @@ export default function VTable(props: {width: number, height: number}) {
         ...option,
         columns: getColumns(columns),
         records: records,
-        // rightFrozenColCount: dimention ? 1 : 0,
       });
       const colCount = columns.length - 1;
       const rowCount = records.length;
