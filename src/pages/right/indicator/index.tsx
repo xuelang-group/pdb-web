@@ -8,10 +8,11 @@ import SaveModal from "./SaveModal";
 import { setIndicatorLoading } from '@/reducers/editor';
 import { getMetrics } from "@/actions/indicator";
 import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics } from "@/reducers/indicator";
-import { addMetric } from "@/actions/indicator";
+import { addMetric, updateMetric } from "@/actions/indicator";
 import { useParams } from "react-router-dom"; 
 
 export default function Right(props: any) {
+  const [modalLoading, setModalLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [infoForm] = Form.useForm();
   const columnsOptions = useSelector((state: StoreState) => state.indicator.columns); 
@@ -37,6 +38,7 @@ export default function Right(props: any) {
   const onSave = (values: any) => {
     const postObj: any = {
       name: values.name,
+      name_en: values.name_en,
       unit: values.unit,
       desc: values.desc,
       metric_params: {
@@ -49,18 +51,35 @@ export default function Right(props: any) {
         params: query,
       },
     }
+    setModalLoading(true)
     if (editId) {
       postObj.id = editId
+      updateMetric(postObj, (success: boolean, res: any) => {
+        if (success) {
+          dispatch(setIndicatorLoading(true));
+          updateList(() => {
+            setModalVisible(false)
+            message.success('编辑指标成功');
+          })
+        } else {
+          message.error('编辑指标失败：' + res.message || res.msg);
+        }
+        setModalLoading(false)
+      })
+    } else {
+      addMetric(postObj, (success: boolean, res: any) => {
+        if (success) {
+          dispatch(setIndicatorLoading(true));
+          updateList(() => {
+            setModalVisible(false)
+            message.success('保存指标成功');
+          })
+        } else {
+          message.error('保存指标失败：' + res.message || res.msg);
+        }
+        setModalLoading(false)
+      })
     }
-    addMetric(postObj, (res: any) => {
-      if (res) {
-        dispatch(setIndicatorLoading(true));
-        updateList(() => {
-          setModalVisible(false)
-          message.success('保存指标成功');
-        })
-      }
-    })
   }
 
   
@@ -256,7 +275,7 @@ export default function Right(props: any) {
           )
         }
       </PdbPanel>
-      <SaveModal visible={modalVisible} onCancel={() => {setModalVisible(false)}} onOk={onSave}/>
+      <SaveModal visible={modalVisible} onCancel={() => {setModalVisible(false)}} onOk={onSave} modalLoading={modalLoading} />
     </div>
   )
 }

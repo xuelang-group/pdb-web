@@ -5,7 +5,8 @@ const api = {
   csv: apiPrefix + '/execute_pdb',  // 执行pdb查询获取原始数据表
   calc: apiPrefix + '/calc',        // 直接执行计算
   getMetrics: apiPrefix + '/metrics',        // 获取metrics列表
-  addMetric: apiPrefix + '/add_metric',        // 获取metrics列表
+  addMetric: apiPrefix + '/add_metric',        // 新增metric
+  updateMetric: apiPrefix + '/update_metric',        // 编辑metric
 };
 
 // 获取模板列表
@@ -51,12 +52,21 @@ export const getMetrics = (callback) => {
   });
 };
 
-
 // 新增metric
 export const addMetric = (params, callback) => {
   return axios.post(api['addMetric'], params).then(({ data }) => {
-    callback && callback(data);
+    callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);
   });
 };
+
+// 编辑metric
+export const updateMetric = (params, callback) => {
+  return axios.put(api['updateMetric'], params).then(({ data }) => {
+    callback && callback(true, data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+

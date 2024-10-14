@@ -7,7 +7,7 @@ export default function SaveModal(props: any) {
       <Form>
         <Form.Item label="编号">{props.data?.id || "--"}</Form.Item>
         <Form.Item label="中文名称">{props.data?.name || "--"}</Form.Item>
-        <Form.Item label="英文名称">{props.data?.en_name || "--"}</Form.Item>
+        <Form.Item label="英文名称">{props.data?.name_en || "--"}</Form.Item>
         <Form.Item label="单位">{props.data?.unit || "--"}</Form.Item>
         <Form.Item label="描述">{props.data?.desc || "--"}</Form.Item>
         <Form.Item label="创建人">--</Form.Item>
