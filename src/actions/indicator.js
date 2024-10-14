@@ -34,7 +34,7 @@ export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
       "params": query
     }
   }).then(({data}) => {
-    console.log(data)
+    // console.log(data)
     // callback && callback(data.success, data.success ? data.data: data);
     callback && callback(true, data);
   }, (err) => {

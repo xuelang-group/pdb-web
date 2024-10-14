@@ -10,7 +10,7 @@ import { setFuncResult } from "@/reducers/indicator";
 import { getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getCsv } from "@/actions/indicator";
-import { setTableData } from "@/reducers/indicator";
+import { setTableData, updateColumn } from "@/reducers/indicator";
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props
@@ -34,7 +34,7 @@ export default function VTable(props: {width: number, height: number}) {
     defaultRowHeight: 46,
     defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
-    rightFrozenColCount: dimention ? 1 : 0,
+    rightFrozenColCount: 1,
     frozenColCount: groupBy.length,
     theme: {
       // 冻结列效果
@@ -180,8 +180,7 @@ export default function VTable(props: {width: number, height: number}) {
     if (args.menuKey === 'disabled') {
       // tableInstance.setDropDownMenuHighlight([args]);
       const { col } = args;
-      columns[col].disabled = !columns[col].disabled;
-      vtable.current?.updateColumns(getColumns(columns))
+      dispatch(updateColumn({col, key: 'disabled', value: !columns[col].disabled}))
     }
   }
 

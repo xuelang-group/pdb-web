@@ -150,6 +150,18 @@ export const indicatorSlice = createSlice({
       state.records = records;
       state.columns = columns;
     },
+    updateColumn: (state, action: PayloadAction<any>) => {
+      const { col, key, value } = action.payload;
+      state.columns = map(state.columns, (item,i) => {
+        if (i == col) {
+          return {
+            ...item,
+            [`${key}`]: value
+          }
+        }
+        return item
+      })
+    },
     setFuncResult: (state, action: PayloadAction<any>) => {
       const { group_by_result, result } = action.payload;
       
@@ -212,5 +224,5 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setTableData, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, exit } = indicatorSlice.actions
+export const { setTableData, updateColumn, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, exit } = indicatorSlice.actions
 export default indicatorSlice.reducer
