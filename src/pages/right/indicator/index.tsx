@@ -1,13 +1,15 @@
 import PdbPanel from "@/components/Panel";
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip } from 'antd';
+import { Button, Form, InputRef, Select, message } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import React, { useState, useRef, useEffect } from "react";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import SaveModal from "./SaveModal";
-import { setGroupBy, setDimention, setFunc, exit } from "@/reducers/indicator";
+import { setIndicatorLoading } from '@/reducers/editor';
+import { getMetrics } from "@/actions/indicator";
+import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics } from "@/reducers/indicator";
 import { addMetric } from "@/actions/indicator";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom"; 
 
 export default function Right(props: any) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -19,6 +21,7 @@ export default function Right(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : [undefined]));
+  const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const inputRef = useRef<InputRef>(null);
   const dispatch = useDispatch();
@@ -32,7 +35,7 @@ export default function Right(props: any) {
   }
 
   const onSave = (values: any) => {
-    const postObj = {
+    const postObj: any = {
       name: values.name,
       unit: values.unit,
       desc: values.desc,
@@ -41,15 +44,35 @@ export default function Right(props: any) {
         func: func,
         group_by: groupBy,
       },
-      pql_params: query,
+      pql_params: {
+        api: api,
+        params: query,
+      },
     }
-    addMetric(postObj, () => {
-      setModalVisible(false)
-      notification.success({
-        message: '保存成功',
-        description: '指标配置已保存',
-        duration: 2,
-      });
+    if (editId) {
+      postObj.id = editId
+    }
+    addMetric(postObj, (res: any) => {
+      if (res) {
+        dispatch(setIndicatorLoading(true));
+        updateList(() => {
+          setModalVisible(false)
+          message.success('保存指标成功');
+        })
+      }
+    })
+  }
+
+  
+  const updateList = (callback: Function ) => {
+    getMetrics(function (response: any) {
+      if (response) {
+        dispatch(setMetrics(response || []));
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+      callback && callback()
+      dispatch(setIndicatorLoading(false));
     })
   }
 
@@ -72,6 +95,7 @@ export default function Right(props: any) {
                     options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field }))}
                     onChange={(value) => { dispatch(setDimention(value)) }}
                     value={dimention}
+                    disabled={!!checkId}
                   />
                 </Form.Item>
             </Form.Item>
@@ -91,6 +115,7 @@ export default function Right(props: any) {
                     // ]}
                     options={funcOptions.map((item) => ({ label: item, value: item }))}
                     onChange={(value) => { dispatch(setFunc(value)) }}
+                    disabled={!!checkId}
                   />
                 </Form.Item>
             </Form.Item>
@@ -130,9 +155,10 @@ export default function Right(props: any) {
                                 })
                                 onGroupByChange()
                               }}
+                              disabled={!!checkId}
                             />
                           </Form.Item>
-                          {(fields.length > 1 || infoForm.getFieldValue('names')?.[0]) ? (
+                          {((fields.length > 1 || infoForm.getFieldValue('names')?.[0]) && !checkId) ? (
                             <DeleteOutlined 
                               className="dynamic-delete-button"
                               onClick={() => {
@@ -153,7 +179,7 @@ export default function Right(props: any) {
                     ))}
                     <Form.Item>
                       {
-                        infoForm.getFieldValue('names')?.[fields.length - 1] && (
+                        (infoForm.getFieldValue('names')?.[fields.length - 1]  && !checkId) && (
                           <Button
                             type="dashed"
                             onClick={() => add()}
@@ -176,11 +202,11 @@ export default function Right(props: any) {
               <Button 
                 type="primary"
                 onClick={() => {
-                  setModalVisible(true)
+                  dispatch(setEditId(checkId));
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
               >
-                保存指标
+                编辑指标
               </Button>
               <Button 
                 onClick={() => {
