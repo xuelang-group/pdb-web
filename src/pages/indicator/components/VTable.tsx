@@ -74,10 +74,10 @@ export default function VTable(props: {width: number, height: number}) {
         cellBorderLineWidth: 1,
       },
     },
-    records: records,
+    // records: records,
     columns: getColumns(columns),
     customMergeCell: (col: any, row: any, table: any) => {
-      if (mergeCell.row.includes(row)) {
+      if (!isEmpty(mergeCell.row) && mergeCell.row.includes(row)) {
         const item = records[row-1];
         if (col >= item.merge-1 && col < table.colCount) {
           const key = groupBy[item.merge-1];
@@ -158,17 +158,8 @@ export default function VTable(props: {width: number, height: number}) {
     // },
   }
 
-  useEffect(() => {
-    getCsv(query, function (success: boolean, response: any) {
-      if (success) {
-        dispatch(setTableData(response.trim()));
-      } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
-      }
-    })
-  }, [query])
-
   const onReady = (tableInstance: any, isFirst: Boolean) => {
+    console.log('on ready ', isFirst)
     if (isFirst) {
       vtable.current = tableInstance
     }
@@ -195,16 +186,28 @@ export default function VTable(props: {width: number, height: number}) {
   }
 
   useEffect(() => {
+    query.graphId ? getCsv(query, function (success: boolean, response: any) {
+      if (success) {
+        dispatch(setTableData(response.trim()));
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+    }) : dispatch(setTableData(""));
+  }, [query])
+
+  useEffect(() => {
     if (vtable.current) {
       vtable.current.updateOption({
         ...option,
         columns: getColumns(columns),
-        records: records,
+        // records: records,
       });
-      const colCount = columns.length - 1;
-      const rowCount = records.length;
       vtable.current.clearSelected();
-      vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+      if (!isEmpty(columns)) {
+        const colCount = columns.length - 1;
+        const rowCount = records.length;
+        vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+      }
     }
   }, [columns])
 
@@ -217,35 +220,36 @@ export default function VTable(props: {width: number, height: number}) {
       }
     })
   }, [func, dimention, groupBy])
-
-  if (isEmpty(columns)) {
-    return (
-      <div className="pdb-vtable-empty">
-        <Empty
-          image={EmptyImage}
-          imageStyle={{ height: 240, marginBottom: 0 }}
-          description={
-            <Space direction="vertical" size={4}>
-            <Typography.Text >
-              暂无数据
-            </Typography.Text>
-            <Typography.Text type="secondary" style={{fontSize: 12}}>
-              查看、创建、编辑指标以展示数据
-            </Typography.Text>
-            </Space>
-          }
-        />
-      </div>
-    )
-  }
+  
   const showFoot = !isEmpty(result)
   return (
     <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: showFoot ? 48 : 0 }}>
+      {
+        isEmpty(columns) && (
+          <div className="pdb-vtable-empty">
+            <Empty
+              image={EmptyImage}
+              imageStyle={{ height: 240, marginBottom: 0 }}
+              description={
+                <Space direction="vertical" size={4}>
+                <Typography.Text >
+                  暂无数据
+                </Typography.Text>
+                <Typography.Text type="secondary" style={{fontSize: 12}}>
+                  查看、创建、编辑指标以展示数据
+                </Typography.Text>
+                </Space>
+              }
+            />
+          </div>
+        )
+      }
       <div style={{ width: '100%', height: '100%' }}>
         <ListTable
           width={width}
           height={showFoot ? height - 48 : height}
           option={option}
+          records={records}
           onReady={onReady}
           onDropdownMenuClick={onDropdownMenuClick}
           onContextMenuCell={onContextMenuCell}

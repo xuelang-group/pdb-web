@@ -157,16 +157,30 @@ export const indicatorSlice = createSlice({
   initialState,
   reducers: {
     setTableData: (state, action: PayloadAction<any>) => {
-      const result = papa.parse<any[]>(action.payload);
-      state.csv = result.data;
+      if (action.payload) {
+        const result = papa.parse<any[]>(action.payload);
+        state.csv = result.data;
+        
+        const { dimention, func, groupBy, groupByResult, disabledField } = state;
+        const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
 
-      const { dimention, func, groupBy, groupByResult, disabledField } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
-
-      state.mergeCell = mergeCell;
-      state.records = records;
-      state.columns = columns;
-      state.funcOptions = updateFuncOptions(columns, dimention);
+        state.mergeCell = mergeCell;
+        state.records = records;
+        state.columns = columns;
+        state.funcOptions = updateFuncOptions(columns, dimention);
+      } else {
+        state.csv = [];
+        state.mergeCell = { col: [], row: [] };
+        state.records = [];
+        state.columns = [];
+        state.disabledField = [];
+        state.dimention = '';
+        state.func = '';
+        state.groupByResult = [];
+        state.result = [];
+        state.groupBy = [];
+        state.funcOptions = [];
+      }
     },
     updateDisabledField: (state, action: PayloadAction<any>) => {
       const { col, value } = action.payload;
@@ -203,12 +217,13 @@ export const indicatorSlice = createSlice({
       state.list = action.payload;
     },
     setGroupBy: (state, action: PayloadAction<any>) => {
-      state.groupBy = action.payload;
+      state.groupBy = action.payload; 
+      
+      if (isEmpty(state.csv)) return
 
       const { dimention, func, groupBy, groupByResult, disabledField } = state;
-      console.log('group by disabled: ', disabledField)
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
-
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
+    
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
@@ -218,6 +233,8 @@ export const indicatorSlice = createSlice({
       state.dimention = action.payload;
 
       state.func = '';
+      
+      if (isEmpty(state.csv)) return
 
       const { dimention, func, groupBy, groupByResult, disabledField } = state;
       const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
