@@ -88,7 +88,7 @@ export type Col = {
 }
 export function getColumns(cols: Col[]) {
   if (!cols.length) return [];
-  return cols.map(({ field, type, disabled, checked, mergeCell, fieldFormat }) => ({
+  return cols.map(({ field, type, disabled, checked, mergeCell, fieldFormat }, i) => ({
     "field": field,
     "title": field,
     "dimensionKey": field,
@@ -99,13 +99,13 @@ export function getColumns(cols: Col[]) {
       "bgColor": "#F4F6F9",
       "color": "#C2C7CC",
     } : {},
-    "headerStyle": disabled ? {
-      "bgColor": "#F4F6F9",
-      "color": "#C2C7CC",
-    } : {},
     "fieldFormat": fieldFormat,
-    "headerIcon": disabled ? `${type}Disabled` : type,
     // 只有一行的表头
+    // "headerStyle": disabled ? {
+    //   "bgColor": "#F4F6F9",
+    //   "color": "#C2C7CC",
+    // } : {},
+    // "headerIcon": disabled ? `${type}Disabled` : type,
     // "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
     //   const { rect } = args;
     //   const width = rect?.width || 150;
