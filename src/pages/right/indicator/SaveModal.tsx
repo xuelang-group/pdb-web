@@ -46,7 +46,7 @@ export default function SaveModal(props: any) {
           <Form.Item label="英文名称" rules={[{ required: true, message: '请输入英文名称' }]} name={'name_en'}>
             <Input placeholder="请输入英文名称" />
           </Form.Item>
-          <Form.Item label="单位" rules={[{ required: true, message: '请输入单位' }]} name={'unit'}>
+          <Form.Item label="单位" name={'unit'}>
             <Input placeholder="请输入单位" />
           </Form.Item>
           <Form.Item label="指标描述" name={'desc'}>
