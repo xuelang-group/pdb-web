@@ -41,7 +41,9 @@ export default function AppExplore() {
     showSearch = useSelector((state: StoreState) => state.editor.showSearch),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    queryParams = useSelector((state: StoreState) => state.query.params);
+    queryParams = useSelector((state: StoreState) => state.query.params),
+    indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
+    indicatorEditId = useSelector((state: StoreState) => state.indicator.editId); // 指标编辑id
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
     [filterPanelOpenKey, setFilterPanelOpenKey] = useState<any>(null),
@@ -64,10 +66,8 @@ export default function AppExplore() {
   }, []);
 
   useEffect(() => {
-    console.log(queryParams, searchTagMap)
-
     // 反向解析
-    if (_.isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
+    if ((indicatorCheckId || indicatorEditId) && _ .isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
       const { pql, csv } = queryParams;
       const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
       _.get(csv, "header", []).forEach(function (val) {
@@ -170,8 +170,9 @@ export default function AppExplore() {
       });
       setSearchTags([_tags]);
       setSearchTagMap([_tagsMap]);
+      searchPQL([_tagsMap], [_tags], false);
     }
-  }, [queryParams, typeMap]);
+  }, [indicatorCheckId, indicatorEditId, queryParams, typeMap]);
 
   useEffect(() => {
     handleSearch(currentSearchValue, currentFocusIndex);
@@ -612,10 +613,10 @@ export default function AppExplore() {
     graph.zoom(1);
   }
 
-  const getPQL = function (_searchTagMap = searchTagMap) {
+  const getPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags) {
     const pql: any = [], relationNames: string[] = [];
     let csv: any = [];
-    searchTags.forEach((item, index) => {
+    _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
         let pqlItem: any[] = [], csvItem: any[] = [];
         item.forEach(val => {
@@ -668,14 +669,14 @@ export default function AppExplore() {
     return { pql, csv, relationNames };
   }
 
-  const searchPQL = function (_searchTagMap = searchTagMap) {
-    const { pql, relationNames, csv } = getPQL(_searchTagMap);
+  const searchPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags, updateQuery = true) {
+    const { pql, relationNames, csv } = getPQL(_searchTagMap, _searchTags);
     if (pql.length === 0) return;
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
-    dispatch(setQueryParams({
+    updateQuery && dispatch(setQueryParams({
       graphId,
       pql,
       csv: {
@@ -910,7 +911,7 @@ export default function AppExplore() {
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
-        closable={closable}
+        closable={closable && !indicatorCheckId && !indicatorEditId}
         onClick={() => showFilterPanel(value)}
         onClose={onClose}
         style={{ marginRight: 3 }}
@@ -943,7 +944,7 @@ export default function AppExplore() {
   return (
     <div id="pdb-explore" className={`pdb-explore pdb-explore-${exploreExpand ? 'expand' : 'collapse'}`}>
       {showSearch &&
-        <div className="pdb-explore-search-group">
+        <div className={"pdb-explore-search-group" + (indicatorCheckId ? " pdb-explore-search-group-disabled" : "")}>
           {searchTags.map((item, index) => (
             <Popover
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
@@ -1041,7 +1042,7 @@ export default function AppExplore() {
                 notFoundContent={<Empty description="暂无相关结果" />}
                 open={currentFocusIndex === index && dropdownOpen}
                 // allowClear
-                disabled={searchLoading}
+                disabled={searchLoading || Boolean(indicatorCheckId)}
                 autoFocus={index > 0}
                 getPopupContainer={(() => document.getElementById("pdb-explore") || document.body) as any}
                 dropdownRender={(originNode) => dropdownRender(originNode, index)}
@@ -1066,7 +1067,7 @@ export default function AppExplore() {
           ))}
         </div>
       }
-      {!searchLoading &&
+      {!searchLoading && !indicatorCheckId &&
         <Tooltip title="搜索">
           <i
             className="spicon icon-sousuo2"
@@ -1108,12 +1109,14 @@ export default function AppExplore() {
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
       /> */}
-      <Tooltip title="清空">
-        <i
-          className="spicon icon-shibai"
-          onClick={handleClearSearch}
-        ></i>
-      </Tooltip>
+      {!indicatorCheckId && !indicatorEditId &&
+        <Tooltip title="清空">
+          <i
+            className="spicon icon-shibai"
+            onClick={handleClearSearch}
+          ></i>
+        </Tooltip>
+      }
     </div>
   )
 }

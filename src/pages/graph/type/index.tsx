@@ -63,7 +63,6 @@ export default function Editor(props: any) {
       },
       linkCenter: true
     });
-    (window as any).PDR_GRAPH = graph
     graph.get('canvas').set('localRefresh', false);
     graph.render();
     if (typeof window !== 'undefined') {
