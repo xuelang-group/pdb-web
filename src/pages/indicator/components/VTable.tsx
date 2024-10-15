@@ -30,10 +30,10 @@ export default function VTable(props: {width: number, height: number}) {
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 46,
-    defaultColWidth: 150,
+    defaultColWidth: 180,
     defaultHeaderRowHeight: 92,
     rightFrozenColCount: 1,
-    frozenColCount: groupBy.length,
+    // frozenColCount: groupBy.length,
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -82,6 +82,7 @@ export default function VTable(props: {width: number, height: number}) {
         if (col >= item.merge-1 && col < table.colCount) {
           const key = groupBy[item.merge-1];
           const name = item[key];
+          const colWidth = table.getColWidth(columns.length-1)
           return {
             text: '小计',
             range: {
@@ -96,33 +97,41 @@ export default function VTable(props: {width: number, height: number}) {
             },
             style: {
               fontWeight: 600,
-              // textAlign: 'right',
+              fontSize: 13,
+              color: '#4C5A67',
+              bgColor: '#fafafa'
             },
             customLayout: (args: any) => {
               const { width, height } = args.rect;
               const container = new CustomLayout.Group({
                 height,
                 width: width,
-                display: 'flex',
-                flexWrap: 'nowrap',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
               });
               const text = new CustomLayout.Text({
-                x: width - 15,
+                x: width - colWidth + 15,
                 y: height / 2 + 1,
-                text: '小计 | ' + name + ' - ' + func + ': ' + item[`${dimention}`],
+                text: item[`${dimention}`],
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: 'PingFang SC',
                 fill: '#1C2126',
                 textBaseline: 'middle',
-                boundsPadding: [0, 15]
               });
+              const fieldName = new CustomLayout.Text({
+                x: 45,
+                y: height / 2 + 1,
+                text: '(' + func + ')',
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: 'PingFang SC',
+                fill: '#4C5A67',
+                textBaseline: 'middle',
+              })
+              container.add(fieldName)
               container.add(text)
               return {
                 rootContainer: container,
-                renderDefault: false,
+                renderDefault: true,
               }
             }
           };
