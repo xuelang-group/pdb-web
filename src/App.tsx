@@ -1,5 +1,5 @@
 import { Layout, notification, Spin, Tabs } from 'antd';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
@@ -38,8 +38,10 @@ import { setRelations } from '@/reducers/relation';
 import { setTypeLoading } from '@/reducers/editor';
 
 const { Content } = Layout;
+let prevPathname = "";
 function App(props: PdbConfig) {
   const { theme, headerEXtraWidth } = props;
+  const indicatorRef = React.createRef();
   const dispatch = useDispatch(),
     navigate = useNavigate(),
     location = useLocation();
@@ -49,6 +51,7 @@ function App(props: PdbConfig) {
 
   const [selectedTab, setSelectedTab] = useState("pdb");
   useEffect(() => {
+    prevPathname = location.pathname;
     dispatch(setPageLoading(true));
     setSelectedTab(location.pathname.endsWith("/indicator") ? "indicator" : "pdb");
     getSystemInfo((success: boolean, response: any) => {
@@ -77,7 +80,17 @@ function App(props: PdbConfig) {
     };
   }, []);
 
-  const getCommonData = function (graphId: String) {
+  useEffect(() => {
+    if (prevPathname.indexOf("/indicator") > -1 && location.pathname.indexOf("/indicator") === -1) {
+      setSelectedTab("pdb");
+      systemInfo.graphId && getCommonData(systemInfo.graphId.toString());
+    } else if (prevPathname.indexOf("/indicator") === -1 && location.pathname.indexOf("/indicator") > -1) {
+      setSelectedTab("indicator");
+    }
+    prevPathname = location.pathname;
+  }, [location.pathname]);
+
+  const getCommonData = function (graphId: string) {
     getTypeByGraphId(graphId, null, (success: boolean, response: any) => {
       if (success) {
         dispatch(Type.setTypes(response || []));

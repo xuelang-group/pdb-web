@@ -1,11 +1,11 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { last, values } from "lodash";
+import _, { isEmpty, last, values } from "lodash";
 import React, { useCallback } from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
@@ -22,6 +22,7 @@ import { ConditionState, initialParams, setQueryParams } from "@/reducers/query"
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
+import { setShowSaveModal } from "@/reducers/indicator";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -32,6 +33,7 @@ export const typeLabelMap: any = {
 export default function AppExplore() {
   const dispatch = useDispatch();
   const routerParams = useParams();
+  const navigator = useNavigate();
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
 
   const types = useSelector((state: StoreState) => state.type.data),
@@ -42,6 +44,10 @@ export default function AppExplore() {
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     queryParams = useSelector((state: StoreState) => state.query.params),
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+  const dimention = useSelector((state: StoreState) => state.indicator.dimention),
+    func = useSelector((state: StoreState) => state.indicator.func),
+    groupBy = useSelector((state: StoreState) => state.indicator.groupBy),
     indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
     indicatorEditId = useSelector((state: StoreState) => state.indicator.editId); // 指标编辑id
   const [exploreExpand, setExploreExpand] = useState(false),
@@ -67,7 +73,7 @@ export default function AppExplore() {
 
   useEffect(() => {
     // 反向解析
-    if ((indicatorCheckId || indicatorEditId) && _.isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
+    if ((indicatorCheckId || indicatorEditId) && _.isEmpty(searchTags[0]) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
       const { pql, csv } = queryParams;
       const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
       _.get(csv, "header", []).forEach(function (val) {
@@ -171,6 +177,18 @@ export default function AppExplore() {
       setSearchTags([_tags]);
       setSearchTagMap([_tagsMap]);
       searchPQL([_tagsMap], [_tags], false);
+    }
+
+    if (isEmpty(queryParams.graphId) && searchTags && !isEmpty(searchTags)) {
+      setSearchTags([[]]);
+      setSearchTagMap([{}]);
+      setCurrentFocusIndex(0);
+      const graph = (window as any).PDB_GRAPH;
+      if (!graph || !graphDataMap['main']) return;
+      dispatch(setCurrentGraphTab("main"));
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+      graph.render();
+      graph.zoom(1);
     }
   }, [indicatorCheckId, indicatorEditId, queryParams, typeMap]);
 
@@ -930,17 +948,22 @@ export default function AppExplore() {
   }
 
   const handleClearSearch = function (event: any) {
-    event.stopPropagation();
-    setSearchTags([[]]);
-    setSearchTagMap([{}]);
-    setCurrentFocusIndex(0);
-    const graph = (window as any).PDB_GRAPH;
-    if (!graph || !graphDataMap['main']) return;
-    dispatch(setCurrentGraphTab("main"));
-    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
-    graph.render();
-    graph.zoom(1);
-    dispatch(setQueryParams(initialParams));
+    if (queryParams.graphId && (dimention || func || groupBy && groupBy.length > 0)) {
+      dispatch(setShowSaveModal(true));
+      navigator(`/${systemInfo.graphId}/indicator`);
+    } else {
+      event.stopPropagation();
+      setSearchTags([[]]);
+      setSearchTagMap([{}]);
+      setCurrentFocusIndex(0);
+      const graph = (window as any).PDB_GRAPH;
+      if (!graph || !graphDataMap['main']) return;
+      dispatch(setCurrentGraphTab("main"));
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+      graph.render();
+      graph.zoom(1);
+      dispatch(setQueryParams(initialParams));
+    }
   }
 
   return (

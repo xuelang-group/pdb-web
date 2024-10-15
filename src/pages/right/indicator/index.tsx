@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SaveModal from "./SaveModal";
 import { setIndicatorLoading } from '@/reducers/editor';
 import { getMetrics } from "@/actions/indicator";
-import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics } from "@/reducers/indicator";
+import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setShowSaveModal } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
 import { createAutoRelation } from "@/actions/object";
@@ -16,6 +16,7 @@ import "./index.less";
 import { RelationConfig } from "@/reducers/relation";
 import { uuid } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
+import { initialParams, setQueryParams } from "@/reducers/query";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ export default function Right(props: any) {
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const showSaveModal = useSelector((state: StoreState) => state.indicator.showSaveModal);
+
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : [undefined]));
   const api = useSelector((state: StoreState) => state.query.api);
@@ -40,11 +43,43 @@ export default function Right(props: any) {
     infoForm.setFieldValue('names', groupBy)
   }, [groupBy])
 
+  let saveModal: any = null;
+  const onCancel = () => {
+    dispatch(setShowSaveModal(false));
+    saveModal && saveModal.destroy();
+  }
+
+  const onUnsave = () => {
+    onCancel();
+    dispatch(setQueryParams(initialParams));
+  }
+
+  const onSaveIndicator = () => {
+    onCancel();
+    setModalVisible(true);
+  }
+
+  useEffect(() => {
+    if (showSaveModal) {
+      saveModal = modal.confirm({
+        className: "pdb-indicator-save-confirm",
+        title: "检测到编辑，是否保存新指标？",
+        footer: (
+          <div className="pdb-indicator-save-confirm-footer">
+            <Button onClick={onCancel}>取消</Button>
+            <Button onClick={onUnsave}>不保存</Button>
+            <Button onClick={onSaveIndicator} type="primary">保存</Button>
+          </div>
+        )
+      });
+    }
+  }, [showSaveModal])
+
   const onGroupByChange = () => {
     dispatch(setGroupBy(infoForm.getFieldValue('names') || []));
   }
 
-  let saveModal: any = null;
+  let savingModal: any = null;
   const onSave = (values: any) => {
     const postObj: any = {
       name: values.name,
@@ -79,7 +114,7 @@ export default function Right(props: any) {
     } else {
       setModalVisible(false);
       setModalLoading(false);
-      saveModal = modal.confirm({
+      savingModal = modal.confirm({
         className: "pdb-indicator-save-loading",
         width: 164,
         icon: (<img src={Loading} />),
@@ -94,7 +129,7 @@ export default function Right(props: any) {
           createPDBRelation();
         } else {
           message.error('保存指标失败：' + res.message || res.msg);
-          saveModal && saveModal.destroy();
+          savingModal && savingModal.destroy();
         }
       })
     }
@@ -125,7 +160,7 @@ export default function Right(props: any) {
     //     }
     //   });
     // } else {
-      updateSaveModal();
+    updateSaveModal();
     // }
   }
 
@@ -353,4 +388,8 @@ export default function Right(props: any) {
       {contextHolder}
     </div>
   )
+}
+
+function dispatch(arg0: { payload: import("@/reducers/query").ParamsState; type: "query/setQueryParams"; }) {
+  throw new Error("Function not implemented.");
 }
