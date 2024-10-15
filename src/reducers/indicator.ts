@@ -42,7 +42,7 @@ interface IndicatorState {
   mergeCell: MergeCell;     // 分组的计算结果在表格中合并单元格
   funcOptions: string[]; // 统计算法选项
   list: any[];
-  showSaveModal: boolean; // 展示检测到编辑是否保存指标弹窗
+  modalVisible: boolean;
 }
 
 // 使用该类型定义初始 state
@@ -62,7 +62,7 @@ const initialState: IndicatorState = {
   funcOptions: [],
   mergeCell: { col: [], row: [] },
   list: [],
-  showSaveModal: false
+  modalVisible: false
 }
 
 const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
@@ -264,8 +264,8 @@ export const indicatorSlice = createSlice({
       state.editId = action.payload;
       state.checkId = null;
     },
-    setShowSaveModal: (state, action: PayloadAction<any>) => {
-      state.showSaveModal = action.payload;
+    setModalVisible: (state, action: PayloadAction<any>) => {
+      state.modalVisible = action.payload;
     },
     exit: (state) => {
       state.editId = null;
@@ -274,5 +274,5 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setShowSaveModal, exit } = indicatorSlice.actions
+export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, exit } = indicatorSlice.actions
 export default indicatorSlice.reducer
