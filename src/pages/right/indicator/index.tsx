@@ -101,31 +101,32 @@ export default function Right(props: any) {
   }
 
   const createPDBRelation = function () {
-    const { pql } = query;
-    const autoRelation: RelationConfig[] = [];
-    pql && pql.length > 0 && pql[0].forEach(function ({ type, id, name, binds }) {
-      if (type === "relation" && !id) {
-        autoRelation.push({
-          "r.type.name": 'Relation.' + uuid(),
-          "r.type.label": name,
-          "r.type.constraints": {
-            "r.binds": binds
-          }
-        });
-      }
-    });
-    if (autoRelation.length > 0) {
-      createAutoRelation(autoRelation, function (success: boolean, res: any) {
-        if (success) {
-          updateSaveModal();
-        } else {
-          message.error('创建临时关系失败：' + res.message || res.msg);
-          saveModal && saveModal.destroy();
-        }
-      });
-    } else {
+    // 暂不真实建立关系
+    // const { pql } = query;
+    // const autoRelation: RelationConfig[] = [];
+    // pql && pql.length > 0 && pql[0].forEach(function ({ type, id, name, binds }) {
+    //   if (type === "relation" && !id) {
+    //     autoRelation.push({
+    //       "r.type.name": 'Relation.' + uuid(),
+    //       "r.type.label": name,
+    //       "r.type.constraints": {
+    //         "r.binds": binds
+    //       }
+    //     });
+    //   }
+    // });
+    // if (autoRelation.length > 0) {
+    //   createAutoRelation(autoRelation, function (success: boolean, res: any) {
+    //     if (success) {
+    //       updateSaveModal();
+    //     } else {
+    //       message.error('创建临时关系失败：' + res.message || res.msg);
+    //       saveModal && saveModal.destroy();
+    //     }
+    //   });
+    // } else {
       updateSaveModal();
-    }
+    // }
   }
 
   const updateSaveModal = function () {
