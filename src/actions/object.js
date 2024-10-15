@@ -234,7 +234,8 @@ const objectRelationApi = {
   add: `${objectRelationApiPrefix}/add`,
   update: `${objectRelationApiPrefix}/update`,
   delete: `${objectRelationApiPrefix}/delete`,
-  support: `${objectRelationApiPrefix}/support`
+  support: `${objectRelationApiPrefix}/support`,
+  auto: `${objectRelationApiPrefix}/auto`
 }
 
 export const getObjectRelation = (uid, callback) => {
@@ -285,6 +286,17 @@ export const getRelationTarget = (params, callback) => {
   return axios.post('/pdb/api/v1/graph/relation/target', {
     ...commonParams,
     ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
+export const createAutoRelation = (params, callback) => {
+  return axios.post(objectRelationApi['auto'], {
+    ...commonParams,
+    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

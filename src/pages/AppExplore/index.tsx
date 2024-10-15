@@ -67,7 +67,7 @@ export default function AppExplore() {
 
   useEffect(() => {
     // 反向解析
-    if ((indicatorCheckId || indicatorEditId) && _ .isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
+    if ((indicatorCheckId || indicatorEditId) && _.isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
       const { pql, csv } = queryParams;
       const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
       _.get(csv, "header", []).forEach(function (val) {
@@ -643,7 +643,9 @@ export default function AppExplore() {
             });
 
             if (type === "relation") {
-              relationNames.push(detail.key.replace('.', '_'));
+              if (detail.key !== "e_x_parent" && detail.key !== "~e_x_parent" && !detail.key.startsWith("__TEMPORARY_RELATION__")) {
+                relationNames.push(detail.key.replace('.', '_'));
+              }
               Object.assign(option, {
                 bindType: _.get(detail, "bindType", "innerjoin")
               });

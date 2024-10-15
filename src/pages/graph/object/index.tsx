@@ -55,7 +55,7 @@ export default function Editor(props: EditorProps) {
     templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
 
-  let prevWidth: any = null, prevHeight: any = null;
+  let prevWidth: number | undefined = 0, prevHeight: number | undefined = 0;
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
     if (graph) {
       graph.changeSize(width, height);
