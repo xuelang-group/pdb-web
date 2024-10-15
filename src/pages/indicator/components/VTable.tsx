@@ -1,16 +1,14 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { isEmpty } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { setFuncResult } from "@/reducers/indicator";
-import { getFuncResult } from "@/actions/indicator";
+import { setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
+import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
-import { getCsv } from "@/actions/indicator";
-import { setTableData, updateDisabledField } from "@/reducers/indicator";
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props
