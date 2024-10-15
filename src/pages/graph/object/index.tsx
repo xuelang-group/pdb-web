@@ -14,7 +14,6 @@ import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
-import { RelationConfig } from '@/reducers/relation';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap
@@ -25,7 +24,6 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
-import { TypeConfig } from '@/reducers/type';
 
 interface EditorProps {
   theme: string
@@ -48,7 +46,7 @@ export default function Editor(props: EditorProps) {
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
+    queryParams = useSelector((state: StoreState) => state.query.params),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
     templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
@@ -380,6 +378,13 @@ export default function Editor(props: EditorProps) {
     dispatch(setShowSearch(true));
 
     (window as any).PDB_GRAPH = graph;
+
+    if (queryParams.graphId) {
+      const searchIcon = document.getElementById("pdb-explore-search-icon");
+      if (searchIcon) {
+        searchIcon.click();
+      }
+    }
   }
 
   let deleteConfirmModal: any = null;

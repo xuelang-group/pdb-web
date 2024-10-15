@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import SaveModal from "./SaveModal";
 import { setIndicatorLoading } from '@/reducers/editor';
 import { getMetrics } from "@/actions/indicator";
-import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setShowSaveModal } from "@/reducers/indicator";
+import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setModalVisible } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
 import { createAutoRelation } from "@/actions/object";
@@ -22,7 +22,6 @@ import { initialParams, setQueryParams } from "@/reducers/query";
 export default function Right(props: any) {
   const navigate = useNavigate();
   const [modalLoading, setModalLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const [infoForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
   const columnsOptions = useSelector((state: StoreState) => state.indicator.columns);
@@ -30,7 +29,7 @@ export default function Right(props: any) {
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
-  const showSaveModal = useSelector((state: StoreState) => state.indicator.showSaveModal);
+  const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : [undefined]));
@@ -44,42 +43,11 @@ export default function Right(props: any) {
     infoForm.setFieldValue('names', groupBy)
   }, [groupBy])
 
-  let saveModal: any = null;
-  const onCancel = () => {
-    dispatch(setShowSaveModal(false));
-    saveModal && saveModal.destroy();
-  }
-
-  const onUnsave = () => {
-    onCancel();
-    dispatch(setQueryParams(initialParams));
-  }
-
-  const onSaveIndicator = () => {
-    onCancel();
-    setModalVisible(true);
-  }
-
-  useEffect(() => {
-    if (showSaveModal) {
-      saveModal = modal.confirm({
-        className: "pdb-indicator-save-confirm",
-        title: "检测到编辑，是否保存新指标？",
-        footer: (
-          <div className="pdb-indicator-save-confirm-footer">
-            <Button onClick={onCancel}>取消</Button>
-            <Button onClick={onUnsave}>不保存</Button>
-            <Button onClick={onSaveIndicator} type="primary">保存</Button>
-          </div>
-        )
-      });
-    }
-  }, [showSaveModal])
-
   const onGroupByChange = () => {
     dispatch(setGroupBy(infoForm.getFieldValue('names') || []));
   }
 
+  // 新建指标保存中及保存成功弹窗
   let savingModal: any = null;
   const onSave = (values: any) => {
     const postObj: any = {
@@ -104,7 +72,7 @@ export default function Right(props: any) {
         if (success) {
           dispatch(setIndicatorLoading(true));
           updateList(() => {
-            setModalVisible(false)
+            dispatch(setModalVisible(false))
             message.success('编辑指标成功');
           })
         } else {
@@ -113,7 +81,7 @@ export default function Right(props: any) {
         setModalLoading(false)
       })
     } else {
-      setModalVisible(false);
+      dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({
         className: "pdb-indicator-save-loading",
@@ -167,7 +135,7 @@ export default function Right(props: any) {
 
   const updateSaveModal = function () {
     let timeout: any = null;
-    saveModal && saveModal.update({
+    savingModal && savingModal.update({
       className: "pdb-indicator-save-success",
       icon: (<CheckCircleFilled />),
       width: 470,
@@ -178,17 +146,17 @@ export default function Right(props: any) {
       cancelText: "留在此页",
       onOk: function () {
         navigate(`/${systemInfo.graphId}`);
-        saveModal = null;
+        savingModal = null;
         timeout && clearTimeout(timeout);
       },
       onCancel: function () {
-        saveModal = null;
+        savingModal = null;
         timeout && clearTimeout(timeout);
       }
     });
     timeout = setTimeout(() => {
-      saveModal && saveModal.destroy();
-      saveModal = null;
+      savingModal && savingModal.destroy();
+      savingModal = null;
       timeout = null;
     }, 3000);
   }
@@ -355,7 +323,7 @@ export default function Right(props: any) {
               <Button
                 type="primary"
                 onClick={() => {
-                  setModalVisible(true)
+                  dispatch(setModalVisible(true))
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
               >
@@ -378,7 +346,7 @@ export default function Right(props: any) {
             <Button
               type="primary"
               onClick={() => {
-                setModalVisible(true)
+                dispatch(setModalVisible(true))
               }}
               style={{ marginTop: 'auto', marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
             >
@@ -387,7 +355,7 @@ export default function Right(props: any) {
           )
         }
       </PdbPanel>
-      <SaveModal visible={modalVisible} onCancel={() => { setModalVisible(false) }} onOk={onSave} modalLoading={modalLoading} />
+      <SaveModal visible={modalVisible} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
       {contextHolder}
     </div>
   )

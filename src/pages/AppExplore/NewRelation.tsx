@@ -228,7 +228,7 @@ export default function NewRelation(props: ExploreFilterProps) {
   return (
     <div className="pdb-explore-setting">
       <div className="pdb-explore-setting-header">
-        <span>关系类型 - 临时关系</span>
+        <span>关联关系</span>
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
       <div className="pdb-explore-setting-container">

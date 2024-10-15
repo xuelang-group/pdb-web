@@ -226,7 +226,7 @@ export default function TypeList() {
                 >
                   <span
                     className='type-item'
-                    draggable={currentGraphTab === 'main'}
+                    // draggable={currentGraphTab === 'main'}
                     onDragStart={event => handleDragStart(event, item.data)}
                   >
                     <i className='iconfont icon-duixiangleixing'></i>

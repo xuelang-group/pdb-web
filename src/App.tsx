@@ -191,9 +191,9 @@ function App(props: PdbConfig) {
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
-      <Routes>
+      {/* <Routes>
         <Route path="/:id?" element={<List route="object" theme={theme} />}></Route>
-      </Routes>
+      </Routes> */}
       <Layout className="pdb-layout">
         <Routes>
           <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
