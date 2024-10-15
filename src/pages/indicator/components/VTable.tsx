@@ -202,10 +202,10 @@ export default function VTable(props: {width: number, height: number}) {
         columns: getColumns(columns),
         // records: records,
       });
+      vtable.current.clearSelected();
       if (!isEmpty(columns)) {
         const colCount = columns.length - 1;
         const rowCount = records.length;
-        vtable.current.clearSelected();
         vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
       }
     }
