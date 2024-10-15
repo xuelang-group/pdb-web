@@ -10,7 +10,7 @@ import { setFuncResult } from "@/reducers/indicator";
 import { getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getCsv } from "@/actions/indicator";
-import { setTableData, updateColumn } from "@/reducers/indicator";
+import { setTableData, updateDisabledField } from "@/reducers/indicator";
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props
@@ -180,7 +180,7 @@ export default function VTable(props: {width: number, height: number}) {
     if (args.menuKey === 'disabled') {
       // tableInstance.setDropDownMenuHighlight([args]);
       const { col } = args;
-      dispatch(updateColumn({col, key: 'disabled', value: !columns[col].disabled}))
+      dispatch(updateDisabledField({col, value: !columns[col].disabled}))
     }
   }
 

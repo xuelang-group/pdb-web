@@ -32,6 +32,7 @@ interface IndicatorState {
   csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
+  disabledField: string[];    // 禁用列的field
   dimention: string;        // 指标度量
   func: string;             // 统计算法
   groupByResult: Record[];  // 分组的计算结果
@@ -49,6 +50,7 @@ const initialState: IndicatorState = {
   csv: [],
   records: [],
   columns: [],
+  disabledField: [],
   dimention: '',
   func: '',
   groupByResult: [],
@@ -59,7 +61,7 @@ const initialState: IndicatorState = {
   list: [],
 }
 
-const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[]) => {
+const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField:string[]) => {
   const cols: string[] = data[0];  // CSV的第一行：表头
   const types: string[] = data[1]; // CSV的第二行：数据类型
   const rows = data.slice(2);  
@@ -68,14 +70,15 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
       
   /** 表头数据 */
   const columns: Col[] = map(cols, (field, i) => {
-    const col: Col = { field, type: types[i] };
+    const col: Col = {
+      field,
+      type: types[i],
+      disabled: disabledField.includes(field),
+      checked: dimention === field,
+    };
     if (!isEmpty(groupBy)) {
       // 分组合并单元格
       col.mergeCell = groupBy.includes(field)
-    }
-    if (dimention && dimention === field) {
-      // 指标度量
-      col.checked = true
     }
     // if (col.type === 'float') {
     //   col["fieldFormat"] = (record: { Progress: number; }) => `${Math.round(record.Progress * 100)}%`;
@@ -155,25 +158,30 @@ export const indicatorSlice = createSlice({
       const result = papa.parse<any[]>(action.payload);
       state.csv = result.data;
       
-      const { dimention, func, groupBy, groupByResult } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+      const { dimention, func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
 
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
       state.funcOptions = updateFuncOptions(columns, dimention);
     },
-    updateColumn: (state, action: PayloadAction<any>) => {
-      const { col, key, value } = action.payload;
-      state.columns = map(state.columns, (item,i) => {
-        if (i == col) {
-          return {
-            ...item,
-            [`${key}`]: value
-          }
-        }
-        return item
-      })
+    updateDisabledField: (state, action: PayloadAction<any>) => {
+      const { col, value } = action.payload;
+      let disabledField: string[] = [];
+      const field = state.columns[col].field;
+      if (value) {
+        // 禁用
+        disabledField = [...state.disabledField, field]
+      } else {
+        // 启用
+        disabledField = filter(state.disabledField, item => item != field)
+      }
+      state.disabledField = disabledField;
+      state.columns = map(state.columns, (item,i) => ({
+        ...item,
+        disabled: disabledField.includes(item.field)
+      }))
     },
     setFuncResult: (state, action: PayloadAction<any>) => {
       const { group_by_result, result } = action.payload;
@@ -181,8 +189,8 @@ export const indicatorSlice = createSlice({
       state.groupByResult = group_by_result;
       state.result = result;
 
-      const { dimention, func, groupBy, groupByResult } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+      const { dimention, func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
     
       state.mergeCell = mergeCell;
       state.records = records;
@@ -195,8 +203,9 @@ export const indicatorSlice = createSlice({
     setGroupBy: (state, action: PayloadAction<any>) => {
       state.groupBy = action.payload; 
 
-      const { dimention, func, groupBy, groupByResult } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+      const { dimention, func, groupBy, groupByResult, disabledField } = state;
+      console.log('group by disabled: ', disabledField)
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
     
       state.mergeCell = mergeCell;
       state.records = records;
@@ -208,8 +217,8 @@ export const indicatorSlice = createSlice({
       
       state.func = '';
 
-      const { dimention, func, groupBy, groupByResult } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult);
+      const { dimention, func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
     
       state.mergeCell = mergeCell;
       state.records = records;
@@ -234,5 +243,5 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setTableData, updateColumn, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, exit } = indicatorSlice.actions
+export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, exit } = indicatorSlice.actions
 export default indicatorSlice.reducer
