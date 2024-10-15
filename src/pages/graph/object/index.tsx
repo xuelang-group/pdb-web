@@ -55,8 +55,20 @@ export default function Editor(props: EditorProps) {
     templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
 
+  let prevWidth: number | undefined = 0, prevHeight: number | undefined = 0;
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
-    graph && graph.changeSize(width, height);
+    if (graph) {
+      graph.changeSize(width, height);
+      if (prevWidth === 0 && prevHeight === 0) {
+        const graphData = graph.save();
+        graph.data(graphData);
+        graph.render();
+        graph.zoom(1);
+        graph.layout();
+      }
+    }
+    prevWidth = width;
+    prevHeight = height;
   }, [graph]);
 
   useResizeDetector({
@@ -378,7 +390,6 @@ export default function Editor(props: EditorProps) {
       },
       plugins: [tooltip, contextMenu]
     });
-    (window as any).PDR_GRAPH = graph;
     let graphData: any = {};
     if (data) {
       graphData = covertToGraphData(data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));

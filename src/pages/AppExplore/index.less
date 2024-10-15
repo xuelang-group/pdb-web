@@ -75,6 +75,19 @@
         width: 100%;
         height: 100%;
       }
+
+      .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
+        background-color: #fff !important;
+      }
+
+      &-disabled {
+        border: none;
+        background-color: #F9FBFC;
+
+        .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector{
+          background-color: #F9FBFC !important;
+        }
+      }
     }
 
     .pdb-ant-select-selector {
@@ -513,10 +526,6 @@
       border: none;
       box-shadow: var(--box-shadow);
     }
-  }
-
-  .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
-    background-color: #fff !important;
   }
 }
 

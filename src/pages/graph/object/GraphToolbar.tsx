@@ -60,8 +60,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
-    indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId),
-    indicatorEditId = useSelector((state: StoreState) => state.indicator.editId),
+    indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
+    indicatorEditId = useSelector((state: StoreState) => state.indicator.editId), // 指标编辑id
     typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
     relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
@@ -71,7 +71,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
-    [resetDisabled, setResetDisabled] = useState(false); // 重置按钮灰化
+    [operateDisabled, setOperateDisabled] = useState(false); // 重置按钮灰化
   const [filterForm] = Form.useForm();
   let uploadCofirm: any;
 
@@ -100,7 +100,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }];
 
   useEffect(() => {
-    setResetDisabled(Boolean(indicatorCheckId || indicatorEditId));
+    setOperateDisabled(Boolean(indicatorCheckId || indicatorEditId));
   }, [indicatorCheckId, indicatorEditId]);
 
   useEffect(() => {
@@ -373,7 +373,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function getRootsData() {
-    const graph = (window as any).PDR_GRAPH;
+    const graph = (window as any).PDB_GRAPH;
 
     if (!rootId || !graph) return;
     dispatch(setGraphLoading(true));
@@ -538,7 +538,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function clearFilter() {
     filterForm.setFieldValue('filter', []);
   }
-  
+
   const renderFilterPanel = function () {
     return (
       <div className="pdb-graph-toolbar-panel-container">
@@ -1236,7 +1236,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           >
             <Tooltip title={tab.label} placement="right">
               <div
-                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && (currentGraphTab === 'main' || resetDisabled) ? 'disabled' : ''}`}
+                className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && (currentGraphTab === 'main' || operateDisabled) ? 'disabled' : ''}`}
                 onClick={() => {
                   if (tab.key === 'reset' && currentGraphTab === 'main') return;
                   if (tab.popover) {
@@ -1259,14 +1259,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           placement="right"
         >
           {(location.pathname.endsWith("/template") ? typeList.length === 0 && relationList.length === 0 : allObjects.length === 0) ?
-            <Upload {...uploadProps()} disabled={uploading}>
-              <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} >
+            <Upload {...uploadProps()} disabled={(uploading || operateDisabled)}>
+              <div className={"pdb-graph-toolbar-item" + ((uploading || operateDisabled) ? " disabled" : "")} >
                 <div className="pdb-graph-toolbar-icon">
                   <i className="operation-icon spicon icon-shangchuan"></i>
                 </div>
               </div>
             </Upload> :
-            <div className={"pdb-graph-toolbar-item" + (uploading ? " disabled" : "")} onClick={handleUploadConfirm}>
+            <div className={"pdb-graph-toolbar-item" + ((uploading || operateDisabled) ? " disabled" : "")} onClick={handleUploadConfirm}>
               <div className="pdb-graph-toolbar-icon">
                 <i className="operation-icon spicon icon-shangchuan"></i>
               </div>
