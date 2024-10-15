@@ -44,8 +44,6 @@ export default function Editor(props: EditorProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
-    relations = useSelector((state: StoreState) => state.relation.data),
-    types = useSelector((state: StoreState) => state.type.data),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
@@ -90,25 +88,6 @@ export default function Editor(props: EditorProps) {
     }
   }, [routerParams?.id]);
 
-  useEffect(() => {
-    const relationMap = {};
-    relations.forEach((item: RelationConfig) => {
-      Object.assign(relationMap, {
-        [item['r.type.name']]: { ...item }
-      });
-    });
-    dispatch(setRelationMap(relationMap));
-  }, [relations]);
-
-  useEffect(() => {
-    const typeMap = {};
-    types.forEach((item: TypeConfig) => {
-      Object.assign(typeMap, {
-        [item['x.type.name']]: { ...item }
-      });
-    });
-    dispatch(setTypeMap(typeMap));
-  }, [types]);
 
   function getRootsData() {
     dispatch(setGraphLoading(true));
