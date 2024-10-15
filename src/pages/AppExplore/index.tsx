@@ -815,7 +815,8 @@ export default function AppExplore() {
       return (
         <span className="pdb-explore-dropdown-add">
           <i className="spicon icon-add"></i>
-          <span>使用临时关系</span>
+          <span>关联关系</span>
+          <span>(可关联任意对象，用于数据联接，但不建立关系类型)</span>
         </span>
       );
     }
@@ -916,7 +917,7 @@ export default function AppExplore() {
     };
 
     if (value === "__TEMPORARY_RELATION__") {
-      label = "临时关系";
+      label = "关联";
       color = "gold";
       icon = "iconfont icon-zhengxiangguanxi";
       closable = false;
@@ -1007,6 +1008,7 @@ export default function AppExplore() {
                     }
                     Object.assign(initialValue, {
                       "data": {
+                        "r.type.label": "关联",
                         "r.type.constraints": {
                           "r.binds": {
                             "source": _.get(sourceTag, "key", ""),
