@@ -45,8 +45,7 @@ function App(props: PdbConfig) {
     location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
-    systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
-    currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab);
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
 
   const [selectedTab, setSelectedTab] = useState("pdb");
   useEffect(() => {
@@ -187,10 +186,12 @@ function App(props: PdbConfig) {
               }, {
                 key: "indicator",
                 label: "指标设计",
-                children: <Indicator />
+                children: <Indicator />,
+                disabled: pageLoading
               }]}
               onChange={(activeKey: string) => {
                 const { graphId } = systemInfo;
+                if (!graphId) return;
                 if (activeKey === "indicator") {
                   navigate(`/${graphId}/indicator`);
                 } else {
