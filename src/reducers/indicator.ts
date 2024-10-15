@@ -68,7 +68,8 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   const types: string[] = data[1]; // CSV的第二行：数据类型
   const rows = data.slice(2);
 
-  const { dimention, func, groupBy } = metricParams;
+  const { groupBy } = metricParams;
+  let dimention = metricParams.dimention;
 
   /** 表头数据 */
   const columns: Col[] = map(cols, (field, i) => {
@@ -88,7 +89,12 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
     return col;
   });
 
-  // 指标度量在倒数第一列，若未设置将整数或浮点数作为度量列
+  // 若未设置将整数或浮点数作为度量列
+  if (!dimention) {
+    const index = findLastIndex(columns, (item) => ['int', 'float', 'number'].includes(item.type));
+    dimention = index > -1 ? columns[index].field : columns[columns.length-1].field;
+  }
+  // 指标度量在倒数第一列
   if (dimention) {
     const col = remove(columns, (item) => item.field === dimention);
     if (!isEmpty(col)) {
@@ -137,7 +143,7 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
     if (row["merge"]) mergeCell.row.push(i + 1)
   })
 
-  return { columns, records, mergeCell }
+  return { columns, records, mergeCell, dimention }
 }
 
 const updateFuncOptions = (columns: any[], dimention: string) => {
@@ -161,9 +167,10 @@ export const indicatorSlice = createSlice({
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
         
-        const { dimention, func, groupBy, groupByResult, disabledField } = state;
-        const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
+        const { func, groupBy, groupByResult, disabledField } = state;
+        const { columns, records, mergeCell, dimention } = updateData(state.csv, {dimention: state.dimention, func, groupBy}, groupByResult, disabledField);
 
+        state.dimention = dimention;
         state.mergeCell = mergeCell;
         state.records = records;
         state.columns = columns;
@@ -205,9 +212,10 @@ export const indicatorSlice = createSlice({
       state.groupByResult = group_by_result;
       state.result = result;
 
-      const { dimention, func, groupBy, groupByResult, disabledField } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell, dimention } = updateData(state.csv, { dimention: state.dimention, func, groupBy }, groupByResult, disabledField);
 
+      state.dimention = dimention;
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
@@ -221,9 +229,10 @@ export const indicatorSlice = createSlice({
       
       if (isEmpty(state.csv)) return
 
-      const { dimention, func, groupBy, groupByResult, disabledField } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell, dimention } = updateData(state.csv, {dimention: state.dimention, func, groupBy}, groupByResult, disabledField);
     
+      state.dimention = dimention;
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
@@ -236,9 +245,10 @@ export const indicatorSlice = createSlice({
       
       if (isEmpty(state.csv)) return
 
-      const { dimention, func, groupBy, groupByResult, disabledField } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField } = state;
+      const { columns, records, mergeCell, dimention } = updateData(state.csv, { dimention:state.dimention, func, groupBy }, groupByResult, disabledField);
 
+      state.dimention = dimention;
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
