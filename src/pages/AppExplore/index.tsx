@@ -179,6 +179,7 @@ export default function AppExplore() {
     setSearchTagMap([_tagsMap]);
     searchPQL([_tagsMap], [_tags], false);
   }
+
   useEffect(() => {
     // 反向解析
     if ((indicatorCheckId || indicatorEditId) && _.isEmpty(searchTags[0]) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
@@ -1148,6 +1149,7 @@ export default function AppExplore() {
       {!searchLoading && !indicatorCheckId &&
         <Tooltip title="搜索">
           <i
+          id="pdb-explore-search-icon"
             className="spicon icon-sousuo2"
             onClick={event => {
               event.stopPropagation();

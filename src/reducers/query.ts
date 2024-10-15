@@ -45,7 +45,7 @@ export const initialParams = {
 export const querySlice = createSlice({
   name: 'query',
   initialState: {
-    api: '',
+    api: '/pdb/api/v1/object/search/pql',
     params: initialParams
   },
   reducers: {
