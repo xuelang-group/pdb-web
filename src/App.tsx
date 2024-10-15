@@ -56,11 +56,9 @@ function App(props: PdbConfig) {
         const { userId, graphId } = response;
         getAppFolderList(userId);
         graphId && getCommonData(graphId);
+        dispatch(setSystemInfo(response));
         if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/${graphId}`) && location.pathname.indexOf(`/${graphId}/`) === -1) {
           navigate(`/${graphId}`);
-          dispatch(setSystemInfo(response));
-        } else {
-          dispatch(setSystemInfo({ ...systemInfo, userId }));
         }
       } else {
         notification.error({

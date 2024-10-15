@@ -42,8 +42,8 @@ export default function Left() {
       }
     });
 
-    dispatch(setTypeLoading(true));
-    dispatch(setRelationLoading(true));
+    // dispatch(setTypeLoading(true));
+    // dispatch(setRelationLoading(true));
 
     // getTypeByGraphId(id, null, (success: boolean, response: any) => {
     //   if (success) {
