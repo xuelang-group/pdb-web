@@ -41,7 +41,6 @@ const { Content } = Layout;
 let prevPathname = "";
 function App(props: PdbConfig) {
   const { theme, headerEXtraWidth } = props;
-  const indicatorRef = React.createRef();
   const dispatch = useDispatch(),
     navigate = useNavigate(),
     location = useLocation();
@@ -49,7 +48,7 @@ function App(props: PdbConfig) {
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
 
-  const [selectedTab, setSelectedTab] = useState("pdb");
+  const [selectedTab, setSelectedTab] = useState("");
   useEffect(() => {
     prevPathname = location.pathname;
     dispatch(setPageLoading(true));
