@@ -1,9 +1,12 @@
+import { setShowSearch } from '@/reducers/editor';
 import { useEffect, useRef, useState } from 'react'
+import { useDispatch } from 'react-redux';
 import VTable from './components/VTable';
 import './index.less';
 
 export default function Indicator(props: any) {
   const wrapRef = useRef(null);
+  const dispatch = useDispatch();
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
 
@@ -20,6 +23,7 @@ export default function Indicator(props: any) {
     updateSize();
     window.addEventListener('resize', updateSize)
     
+    dispatch(setShowSearch(true));
     return () => {
       window.removeEventListener('resize', updateSize)
     }

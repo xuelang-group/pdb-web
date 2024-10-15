@@ -34,8 +34,9 @@ import './App.less';
 import List from './pages/list';
 import { getTypeByGraphId } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
-import { setRelations } from '@/reducers/relation';
-import { setTypeLoading } from '@/reducers/editor';
+import { RelationConfig, setRelations } from '@/reducers/relation';
+import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
+import { TypeConfig } from '@/reducers/type';
 
 const { Content } = Layout;
 let prevPathname = "";
@@ -46,7 +47,9 @@ function App(props: PdbConfig) {
     location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
-    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
+    relations = useSelector((state: StoreState) => state.relation.data),
+    types = useSelector((state: StoreState) => state.type.data);
 
   const [selectedTab, setSelectedTab] = useState("");
   useEffect(() => {
@@ -76,8 +79,29 @@ function App(props: PdbConfig) {
       dispatch(Relation.reset());
       dispatch(Template.reset());
       dispatch(Type.reset());
+      (window as any).PDB_GRAPH = null;
     };
   }, []);
+
+  useEffect(() => {
+    const relationMap = {};
+    relations.forEach((item: RelationConfig) => {
+      Object.assign(relationMap, {
+        [item['r.type.name']]: { ...item }
+      });
+    });
+    dispatch(setRelationMap(relationMap));
+  }, [relations]);
+
+  useEffect(() => {
+    const typeMap = {};
+    types.forEach((item: TypeConfig) => {
+      Object.assign(typeMap, {
+        [item['x.type.name']]: { ...item }
+      });
+    });
+    dispatch(setTypeMap(typeMap));
+  }, [types]);
 
   useEffect(() => {
     if (prevPathname.indexOf("/indicator") > -1 && location.pathname.indexOf("/indicator") === -1) {
@@ -191,7 +215,7 @@ function App(props: PdbConfig) {
               activeKey={selectedTab}
               items={[{
                 key: "pdb",
-                label: "模型画布",
+                label: "主线设计",
                 children: renderCenterContent()
               }, {
                 key: "indicator",
