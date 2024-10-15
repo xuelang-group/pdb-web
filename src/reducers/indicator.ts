@@ -164,10 +164,12 @@ export const indicatorSlice = createSlice({
 
         // 数据初始化，默认将整数或浮点数类型作为度量列，若无则最后一列做为度量列
         const index = findLastIndex(state.csv[1], (type: string) => ['int', 'float', 'number'].includes(type));
-        const endIndex = state.csv[0].length - 1
-        state.dimention = index > -1 ? state.csv[0][index] : state.csv[0][endIndex];
+        const endIndex = state.csv[0].length - 1;
+        const dimention = index > -1 ? state.csv[0][index] : state.csv[0][endIndex];
+        state.dimentionInitial = dimention;
+        state.dimention = dimention;
         
-        const { func, groupBy, groupByResult, disabledField, dimention } = state;
+        const { func, groupBy, groupByResult, disabledField } = state;
         const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
 
         state.mergeCell = mergeCell;
@@ -180,6 +182,7 @@ export const indicatorSlice = createSlice({
         state.records = [];
         state.columns = [];
         state.disabledField = [];
+        state.dimentionInitial = '';
         state.dimention = '';
         state.func = '';
         state.groupByResult = [];
