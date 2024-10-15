@@ -14,6 +14,7 @@ import { createAutoRelation } from "@/actions/object";
 import Loading from "@/assets/images/loading-apng.png";
 import "./index.less";
 import { RelationConfig } from "@/reducers/relation";
+import { clearQuery } from "@/reducers/query";
 import { uuid } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
 
@@ -303,6 +304,7 @@ export default function Right(props: any) {
               <Button
                 onClick={() => {
                   dispatch(exit())
+                  dispatch(clearQuery())
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px' }}
               >
@@ -326,6 +328,7 @@ export default function Right(props: any) {
               <Button
                 onClick={() => {
                   dispatch(exit())
+                  dispatch(clearQuery())
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px' }}
               >

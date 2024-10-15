@@ -87,19 +87,19 @@ export default function List(props: any) {
     }
     if (menu.key === 'check2') {
       dispatch(setCheckId(item.id));
+      dispatch(setQueryParams(item.pql_params.params));
       dispatch(setDimention(item.metric_params.dimention));
       dispatch(setFunc(item.metric_params.func));
       dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
-      dispatch(setQueryParams(item.pql_params.params));
     }
     if (menu.key === 'edit') {
       dispatch(setEditId(item.id));
+      dispatch(setQueryParams(item.pql_params.params));
       dispatch(setDimention(item.metric_params.dimention));
       dispatch(setFunc(item.metric_params.func));
       dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
-      dispatch(setQueryParams(item.pql_params.params));
     }
   }
 
