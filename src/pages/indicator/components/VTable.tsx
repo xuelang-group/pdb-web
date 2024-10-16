@@ -30,10 +30,15 @@ export default function VTable(props: {width: number, height: number}) {
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 46,
-    defaultColWidth: 180,
+    defaultColWidth: 150,
     defaultHeaderRowHeight: 92,
     rightFrozenColCount: 1,
     // frozenColCount: groupBy.length,
+    select: {
+      disableSelect: true,
+      blankAreaClickDeselect: false,
+      outsideClickDeselect: false,
+    },
     theme: {
       // 冻结列效果
       frozenColumnLine: {
@@ -67,6 +72,7 @@ export default function VTable(props: {width: number, height: number}) {
       },
       scrollStyle: {
         scrollSliderColor: 'rgba(0,0,0,0.2)',
+        // visible: 'always',
       },
       selectionStyle: {
         cellBgColor: 'rgba(139, 211, 255, 0.1)',
@@ -84,7 +90,7 @@ export default function VTable(props: {width: number, height: number}) {
           const name = item[key];
           const colWidth = table.getColWidth(columns.length-1)
           return {
-            text: '小计',
+            text: '小计 |',
             range: {
               start: {
                 col: item.merge - 1,
@@ -97,8 +103,8 @@ export default function VTable(props: {width: number, height: number}) {
             },
             style: {
               fontWeight: 600,
-              fontSize: 13,
-              color: '#4C5A67',
+              fontSize: 12,
+              color: '#1C2126',
               bgColor: '#fafafa'
             },
             customLayout: (args: any) => {
@@ -108,9 +114,9 @@ export default function VTable(props: {width: number, height: number}) {
                 width: width,
               });
               const text = new CustomLayout.Text({
-                x: width - colWidth + 15,
+                x: width - colWidth + 14,
                 y: height / 2 + 1,
-                text: item[`${dimention}`],
+                text: func + ": " + item[`${dimention}`],
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: 'PingFang SC',
@@ -118,13 +124,13 @@ export default function VTable(props: {width: number, height: number}) {
                 textBaseline: 'middle',
               });
               const fieldName = new CustomLayout.Text({
-                x: 45,
+                x: 54,
                 y: height / 2 + 1,
-                text: '(' + func + ')',
+                text: name,
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: 'PingFang SC',
-                fill: '#4C5A67',
+                fill: '#1C2126',
                 textBaseline: 'middle',
               })
               container.add(fieldName)
@@ -194,6 +200,16 @@ export default function VTable(props: {width: number, height: number}) {
     }
   }
 
+  const onClickCell = (args: any) => {
+    const { col, row } = args;
+    console.log('click cell: ', col, row)
+    // if (!isEmpty(columns)) {
+    //   const colCount = columns.length - 1;
+    //   const rowCount = records.length;
+    //   vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+    // }
+  }
+
   useEffect(() => {
     query.graphId ? getCsv(query, function (success: boolean, response: any) {
       if (success) {
@@ -211,12 +227,12 @@ export default function VTable(props: {width: number, height: number}) {
         columns: getColumns(columns),
         // records: records,
       });
-      vtable.current.clearSelected();
-      if (!isEmpty(columns)) {
-        const colCount = columns.length - 1;
-        const rowCount = records.length;
-        vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
-      }
+      // vtable.current.clearSelected();
+      // if (!isEmpty(columns)) {
+      //   const colCount = columns.length - 1;
+      //   const rowCount = records.length;
+      //   vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
+      // }
     }
   }, [columns])
 
@@ -260,6 +276,7 @@ export default function VTable(props: {width: number, height: number}) {
           option={option}
           records={records}
           onReady={onReady}
+          // onClickCell={onClickCell}
           onDropdownMenuClick={onDropdownMenuClick}
           onContextMenuCell={onContextMenuCell}
         />

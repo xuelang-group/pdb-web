@@ -88,13 +88,13 @@ export type Col = {
 }
 export function getColumns(cols: Col[]) {
   if (!cols.length) return [];
-  return cols.map(({ field, type, disabled, checked, mergeCell, fieldFormat }, i) => ({
+  return cols.map(({ field, type, disabled, checked, mergeCell, fieldFormat }) => ({
     "field": field,
     "title": field,
     "dimensionKey": field,
     "mergeCell": mergeCell,
-    "disableSelect": !!disabled,
-    "disableHeaderSelect": !!disabled,
+    "disableSelect": !checked,
+    "disableHeaderSelect": !checked,
     "style": disabled ? {
       "bgColor": "#F4F6F9",
       "color": "#C2C7CC",
@@ -151,11 +151,12 @@ export function getColumns(cols: Col[]) {
       const elements: TYPES.ICustomRenderElements = [
         {
           type: 'rect',
-          x: 1,
-          y: 1,
-          width: width - 2,
-          height: rowHeight - 2,
-          fill: disabled ? '#F4F6F9' : '#FFF',
+          x: 0.5,
+          y: 0.5,
+          width: checked ? (width - 1) : width,
+          height: checked ? height : (rowHeight),
+          fill: checked ? '#F1F8FF' : disabled ? '#F4F6F9' : '#FFF',
+          stroke: checked ? '#8BD3FF' : '#DCDEE1',
         }, {
           type: 'icon',
           x: padding[1],
@@ -307,7 +308,30 @@ export function getColumns(cols: Col[]) {
     //     rootContainer: container,
     //     renderDefault: false
     //   }
-    // }
+    // },
+    "customLayout": checked ? (args: TYPES.CustomRenderFunctionArg) => {
+      const { rect, table, col, row } = args;
+      const width = rect?.width || 150;
+      const height = rect?.height || 46;
+      const container = new CustomLayout.Group({
+        height,
+        width,
+      });
+      const box = new CustomLayout.Rect({
+        x: 0.5,
+        y: 0,
+        height: height + 4,
+        width: width - 1,
+        fill: 'rgba(139, 211, 255, 0.1)', 
+        stroke: '#8BD3FF',
+        lineWidth: 1.4,
+      });
+      container.add(box)
+      return {
+        rootContainer: container,
+        renderDefault: true
+      }
+    } : undefined
   }))
 }
 
