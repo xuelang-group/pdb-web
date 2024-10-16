@@ -1,13 +1,23 @@
 import { Modal, Form, Input, Select, Spin } from "antd";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
-import { setGroupBy, setDimention, setFunc, exit, setEditId } from "@/reducers/indicator";
-import { useEffect } from "react";
+import { getBuzProcess } from "@/actions/adapter";
+import { useEffect, useState } from "react";
 
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
+  const [processOptions, setProcessOptions] = useState([])
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
+
+  useEffect(() => {
+    getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+      if (success) {
+        setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
+      }
+    })
+  }, [requestId])
 
   useEffect(() => {
     if (editId) {
@@ -52,9 +62,9 @@ export default function SaveModal(props: any) {
           <Form.Item label="指标描述" name={'desc'}>
             <Input.TextArea placeholder="请输入指标描述" rows={3} />
           </Form.Item>
-          {/* <Form.Item label="所属业务过程" rules={[{ required: true, message: '请选择所属业务过程' }]} name={'process'}>
-            <Select placeholder="请选择所属业务过程" />
-          </Form.Item> */}
+          <Form.Item label="所属业务过程" name={'buzProcess'}>
+            <Select placeholder="请选择所属业务过程" options={processOptions}/>
+          </Form.Item>
           <Form.Item label="相关业务过程">
             ---
           </Form.Item>

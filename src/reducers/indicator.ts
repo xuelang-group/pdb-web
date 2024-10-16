@@ -27,8 +27,11 @@ interface MetricParams {
   groupBy: string[];        // Group By
 }
 interface IndicatorState {
-  checkId: string | null;
-  editId: string | null;
+  requestId: string | null; // requestId，从门户跳转过来时带上的，后续请求会用到
+  needCheckId: string | null; // 从门户跳转过来时带上需要查看的指标id，需要在拿到指标列表后查看该id的指标
+  needEditId: string | null; // 从门户跳转过来时带上需要编辑的指标id，需要在拿到指标列表后编辑该id的指标
+  checkId: string | null;   // 当前正在查看的指标id
+  editId: string | null;    // 当前正在编辑的指标id
   csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
@@ -47,6 +50,9 @@ interface IndicatorState {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
+  requestId: null,
+  needCheckId: null,
+  needEditId: null,
   checkId: null,
   editId: null,
   csv: [],
@@ -271,8 +277,18 @@ export const indicatorSlice = createSlice({
       state.editId = null;
       state.checkId = null;
     },
+    setRequestId: (state, action: PayloadAction<any>) => {
+      state.requestId = action.payload;
+    },
+    setNeedCheckId: (state, action: PayloadAction<any>) => {
+      state.needCheckId = action.payload;
+    },
+    setNeedEditId: (state, action: PayloadAction<any>) => {
+      state.needEditId = action.payload;
+    },
   }
 })
 
-export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, exit } = indicatorSlice.actions
+export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId,exit } = indicatorSlice.actions
+
 export default indicatorSlice.reducer

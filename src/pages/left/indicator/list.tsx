@@ -6,7 +6,7 @@ import { StoreState } from '@/store';
 import { getMetrics } from "@/actions/indicator";
 import { useParams, useNavigate } from 'react-router-dom';
 import _, { set } from 'lodash';
-import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc } from "@/reducers/indicator";
+import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc, setNeedCheckId, setNeedEditId } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import './index.less';
@@ -19,6 +19,8 @@ export default function List(props: any) {
   const indicatorLoading = useSelector((state: StoreState) => state.editor.indicatorLoading)
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const needCheckId = useSelector((state: StoreState) => state.indicator.needCheckId);
+  const needEditId = useSelector((state: StoreState) => state.indicator.needEditId);
   const [showCheckDrawer, setShowCheckDrawer] = useState(false);
   const [checkData, setCheckData] = useState(null);
   const searchRef = useRef<InputRef>(null);
@@ -35,6 +37,11 @@ export default function List(props: any) {
     setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
   }, [allIndicators]);
 
+
+  useEffect(() => {
+    checkNeed(needCheckId, needEditId, allIndicators)
+  }, [needCheckId, needEditId, allIndicators])
+
   const updateList = () => {
     dispatch(setIndicatorLoading(true));
     getMetrics(function (response: any) {
@@ -45,6 +52,33 @@ export default function List(props: any) {
       }
       dispatch(setIndicatorLoading(false));
     })
+  }
+
+  const checkNeed = (_needCheckId: string | null, _needEditId: string | null, arr: any[]) => {
+    // 如果URL中有checkId，则自动跳转到对应的指标
+    if(_needCheckId) {
+      const tempObj = arr.find((item: any) => (item.id).toString() === _needCheckId)
+      if(tempObj) {
+        dispatch(setCheckId(tempObj.id));
+        dispatch(setQueryParams(tempObj.pql_params.params));
+        dispatch(setDimention(tempObj.metric_params.dimention));
+        dispatch(setFunc(tempObj.metric_params.func));
+        dispatch(setGroupBy(tempObj.metric_params.group_by));
+        dispatch(setApi(tempObj.pql_params.api));
+        dispatch(setNeedCheckId(null));
+      }
+    } else if(_needEditId) {
+      const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
+      if(tempObj) {
+        dispatch(setEditId(tempObj.id));
+        dispatch(setQueryParams(tempObj.pql_params.params));
+        dispatch(setDimention(tempObj.metric_params.dimention));
+        dispatch(setFunc(tempObj.metric_params.func));
+        dispatch(setGroupBy(tempObj.metric_params.group_by));
+        dispatch(setApi(tempObj.pql_params.api));
+        dispatch(setNeedEditId(null));
+      }
+    }
   }
 
   const getIndicatorList = function (indList: Array<any>, keyWord: string): Array<any> {
@@ -131,27 +165,28 @@ export default function List(props: any) {
           <div className='type-list relation-list'>
             {!indicatorLoading && indList.map((item: any, index: number) => {
               const label: any = item['name']
+              const menus: any[] =[
+                {
+                  label: '查看基础信息',
+                  key: 'check1',
+                },
+                {
+                  label: '查看指标定义',
+                  key: 'check2',
+                },
+              ]
+              if(item.online === false) {
+                menus.push({ type: 'divider' })
+                menus.push({
+                  label: '编辑',
+                  key: 'edit',
+                })
+              }
               return (
                 <Dropdown
                   overlayClassName='pdb-dropdown-menu'
                   menu={{
-                    items: [
-                      {
-                        label: '查看基础信息',
-                        key: 'check1',
-                      },
-                      {
-                        label: '查看指标定义',
-                        key: 'check2',
-                      },
-                      {
-                        type: 'divider',
-                      },
-                      {
-                        label: '编辑',
-                        key: 'edit',
-                      },
-                    ],
+                    items: menus,
                     onClick: (menu) => handleClickMenu(item, menu)
                   }}
                   trigger={['contextMenu']}
@@ -161,6 +196,7 @@ export default function List(props: any) {
                   >
                     <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
                     {(<span className='type-item-label'>{label}</span>)}
+                    {item.online === false && <Tag className='indicator-tag'>已下架</Tag>}
                     {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
                     {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
                   </span>
