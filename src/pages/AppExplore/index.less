@@ -502,6 +502,17 @@
 
         .pdb-ant-select {
           width: 100%;
+
+          &.pdb-ant-select-disabled {
+            .pdb-ant-select-selector {
+              border: none;
+              background-color: #F9FBFC !important;
+              color: var(--text-color1) !important;
+            }
+            .pdb-ant-select-arrow{
+              display: none;
+            }
+          }
         }
       }
 
