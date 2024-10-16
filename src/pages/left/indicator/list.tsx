@@ -162,7 +162,7 @@ export default function List(props: any) {
           </div>
         </div>
         <div className='list-content'>
-          <div className='type-list relation-list'>
+          <div className='type-list'>
             {!indicatorLoading && indList.map((item: any, index: number) => {
               const label: any = item['name']
               const menus: any[] =[

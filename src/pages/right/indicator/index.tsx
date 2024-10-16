@@ -30,6 +30,7 @@ export default function Right(props: any) {
   const dimention = useSelector((state: StoreState) => state.indicator.dimention);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
@@ -82,6 +83,8 @@ export default function Right(props: any) {
         setModalLoading(false)
       })
     } else {
+      postObj.requestId = requestId
+      postObj.buzProcess = values.buzProcess
       dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({
