@@ -37,6 +37,30 @@ export default function NewRelation(props: ExploreFilterProps) {
   useEffect(() => {
     if (form && !_.isEqual(form.getFieldsValue(), initialValue.data)) {
       form.setFieldsValue({ ...initialValue.data });
+      const bindType = _.get(initialValue, "bindType", "innerjoin");
+      switch (bindType) {
+        case 'innerjoin':
+          setLeftSelected(false);
+          setRightSelected(false);
+          setOvalSelected(true);
+          break;
+        case 'leftjoin':
+          setLeftSelected(true);
+          setRightSelected(false);
+          setOvalSelected(false);
+          break;
+        case 'rightjoin':
+          setLeftSelected(false);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+        default:
+          setLeftSelected(true);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+      }
+      setJoinType(bindType);
     }
   }, [initialValue]);
 
@@ -184,8 +208,6 @@ export default function NewRelation(props: ExploreFilterProps) {
                     validator: async (_, value) => {
                       if (value.length > 50) {
                         throw new Error('类型名称最多支持50个字符');
-                      } else if (relations && relations.findIndex((_rel: any, index: number) => _rel['r.type.label'] === value) > -1) {
-                        throw new Error('该名称已被使用');
                       }
                     }
                   }

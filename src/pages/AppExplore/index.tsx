@@ -1093,9 +1093,9 @@ export default function AppExplore() {
                     close={() => {
                       setFilterPanelOpenKey(null);
                     }}
-                    saveConfig={(config: any, csv: any) => {
+                    saveConfig={(config: any, csv: any, bindType: string) => {
                       const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
+                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv, bindType } });
                       setSearchTagMap(newSearchTagsMap);
                       setFilterPanelOpenKey(null);
                     }}

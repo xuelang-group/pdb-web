@@ -179,7 +179,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       label: filterLabel,
       conditions,
       options: filterOptions
-    }, csv);
+    }, csv, joinType);
   }
 
   const onChange = (list: any[]) => {
