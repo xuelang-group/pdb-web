@@ -219,7 +219,7 @@ export default function Editor(props: EditorProps) {
       graph?.destroy();
       graph = null;
     }
-  }, [graphRef, typeLoading, relationLoading]);
+  }, [graphRef, types, relations]);
 
   return (
     <div className={"pdb-graph pdb-template-graph" + (location.pathname.endsWith('/template') ? ' visible' : '')}>
