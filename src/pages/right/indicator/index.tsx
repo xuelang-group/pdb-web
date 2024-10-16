@@ -18,6 +18,7 @@ import { clearQuery } from "@/reducers/query";
 import { uuid } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
 import { initialParams, setQueryParams } from "@/reducers/query";
+import { getImgHref } from "@/actions/minioOperate";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Right(props: any) {
       savingModal = modal.confirm({
         className: "pdb-indicator-save-loading",
         width: 164,
-        icon: (<img src={Loading} />),
+        icon: (<img src={getImgHref(Loading)} />),
         title: "指标保存中..."
       });
       addMetric(postObj, (success: boolean, res: any) => {

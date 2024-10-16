@@ -6,6 +6,7 @@ import { useEffect, useImperativeHandle, useState } from "react";
 
 import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import EmptyImage from "@/assets/images/empty.svg";
+import { getImgHref } from "@/actions/minioOperate";
 interface ExploreFilterProps {
   originType: any
   onRef: any
@@ -324,7 +325,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
         })}
         {filterOptions.length === 0 && !isNew &&
           <Empty
-            image={EmptyImage}
+            image={getImgHref(EmptyImage)}
             imageStyle={{ height: 120 }}
             description="暂无过滤条件"
           />

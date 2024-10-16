@@ -1344,20 +1344,20 @@ export default function Right(props: RightProps) {
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>
                 <NodeIconPicker
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   changeIcon={(icon: string) => changeNodeMetadata('icon', icon)}
                   currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
                 <NodeColorPicker
                   type='fill'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
                 <NodeColorPicker
                   type='border'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
+                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                   changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}

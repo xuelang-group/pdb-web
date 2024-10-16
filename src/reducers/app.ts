@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 interface systemInfoState {
   userId: number | null

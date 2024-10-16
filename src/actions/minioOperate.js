@@ -12,6 +12,12 @@ const api = {
 
 export const getImagePath = (name) => _.get(window, 'pdbConfig.basePath', '') + api['get'] + `?Key=${name}`;
 
+export const getImgHref = (name) => {
+  if (name.startsWith("./")) {
+    name = _.get(window, 'pdbConfig.basePath', '') + name.replace("./", "/");
+  }
+  return name;
+}
 export const getFile = (Key) => {
   return new Promise((resolve, reject) => {
     axios.get(api['get'], { Key })

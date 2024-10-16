@@ -8,7 +8,7 @@ import _ from "lodash";
 
 import { addTemplate, deleteTemplate, deleteTemplates, getTemplateList, updateTemplateInfo } from "@/actions/template";
 import { removeObject, getObjectList, removeObjects, createObject, updateObjectInfo } from "@/actions/object";
-import { putFile } from "@/actions/minioOperate";
+import { getImgHref, putFile } from "@/actions/minioOperate";
 import searchEmpty from '@/assets/images/search_empty.png';
 import FolderOffSvg from '@/assets/images/folder-collpased.svg';
 import FolderOnSvg from '@/assets/images/folder-expand.svg';
@@ -165,11 +165,8 @@ export default function List(props: ListProps) {
       const icon = routeIconMap[route];
       return <i className={icon} />;
     }
-    let SvgHref = expanded ? FolderOnSvg : FolderOffSvg;
-    if (SvgHref.startsWith("./")) {
-      SvgHref = _.get(window, 'pdbConfig.basePath', '') + SvgHref.replace("./", "/");
-    }
-    return <img src={SvgHref} style={{ marginTop: 2 }} />;
+    const SvgHref = expanded ? FolderOnSvg : FolderOffSvg;
+    return <img src={getImgHref(SvgHref)} style={{ marginTop: 2 }} />;
   }
 
   // 树 - 拖拽开始

@@ -9,6 +9,7 @@ import { StoreState } from "@/store";
 import { setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
+import { getImgHref } from "@/actions/minioOperate";
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props
@@ -253,7 +254,7 @@ export default function VTable(props: {width: number, height: number}) {
         isEmpty(columns) && (
           <div className="pdb-vtable-empty">
             <Empty
-              image={EmptyImage}
+              image={getImgHref(EmptyImage)}
               imageStyle={{ height: 240, marginBottom: 0 }}
               description={
                 <Space direction="vertical" size={4}>
