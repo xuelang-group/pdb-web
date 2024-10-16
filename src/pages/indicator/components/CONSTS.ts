@@ -1,5 +1,4 @@
-import React from 'react';
-import { register, Group, Text, Rect, Checkbox } from '@visactor/react-vtable'
+import { register } from '@visactor/react-vtable'
 import { TYPES, CustomLayout } from '@visactor/vtable'
 import { typeMap } from '@/utils/common'
 
@@ -176,7 +175,7 @@ export function getColumns(cols: Col[]) {
           text: typeMap.type[type],
         }, {
           type: 'line',
-          points: [{ x: 1, y: rowHeight + 0.5 }, { x: width, y: rowHeight + 0.5 }],
+          points: [{ x: 1, y: rowHeight + 0.5 }, { x: width - 1, y: rowHeight + 0.5 }],
           lineWidth: 1,
           stroke: '#DCDEE1'
         }, {
@@ -310,21 +309,22 @@ export function getColumns(cols: Col[]) {
     //   }
     // },
     "customLayout": checked ? (args: TYPES.CustomRenderFunctionArg) => {
-      const { rect, table, col, row } = args;
+      const { rect, row, table } = args;
       const width = rect?.width || 150;
       const height = rect?.height || 46;
       const container = new CustomLayout.Group({
         height,
         width,
+        zIndex: 999,
       });
       const box = new CustomLayout.Rect({
-        x: 0.5,
+        x: 0,
         y: 0,
-        height: height + 4,
-        width: width - 1,
+        height: table.rowCount - 1 == row ? height + 2 : height + 4,
+        width: width,
         fill: 'rgba(139, 211, 255, 0.1)', 
         stroke: '#8BD3FF',
-        lineWidth: 1.4,
+        lineWidth: 2,
       });
       container.add(box)
       return {

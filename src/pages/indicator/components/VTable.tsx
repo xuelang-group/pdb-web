@@ -30,7 +30,7 @@ export default function VTable(props: {width: number, height: number}) {
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 46,
-    defaultColWidth: 150,
+    defaultColWidth: 165,
     defaultHeaderRowHeight: 92,
     rightFrozenColCount: 1,
     // frozenColCount: groupBy.length,
@@ -105,7 +105,7 @@ export default function VTable(props: {width: number, height: number}) {
               fontWeight: 600,
               fontSize: 12,
               color: '#1C2126',
-              bgColor: '#fafafa'
+              bgColor: '#fffcfc'
             },
             customLayout: (args: any) => {
               const { width, height } = args.rect;
@@ -174,7 +174,7 @@ export default function VTable(props: {width: number, height: number}) {
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
-    console.log('on ready ', isFirst)
+    // console.log('on ready ', isFirst)
     if (isFirst) {
       vtable.current = tableInstance
     }
