@@ -16,7 +16,7 @@ import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonP
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
 } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
@@ -40,6 +40,7 @@ export default function Editor(props: EditorProps) {
   const [modal, contextHolder] = Modal.useModal();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
@@ -85,7 +86,6 @@ export default function Editor(props: EditorProps) {
       (window as any).PDB_GRAPH = null;
     }
   }, [routerParams?.id]);
-
 
   function getRootsData() {
     dispatch(setGraphLoading(true));
@@ -365,7 +365,7 @@ export default function Editor(props: EditorProps) {
           clockwise: false
         },
       },
-      plugins: [tooltip, contextMenu]
+      plugins: [tooltip]
     });
     let graphData: any = {};
     if (data) {
@@ -382,6 +382,10 @@ export default function Editor(props: EditorProps) {
     if (queryParams.graphId) {
       const searchIcon = document.getElementById("pdb-explore-search-icon");
       if (searchIcon) {
+        dispatch(setGraphDataMap({
+          ...graphDataMap,
+          'main': graphData
+        }));
         searchIcon.click();
       }
     }

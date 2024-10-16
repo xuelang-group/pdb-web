@@ -1001,7 +1001,7 @@ export default function AppExplore() {
   }
 
   const handleClearSearch = function (event: any = null) {
-    if (queryParams.graphId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
       setSaveConfirmModal("clear");
       navigator(`/${systemInfo.graphId}/indicator`);
     } else {
@@ -1146,23 +1146,22 @@ export default function AppExplore() {
           ))}
         </div>
       }
-      {!searchLoading && !indicatorCheckId &&
-        <Tooltip title="搜索">
-          <i
+      <Tooltip title="搜索">
+        <i
           id="pdb-explore-search-icon"
-            className="spicon icon-sousuo2"
-            onClick={event => {
-              event.stopPropagation();
-              if (queryParams.graphId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
-                setSaveConfirmModal("search");
-                navigator(`/${systemInfo.graphId}/indicator`);
-              } else {
-                searchPQL();
-              }
-            }}
-          ></i>
-        </Tooltip>
-      }
+          className="spicon icon-sousuo2"
+          style={{ display: !searchLoading && !indicatorCheckId ? "block" : "none" }}
+          onClick={event => {
+            event.stopPropagation();
+            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+              setSaveConfirmModal("search");
+              navigator(`/${systemInfo.graphId}/indicator`);
+            } else {
+              searchPQL();
+            }
+          }}
+        ></i>
+      </Tooltip>
       {/* <Tooltip title="展开">
         <i
           className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
