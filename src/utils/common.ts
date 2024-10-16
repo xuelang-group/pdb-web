@@ -376,3 +376,28 @@ export function formatTimestamp(timestamp: number) {
   const seconds = String(date.getSeconds()).padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+export function getParameterByName(name: string, url?: string) {
+  if (!url) url = window.location.href
+  name = name.replace(/[\[\]]/g, '\\$&')
+  const regex = new RegExp(`[?&]${name}(=([^&#]*)|&|#|$)`)
+  const results = regex.exec(url)
+  if (!results) return null
+  if (!results[2]) return ''
+  return decodeURIComponent(results[2].replace(/\+/g, ' '))
+}
+
+/**
+ * 获取hash的query字段，如果没有则返回null
+ * @param {String} name 查询字段名
+ */
+export function getHashParameterByName(name: string) {
+  const hash = window.location.search || ''
+  if (!hash) return null
+  let result = getParameterByName(name, hash.replace(/%/g, '%25'))
+  if (result) {
+    // 中文解码
+    result = decodeURIComponent(result)
+  }
+  return result
+}

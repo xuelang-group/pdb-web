@@ -2,7 +2,7 @@ import { Layout, notification, Spin, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import _ from 'lodash';
+import _, { set } from 'lodash';
 
 import * as Editor from '@/reducers/editor';
 import * as _Object from '@/reducers/object';
@@ -36,7 +36,10 @@ import { getTypeByGraphId } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
+import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicator';
 import { TypeConfig } from '@/reducers/type';
+
+import { getHashParameterByName } from '@/utils/common';
 
 const { Content } = Layout;
 let prevPathname = "";
@@ -73,6 +76,22 @@ function App(props: PdbConfig) {
       }
       dispatch(setPageLoading(false));
     });
+    const getRequestId = function() {
+      const requestId = getHashParameterByName('requestId'); // 获取requestId
+      const needCheckId = getHashParameterByName('checkId'); // 获取需要查看的id
+      const needEditId = getHashParameterByName('editId'); // 获取需要编辑的id
+      if(requestId) {
+        dispatch(setRequestId(requestId))
+      }
+      if(needCheckId) {
+        dispatch(setNeedCheckId(needCheckId))
+      }
+      if(needEditId) {
+        dispatch(setNeedEditId(needEditId))
+      }
+    }
+    getRequestId()
+    window.addEventListener('hashchange', getRequestId);
     return () => {
       dispatch(Editor.reset());
       dispatch(_Object.reset());
@@ -80,6 +99,7 @@ function App(props: PdbConfig) {
       dispatch(Template.reset());
       dispatch(Type.reset());
       (window as any).PDB_GRAPH = null;
+      window.removeEventListener('hashchange', getRequestId);
     };
   }, []);
 
