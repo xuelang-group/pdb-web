@@ -6,17 +6,17 @@ import { useEffect, useState } from "react";
 
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
-  const [processOptions, setProcessOptions] = useState([])
+  const [processOptions, setProcessOptions] = useState([{ label: 'test', value: 'test' }])
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
 
   useEffect(() => {
-    getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
-      if (success) {
-        setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
-      }
-    })
+    // getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+    //   if (success) {
+    //     setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
+    //   }
+    // })
   }, [requestId])
 
   useEffect(() => {
@@ -32,12 +32,17 @@ export default function SaveModal(props: any) {
     }).catch(err => { })
   }
 
+  const onCancel = () => {
+    infoForm.resetFields()
+    props.onCancel()
+  }
+
   return (
     <Modal
       open={props.visible}
       title={editId ? '编辑指标' : '保存指标'}
       onOk={onOk}
-      onCancel={props.onCancel}
+      onCancel={onCancel}
       okText="保存"
       cancelText="取消"
       okButtonProps={{
