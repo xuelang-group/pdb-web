@@ -246,14 +246,15 @@ export const indicatorSlice = createSlice({
     },
     setDimention: (state, action: PayloadAction<any>) => {
       state.dimention = action.payload;
-
       state.func = '';
+      state.groupByResult = [];
+      state.result = [];
       
       if (isEmpty(state.csv)) return
 
       const { func, groupBy, groupByResult, disabledField, dimention } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention:state.dimention, func, groupBy }, groupByResult, disabledField);
-
+      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
+      
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
