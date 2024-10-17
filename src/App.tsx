@@ -50,6 +50,7 @@ function App(props: PdbConfig) {
     location = useLocation();
   const catalog = useSelector((state: StoreState) => state.app.catalog),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
+    graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
     relations = useSelector((state: StoreState) => state.relation.data),
     types = useSelector((state: StoreState) => state.type.data);
@@ -241,7 +242,7 @@ function App(props: PdbConfig) {
                 key: "indicator",
                 label: "指标设计",
                 children: <Indicator />,
-                disabled: pageLoading
+                disabled: pageLoading || graphLoading
               }]}
               onChange={(activeKey: string) => {
                 const { graphId } = systemInfo;
