@@ -182,7 +182,7 @@ export default function AppExplore() {
 
   useEffect(() => {
     // 反向解析
-    if ((indicatorCheckId || indicatorEditId) && _.isEmpty(searchTags[0]) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
+    if ((indicatorCheckId || indicatorEditId) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
       reverseParsing();
     }
 
