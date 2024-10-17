@@ -123,7 +123,7 @@ export default function Editor(props: EditorProps) {
       },
       linkCenter: true,
     });
-    (window as any).PDB_GRAPH = graph;
+    // (window as any).PDB_TEMPLATE_GRAPH = graph;
 
     graph.get('canvas').set('localRefresh', false);
     graph.data(data);
