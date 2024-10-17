@@ -12,6 +12,7 @@ interface ExploreFilterProps {
   onRef: any
   onSave?: Function
   visible: boolean
+  readOnly?: boolean
 }
 
 const operators: any = {
@@ -22,7 +23,7 @@ const operators: any = {
 export default function ExploreFilterContent(props: ExploreFilterProps) {
   const [configForm] = Form.useForm();
 
-  const { originType, onSave, visible } = props;
+  const { originType, onSave, visible, readOnly } = props;
 
   const [filterOptions, setFilterOption] = useState<any>(_.get(originType, 'config.options', [])),
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
@@ -101,12 +102,14 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
 
   const getExtra = (key: any, opt: any) => activePanelKey[0] !== key && (
     <span>
+      {!readOnly &&
+        <i
+          className="spicon icon-shanchu2"
+          onClick={() => hanldeDelete(key)}
+        ></i>
+      }
       <i
-        className="spicon icon-shanchu2"
-        onClick={() => hanldeDelete(key)}
-      ></i>
-      <i
-        className="spicon icon-bianji"
+        className={`spicon icon-${readOnly ? "chakan" : "bianji"}`}
         onClick={() => {
           configForm.setFieldsValue(opt);
           setActivePanelKey([key]);
@@ -122,7 +125,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
       <Form form={configForm} layout="vertical" className="pdb-explore-filter-config">
         {(editConditionIndex > 0 || (isNew && filterOptions.length > 0)) &&
           <Form.Item name="operator" label="">
-            <Radio.Group>
+            <Radio.Group disabled={readOnly}>
               {Object.keys(operators).map(key => (
                 <Radio value={key}>{operators[key]}</Radio>
               ))}
@@ -145,6 +148,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             ((option?.children ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
               (option?.value ?? '').toString() === input)
             }
+            disabled={readOnly}
           >
           </Select>
         </Form.Item>
@@ -173,6 +177,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                 }}
                 onClick={event => event.stopPropagation()}
                 onKeyDown={event => event.stopPropagation()}
+                disabled={readOnly}
               >
                 {_.get(conditionOptionMap, attrType, []).map((condition: string) => (
                   <Select.Option value={condition}>{optionLabelMap[condition]}</Select.Option>
@@ -191,6 +196,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                       onClick={event => event.stopPropagation()}
                       onMouseDown={event => event.stopPropagation()}
                       onKeyDown={event => event.stopPropagation()}
+                      disabled={readOnly}
                     />
                   );
                   break;
@@ -201,6 +207,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                       onClick={event => event.stopPropagation()}
                       onMouseDown={event => event.stopPropagation()}
                       onKeyDown={event => event.stopPropagation()}
+                      disabled={readOnly}
                     />
                   );
                   break;
@@ -217,6 +224,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                       className="pdb-explore-filter-config-condition"
                       onClick={event => event.stopPropagation()}
                       onMouseDown={event => event.stopPropagation()}
+                      disabled={readOnly}
                     ></Select>
                   );
                   break;
@@ -225,7 +233,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                     setFieldValue("keyword", null);
                   }
                   input = (
-                    <DatePicker className="pdb-explore-filter-config-condition" locale={locale} />
+                    <DatePicker className="pdb-explore-filter-config-condition" locale={locale} disabled={readOnly} />
                   );
                   break;
                 default:
@@ -235,6 +243,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                       onClick={event => event.stopPropagation()}
                       onMouseDown={event => event.stopPropagation()}
                       onKeyDown={event => event.stopPropagation()}
+                      disabled={readOnly}
                     />
                   )
                   break;
@@ -261,11 +270,14 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           }}
         </Form.Item>
         <Form.Item name="isNot" label="不具备条件(NOT) :" className="pdb-explore-filter-isNot">
-          <Switch />
+          <Switch disabled={readOnly} />
         </Form.Item>
         <Form.Item>
-          <Button onClick={handleCancel} style={{ width: "calc((100% - 8px) / 2)" }}>取消</Button>
-          <Button type="primary" onClick={() => handleSave()} style={{ width: "calc((100% - 8px) / 2)", marginLeft: 8 }}>保存</Button>
+          {readOnly ?
+            <Button onClick={handleCancel} style={{ width: "100%" }}>关闭</Button> :
+            <Button onClick={handleCancel} style={{ width: "calc((100% - 8px) / 2)" }}>取消</Button>
+          }
+          {!readOnly && <Button type="primary" onClick={() => handleSave()} style={{ width: "calc((100% - 8px) / 2)", marginLeft: 8 }}>保存</Button>}
         </Form.Item>
       </Form >
     )
@@ -342,12 +354,12 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
         }
       </div>
       {/* {extraContent(isNew, editConditionIndex, add)} */}
-      {!(isNew || editConditionIndex > -1) &&
+      {!(isNew || editConditionIndex > -1) && !readOnly &&
         <div className={"pdb-explore-filter-add" + (filterOptions.length === 0 && !isNew ? " empty-filter-add" : "")}>
           <Button
             icon={<i className="spicon icon-add"></i>}
             onClick={add}
-            // disabled={isNew || editConditionIndex > -1}
+          // disabled={isNew || editConditionIndex > -1}
           >添加条件</Button>
         </div>
       }

@@ -164,9 +164,9 @@ export default function AppExplore() {
         if (!typeId) {
           Object.assign(_tagsMap[_id], {
             key: _id,
-            binds,
+            binds: binds || [],
             data: {
-              "r.type.constraints": { "r.binds": binds[0] },
+              "r.type.constraints": { "r.binds": _.get(binds, '0') },
               "r.type.label": name
             }
           });
@@ -1033,6 +1033,7 @@ export default function AppExplore() {
               rootClassName="pdb-explore-setting-popover"
               placement="bottomLeft"
               content={() => {
+                const readOnly = Boolean(indicatorCheckId);
                 const tags = searchTags[index], tagsLen = tags.length;
 
                 if (filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
@@ -1077,6 +1078,7 @@ export default function AppExplore() {
                       sourceTag={sourceTag}
                       targetTag={targetTag}
                       initialValue={initialValue}
+                      readOnly={readOnly}
                       close={() => {
                         setFilterPanelOpenKey(null);
                         removeLastTypeTag(index);
@@ -1087,6 +1089,7 @@ export default function AppExplore() {
                 }
                 return (
                   <ExploreFilter
+                    readOnly={readOnly}
                     tagIndex={tags.findIndex(val => val === filterPanelOpenKey)}
                     isLastTag={tags && tagsLen > 0 ? tags[tagsLen - 1] === filterPanelOpenKey : false}
                     originType={_.get(searchTagMap[index], filterPanelOpenKey)}
