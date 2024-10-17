@@ -1124,7 +1124,7 @@ export default function AppExplore() {
                 notFoundContent={<Empty description="暂无相关结果" />}
                 open={currentFocusIndex === index && dropdownOpen}
                 // allowClear
-                disabled={searchLoading || Boolean(indicatorCheckId)}
+                disabled={searchLoading || Boolean(indicatorCheckId || indicatorEditId)}
                 autoFocus={index > 0}
                 getPopupContainer={(() => document.getElementById("pdb-explore") || document.body) as any}
                 dropdownRender={(originNode) => dropdownRender(originNode, index)}
