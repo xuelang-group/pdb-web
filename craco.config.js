@@ -60,7 +60,7 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        target: "http://sp10.xuelangyun.com:30080/proxr/80210299/56648/5db701007e0711ef95b3e5448473221c/8000",
+        target: "http://139.224.200.224:30080/pdb/indicator",
         changeOrigin: true,
         pathRewrite: { '^/indicator' : '' },
       }
