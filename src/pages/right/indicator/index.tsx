@@ -160,6 +160,7 @@ export default function Right(props: any) {
     });
     timeout = setTimeout(() => {
       savingModal && savingModal.destroy();
+      navigate(`/${systemInfo.graphId}`);
       savingModal = null;
       timeout = null;
     }, 3000);

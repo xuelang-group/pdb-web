@@ -63,7 +63,7 @@ export const addMetric = (params, callback) => {
 
 // 编辑metric
 export const updateMetric = (params, callback) => {
-  return axios.put(api['updateMetric'], params).then(({ data }) => {
+  return axios.post(`${api['updateMetric']}`, params).then(({ data }) => {
     callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);

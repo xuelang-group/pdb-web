@@ -50,7 +50,7 @@ interface IndicatorState {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
-  requestId: null,
+  requestId: '1001',  // 暂时写死，默认值1001
   needCheckId: null,
   needEditId: null,
   checkId: null,
