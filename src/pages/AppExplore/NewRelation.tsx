@@ -13,6 +13,7 @@ interface ExploreFilterProps {
   initialValue: any
   saveConfig: Function
   close: Function
+  readOnly: boolean
   tagsLen: number
 }
 
@@ -22,7 +23,7 @@ export const operators: any = {
 };
 
 export default function NewRelation(props: ExploreFilterProps) {
-  const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen } = props;
+  const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen, readOnly } = props;
   const [form] = Form.useForm();
 
   const types = useSelector((state: StoreState) => state.type.data),
@@ -93,18 +94,21 @@ export default function NewRelation(props: ExploreFilterProps) {
   }
 
   const changeLeftSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(!leftSelected);
     setOvalSelected(false);
     changeJoinType(!leftSelected, rightSelected, false);
   }
 
   const changeRightSelect = function (event: any) {
+    if (readOnly) return;
     setRightSelected(!rightSelected);
     setOvalSelected(false);
     changeJoinType(leftSelected, !rightSelected, false);
   }
 
   const changeOvalSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(false);
     setRightSelected(false);
     setOvalSelected(!ovalSelected);
@@ -145,6 +149,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                   options={(_.get(sourceTag, 'data', {})['x.type.attrs'] || []).map(
                     ({ display, name }: AttrConfig) => ({ label: display, value: name })
                   )}
+                  disabled={readOnly}
                 />
               </Form.Item>
             </div>
@@ -160,7 +165,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                     label: "x.type.label",
                     value: "x.type.name"
                   }}
-                  disabled={!_.isEmpty(targetTag)}
+                  disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
                       label: option['x.type.label'],
@@ -191,7 +196,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                         options={(_.get(currTargetTag, 'data', {})['x.type.attrs'] || []).map(
                           ({ display, name }: AttrConfig) => ({ label: display, value: name })
                         )}
-                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"])}
+                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"]) || readOnly}
                       />
                     </Form.Item>
                   )
@@ -213,7 +218,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                   }
                 ]}
               >
-                <Input />
+                <Input disabled={readOnly} />
               </Form.Item>
             </div>
           </div>
@@ -257,8 +262,8 @@ export default function NewRelation(props: ExploreFilterProps) {
         {renderGroupSetting()}
       </div>
       <div className="pdb-explore-setting-footer">
-        <Button onClick={() => close()}>取消</Button>
-        <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>
+        <Button onClick={() => close()}>{readOnly ? "关闭" : "取消"}</Button>
+        {!readOnly && <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>}
       </div>
     </div>
   )
