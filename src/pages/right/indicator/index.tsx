@@ -55,8 +55,8 @@ export default function Right(props: any) {
     const postObj: any = {
       name: values.name,
       name_en: values.name_en,
-      unit: values.unit,
-      desc: values.desc,
+      unit: values.unit || '',
+      desc: values.desc || '',
       metric_params: {
         dimention: dimention,
         func: func,
@@ -84,7 +84,7 @@ export default function Right(props: any) {
       })
     } else {
       postObj.requestId = requestId
-      postObj.buzProcess = values.buzProcess
+      postObj.buzProcess = values.buzProcess || ''
       dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({
