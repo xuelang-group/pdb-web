@@ -238,7 +238,6 @@ export default function VTable(props: {width: number, height: number}) {
   }, [columns])
 
   useEffect(() => {
-    func && console.log('dimension: ', dimention)
     func && getFuncResult({dimention, func, groupBy, query}, function(success: boolean, response: any) {
       if (success) {
         dispatch(setFuncResult(response));
