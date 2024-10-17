@@ -266,7 +266,7 @@ export default function Right(props: any) {
                               onClick={() => {
                                 if (index === 0) {
                                   infoForm.setFieldsValue({
-                                    names: [undefined]
+                                    names: []
                                   })
                                 } else {
                                   remove(field.name)
