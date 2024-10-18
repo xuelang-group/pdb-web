@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
-import { isEmpty } from "lodash"
+import { isEmpty, compact } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
@@ -238,7 +238,7 @@ export default function VTable(props: {width: number, height: number}) {
   }, [columns])
 
   useEffect(() => {
-    func && getFuncResult({dimention, func, groupBy, query}, function(success: boolean, response: any) {
+    func && getFuncResult({dimention, func, groupBy: compact(groupBy), query}, function(success: boolean, response: any) {
       if (success) {
         dispatch(setFuncResult(response));
       } else {

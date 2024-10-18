@@ -19,6 +19,7 @@ import { uuid } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
 import { initialParams, setQueryParams } from "@/reducers/query";
 import { getImgHref } from "@/actions/minioOperate";
+import { compact } from "lodash";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function Right(props: any) {
   const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
-  const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : [undefined]));
+  const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : ['']));
   const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
@@ -60,7 +61,7 @@ export default function Right(props: any) {
       metric_params: {
         dimention: dimention,
         func: func,
-        group_by: groupBy,
+        group_by: compact(groupBy),
       },
       pql_params: {
         api: api,
