@@ -12,11 +12,11 @@ export default function SaveModal(props: any) {
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
 
   useEffect(() => {
-    // getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
-    //   if (success) {
-    //     setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
-    //   }
-    // })
+    getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+      if (success) {
+        setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
+      }
+    })
   }, [requestId])
 
   useEffect(() => {
