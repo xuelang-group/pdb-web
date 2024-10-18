@@ -9,6 +9,7 @@ import _, { set } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc, setNeedCheckId, setNeedEditId } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
+import { getPdbIdList } from "@/actions/adapter";
 import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 
@@ -21,6 +22,7 @@ export default function List(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const needCheckId = useSelector((state: StoreState) => state.indicator.needCheckId);
   const needEditId = useSelector((state: StoreState) => state.indicator.needEditId);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const [showCheckDrawer, setShowCheckDrawer] = useState(false);
   const [checkData, setCheckData] = useState(null);
   const searchRef = useRef<InputRef>(null);
@@ -47,6 +49,14 @@ export default function List(props: any) {
     getMetrics(function (response: any) {
       if (response) {
         dispatch(setMetrics(response || []));
+        getPdbIdList({ requestId: requestId }, (success:boolean, res: any) => {
+          if (success) {
+            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.id))
+            dispatch(setMetrics(tempArr || []));
+          } else {
+            dispatch(setMetrics(response || []));
+          }
+        })
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }

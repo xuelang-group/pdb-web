@@ -378,14 +378,14 @@ export default function Editor(props: EditorProps) {
     dispatch(setShowSearch(true));
 
     (window as any).PDB_GRAPH = graph;
-
+    dispatch(setGraphDataMap({
+      ...graphDataMap,
+      'main': graphData
+    }));
+    
     if (queryParams.graphId) {
       const searchIcon = document.getElementById("pdb-explore-search-icon");
       if (searchIcon) {
-        dispatch(setGraphDataMap({
-          ...graphDataMap,
-          'main': graphData
-        }));
         searchIcon.click();
       }
     }
