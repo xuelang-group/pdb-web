@@ -14,10 +14,9 @@ import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
-import { RelationConfig } from '@/reducers/relation';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
 } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
@@ -25,7 +24,6 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
-import { TypeConfig } from '@/reducers/type';
 
 interface EditorProps {
   theme: string
@@ -42,21 +40,32 @@ export default function Editor(props: EditorProps) {
   const [modal, contextHolder] = Modal.useModal();
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
+    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
-    relations = useSelector((state: StoreState) => state.relation.data),
-    types = useSelector((state: StoreState) => state.type.data),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     userId = useSelector((state: StoreState) => state.app.systemInfo.userId),
-    graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
+    queryParams = useSelector((state: StoreState) => state.query.params),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
     templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
   const [graphData, setGraphData] = useState({});
 
+  let prevWidth: number | undefined = 0, prevHeight: number | undefined = 0;
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
-    graph && graph.changeSize(width, height);
+    if (graph) {
+      graph.changeSize(width, height);
+      if (prevWidth === 0 && prevHeight === 0) {
+        const graphData = graph.save();
+        graph.data(graphData);
+        graph.render();
+        graph.zoom(1);
+        graph.layout();
+      }
+    }
+    prevWidth = width;
+    prevHeight = height;
   }, [graph]);
 
   useResizeDetector({
@@ -77,26 +86,6 @@ export default function Editor(props: EditorProps) {
       (window as any).PDB_GRAPH = null;
     }
   }, [routerParams?.id]);
-
-  useEffect(() => {
-    const relationMap = {};
-    relations.forEach((item: RelationConfig) => {
-      Object.assign(relationMap, {
-        [item['r.type.name']]: { ...item }
-      });
-    });
-    dispatch(setRelationMap(relationMap));
-  }, [relations]);
-
-  useEffect(() => {
-    const typeMap = {};
-    types.forEach((item: TypeConfig) => {
-      Object.assign(typeMap, {
-        [item['x.type.name']]: { ...item }
-      });
-    });
-    dispatch(setTypeMap(typeMap));
-  }, [types]);
 
   function getRootsData() {
     dispatch(setGraphLoading(true));
@@ -376,9 +365,8 @@ export default function Editor(props: EditorProps) {
           clockwise: false
         },
       },
-      plugins: [tooltip, contextMenu]
+      plugins: [tooltip]
     });
-    (window as any).PDR_GRAPH = graph;
     let graphData: any = {};
     if (data) {
       graphData = covertToGraphData(data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
@@ -390,6 +378,17 @@ export default function Editor(props: EditorProps) {
     dispatch(setShowSearch(true));
 
     (window as any).PDB_GRAPH = graph;
+    dispatch(setGraphDataMap({
+      ...graphDataMap,
+      'main': graphData
+    }));
+    
+    if (queryParams.graphId) {
+      const searchIcon = document.getElementById("pdb-explore-search-icon");
+      if (searchIcon) {
+        searchIcon.click();
+      }
+    }
   }
 
   let deleteConfirmModal: any = null;

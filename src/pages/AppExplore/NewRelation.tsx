@@ -13,6 +13,7 @@ interface ExploreFilterProps {
   initialValue: any
   saveConfig: Function
   close: Function
+  readOnly: boolean
   tagsLen: number
 }
 
@@ -22,7 +23,7 @@ export const operators: any = {
 };
 
 export default function NewRelation(props: ExploreFilterProps) {
-  const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen } = props;
+  const { close, sourceTag, targetTag, saveConfig, initialValue, tagsLen, readOnly } = props;
   const [form] = Form.useForm();
 
   const types = useSelector((state: StoreState) => state.type.data),
@@ -37,6 +38,30 @@ export default function NewRelation(props: ExploreFilterProps) {
   useEffect(() => {
     if (form && !_.isEqual(form.getFieldsValue(), initialValue.data)) {
       form.setFieldsValue({ ...initialValue.data });
+      const bindType = _.get(initialValue, "bindType", "innerjoin");
+      switch (bindType) {
+        case 'innerjoin':
+          setLeftSelected(false);
+          setRightSelected(false);
+          setOvalSelected(true);
+          break;
+        case 'leftjoin':
+          setLeftSelected(true);
+          setRightSelected(false);
+          setOvalSelected(false);
+          break;
+        case 'rightjoin':
+          setLeftSelected(false);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+        default:
+          setLeftSelected(true);
+          setRightSelected(true);
+          setOvalSelected(false);
+          break;
+      }
+      setJoinType(bindType);
     }
   }, [initialValue]);
 
@@ -69,18 +94,21 @@ export default function NewRelation(props: ExploreFilterProps) {
   }
 
   const changeLeftSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(!leftSelected);
     setOvalSelected(false);
     changeJoinType(!leftSelected, rightSelected, false);
   }
 
   const changeRightSelect = function (event: any) {
+    if (readOnly) return;
     setRightSelected(!rightSelected);
     setOvalSelected(false);
     changeJoinType(leftSelected, !rightSelected, false);
   }
 
   const changeOvalSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(false);
     setRightSelected(false);
     setOvalSelected(!ovalSelected);
@@ -121,6 +149,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                   options={(_.get(sourceTag, 'data', {})['x.type.attrs'] || []).map(
                     ({ display, name }: AttrConfig) => ({ label: display, value: name })
                   )}
+                  disabled={readOnly}
                 />
               </Form.Item>
             </div>
@@ -136,7 +165,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                     label: "x.type.label",
                     value: "x.type.name"
                   }}
-                  disabled={!_.isEmpty(targetTag)}
+                  disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
                       label: option['x.type.label'],
@@ -167,7 +196,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                         options={(_.get(currTargetTag, 'data', {})['x.type.attrs'] || []).map(
                           ({ display, name }: AttrConfig) => ({ label: display, value: name })
                         )}
-                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"])}
+                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"]) || readOnly}
                       />
                     </Form.Item>
                   )
@@ -184,14 +213,12 @@ export default function NewRelation(props: ExploreFilterProps) {
                     validator: async (_, value) => {
                       if (value.length > 50) {
                         throw new Error('类型名称最多支持50个字符');
-                      } else if (relations && relations.findIndex((_rel: any, index: number) => _rel['r.type.label'] === value) > -1) {
-                        throw new Error('该名称已被使用');
                       }
                     }
                   }
                 ]}
               >
-                <Input />
+                <Input disabled={readOnly} />
               </Form.Item>
             </div>
           </div>
@@ -228,15 +255,15 @@ export default function NewRelation(props: ExploreFilterProps) {
   return (
     <div className="pdb-explore-setting">
       <div className="pdb-explore-setting-header">
-        <span>关系类型 - 临时关系</span>
+        <span>关联关系</span>
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
       <div className="pdb-explore-setting-container">
         {renderGroupSetting()}
       </div>
       <div className="pdb-explore-setting-footer">
-        <Button onClick={() => close()}>取消</Button>
-        <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>
+        <Button onClick={() => close()}>{readOnly ? "关闭" : "取消"}</Button>
+        {!readOnly && <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>}
       </div>
     </div>
   )

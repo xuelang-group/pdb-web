@@ -75,6 +75,19 @@
         width: 100%;
         height: 100%;
       }
+
+      .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
+        background-color: #fff !important;
+      }
+
+      &-disabled {
+        border: none;
+        background-color: #F9FBFC;
+
+        .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector{
+          background-color: #F9FBFC !important;
+        }
+      }
     }
 
     .pdb-ant-select-selector {
@@ -109,6 +122,12 @@
         color: var(--text-color2) !important;
         margin-right: 4px;
         visibility: visible !important;
+      }
+
+      span:nth-child(3) {
+        color: #828D99;
+        font-size: 12px;
+        margin-left: 4px;
       }
     }
 
@@ -483,6 +502,25 @@
 
         .pdb-ant-select {
           width: 100%;
+
+          &.pdb-ant-select-disabled {
+            .pdb-ant-select-selector {
+              border: none;
+              background-color: #F9FBFC !important;
+              color: var(--text-color1) !important;
+            }
+            .pdb-ant-select-arrow{
+              display: none;
+            }
+          }
+        }
+      }
+
+      &-input {
+        .pdb-ant-input-disabled {
+          border: none;
+          background-color: #F9FBFC !important;
+          color: var(--text-color1) !important;
         }
       }
 
@@ -513,10 +551,6 @@
       border: none;
       box-shadow: var(--box-shadow);
     }
-  }
-
-  .pdb-ant-select-disabled.pdb-ant-select:not(.pdb-ant-select-customize-input) .pdb-ant-select-selector {
-    background-color: #fff !important;
   }
 }
 

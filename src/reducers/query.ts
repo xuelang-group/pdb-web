@@ -45,14 +45,21 @@ export const initialParams = {
 export const querySlice = createSlice({
   name: 'query',
   initialState: {
+    api: '/pdb/api/v1/object/search/pql',
     params: initialParams
   },
   reducers: {
+    setApi: (state, action: PayloadAction<string>) => {
+      state.api = action.payload;
+    },
     setQueryParams: (state, action: PayloadAction<ParamsState>) => {
       state.params = JSON.parse(JSON.stringify(action.payload));
+    },
+    clearQuery: (state) => {
+      state.params = JSON.parse(JSON.stringify(initialParams));
     }
   }
 });
 
-export const { setQueryParams } = querySlice.actions;
+export const { setQueryParams, setApi, clearQuery } = querySlice.actions;
 export default querySlice.reducer;

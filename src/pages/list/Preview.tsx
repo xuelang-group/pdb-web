@@ -10,7 +10,7 @@ import previewEmpty from '@/assets/images/preview-empty.png';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import { setCollapsed } from "@/reducers/app";
 import { StoreState } from "@/store";
-import { getImagePath } from "@/actions/minioOperate";
+import { getImagePath, getImgHref } from "@/actions/minioOperate";
 interface PreviewProps {
   activeItem: any
   theme: string
@@ -75,14 +75,11 @@ export default function Preview(props: PreviewProps) {
     );
   }
 
-  let previewImage = theme === 'dark' ? previewEmptyDark : previewEmpty;
-  if (previewImage.startsWith("./")) {
-    previewImage = _.get(window, 'pdbConfig.basePath', '') + previewImage.replace("./", "/");
-  }
+  const previewImage = theme === 'dark' ? previewEmptyDark : previewEmpty;
 
   return (
     <div className="pdb-list-preview" style={{ justifyContent: 'center' }}>
-      <Empty image={previewImage} description="请选择一个模板预览" />
+      <Empty image={getImgHref(previewImage)} description="请选择一个模板预览" />
     </div>
   );
 } 

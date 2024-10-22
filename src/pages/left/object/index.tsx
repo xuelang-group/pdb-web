@@ -42,59 +42,59 @@ export default function Left() {
       }
     });
 
-    dispatch(setTypeLoading(true));
-    dispatch(setRelationLoading(true));
+    // dispatch(setTypeLoading(true));
+    // dispatch(setRelationLoading(true));
 
-    getTypeByGraphId(id, null, (success: boolean, response: any) => {
-      if (success) {
-        dispatch(setTypes(response || []));
-      } else {
-        notification.error({
-          message: '获取对象类型列表失败',
-          description: response.message || response.msg
-        });
-      }
-      dispatch(setTypeLoading(false));
-    });
+    // getTypeByGraphId(id, null, (success: boolean, response: any) => {
+    //   if (success) {
+    //     dispatch(setTypes(response || []));
+    //   } else {
+    //     notification.error({
+    //       message: '获取对象类型列表失败',
+    //       description: response.message || response.msg
+    //     });
+    //   }
+    //   dispatch(setTypeLoading(false));
+    // });
 
-    getRelationByGraphId(id, null, (success: boolean, response: any) => {
-      let typeRelationMap: any = {};
-      if (success) {
-        dispatch(setRelations(response || []));
-        (response || []).forEach(function (relation: RelationConfig) {
-          const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
-            relationId = relation['r.type.name'];
-          binds.forEach(function (bind) {
-            const { source, target } = bind;
-            if (typeRelationMap[source]) {
-              if (typeRelationMap[source]['source']) {
-                typeRelationMap[source]['source'].push(relationId);
-              } else {
-                Object.assign(typeRelationMap[source], { source: [relationId] });
-              }
-            } else {
-              Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
-            }
-            if (typeRelationMap[target]) {
-              if (typeRelationMap[target]['target']) {
-                typeRelationMap[target]['target'].push(relationId);
-              } else {
-                Object.assign(typeRelationMap[target], { target: [relationId] });
-              }
-            } else {
-              Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
-            }
-          });
-        });
-      } else {
-        notification.error({
-          message: '获取关系列表失败',
-          description: response.message || response.msg
-        });
-      }
-      dispatch(setRelationLoading(false));
-      dispatch(setTypeRelationMap(typeRelationMap));
-    });
+    // getRelationByGraphId(id, null, (success: boolean, response: any) => {
+    //   let typeRelationMap: any = {};
+    //   if (success) {
+    //     dispatch(setRelations(response || []));
+    //     (response || []).forEach(function (relation: RelationConfig) {
+    //       const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
+    //         relationId = relation['r.type.name'];
+    //       binds.forEach(function (bind) {
+    //         const { source, target } = bind;
+    //         if (typeRelationMap[source]) {
+    //           if (typeRelationMap[source]['source']) {
+    //             typeRelationMap[source]['source'].push(relationId);
+    //           } else {
+    //             Object.assign(typeRelationMap[source], { source: [relationId] });
+    //           }
+    //         } else {
+    //           Object.assign(typeRelationMap, { [source]: { source: [relationId] } });
+    //         }
+    //         if (typeRelationMap[target]) {
+    //           if (typeRelationMap[target]['target']) {
+    //             typeRelationMap[target]['target'].push(relationId);
+    //           } else {
+    //             Object.assign(typeRelationMap[target], { target: [relationId] });
+    //           }
+    //         } else {
+    //           Object.assign(typeRelationMap, { [target]: { target: [relationId] } });
+    //         }
+    //       });
+    //     });
+    //   } else {
+    //     notification.error({
+    //       message: '获取关系列表失败',
+    //       description: response.message || response.msg
+    //     });
+    //   }
+    //   dispatch(setRelationLoading(false));
+    //   dispatch(setTypeRelationMap(typeRelationMap));
+    // });
   }
 
   const tabs = [{
@@ -104,7 +104,7 @@ export default function Left() {
   }, {
     key: 'indicator',
     label: '指标列表',
-    children: <IndicatorList />
+    children: <div className='pdb-sider-content'><IndicatorList /></div>
   }]
 
   const renderPanelContent = function () {

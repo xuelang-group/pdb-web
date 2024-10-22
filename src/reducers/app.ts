@@ -1,11 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 
 interface systemInfoState {
   userId: number | null
   appId: number | null
   nodeId: string
-  graphId: number | null
+  graphId: number | string | null
 }
 interface ListState {
   systemInfo: systemInfoState

@@ -14,6 +14,7 @@ interface ExploreFilterProps {
   close: Function
   isLastTag: boolean
   tagIndex: number
+  readOnly: boolean
 }
 
 export const operators: any = {
@@ -31,7 +32,7 @@ export const joinTypes: any = {
 const CheckboxGroup = Checkbox.Group;
 
 export default function ExploreFilter(props: ExploreFilterProps) {
-  const { originType, saveConfig, close, isLastTag, tagIndex } = props;
+  const { originType, saveConfig, close, isLastTag, tagIndex, readOnly } = props;
   const childRef = React.createRef();
 
   const [allCheckedList, setAllCheckedList] = useState([]),
@@ -179,7 +180,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       label: filterLabel,
       conditions,
       options: filterOptions
-    }, csv);
+    }, csv, joinType);
   }
 
   const onChange = (list: any[]) => {
@@ -206,7 +207,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     return (
       <div className="pdb-explore-column">
         <div className="pdb-explore-column-all">
-          <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
+          <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll} disabled={readOnly}>
             <span>{checkedList.length}</span>
             <span>/</span>
             <span>{tagTypeAttr.length}项</span>
@@ -218,6 +219,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
             value: `${name}|${display}|${type}`
           }))}
           value={checkedList}
+          disabled={readOnly}
           onChange={onChange}
         />
       </div>
@@ -240,18 +242,21 @@ export default function ExploreFilter(props: ExploreFilterProps) {
 
 
   const changeLeftSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(!leftSelected);
     setOvalSelected(false);
     changeJoinType(!leftSelected, rightSelected, false);
   }
 
   const changeRightSelect = function (event: any) {
+    if (readOnly) return;
     setRightSelected(!rightSelected);
     setOvalSelected(false);
     changeJoinType(leftSelected, !rightSelected, false);
   }
 
   const changeOvalSelect = function (event: any) {
+    if (readOnly) return;
     setLeftSelected(false);
     setRightSelected(false);
     setOvalSelected(!ovalSelected);
@@ -307,6 +312,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           block
         />
         <ExploreFilterContent
+          readOnly={readOnly}
           visible={selectedTab === 'filter'}
           onRef={childRef}
           originType={originType}
@@ -315,8 +321,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         {selectedTab === 'group' && renderGroupSetting()}
       </div>
       <div className="pdb-explore-setting-footer">
-        <Button onClick={() => close()}>取消</Button>
-        <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>
+        <Button onClick={() => close()}>{readOnly ? "关闭" : "取消"}</Button>
+        {!readOnly && <Button type="primary" onClick={save} disabled={!joinType}>确定</Button>}
       </div>
     </div>
   )

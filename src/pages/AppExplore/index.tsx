@@ -1,27 +1,27 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Alert, Divider, Empty, message, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { last, values } from "lodash";
-import React, { useCallback } from "react";
+import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
+import _, { isEmpty } from "lodash";
+import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { api, getQueryResult, runPql } from "@/actions/query";
+import { getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 
 import './index.less';
-import ExportApi from "@/components/ExportApi";
 import { ConditionState, initialParams, setQueryParams } from "@/reducers/query";
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
+import { setModalVisible } from "@/reducers/indicator";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -32,6 +32,9 @@ export const typeLabelMap: any = {
 export default function AppExplore() {
   const dispatch = useDispatch();
   const routerParams = useParams();
+  const navigator = useNavigate();
+  const [modal, contextHolder] = Modal.useModal();
+
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
 
   const types = useSelector((state: StoreState) => state.type.data),
@@ -41,7 +44,14 @@ export default function AppExplore() {
     showSearch = useSelector((state: StoreState) => state.editor.showSearch),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
-    queryParams = useSelector((state: StoreState) => state.query.params);
+    queryParams = useSelector((state: StoreState) => state.query.params),
+    systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+  const dimentionIitial = useSelector((state: StoreState) => state.indicator.dimentionInitial),
+    dimention = useSelector((state: StoreState) => state.indicator.dimention),
+    func = useSelector((state: StoreState) => state.indicator.func),
+    groupBy = useSelector((state: StoreState) => state.indicator.groupBy),
+    indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
+    indicatorEditId = useSelector((state: StoreState) => state.indicator.editId); // 指标编辑id
   const [exploreExpand, setExploreExpand] = useState(false),
     [dropdownOpen, setDropdownOpen] = useState(false),
     [filterPanelOpenKey, setFilterPanelOpenKey] = useState<any>(null),
@@ -53,7 +63,8 @@ export default function AppExplore() {
     [currentFocusIndex, setCurrentFocusIndex] = useState(-1),
     [currentSearchValue, setSearchValue] = useState<string>(''),
     [searchTabs, setSearchTabs] = useState('all'), // 下拉框里显示的tab有哪些
-    [currentSelectDropdownTab, setSelectDropdownTab] = useState('type');
+    [currentSelectDropdownTab, setSelectDropdownTab] = useState('type'),
+    [saveConfirmModal, setSaveConfirmModal] = useState("");
 
   useEffect(() => {
     document.addEventListener('keydown', onFocusSearch);
@@ -63,115 +74,130 @@ export default function AppExplore() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log(queryParams, searchTagMap)
+  function reverseParsing() {
+    const { pql, csv } = queryParams;
+    const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
+    _.get(csv, "header", []).forEach(function (val) {
+      const { typeId, index } = val;
+      const _id = typeId + "-" + index;
+      if (typeCsvMap[_id]) {
+        typeCsvMap[_id].push(val);
+      } else {
+        Object.assign(typeCsvMap, { [_id]: [val] });
+      }
+    });
+    pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
+      let typeId = id;
+      if (type !== "object" && id.startsWith("~Relation.")) typeId = id.slice(1);
+      const _id = (typeId ? (typeId + "-") : ("__TEMPORARY_RELATION__")) + index;
+      _tags.push(_id);
 
-    // 反向解析
-    if (_.isEmpty(searchTags[0]) && !_.isEmpty(queryParams) && !_.isEmpty(typeMap)) {
-      const { pql, csv } = queryParams;
-      const _tags: string[] = [], _tagsMap: any = {}, typeCsvMap: any = {};
-      _.get(csv, "header", []).forEach(function (val) {
-        const { typeId, index } = val;
-        const _id = typeId + "-" + index;
-        if (typeCsvMap[_id]) {
-          typeCsvMap[_id].push(val);
-        } else {
-          Object.assign(typeCsvMap, { [_id]: [val] });
-        }
-      });
-      pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
-        let typeId = id;
-        if (type !== "object" && id.startsWith("~Relation.")) typeId = id.slice(1);
-        const _id = (typeId ? (typeId + "-") : ("__TEMPORARY_RELATION__")) + index;
-        _tags.push(_id);
-
-        const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
-        let conditionLabel = "";
-        if (!_.isEmpty(conditionRaw) && id) {
-          let attrMap: any = {};
-          if (type === "object") {
-            _.get(typeMap[typeId], "x.type.attrs", []).forEach((val: any) => {
-              Object.assign(attrMap, { [val?.name]: val });
-            });
-          } else {
-            attrMap = _.get(relationMap[typeId], "r.type.constraints", {});
-            delete attrMap['r.binds'];
-            delete attrMap['r.constraints'];
-          }
-          conditions.forEach((val: ConditionState) => {
-            const attrName = val.name,
-              functionVal = functionSymbolMap[val.function],
-              attrLabel = _.get(attrMap[attrName], "display", ""),
-              attrData = attrMap[attrName] || {};
-            const attr = {
-              value: attrName,
-              label: attrLabel,
-              data: attrData
-            },
-              condition = {
-                value: functionVal,
-                label: _.get(optionLabelMap, functionVal)
-              },
-              isNot = val.not,
-              operator = val.connectives;
-
-            let keyword = val.value, keywordLabel = val.value;
-            if (attrData.type === "datetime") {
-              keywordLabel = moment(keyword).format(attrData.datetimeFormat);
-              keyword = dayjs(keywordLabel, attrData.datetimeFormat);
-            }
-
-            conditionOptions.push({
-              attr, condition, isNot, keyword, operator
-            });
-
-            if (functionVal === "has") {
-              conditionLabel += `存在属性 ${attrLabel}`;
-            } else {
-              const label = (functionVal === "anyofterms" || functionVal === "allofterms" ? optionLabelMap[functionVal] : optionSymbolMap[functionVal]) || ""
-              conditionLabel += `${val.not ? "NOT " : ""}${attrLabel} ${label} ${keywordLabel}`;
-            }
+      const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
+      let conditionLabel = "";
+      if (!_.isEmpty(conditionRaw) && id) {
+        let attrMap: any = {};
+        if (type === "object") {
+          _.get(typeMap[typeId], "x.type.attrs", []).forEach((val: any) => {
+            Object.assign(attrMap, { [val?.name]: val });
           });
+        } else {
+          attrMap = _.get(relationMap[typeId], "r.type.constraints", {});
+          delete attrMap['r.binds'];
+          delete attrMap['r.constraints'];
         }
+        conditions.forEach((val: ConditionState) => {
+          const attrName = val.name,
+            functionVal = functionSymbolMap[val.function],
+            attrLabel = _.get(attrMap[attrName], "display", ""),
+            attrData = attrMap[attrName] || {};
+          const attr = {
+            value: attrName,
+            label: attrLabel,
+            data: attrData
+          },
+            condition = {
+              value: functionVal,
+              label: _.get(optionLabelMap, functionVal)
+            },
+            isNot = val.not,
+            operator = val.connectives;
 
-        Object.assign(_tagsMap, {
-          [_id]: {
-            key: typeId,
-            value: _id,
-            type: type === "object" ? "type" : type,
-            prevSearchTagType: index === 0 ? "" : (type === "object" ? "relation" : "type"),
-            label: name,
-            config: {
-              conditions,
-              key: conditionRaw,
-              options: conditionOptions,
-              label: conditionLabel
-            }
+          let keyword = val.value, keywordLabel = val.value;
+          if (attrData.type === "datetime") {
+            keywordLabel = moment(keyword).format(attrData.datetimeFormat);
+            keyword = dayjs(keywordLabel, attrData.datetimeFormat);
+          }
+
+          conditionOptions.push({
+            attr, condition, isNot, keyword, operator
+          });
+
+          if (functionVal === "has") {
+            conditionLabel += `存在属性 ${attrLabel}`;
+          } else {
+            const label = (functionVal === "anyofterms" || functionVal === "allofterms" ? optionLabelMap[functionVal] : optionSymbolMap[functionVal]) || ""
+            conditionLabel += `${val.not ? "NOT " : ""}${attrLabel} ${label} ${keywordLabel}`;
           }
         });
-        if (type === "object") {
-          Object.assign(_tagsMap[_id], { csv: typeCsvMap[_id], data: typeMap[typeId] });
-        } else {
-          const { binds, bindType } = other;
-          Object.assign(_tagsMap[_id], { bindType });
-          if (!typeId) {
-            Object.assign(_tagsMap[_id], {
-              key: _id,
-              binds,
-              data: {
-                "r.type.constraints": { "r.binds": binds[0] },
-                "r.type.label": name
-              }
-            });
-          } else {
-            Object.assign(_tagsMap[_id], { data: relationMap[typeId], isReverse: id.startsWith("~Relation.") });
+      }
+
+      Object.assign(_tagsMap, {
+        [_id]: {
+          key: typeId,
+          value: _id,
+          type: type === "object" ? "type" : type,
+          prevSearchTagType: index === 0 ? "" : (type === "object" ? "relation" : "type"),
+          label: name,
+          config: {
+            conditions,
+            key: conditionRaw,
+            options: conditionOptions,
+            label: conditionLabel
           }
         }
       });
-      setSearchTags([_tags]);
-      setSearchTagMap([_tagsMap]);
+      if (type === "object") {
+        Object.assign(_tagsMap[_id], { csv: typeCsvMap[_id], data: typeMap[typeId] });
+      } else {
+        const { binds, bindType } = other;
+        Object.assign(_tagsMap[_id], { bindType });
+        if (!typeId) {
+          Object.assign(_tagsMap[_id], {
+            key: _id,
+            binds: binds || [],
+            data: {
+              "r.type.constraints": { "r.binds": _.get(binds, '0') },
+              "r.type.label": name
+            }
+          });
+        } else {
+          Object.assign(_tagsMap[_id], { data: relationMap[typeId], isReverse: id.startsWith("~Relation.") });
+        }
+      }
+    });
+    setSearchTags([_tags]);
+    setSearchTagMap([_tagsMap]);
+    searchPQL([_tagsMap], [_tags], false);
+  }
+
+  useEffect(() => {
+    // 反向解析
+    if ((indicatorCheckId || indicatorEditId) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
+      reverseParsing();
     }
-  }, [queryParams, typeMap]);
+
+    if (isEmpty(queryParams.graphId) && searchTags && !isEmpty(searchTags)) {
+      setSearchTags([[]]);
+      setSearchTagMap([{}]);
+      setCurrentFocusIndex(0);
+      const graph = (window as any).PDB_GRAPH;
+      if (!graph || !graphDataMap['main']) return;
+      dispatch(setCurrentGraphTab("main"));
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+      graph.render();
+      graph.zoom(1);
+    }
+  }, [indicatorCheckId, indicatorEditId, queryParams, typeMap]);
 
   useEffect(() => {
     handleSearch(currentSearchValue, currentFocusIndex);
@@ -196,6 +222,48 @@ export default function AppExplore() {
   useEffect(() => {
     if (!dropdownOpen) setOptionMap({});
   }, [dropdownOpen]);
+
+  // saveConfrimModal: 搜索框重新点击搜索时，检测到指标配置编辑，显示的弹窗
+  let saveConfrimModal: any = null;
+  const onCancel = () => {
+    saveConfrimModal && saveConfrimModal.destroy();
+    if (saveConfirmModal === "search") {
+      reverseParsing();
+    }
+    setSaveConfirmModal("");
+  }
+
+  const onUnsave = () => {
+    saveConfrimModal && saveConfrimModal.destroy();
+    setSaveConfirmModal("");
+    if (saveConfirmModal === "clear") {
+      dispatch(setQueryParams(initialParams));
+    } else {
+      searchPQL();
+    }
+  }
+
+  const onSaveIndicator = () => {
+    saveConfrimModal && saveConfrimModal.destroy();
+    setSaveConfirmModal("");
+    dispatch(setModalVisible(true));
+  }
+
+  useEffect(() => {
+    if (saveConfirmModal) {
+      saveConfrimModal = modal.confirm({
+        className: "pdb-indicator-save-confirm",
+        title: "检测到数据变化，是否先保存指标？",
+        footer: (
+          <div className="pdb-indicator-save-confirm-footer">
+            <Button onClick={onCancel}>取消</Button>
+            <Button onClick={onUnsave}>不保存</Button>
+            <Button onClick={onSaveIndicator} type="primary">保存</Button>
+          </div>
+        )
+      });
+    }
+  }, [saveConfirmModal]);
 
   // 选中 option，或 input 的 value 变化时，调用此函数
   const handleChange = (newValue: string[], index: number) => {
@@ -612,10 +680,10 @@ export default function AppExplore() {
     graph.zoom(1);
   }
 
-  const getPQL = function (_searchTagMap = searchTagMap) {
+  const getPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags) {
     const pql: any = [], relationNames: string[] = [];
     let csv: any = [];
-    searchTags.forEach((item, index) => {
+    _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
         let pqlItem: any[] = [], csvItem: any[] = [];
         item.forEach(val => {
@@ -642,7 +710,9 @@ export default function AppExplore() {
             });
 
             if (type === "relation") {
-              relationNames.push(detail.key.replace('.', '_'));
+              if (detail.key !== "e_x_parent" && detail.key !== "~e_x_parent" && !detail.key.startsWith("__TEMPORARY_RELATION__")) {
+                relationNames.push(detail.key.replace('.', '_'));
+              }
               Object.assign(option, {
                 bindType: _.get(detail, "bindType", "innerjoin")
               });
@@ -668,14 +738,17 @@ export default function AppExplore() {
     return { pql, csv, relationNames };
   }
 
-  const searchPQL = function (_searchTagMap = searchTagMap) {
-    const { pql, relationNames, csv } = getPQL(_searchTagMap);
-    if (pql.length === 0) return;
+  const searchPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags, updateQuery = true) {
+    const { pql, relationNames, csv } = getPQL(_searchTagMap, _searchTags);
+    if (pql.length === 0) {
+      handleClearSearch();
+      return;
+    };
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
-    dispatch(setQueryParams({
+    updateQuery && dispatch(setQueryParams({
       graphId,
       pql,
       csv: {
@@ -794,7 +867,8 @@ export default function AppExplore() {
       return (
         <span className="pdb-explore-dropdown-add">
           <i className="spicon icon-add"></i>
-          <span>使用临时关系</span>
+          <span>关联关系</span>
+          <span>(可关联任意对象，用于数据联接，但不建立关系类型)</span>
         </span>
       );
     }
@@ -895,7 +969,7 @@ export default function AppExplore() {
     };
 
     if (value === "__TEMPORARY_RELATION__") {
-      label = "临时关系";
+      label = "关联";
       color = "gold";
       icon = "iconfont icon-zhengxiangguanxi";
       closable = false;
@@ -910,7 +984,7 @@ export default function AppExplore() {
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
-        closable={closable}
+        closable={closable && !indicatorCheckId && !indicatorEditId}
         onClick={() => showFilterPanel(value)}
         onClose={onClose}
         style={{ marginRight: 3 }}
@@ -926,24 +1000,29 @@ export default function AppExplore() {
     return tagItem;
   }
 
-  const handleClearSearch = function (event: any) {
-    event.stopPropagation();
-    setSearchTags([[]]);
-    setSearchTagMap([{}]);
-    setCurrentFocusIndex(0);
-    const graph = (window as any).PDB_GRAPH;
-    if (!graph || !graphDataMap['main']) return;
-    dispatch(setCurrentGraphTab("main"));
-    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
-    graph.render();
-    graph.zoom(1);
-    dispatch(setQueryParams(initialParams));
+  const handleClearSearch = function (event: any = null) {
+    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+      setSaveConfirmModal("clear");
+      navigator(`/${systemInfo.graphId}/indicator`);
+    } else {
+      event && event.stopPropagation();
+      setSearchTags([[]]);
+      setSearchTagMap([{}]);
+      setCurrentFocusIndex(0);
+      const graph = (window as any).PDB_GRAPH;
+      if (!graph || !graphDataMap['main']) return;
+      dispatch(setCurrentGraphTab("main"));
+      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+      graph.render();
+      graph.zoom(1);
+      dispatch(setQueryParams(initialParams));
+    }
   }
 
   return (
     <div id="pdb-explore" className={`pdb-explore pdb-explore-${exploreExpand ? 'expand' : 'collapse'}`}>
       {showSearch &&
-        <div className="pdb-explore-search-group">
+        <div className={"pdb-explore-search-group" + (indicatorCheckId ? " pdb-explore-search-group-disabled" : "")}>
           {searchTags.map((item, index) => (
             <Popover
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
@@ -954,6 +1033,7 @@ export default function AppExplore() {
               rootClassName="pdb-explore-setting-popover"
               placement="bottomLeft"
               content={() => {
+                const readOnly = Boolean(indicatorCheckId);
                 const tags = searchTags[index], tagsLen = tags.length;
 
                 if (filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
@@ -981,6 +1061,7 @@ export default function AppExplore() {
                     }
                     Object.assign(initialValue, {
                       "data": {
+                        "r.type.label": "关联",
                         "r.type.constraints": {
                           "r.binds": {
                             "source": _.get(sourceTag, "key", ""),
@@ -997,6 +1078,7 @@ export default function AppExplore() {
                       sourceTag={sourceTag}
                       targetTag={targetTag}
                       initialValue={initialValue}
+                      readOnly={readOnly}
                       close={() => {
                         setFilterPanelOpenKey(null);
                         removeLastTypeTag(index);
@@ -1007,15 +1089,16 @@ export default function AppExplore() {
                 }
                 return (
                   <ExploreFilter
+                    readOnly={readOnly}
                     tagIndex={tags.findIndex(val => val === filterPanelOpenKey)}
                     isLastTag={tags && tagsLen > 0 ? tags[tagsLen - 1] === filterPanelOpenKey : false}
                     originType={_.get(searchTagMap[index], filterPanelOpenKey)}
                     close={() => {
                       setFilterPanelOpenKey(null);
                     }}
-                    saveConfig={(config: any, csv: any) => {
+                    saveConfig={(config: any, csv: any, bindType: string) => {
                       const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv } });
+                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv, bindType } });
                       setSearchTagMap(newSearchTagsMap);
                       setFilterPanelOpenKey(null);
                     }}
@@ -1041,7 +1124,7 @@ export default function AppExplore() {
                 notFoundContent={<Empty description="暂无相关结果" />}
                 open={currentFocusIndex === index && dropdownOpen}
                 // allowClear
-                disabled={searchLoading}
+                disabled={searchLoading || Boolean(indicatorCheckId || indicatorEditId)}
                 autoFocus={index > 0}
                 getPopupContainer={(() => document.getElementById("pdb-explore") || document.body) as any}
                 dropdownRender={(originNode) => dropdownRender(originNode, index)}
@@ -1066,17 +1149,22 @@ export default function AppExplore() {
           ))}
         </div>
       }
-      {!searchLoading &&
-        <Tooltip title="搜索">
-          <i
-            className="spicon icon-sousuo2"
-            onClick={event => {
-              event.stopPropagation();
+      <Tooltip title="搜索">
+        <i
+          id="pdb-explore-search-icon"
+          className="spicon icon-sousuo2"
+          style={{ display: !searchLoading && !indicatorCheckId ? "block" : "none" }}
+          onClick={event => {
+            event.stopPropagation();
+            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+              setSaveConfirmModal("search");
+              navigator(`/${systemInfo.graphId}/indicator`);
+            } else {
               searchPQL();
-            }}
-          ></i>
-        </Tooltip>
-      }
+            }
+          }}
+        ></i>
+      </Tooltip>
       {/* <Tooltip title="展开">
         <i
           className={`spicon ${exploreExpand ? "icon-shouqi" : "icon-open_detail"}`}
@@ -1108,12 +1196,15 @@ export default function AppExplore() {
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
       /> */}
-      <Tooltip title="清空">
-        <i
-          className="spicon icon-shibai"
-          onClick={handleClearSearch}
-        ></i>
-      </Tooltip>
+      {!indicatorCheckId && !indicatorEditId &&
+        <Tooltip title="清空">
+          <i
+            className="spicon icon-shibai"
+            onClick={handleClearSearch}
+          ></i>
+        </Tooltip>
+      }
+      {contextHolder}
     </div>
   )
 }

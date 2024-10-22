@@ -172,7 +172,7 @@ export default function TypeList() {
   }
 
   const handleSelectItem = function (data: any) {
-    const graph = (window as any).PDR_GRAPH;
+    const graph = (window as any).PDB_GRAPH;
     if (!graph || data.length === 0 || !location.pathname.endsWith("/template")) return;
     const id = data[0];
     const item = graph.findById(id);
@@ -226,7 +226,7 @@ export default function TypeList() {
                 >
                   <span
                     className='type-item'
-                    draggable={currentGraphTab === 'main'}
+                    // draggable={currentGraphTab === 'main'}
                     onDragStart={event => handleDragStart(event, item.data)}
                   >
                     <i className='iconfont icon-duixiangleixing'></i>

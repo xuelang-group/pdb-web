@@ -8,9 +8,9 @@ export interface RelationConfig {
   'r.type.name': string
   'r.type.label': string
   'r.type.constraints': ConstraintsConfig
-  'r.type.prototype': Array<string | null>
-  'r.type.last_change': number
-  'r.type.created': number
+  'r.type.prototype'?: Array<string | null>
+  'r.type.last_change'?: number
+  'r.type.created'?: number
 }
 
 interface RelationState {

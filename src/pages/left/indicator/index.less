@@ -1,0 +1,56 @@
+.pdb-search-indicator {
+  margin: 16px  16px 0 16px;
+}
+
+.indicator-tag {
+  margin-left: 6px !important;
+}
+
+.indicator-item-selected {
+  background-color: #E8F8FF;
+}
+
+.indicator-item-selected:hover {
+  background-color: #E8F8FF !important;
+}
+
+.list-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .list-header {
+    padding: 1rem 1.6rem;
+    display: flex;
+
+    .operation-icon {
+      margin-left: 1rem;
+      color: var(--text-color3);
+      font-size: 1.6rem;
+      cursor: pointer;
+      line-height: 3.2rem;
+    }
+  }
+
+  .list-content {
+    overflow: auto;
+    flex: 1;
+
+    .type-item-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-wrap: nowrap;
+      width: 0;
+      min-width: 3rem;
+    }
+  }
+}
+.check-info-drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+
+  .check-info-drawer-footer-btn {
+    margin-left: 12px;
+  }
+}

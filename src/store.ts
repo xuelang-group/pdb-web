@@ -6,6 +6,7 @@ import relationReducer from './reducers/relation';
 import templateReducer from './reducers/template';
 import queryReducer from './reducers/query';
 import appReducer from './reducers/app';
+import indicatorReducer from './reducers/indicator';
 
 const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ const store = configureStore({
     relation: relationReducer,
     template: templateReducer,
     query: queryReducer,
-    app: appReducer
+    app: appReducer,
+    indicator: indicatorReducer
   }
 });
 

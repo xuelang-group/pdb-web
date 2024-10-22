@@ -52,13 +52,17 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55199/772ca3d07e3711efba1207b2a9918c59/7000",
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
         changeOrigin: true,
         // onProxyReq(proxyReq) {
         //   // 设置Cookie
         //   proxyReq.setHeader('Cookie', 'os.sid=s%3AulMkyM8OURwh3O1HDKz3OIRzM4hevtmG.z7OEj7FlH%2BqXougGOYU%2FgiARC998UjjPHfAM4lXqFUI; Path=/; Expires=Tue, 26 Mar 2024 11:51:16 GMT; HttpOnly');
         // },
-      },
+      },  
+      '/indicator': {
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
+        changeOrigin: true,
+      }
     },
   }
 }

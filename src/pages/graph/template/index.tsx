@@ -123,7 +123,7 @@ export default function Editor(props: EditorProps) {
       },
       linkCenter: true,
     });
-    (window as any).PDR_GRAPH = graph;
+    // (window as any).PDB_TEMPLATE_GRAPH = graph;
 
     graph.get('canvas').set('localRefresh', false);
     graph.data(data);
@@ -219,7 +219,7 @@ export default function Editor(props: EditorProps) {
       graph?.destroy();
       graph = null;
     }
-  }, [graphRef, typeLoading, relationLoading]);
+  }, [graphRef, types, relations]);
 
   return (
     <div className={"pdb-graph pdb-template-graph" + (location.pathname.endsWith('/template') ? ' visible' : '')}>
