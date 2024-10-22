@@ -64,6 +64,7 @@ interface ToolbarItemConfig {
   showRelationLabel: boolean
   filters: Array<FilterConfig>
   pageSize?: number
+  queryParams?: any // explore时，分页搜索请求参数
 }
 
 interface ToolbarConfig {

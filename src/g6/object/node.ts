@@ -5,7 +5,6 @@ import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, ge
 import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
-import { PAGE_SIZE } from './behavior';
 
 export const defaultCircleR = 60;
 
@@ -664,9 +663,11 @@ export function registerNode() {
       if (cfg.totalPage) {
         const totalTextClassName = 'total-text';
         const currentOffset = Number(cfg.id.split("-")[2]);
+        const { toolbarConfig, currentGraphTab } = store.getState().editor;
+        const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
         const totalnTextShape = group.addShape('text', {
           attrs: {
-            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage,
+            text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE)) + " / " + cfg.totalPage,
             fill: '#595959',
             x: 15,
             y: -2,
@@ -693,9 +694,11 @@ export function registerNode() {
       const { nextDisabled, totalPage } = cfg;
       iconText.attr({ fill: nextDisabled ? "#C2C7CC" : "#4C5A67" });
       if (totalPage) {
+        const { toolbarConfig, currentGraphTab } = store.getState().editor;
+        const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
         const totalText = item.getContainer().findAll((ele: any) => ele.get('name') === 'total-text')[0];
         const currentOffset = Number(cfg.id.split("-")[2]);
-        totalText.attr({ text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE())) + " / " + cfg.totalPage });
+        totalText.attr({ text: (currentOffset === 0 ? 1 : Math.floor(currentOffset / PAGE_SIZE)) + " / " + cfg.totalPage });
       }
     }
   }, 'rect');

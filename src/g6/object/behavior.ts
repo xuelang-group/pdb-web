@@ -8,8 +8,7 @@ import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
-
-export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
+import { getQueryChildren } from '@/actions/query';
 
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {
@@ -138,7 +137,9 @@ export const G6OperateFunctions = {
             comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
           if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
             const { name, parent, nextDisabled } = comboLastNode.get('model');
-            const config = name.split('-'), limit = Number(PAGE_SIZE());
+            const { toolbarConfig, currentGraphTab } = store.getState().editor;
+            const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+            const config = name.split('-'), limit = Number(PAGE_SIZE);
             let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
             if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
               offset -= limit;
@@ -174,13 +175,15 @@ export const G6OperateFunctions = {
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
-      const limit = Number(PAGE_SIZE());
+      const { toolbarConfig, currentGraphTab } = store.getState().editor;
+      const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+      const limit = Number(PAGE_SIZE);
       let params = { vid: model.uid };
 
       if (limit > 0 && Number(model.childLen) > limit) {
         Object.assign(params, { first: limit, offset: 0 });
       }
-      getChildren(params, (success: boolean, data: any) => {
+      const responseCallback = (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
@@ -246,11 +249,12 @@ export const G6OperateFunctions = {
           }));
           graph.expandCombo(comboId);
           const curentGraphData: any = graph.save();
+          const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
           if (params.hasOwnProperty("offset")) {
             const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
             _data.push({
-              uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
-              id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
+              uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE)}-next`,
+              id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE)}-next`,
               totalPage,
               currentParent: { id }
             });
@@ -288,7 +292,12 @@ export const G6OperateFunctions = {
           });
         }
         store.dispatch(setGraphLoading(false));
-      });
+      }
+      if (currentGraphTab === "explore") {
+        getQueryChildren({ ...toolbarConfig["explore"]["queryParams"], ...params }, responseCallback)
+      } else {
+        getChildren(params, responseCallback);
+      }
     } else {
       store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
       graph.expandCombo(comboId);
@@ -480,7 +489,9 @@ export const G6OperateFunctions = {
       const graphData = convertAllData(newData);
 
       let shouldUpdate = true;
-      const limit = Number(PAGE_SIZE());
+      const { toolbarConfig, currentGraphTab } = store.getState().editor;
+      const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+      const limit = Number(PAGE_SIZE);
       const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
       if (prevParentCombo) {
         const comboLastNodes = prevParentCombo.getChildren().nodes || [],
@@ -655,14 +666,15 @@ export const G6OperateFunctions = {
         return;
       }
       const params: any = { vid: parent };
-
-      const limit = Number(PAGE_SIZE()),
+      const { toolbarConfig, currentGraphTab } = store.getState().editor;
+      const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+      const limit = Number(PAGE_SIZE),
         _offset = Number(offset);
       if (_offset >= 0 && limit > 0) {
         Object.assign(params, { first: limit, offset: _offset });
       }
       store.dispatch(setGraphLoading(true));
-      getChildren(params, (success: boolean, data: any) => {
+      const responseCallback = (success: boolean, data: any) => {
         if (success) {
           const parentNode = graph.findById(parent),
             parentModel = parentNode.get('model'),
@@ -745,7 +757,7 @@ export const G6OperateFunctions = {
             }
           }));
           store.dispatch(setToolbarConfig({
-            key: 'main',
+            key: currentGraphTab,
             config: { relationLines }
           }));
           graph.expandCombo(comboId);
@@ -848,7 +860,12 @@ export const G6OperateFunctions = {
         }
         store.dispatch(setGraphLoading(false));
         resolve(null);
-      });
+      }
+      if (currentGraphTab === "explore") {
+        getQueryChildren({ ...toolbarConfig["explore"]["queryParams"], ...params }, responseCallback);
+      } else {
+        getChildren(params, responseCallback);
+      }
     });
   }
 };
@@ -1063,7 +1080,9 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
               const { name, parent } = comboLastNode.get('model');
               const config = name.split('-');
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE()));
+              const { toolbarConfig, currentGraphTab } = store.getState().editor;
+              const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE));
             } else {
               G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
             }
@@ -1140,7 +1159,8 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   const graphData = addChildrenToGraphData(sourceNode, [newObj], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
 
   let shouldUpdate = true;
-  const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE());
+  const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+  const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE);
   if (sourceNodeCombo) {
     const comboLastNodes = sourceNodeCombo.getChildren().nodes || [],
       comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
@@ -1539,7 +1559,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
               }));
 
               store.dispatch(setToolbarConfig({
-                key: 'main',
+                key: currentGraphTab,
                 config: { relationLines }
               }));
               const curentGraphData: any = graph.save();
@@ -1878,8 +1898,9 @@ export function registerBehavior() {
         const handleUpdateObjects = async function () {
           let graphData: any = convertAllData(newData);
           let shouldUpdate = true;
-
-          const limit = Number(PAGE_SIZE());
+          const { toolbarConfig, currentGraphTab } = store.getState().editor;
+          const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+          const limit = Number(PAGE_SIZE);
           if (dragItemParentUid !== dropItemParentUid) {
             const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
             if (prevParentCombo) {
@@ -2034,7 +2055,9 @@ export function registerBehavior() {
         const config = name.split('-'),
           params = { uid: parent };
 
-        const limit = Number(PAGE_SIZE());
+        const { toolbarConfig, currentGraphTab } = store.getState().editor;
+        const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+        const limit = Number(PAGE_SIZE);
         Object.assign(params, { first: limit, offset: config[2] });
         G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
         return;

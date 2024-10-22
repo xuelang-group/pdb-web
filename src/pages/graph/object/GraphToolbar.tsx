@@ -464,7 +464,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         pageSize: value
       }
     }));
-    getRootsData();
+    if (currentGraphTab === "main") {
+      getRootsData();
+    } else if (currentGraphTab === "explore") {
+      const searchIcon = document.getElementById("pdb-explore-search-icon");
+      if (searchIcon) {
+        searchIcon.click();
+      }
+    }
   }
 
   const filters = Form.useWatch('filter', filterForm);
@@ -642,13 +649,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             <Switch checked={showRelationLabel} onChange={handleShowRelationName} size="small" />
           </div>
         }
-        {currentGraphTab === "main" &&
-          <div className="pdb-setting-item pdb-setting-pageSize">
-            <span>每层级显示节点数<Tooltip title="超过节点数，则显示分页按钮；不设置，则为全量数据。"><i className="spicon icon-tishi"></i></Tooltip>：</span>
-            <InputNumber min={0} step={1} value={pageSize} onBlur={handleChangePageSize} onPressEnter={handleChangePageSize} />
-            <span>（更改后，画布将重新渲染）</span>
-          </div>
-        }
+        {/* {currentGraphTab === "main" && */}
+        <div className="pdb-setting-item pdb-setting-pageSize">
+          <span>每层级显示节点数<Tooltip title="超过节点数，则显示分页按钮；不设置，则为全量数据。"><i className="spicon icon-tishi"></i></Tooltip>：</span>
+          <InputNumber min={0} step={1} value={pageSize} onBlur={handleChangePageSize} onPressEnter={handleChangePageSize} />
+          <span>（更改后，画布将重新渲染）</span>
+        </div>
+        {/* } */}
       </div>
     )
   }

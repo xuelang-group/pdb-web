@@ -10,9 +10,9 @@ import { useNavigate, useParams } from "react-router";
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { getQueryResult, runPql } from "@/actions/query";
+import { getQueryChildren, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
-import { convertResultData } from "@/utils/objectGraph";
+import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 
@@ -22,6 +22,7 @@ import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/comm
 import dayjs from "dayjs";
 import moment from "moment";
 import { setModalVisible } from "@/reducers/indicator";
+import { Parent } from "@/reducers/object";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -37,7 +38,9 @@ export default function AppExplore() {
 
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
 
-  const types = useSelector((state: StoreState) => state.type.data),
+  const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),
+    toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
+    types = useSelector((state: StoreState) => state.type.data),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeMap = useSelector((state: StoreState) => state.editor.typeMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
@@ -664,24 +667,86 @@ export default function AppExplore() {
     }
   }
 
-  const updateGraphData = function (data: any) {
+  const updateGraphData = function (data: any, params: any) {
     const graph = (window as any).PDB_GRAPH;
 
-    if (!data || !graph) return;
-    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
-    dispatch(setCurrentGraphTab("explore"));
-    dispatch(setToolbarConfig({
-      key: "explore",
-      config: { relationLines, showRelationLine: true, showRelationLabel: true }
-    }));
-    graph.data({ nodes, edges, combos });
+    if (!data || !graph || !rootId) return;
+    const relationLines = {};
+    const newData = data.map((value: any, index: number) => {
+      const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+        attrIndex = infoIndex === 0 ? 1 : 0;
+      const newValue = JSON.parse(JSON.stringify(value)),
+        parents = newValue['e_x_parent'],
+        currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
+        defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+        attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
+        uid = newValue['vid'].toString();
+
+      // 获取对象关系列表数据
+      const relations: any[] = [];
+      Object.keys(newValue).forEach((key: string) => {
+        if (key.startsWith("Relation_")) {
+          const relationKey = key.replace('_', '.');
+          if (_.isArray(newValue[key])) {
+            newValue[key].forEach((target: any) => {
+              relations.push({
+                relation: relationKey,
+                target: {
+                  uid: _.get(target, 'dst', '').toString()
+                },
+                attrValue: _.get(target, 'props', {})
+              });
+            });
+          } else {
+            relations.push({
+              relation: relationKey,
+              target: {
+                uid: _.get(newValue[key], 'dst', '').toString()
+              },
+              attrValue: _.get(newValue[key], 'props', {})
+            });
+          }
+        }
+      });
+      Object.assign(relationLines, {
+        [uid]: relations
+      });
+
+      return {
+        ...defaultInfo,
+        'x_attr_value': { ...attrValue },
+        'e_x_parent': parents,
+        'x_children': _.get(newValue, 'x_children', 0),
+        currentParent: {
+          ...(_.get(currentParent, 'props', {})),
+          uid: currentParent.dst.toString(),
+          id: rootId,
+        },
+        'x_id': rootId + '.' + index,
+        id: uid,
+        uid: uid
+      };
+    });
+    let graphData: any = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
+    graph.data(JSON.parse(JSON.stringify(graphData)));
     graph.render();
     graph.zoom(1);
+    dispatch(setCurrentGraphTab("explore"));
+    dispatch(setToolbarConfig({ config: { relationLines, queryParams: params }, key: 'explore' }));
+    // const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
+    // convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    // dispatch(setCurrentGraphTab("explore"));
+    // dispatch(setToolbarConfig({
+    //   key: "explore",
+    //   config: { relationLines, showRelationLine: true, showRelationLabel: true }
+    // }));
+    // graph.data({ nodes, edges, combos });
+    // graph.render();
+    // graph.zoom(1);
   }
 
   const getPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags) {
-    const pql: any = [], relationNames: string[] = [];
+    const pql: any = [], relationNames: string[] = [], typeNames = {};
     let csv: any = [];
     _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
@@ -722,6 +787,8 @@ export default function AppExplore() {
                   binds: _.get(detail, "binds", [])
                 });
               }
+            } else if (type === "object") {
+              Object.assign(typeNames, { [detail.key]: detail.key });
             }
 
             const objectCsvOpt = _.get(detail, 'csv');
@@ -735,11 +802,11 @@ export default function AppExplore() {
         csv = csv.concat(csvItem);
       }
     });
-    return { pql, csv, relationNames };
+    return { pql, csv, relationNames, typeNames: Object.keys(typeNames) };
   }
 
   const searchPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags, updateQuery = true) {
-    const { pql, relationNames, csv } = getPQL(_searchTagMap, _searchTags);
+    const { pql, relationNames, csv, typeNames } = getPQL(_searchTagMap, _searchTags);
     if (pql.length === 0) {
       handleClearSearch();
       return;
@@ -755,11 +822,13 @@ export default function AppExplore() {
         header: csv
       }
     }));
+
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
-        getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
+        const params = { vid: rootId, childrenVid: response, graphId, typeNames, relationNames };
+        getQueryChildren(params, (success: boolean, response: any) => {
           if (success) {
-            updateGraphData(response);
+            updateGraphData(response, params);
           } else {
             notification.error({
               message: '搜索失败',
@@ -769,6 +838,18 @@ export default function AppExplore() {
           setSearchLoading(false);
           dispatch(setGraphLoading(false));
         });
+        // getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
+        //   if (success) {
+        //     updateGraphData(response);
+        //   } else {
+        //     notification.error({
+        //       message: '搜索失败',
+        //       description: response.message || response.msg
+        //     });
+        //   }
+        //   setSearchLoading(false);
+        //   dispatch(setGraphLoading(false));
+        // });
       } else {
         setSearchLoading(false);
         dispatch(setGraphLoading(false));
