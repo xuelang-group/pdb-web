@@ -46,11 +46,12 @@ interface IndicatorState {
   funcOptions: string[]; // 统计算法选项
   list: any[];
   modalVisible: boolean;
+  currentBuzProcess: String;
 }
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
-  requestId: '1001',  // 暂时写死，默认值1001
+  requestId: null ,  // 暂时写死，默认值1001
   needCheckId: null,
   needEditId: null,
   checkId: null,
@@ -68,7 +69,8 @@ const initialState: IndicatorState = {
   funcOptions: [],
   mergeCell: { col: [], row: [] },
   list: [],
-  modalVisible: false
+  modalVisible: false,
+  currentBuzProcess: '',
 }
 
 const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
@@ -287,9 +289,12 @@ export const indicatorSlice = createSlice({
     setNeedEditId: (state, action: PayloadAction<any>) => {
       state.needEditId = action.payload;
     },
+    setCurrentBuzProcess: (state, action: PayloadAction<any>) => {
+      state.currentBuzProcess = action.payload;
+    },
   }
 })
 
-export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId,exit } = indicatorSlice.actions
+export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, exit } = indicatorSlice.actions
 
 export default indicatorSlice.reducer

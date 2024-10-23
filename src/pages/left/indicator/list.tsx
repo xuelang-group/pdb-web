@@ -6,10 +6,10 @@ import { StoreState } from '@/store';
 import { getMetrics } from "@/actions/indicator";
 import { useParams, useNavigate } from 'react-router-dom';
 import _, { set } from 'lodash';
-import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc, setNeedCheckId, setNeedEditId } from "@/reducers/indicator";
+import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
-import { getPdbIdList } from "@/actions/adapter";
+import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 
@@ -32,8 +32,16 @@ export default function List(props: any) {
   const { Search } = Input;
 
   useEffect(() => {
-    updateList()
+    if(requestId) {
+      updateList()
+    }
   }, [])
+
+  useEffect(() => {
+    if(requestId) {
+      updateList()
+    }
+  }, [requestId])
 
   useEffect(() => {
     setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
@@ -87,6 +95,11 @@ export default function List(props: any) {
         dispatch(setGroupBy(tempObj.metric_params.group_by));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedEditId(null));
+        getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+          if (success) {
+            dispatch(setCurrentBuzProcess(res.data))
+          }
+        })
       }
     }
   }

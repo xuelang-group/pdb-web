@@ -10,19 +10,25 @@ export default function SaveModal(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
+  const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
 
   useEffect(() => {
-    getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
-      if (success) {
-        setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
-      }
-    })
+    if(requestId) {
+      getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+        if (success) {
+          setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
+        }
+      })
+    }
   }, [requestId])
 
   useEffect(() => {
     if (editId) {
       const { name, name_en, unit, desc } = allIndicators.find((item: any) => item.id === editId) || {}
       infoForm.setFieldsValue({ name, name_en, unit, desc })
+      if(currentBuzProcess) {
+        infoForm.setFieldValue('buzProcess', currentBuzProcess)
+      }
     }
   }, [editId])
 
