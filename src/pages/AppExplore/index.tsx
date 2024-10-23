@@ -1036,7 +1036,7 @@ export default function AppExplore() {
                 const readOnly = Boolean(indicatorCheckId);
                 const tags = searchTags[index], tagsLen = tags.length;
 
-                if (filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
+                if (filterPanelOpenKey && filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
                   let sourceTag = {}, targetTag = {};
                   const initialValue = _.get(searchTagMap[index], filterPanelOpenKey, {});
 
