@@ -174,15 +174,11 @@ export const G6OperateFunctions = {
       collapsed = false;
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
-      store.dispatch(setGraphLoading(true));
       const { toolbarConfig, currentGraphTab } = store.getState().editor;
       const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
       const limit = Number(PAGE_SIZE);
       let params = { vid: model.uid };
 
-      if (limit > 0 && Number(model.childLen) > limit) {
-        Object.assign(params, { first: limit, offset: 0 });
-      }
       const responseCallback = (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
@@ -252,12 +248,15 @@ export const G6OperateFunctions = {
           const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
           if (params.hasOwnProperty("offset")) {
             const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
-            _data.push({
+            const paginationConfig = {
               uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE)}-next`,
               id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE)}-next`,
-              totalPage,
               currentParent: { id }
-            });
+            };
+            if (currentGraphTab === "main") {
+              Object.assign(paginationConfig, { totalPage });
+            }
+            _data.push(paginationConfig);
           }
           const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
           let newData: any[] = [];
@@ -294,8 +293,14 @@ export const G6OperateFunctions = {
         store.dispatch(setGraphLoading(false));
       }
       if (currentGraphTab === "explore") {
+        Object.assign(params, { first: limit, offset: 0 });
         getQueryChildren({ ...toolbarConfig["explore"]["queryParams"], ...params }, responseCallback)
       } else {
+        store.dispatch(setGraphLoading(true));
+
+        if (limit > 0 && Number(model.childLen) > limit) {
+          Object.assign(params, { first: limit, offset: 0 });
+        }
         getChildren(params, responseCallback);
       }
     } else {
@@ -797,14 +802,21 @@ export const G6OperateFunctions = {
           _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.id, true) }));
 
           if (_offset >= 0 && limit > 0 && parentChildLen > limit) {
-            const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
-            _data.push({
+            const paginationConfig = {
               uid: 'pagination-' + parent + `-${_offset + limit}-next`,
               id: 'pagination-' + parent + `-${_offset + limit}-next`,
-              totalPage,
-              nextDisabled: (_offset + data.length) >= parentChildLen,
               currentParent: { id }
-            });
+            };
+            if (currentGraphTab === "main") {
+              const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
+              Object.assign(paginationConfig, {
+                totalPage,
+                nextDisabled: (_offset + data.length) >= parentChildLen,
+              });
+            } else if (currentGraphTab === "explore" && data.length === 0) {
+              Object.assign(paginationConfig, { nextDisabled: true });
+            }
+            _data.push(paginationConfig);
           }
 
           if (removeChildren.length > 0) {

@@ -118,7 +118,8 @@ const initialState: EditorState = {
       relationLines: {},
       showRelationLine: false,
       showRelationLabel: false,
-      filters: []
+      filters: [],
+      pageSize: 10
     },
     'vertex': {
       relationLines: {},

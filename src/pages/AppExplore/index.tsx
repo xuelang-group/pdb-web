@@ -732,7 +732,7 @@ export default function AppExplore() {
     graph.render();
     graph.zoom(1);
     dispatch(setCurrentGraphTab("explore"));
-    dispatch(setToolbarConfig({ config: { relationLines, queryParams: params }, key: 'explore' }));
+    dispatch(setToolbarConfig({ config: { relationLines, queryParams: params, showRelationLine: true, showRelationLabel: true }, key: 'explore' }));
     // const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
     // convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
     // dispatch(setCurrentGraphTab("explore"));

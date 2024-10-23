@@ -168,8 +168,9 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {
-        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+        Object.assign(node, { totalPage: item.totalPage });
       }
+      Object.assign(node, { nextDisabled: Boolean(item.nextDisabled) });
     }
 
     nodes.push(node as NodeItemData);
@@ -442,8 +443,9 @@ export function convertResultData(
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
         if (_item.totalPage) {
-          Object.assign(node, { totalPage: _item.totalPage, nextDisabled: Boolean(_item.nextDisabled) });
+          Object.assign(node, { totalPage: _item.totalPage });
         }
+        Object.assign(node, { nextDisabled: Boolean(_item.nextDisabled) });
       }
 
       nodes.push(node);
@@ -551,8 +553,9 @@ export function convertAllData(data: CustomObjectConfig[]) {
     if (isPagination) {
       Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
       if (item.totalPage) {
-        Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
+        Object.assign(node, { totalPage: item.totalPage });
       }
+      Object.assign(node, { nextDisabled: Boolean(item.nextDisabled) });
     }
 
     nodes.push(node as NodeItemData);

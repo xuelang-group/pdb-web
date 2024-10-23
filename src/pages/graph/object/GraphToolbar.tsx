@@ -67,7 +67,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
-    [pageSize, setPageSize] = useState<number | undefined>(2),
+    [pageSize, setPageSize] = useState<number | undefined>(10),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.name]: ...}}
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
