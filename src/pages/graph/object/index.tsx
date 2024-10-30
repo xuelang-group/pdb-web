@@ -223,7 +223,7 @@ export default function Editor(props: EditorProps) {
 
         if (itemType === "node" && (_.get(itemModel, 'childLen', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
           return `<ul class="pdb-graph-node-contextmenu">
-            <li title="全部展开">全部展开</li>
+            <li title="一键展开">一键展开</li>
           </ul>`;
         }
 
@@ -260,7 +260,7 @@ export default function Editor(props: EditorProps) {
           case "删除":
             deleteConfirm(itemModel);
             break;
-          case "全部展开":
+          case "一键展开":
             expandAll(item);
             break;
         }
