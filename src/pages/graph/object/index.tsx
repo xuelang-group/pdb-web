@@ -287,7 +287,7 @@ export default function Editor(props: EditorProps) {
           'graph-select',
           // 'collapse-expand-combo'
           // 'drag-branch',
-          // 'activate-relations' // 高亮相邻节点
+          'activate-relations-object' // 高亮相邻节点
         ],
         maxData: [
           {
