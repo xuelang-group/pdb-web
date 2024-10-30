@@ -11,6 +11,10 @@ import update from 'immutability-helper'
 import { useLocation, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import _, { isArray } from 'lodash';
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import 'codemirror/lib/codemirror.css';
+import prettier from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
@@ -780,6 +784,9 @@ export default function Right(props: RightProps) {
   const handleAttrChange = debounce((index: number, attr?: any) => {
     attrForm.validateFields().then(values => {
       const newValues = { ...values };
+      if (_.get(attr, 'frontType')) {
+        Object.assign(newValues, { [attr.name]: attrForm.getFieldValue(attr.name) });
+      }
       if (attr && attr.type === 'datetime' && values[attr.name]) {
         const datetime = values[attr.name].format(attr.datetimeFormat);
         Object.assign(newValues, { [attr.name]: new Date(datetime) });
@@ -849,8 +856,34 @@ export default function Right(props: RightProps) {
   }
 
   // 可编辑输入框
-  const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number) => {
+  const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number, frontType?: string) => {
     if (!isEditing) {
+      if (frontType === "code") {
+        let height = 100;
+        if (defalutValue) {
+          const lineCount = defalutValue.split('\n').length; // 计算行数
+          height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
+        }
+
+        return (
+          <div className='type-param-input'>
+            <div className='param-addon-before'>{addonBefore}</div>
+            <div className='param-code-editor readOnly' style={{ height }}>
+              <CodeMirror
+                value={defalutValue}
+                options={{
+                  lineNumbers: false,
+                  theme: 'material',
+                  readOnly: true,
+                  cursorBlinkRate: -1,
+                  // viewportMargin: Infinity
+                }}
+                onBeforeChange={(editor, data, value) => {}}
+              />
+            </div>
+          </div>
+        );
+      }
       return rendeCustomAddon(attr, (
         <Input addonBefore={addonBefore} readOnly disabled />
       ));
@@ -891,6 +924,32 @@ export default function Right(props: RightProps) {
           >
           </Select>
         ), addonBefore);
+      case 'code':
+        let height = 100;
+        if (defalutValue) {
+          const lineCount = defalutValue.split('\n').length; // 计算行数
+          height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
+        }
+        return (
+          <div className='type-param-input'>
+            <div className='param-addon-before'>{addonBefore}</div>
+            <div className='param-code-editor readOnly'>
+              <CodeMirror
+                value={attrForm.getFieldValue(attr.name)}
+                options={{
+                  lineNumbers: false,
+                  theme: 'material',
+                  cursorBlinkRate: -1,
+                  // viewportMargin: Infinity
+                }}
+                onBeforeChange={(editor, data, value) => {
+                  attrForm.setFieldValue(attr.name, value);
+                  handleAttrChange(index, attr);
+                }}
+              />
+            </div>
+          </div>
+        )
       default:
         return rendeCustomAddon(attr, (
           <InputNumber addonBefore={addonBefore} onChange={() => handleAttrChange(index, attr)} />
@@ -899,7 +958,7 @@ export default function Right(props: RightProps) {
   }
 
   // 只读输入框
-  const renderReadOnlyInput = (type: string, defalutValue: any, addonBefore: string, attr: any) => {
+  const renderReadOnlyInput = (type: string, defalutValue: any, addonBefore: string, attr: any, frontType?: string) => {
     if (type === 'list') {
       return (
         <div className='type-param-input'>
@@ -910,6 +969,31 @@ export default function Right(props: RightProps) {
             options={attr.listEnums || []}
           >
           </Select>
+        </div>
+      )
+    }
+    if (frontType === 'code') {
+      let height = 100;
+      if (defalutValue) {
+        const lineCount = defalutValue.split('\n').length; // 计算行数
+        height = Math.min(lineCount * 22 + 68, 300); // 每行22px，最大300px
+      }
+      return (
+        <div className='type-param-input'>
+          <div className='param-addon-before'>{addonBefore}</div>
+          <div className='param-code-editor readOnly' style={{ height }}>
+            <CodeMirror
+              value={defalutValue}
+              options={{
+                lineNumbers: false,
+                theme: 'material',
+                readOnly: true,
+                cursorBlinkRate: -1,
+                // lineWrapping: true
+              }}
+              onBeforeChange={(editor, data, value) => { }}
+            />
+          </div>
         </div>
       )
     }
@@ -925,14 +1009,17 @@ export default function Right(props: RightProps) {
 
   const renderParamInput = (attr: any, index: number) => {
     if (!attr) return (<></>);
-    const { type } = attr;
+    const { type, frontType } = attr;
     const _default = attr.default;
     if (!typeMap[currentEditType]) return;
-    const addonBefore = typeMap[currentEditType][type];
-    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
-      return renderEditorInput(type, _default, addonBefore, attr, index);
+    let addonBefore = typeMap[currentEditType][type];
+    if (frontType && _.get(typeMap[currentEditType], frontType)) {
+      addonBefore = typeMap[currentEditType][frontType];
     }
-    return renderReadOnlyInput(type, _default, addonBefore, attr);
+    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
+      return renderEditorInput(type, _default, addonBefore, attr, index, frontType);
+    }
+    return renderReadOnlyInput(type, _default, addonBefore, attr, frontType);
   }
 
   const findParam = useCallback(
@@ -1336,7 +1423,8 @@ export default function Right(props: RightProps) {
             currentEditDefaultData={currentEditDefaultData}
             cancel={cancelEditParam}
             currentEditType={currentEditType}
-          />}
+          />
+        }
         {multiEditModel && multiEditModel.length > 0 ?
           <MultiModelParamEditor /> :
           <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>

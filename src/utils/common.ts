@@ -66,6 +66,7 @@ export const typeLabelMap: any = {
   // 多行文本: 'text',
   布尔值: 'boolean',
   日期时间: 'datetime',
+  代码: 'code'
   // 值列表: 'list',
 };
 
@@ -77,6 +78,7 @@ export const typeMap: any = {
     // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
+    code: '代码'
     // list: '值列表',
     // refer: '关联属性'
   },
@@ -87,6 +89,7 @@ export const typeMap: any = {
     // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
+    code: '代码'
     // list: '值列表',
     // refer: '关联属性'
   },
@@ -96,6 +99,7 @@ export const typeMap: any = {
     string: '字符串',
     boolean: '布尔值',
     datetime: '日期时间',
+    code: '代码'
   }
 }
 

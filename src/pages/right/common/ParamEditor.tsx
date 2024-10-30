@@ -3,24 +3,31 @@ import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import 'codemirror/lib/codemirror.css';
+import prettier from 'prettier/standalone';
+import parserBabel from 'prettier/parser-babel';
 
 import { typeMap } from '@/utils/common';
 import { StoreState } from '@/store';
 import { getTypeInfo } from '@/actions/type';
 import PdbPanel from '@/components/Panel';
+import _ from 'lodash';
 
 const { Option } = Select;
+
 export default function ParamEditor(props: any) {
   const [paramForm] = Form.useForm();
   const { params, attrs } = props;
 
   const types = useSelector((state: StoreState) => state.type.data);
   const relations = useSelector((state: StoreState) => state.relation.data);
-
+  const [code, setCode] = useState('');
   const [allData, setAllData] = useState([] as any), // 关联属性 - 关联对象下拉框列表
     [objectAttrs, setObjectAttrs] = useState([] as any); // 关联属性 - 关联属性下拉框列表
 
   useEffect(() => {
+    setCode("");
     if (params && params.type === 'datetime') {
       const _default = params.default ? moment(params.default, params.datetimeFormat) : ''
       paramForm.setFieldsValue({
@@ -29,9 +36,20 @@ export default function ParamEditor(props: any) {
       });
     } else {
       if (params.isNew) paramForm.resetFields();
-      paramForm.setFieldsValue({
-        ...params
-      });
+      const frontType = _.get(params, 'frontType');
+      if (frontType) {
+        if (frontType === 'code' && params.default) {
+          setCode(params.default);
+        }
+        paramForm.setFieldsValue({
+          ...params,
+          type: frontType
+        });
+      } else {
+        paramForm.setFieldsValue({
+          ...params
+        });
+      }
     }
   }, [params]);
 
@@ -43,7 +61,7 @@ export default function ParamEditor(props: any) {
   // 保存
   const save = () => {
     paramForm.validateFields().then(value => {
-      const _default = value.default;
+      let _default = value.default;
       const { type, name, display, referObject, referProperty, required, listType, listEnums, datetimeFormat, stringMaxLength } = value;
       let newData = { type, name, display };
 
@@ -67,6 +85,10 @@ export default function ParamEditor(props: any) {
         case 'text':
         case 'boolean':
           Object.assign(newData, { default: _default, required });
+          break;
+        case 'code':
+          _default = paramForm.getFieldValue("default");
+          Object.assign(newData, { type: 'string', default: _default, required, frontType: 'code' });
           break;
         default:
           Object.assign(newData, { default: _default ? Number(_default) : '', required });
@@ -146,6 +168,8 @@ export default function ParamEditor(props: any) {
         return (<TextArea />);
       case 'int':
         return (<InputNumber precision={0} />);
+      case 'code':
+        return (<></>)
       default:
         return (<InputNumber />);
     }
@@ -249,9 +273,25 @@ export default function ParamEditor(props: any) {
                 </Select>
               </Form.Item>
             }
-            {itemType !== 'list' &&
+            {itemType !== 'list' && itemType !== 'code' &&
               <Form.Item name='default' label='默认值'>
                 {renderDefaultInput()}
+              </Form.Item>
+            }
+            {itemType === 'code' &&
+              <Form.Item label='默认值'>
+                <CodeMirror
+                  value={code}
+                  options={{
+                    lineNumbers: true,
+                    theme: 'material',
+                    // lineWrapping: true,
+                  }}
+                  onBeforeChange={(editor, data, value) => {
+                    setCode(value);
+                    paramForm.setFieldsValue({'default': value}); // 更新表单值
+                  }}
+                />
               </Form.Item>
             }
             {itemType == 'list' &&

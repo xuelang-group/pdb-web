@@ -15,6 +15,9 @@
     padding: 0;
     overflow: auto;
 
+    .CodeMirror  {
+      border: 1px solid var(--border-color1);
+    }
     .pdb-info,
     .pdb-app-info {
       padding: 1.6rem 1.6rem .4rem;
@@ -43,7 +46,7 @@
           overflow-wrap: anywhere;
         }
 
-        .pdb-ant-form-item-has-error + .info-name-hidden {
+        .pdb-ant-form-item-has-error+.info-name-hidden {
           margin-bottom: 1.5rem;
         }
 
@@ -61,7 +64,7 @@
           padding: .4rem .2rem;
 
           &:not(.pdb-ant-input-status-error) {
-            
+
             cursor: pointer;
             border: none;
             text-overflow: ellipsis;
@@ -412,8 +415,31 @@
       color: var(--text-color3) !important;
     }
 
-    .pdb-ant-select {
+    .pdb-ant-select,
+    .param-code-editor {
       width: 100%;
+      overflow: hidden;
+    }
+
+    .param-code-editor {
+      border: 1px solid var(--border-color1);
+
+      &.readOnly .CodeMirror {
+        color: rgba(0, 0, 0, 0.25);
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+
+      .react-codemirror2 {
+        height: 100%;
+      }
+
+      .CodeMirror {
+        height: 100% !important;
+      }
+
+      .CodeMirror-scroll {
+        width: 100%;
+      }
     }
 
     &.type-param-text {
@@ -474,11 +500,12 @@
 
   .pdb-type-common {
     padding: 1.6rem;
+
     &-item {
       display: flex;
       align-items: center;
-      
-      & > span:nth-child(1) {
+
+      &>span:nth-child(1) {
         margin: .4rem 0;
         font-weight: 400;
         color: var(--text-color3);
@@ -542,6 +569,10 @@
       label:not(.pdb-ant-form-item-required) {
         padding: 0 1.1rem;
       }
+    }
+
+    .CodeMirror-scroll {
+      width: 100%;
     }
   }
 }

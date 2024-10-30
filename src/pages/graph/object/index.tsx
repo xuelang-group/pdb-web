@@ -216,15 +216,22 @@ export default function Editor(props: EditorProps) {
 
     const contextMenu = new G6.Menu({
       getContent(evt: any) {
-        console.log(evt)
         const itemType = evt.item.get("type"),
           itemModel = evt.item.getModel();
         if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
 
-        // if (itemType === "edge") {
-        return `<ul class="pdb-graph-node-contextmenu">
-            <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+        if (itemType === "node" && (_.get(itemModel, 'childLen', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
+          return `<ul class="pdb-graph-node-contextmenu">
+            <li title="全部展开">全部展开</li>
           </ul>`;
+        }
+
+        return '';
+
+        // if (itemType === "edge") {
+        // return `<ul class="pdb-graph-node-contextmenu">
+        //     <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+        //   </ul>`;
         // }
         // return `<ul class="pdb-graph-node-contextmenu">
         //   <li title="探索">探索</li>
@@ -236,17 +243,25 @@ export default function Editor(props: EditorProps) {
       },
       handleMenuClick: (target: any, item) => {
         const itemModel = item.get("model");
-        if (target?.title === "探索") {
-          const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
-          _searchAround.show = true;
-          _searchAround.options.push({ start: [itemModel.data], options: [] });
-          dispatch(setSearchAround(_searchAround));
-        } else if (target?.title === "复制") {
-          graphCopyItem = JSON.parse(JSON.stringify(itemModel));
-        } else if (target?.title === "粘贴") {
-          onPaste(itemModel);
-        } else if (target?.title === "删除") {
-          deleteConfirm(itemModel);
+        switch (target?.title) {
+          case "探索":
+            const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
+            _searchAround.show = true;
+            _searchAround.options.push({ start: [itemModel.data], options: [] });
+            dispatch(setSearchAround(_searchAround));
+            break;
+          case "复制":
+            graphCopyItem = JSON.parse(JSON.stringify(itemModel));
+            break;
+          case "粘贴":
+            onPaste(itemModel);
+            break;
+          case "删除":
+            deleteConfirm(itemModel);
+            break;
+          case "全部展开":
+            expandAll(itemModel);
+            break;
         }
       },
       offsetX: 10,
@@ -365,7 +380,7 @@ export default function Editor(props: EditorProps) {
           clockwise: false
         },
       },
-      plugins: [tooltip]
+      plugins: [tooltip, contextMenu]
     });
     let graphData: any = {};
     if (data) {
@@ -382,13 +397,27 @@ export default function Editor(props: EditorProps) {
       ...graphDataMap,
       'main': graphData
     }));
-    
+
     if (queryParams.graphId) {
       const searchIcon = document.getElementById("pdb-explore-search-icon");
       if (searchIcon) {
         searchIcon.click();
       }
     }
+  }
+
+  async function fetchChildren(vid: string) {
+    await (() => {
+      return new Promise((resolve: any, reject: any) => {
+        getChildren({ vid }, (success: boolean, response: any) => {
+          resolve();
+        }); 
+      })
+    })();
+  }
+
+  function expandAll(item: any) {
+    getChildren()
   }
 
   let deleteConfirmModal: any = null;
