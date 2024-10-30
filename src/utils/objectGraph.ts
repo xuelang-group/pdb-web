@@ -291,7 +291,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
     if (node.xid && node.xid.startsWith(parent.xid) && node.xid.split(".").length === shoudldRemoveXidLen) {
       Object.assign(removeIdChildrenMap, { [node.id]: node });
     }
-    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent]) {
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent] && !removeIds[node.parent]) {
       newNodes.push(node);
     } else if (newDataIdMap[node.parent] && (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.parent && removeIdChildrenMap[node.parent])) {
       removeIdChildren.push(node);
