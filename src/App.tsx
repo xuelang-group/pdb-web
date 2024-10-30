@@ -90,7 +90,7 @@ function App(props: PdbConfig) {
     <div className='pdb'>
       {/* 隐藏列表页 */}
       <Routes>
-        <Route path="/:id?" element={<List route="object" theme={theme} />}></Route>
+        <Route path="/:id?/template?" element={<List route="object" theme={theme} />}></Route>
       </Routes>
       <Layout className="pdb-layout">
         <Routes>
