@@ -5,8 +5,6 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
-import prettier from 'prettier/standalone';
-import parserBabel from 'prettier/parser-babel';
 
 import { typeMap } from '@/utils/common';
 import { StoreState } from '@/store';

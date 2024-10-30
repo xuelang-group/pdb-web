@@ -6,14 +6,14 @@ import { useResizeDetector } from 'react-resize-detector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
 
-import { covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
+import { addChildrenToGraphData, covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
 import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
-import { G6OperateFunctions } from '@/g6/object/behavior';
+import { G6OperateFunctions, PAGE_SIZE } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
-import { CustomObjectConfig, Parent, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
@@ -38,7 +38,8 @@ export default function Editor(props: EditorProps) {
     dispatch = useDispatch(),
     navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
-  const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
+  const objectData = useSelector((state: StoreState) => state.object.data),
+    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
     rootNode = useSelector((state: StoreState) => state.editor.rootNode),
@@ -260,7 +261,7 @@ export default function Editor(props: EditorProps) {
             deleteConfirm(itemModel);
             break;
           case "全部展开":
-            expandAll(itemModel);
+            expandAll(item);
             break;
         }
       },
@@ -406,18 +407,180 @@ export default function Editor(props: EditorProps) {
     }
   }
 
-  async function fetchChildren(vid: string) {
+  async function fetchChildren(item: any, curentGraphData: any, _objectData: any, shouldExpandCombo: any) {
     await (() => {
-      return new Promise((resolve: any, reject: any) => {
-        getChildren({ vid }, (success: boolean, response: any) => {
+      return new Promise(async (resolve: any, reject: any) => {
+        const children = graph.getComboChildren(`${item.uid}-combo`);
+        if (!children || !children.nodes || children.nodes.length === 0) {
+          const limit = Number(PAGE_SIZE());
+          let params = { vid: item.uid };
+
+          if (limit > 0 && item.childLen > limit) {
+            Object.assign(params, { first: limit, offset: 0 });
+          }
+          getChildren(params, async (success: boolean, data: any) => {
+            if (success) {
+              const { toolbarConfig, currentGraphTab } = store.getState().editor;
+              const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+
+              const _data = data.map((value: any, index: number) => {
+                const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+                  attrIndex = infoIndex === 0 ? 1 : 0;
+                const newValue = JSON.parse(JSON.stringify(value)),
+                  parents = newValue['e_x_parent'],
+                  currentParent = parents.filter((val: Parent) => val.dst?.toString() === item.uid)[0],
+                  _xid = item.xid + '.' + index,
+                  defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+                  attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
+                  uid = newValue['vid'].toString();
+
+                // 获取对象关系列表数据
+                const relations: any[] = [];
+                Object.keys(newValue).forEach((key: string) => {
+                  if (key.startsWith("Relation_")) {
+                    const relationKey = key.replace('_', '.');
+                    if (_.isArray(newValue[key])) {
+                      newValue[key].forEach((target: any) => {
+                        relations.push({
+                          relation: relationKey,
+                          target: {
+                            uid: _.get(target, 'dst', '').toString()
+                          },
+                          attrValue: _.get(target, 'props', {})
+                        });
+                      });
+                    } else {
+                      relations.push({
+                        relation: relationKey,
+                        target: {
+                          uid: _.get(newValue[key], 'dst', '').toString()
+                        },
+                        attrValue: _.get(newValue[key], 'props', {})
+                      });
+                    }
+                  }
+                });
+                Object.assign(relationLines, {
+                  [uid]: relations
+                });
+
+                const childrenLen = _.get(newValue, 'x_children', 0);
+                return ({
+                  ...defaultInfo,
+                  'x_attr_value': { ...attrValue },
+                  'x_children': childrenLen,
+                  'e_x_parent': parents,
+                  currentParent: {
+                    ...(_.get(currentParent, 'props', {})),
+                    uid: currentParent.dst.toString(),
+                    id: currentParent.dst.toString()
+                  },
+                  'x_id': _xid,
+                  id: uid,
+                  uid: uid,
+                  collapsed: false
+                });
+              });
+
+              if (params.hasOwnProperty("offset")) {
+                const totalPage = item.childLen ? Math.ceil(item.childLen / limit) : 1;
+                _data.push({
+                  uid: 'pagination-' + item.uid + `-${Number(PAGE_SIZE())}-next`,
+                  id: 'pagination-' + item.uid + `-${Number(PAGE_SIZE())}-next`,
+                  totalPage,
+                  currentParent: { id: item.uid }
+                });
+              }
+              const { nodes, edges, combos } = addChildrenToGraphData(item, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+              Object.assign(curentGraphData, { nodes, edges, combos });
+              let newData: any[] = [];
+              _objectData.forEach(function (obj: any) {
+                if (obj['x_id'] === item.xid) {
+                  newData.push({
+                    ...obj,
+                    collapsed: false
+                  });
+                  newData = newData.concat(_data);
+                } else {
+                  newData.push(obj);
+                }
+              });
+              _objectData = JSON.parse(JSON.stringify(newData));
+              for (const val of _data) {
+                const childrenLen = _.get(val, 'x_children', 0);
+                if (childrenLen > 0) {
+                  await fetchChildren({ uid: val.uid, childLen: childrenLen, xid: val['x_id'] }, curentGraphData, _objectData, shouldExpandCombo);
+                }
+              }
+            } else {
+              notification.error({
+                message: '获取子实例失败：',
+                description: data.message || data.msg
+              });
+            }
+            resolve();
+          });
+        } else {
+          
+          for (const node of curentGraphData.nodes) {
+            if (node.uid === item.uid) {
+              Object.assign(node, { collapsed: false, data: { ...node.data, collapsed: false } });
+              break;
+            }
+          }
+          for (const combo of curentGraphData.combos) {
+            if (combo.id === `${item.uid}-combo`) {
+              Object.assign(combo, { collapsed: false });
+              break;
+            }
+          }
+          
+          for (const node of children.nodes) {
+            const model = node.get('model');
+
+            if (_.get(model, 'childLen', 0) > 0) {
+              await fetchChildren(model, curentGraphData, _objectData, shouldExpandCombo);
+            }
+          }
+
+          shouldExpandCombo.push(`${item.uid}-combo`);
+
+
+          for (const obj of _objectData) {
+            if (obj['x_id'].startsWith(item.xid)) {
+              Object.assign(obj, { collapsed: false });
+              break;
+            }
+          }
           resolve();
-        }); 
+        }
       })
     })();
   }
 
-  function expandAll(item: any) {
-    getChildren()
+  async function expandAll(item: any) {
+    const graphData = JSON.parse(JSON.stringify(graph.save())),
+      _objectData = JSON.parse(JSON.stringify(objectData));
+    store.dispatch(setGraphLoading(true));
+    const model = item.get("model");
+    const shouldExpandCombo: any = [];
+    await fetchChildren(model, graphData, _objectData, shouldExpandCombo);
+    console.log(graphData, _objectData)
+    shouldExpandCombo.forEach(function(comboId: string) {
+      graph.expandCombo(comboId);
+    });
+    graph.changeData(graphData);
+    graph.layout();
+    
+    item.update({
+      data: {
+        ...model.data,
+        collapsed: false
+      }
+    });
+    graph.expandCombo(`${model.id}-combo`);
+    store.dispatch(setObjects(_objectData));
+    store.dispatch(setGraphLoading(false));
   }
 
   let deleteConfirmModal: any = null;
