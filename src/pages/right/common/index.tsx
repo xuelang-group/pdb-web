@@ -13,8 +13,7 @@ import dayjs from 'dayjs';
 import _, { isArray } from 'lodash';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
-import prettier from 'prettier/standalone';
-import parserBabel from 'prettier/parser-babel';
+import { js as beautify } from 'js-beautify';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
@@ -855,6 +854,10 @@ export default function Right(props: RightProps) {
     )
   }
 
+  const formatCode = (code: string) => {
+    return beautify(code, { indent_size: 2, space_in_empty_paren: true });
+  };  
+
   // 可编辑输入框
   const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number, frontType?: string) => {
     if (!isEditing) {
@@ -870,7 +873,7 @@ export default function Right(props: RightProps) {
             <div className='param-addon-before'>{addonBefore}</div>
             <div className='param-code-editor readOnly' style={{ height }}>
               <CodeMirror
-                value={defalutValue}
+                value={formatCode(defalutValue)}
                 options={{
                   lineNumbers: false,
                   theme: 'material',
@@ -983,7 +986,7 @@ export default function Right(props: RightProps) {
           <div className='param-addon-before'>{addonBefore}</div>
           <div className='param-code-editor readOnly' style={{ height }}>
             <CodeMirror
-              value={defalutValue}
+              value={formatCode(defalutValue)}
               options={{
                 lineNumbers: false,
                 theme: 'material',
