@@ -616,7 +616,7 @@ export function registerNode() {
       const searchGroup = item.getContainer().findAll(ele => ele.get('name') === 'search-group')[0];
 
       if (!outerCircle) return;
-      if (name === 'active') {
+      if (name === 'active' || name === 'highlight') {
         if (currentSelected) return;
         outerCircle.attr({ width: outerNodeWidth });
         if (value) {

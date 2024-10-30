@@ -297,9 +297,9 @@ export default function Editor(props: EditorProps) {
           // },
           'drag-enter',
           'graph-select',
+          'activate-relations-object'// 高亮相邻关系及节点
           // 'collapse-expand-combo'
           // 'drag-branch',
-          // 'activate-relations' // 高亮相邻节点
         ],
         maxData: [
           {
