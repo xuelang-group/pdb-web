@@ -216,7 +216,7 @@ export default function TypeList() {
             <Tree
               showLine={{ showLeafIcon: false }}
               treeData={treeData}
-              selectedKeys={currentEditModel ? [currentEditModel.data['x_type_name']] : []}
+              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x_type_name']] : []}
               switcherIcon={() => (<span></span>)}
               titleRender={(item: any) => (
                 <Dropdown

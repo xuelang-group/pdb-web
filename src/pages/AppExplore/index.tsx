@@ -927,7 +927,20 @@ export default function AppExplore() {
       Object.assign(newTagMap[index], { [newRelationId]: value });
 
       if (_.isEmpty(prevTargetTag)) {
-        Object.assign(newTagMap[index], { [currTargetTag.value]: currTargetTag });
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
+          currTargetTagData = currTargetTag.data,
+          typeId = currTargetTagData['x.type.name'],
+          tagIndex = searchTags[index].length + 1;
+        currTargetTagData['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+          csv.push({
+            typeId: typeId,
+            attrId: name,
+            attrName: display,
+            attrType: type,
+            index: tagIndex
+          });
+        });
+        Object.assign(newTagMap[index], { [currTargetTag.value]: { ...currTargetTag, csv } });
       }
 
       if (filterPanelOpenKey === "__TEMPORARY_RELATION__") {
