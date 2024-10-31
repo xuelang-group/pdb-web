@@ -407,7 +407,7 @@ export default function Editor(props: EditorProps) {
     }
   }
 
-  async function fetchChildren(item: any, curentGraphData: any, _objectData: any, shouldExpandCombo: any) {
+  async function fetchChildren(item: any, curentGraphData: any, _objectData: any, shouldExpandCombo: any, relationLines: any) {
     await (() => {
       return new Promise(async (resolve: any, reject: any) => {
         const children = graph.getComboChildren(`${item.uid}-combo`);
@@ -421,7 +421,6 @@ export default function Editor(props: EditorProps) {
           getChildren(params, async (success: boolean, data: any) => {
             if (success) {
               const { toolbarConfig, currentGraphTab } = store.getState().editor;
-              const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
 
               const _data = data.map((value: any, index: number) => {
                 const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
@@ -509,7 +508,7 @@ export default function Editor(props: EditorProps) {
               for (const val of _data) {
                 const childrenLen = _.get(val, 'x_children', 0);
                 if (childrenLen > 0) {
-                  await fetchChildren({ uid: val.uid, childLen: childrenLen, xid: val['x_id'] }, curentGraphData, _objectData, shouldExpandCombo);
+                  await fetchChildren({ uid: val.uid, childLen: childrenLen, xid: val['x_id'] }, curentGraphData, _objectData, shouldExpandCombo, relationLines);
                 }
               }
             } else {
@@ -539,7 +538,7 @@ export default function Editor(props: EditorProps) {
             const model = node.get('model');
 
             if (_.get(model, 'childLen', 0) > 0) {
-              await fetchChildren(model, curentGraphData, _objectData, shouldExpandCombo);
+              await fetchChildren(model, curentGraphData, _objectData, shouldExpandCombo, relationLines);
             }
           }
 
@@ -564,8 +563,12 @@ export default function Editor(props: EditorProps) {
     store.dispatch(setGraphLoading(true));
     const model = item.get("model");
     const shouldExpandCombo: any = [];
-    await fetchChildren(model, graphData, _objectData, shouldExpandCombo);
-    console.log(graphData, _objectData)
+    const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+    await fetchChildren(model, graphData, _objectData, shouldExpandCombo, relationLines);
+    store.dispatch(setToolbarConfig({
+      key: currentGraphTab,
+      config: { relationLines }
+    }));
     shouldExpandCombo.forEach(function(comboId: string) {
       graph.expandCombo(comboId);
     });
