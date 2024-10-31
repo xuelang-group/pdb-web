@@ -259,13 +259,14 @@ export default function Right(props: any) {
                                 onGroupByChange()
                               }}
                               disabled={!!checkId}
+                              className="pdb-select-group-by"
                             />
                           </Form.Item>
                           {((fields.length > 1 || infoForm.getFieldValue('names')?.[0]) && !checkId) ? (
                             <DeleteOutlined
                               className="dynamic-delete-button"
                               onClick={() => {
-                                if (index === 0) {
+                                if (index === 0 && fields.length === 1) {
                                   infoForm.setFieldsValue({
                                     names: []
                                   })
