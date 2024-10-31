@@ -73,7 +73,7 @@ export default function SaveModal(props: any) {
           <Form.Item label="指标描述" name={'desc'}>
             <Input.TextArea placeholder="请输入指标描述" rows={3} />
           </Form.Item>
-          <Form.Item label="所属业务过程" name={'buzProcess'}>
+          <Form.Item label="所属业务过程" name={'buzProcess'} rules={[{ required: true, message: '请选择所属业务过程' }]}>
             <Select placeholder="请选择所属业务过程" options={processOptions} disabled={!!editId}/>
           </Form.Item>
           <Form.Item label="相关业务过程">
