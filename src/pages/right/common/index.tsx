@@ -43,7 +43,21 @@ import store from '@/store';
 import VersionList from '../object/VersionList';
 
 const { Option } = Select;
-
+const CodeEditor = ({ value = '', onChange, handleChange }: any, other2: any) => (
+  <CodeMirror
+    value={value}
+    options={{
+      lineNumbers: false,
+      theme: 'material',
+    }}
+    onBeforeChange={(editor, data, value) => {
+      onChange(value);
+    }}
+    onChange={() => {
+      handleChange();
+    }}
+  />
+);
 interface RightProps {
   route: string // 路由
 }
@@ -783,9 +797,6 @@ export default function Right(props: RightProps) {
   const handleAttrChange = debounce((index: number, attr?: any) => {
     attrForm.validateFields().then(values => {
       const newValues = { ...values };
-      if (_.get(attr, 'frontType')) {
-        Object.assign(newValues, { [attr.name]: attrForm.getFieldValue(attr.name) });
-      }
       if (attr && attr.type === 'datetime' && values[attr.name]) {
         const datetime = values[attr.name].format(attr.datetimeFormat);
         Object.assign(newValues, { [attr.name]: new Date(datetime) });
@@ -856,7 +867,7 @@ export default function Right(props: RightProps) {
 
   const formatCode = (code: string) => {
     return beautify(code, { indent_size: 2, space_in_empty_paren: true });
-  };  
+  };
 
   // 可编辑输入框
   const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number, frontType?: string) => {
@@ -879,9 +890,8 @@ export default function Right(props: RightProps) {
                   theme: 'material',
                   readOnly: true,
                   cursorBlinkRate: -1,
-                  // viewportMargin: Infinity
                 }}
-                onBeforeChange={(editor, data, value) => {}}
+                onBeforeChange={(editor, data, value) => { }}
               />
             </div>
           </div>
@@ -906,6 +916,35 @@ export default function Right(props: RightProps) {
           <DatePicker showTime={datetimeFormat !== 'YYYY-MM-DD'} format={datetimeFormat} onChange={() => handleAttrChange(index, attr)} />
         ), addonBefore);
       case 'string':
+        if (frontType === 'code') {
+          let height = 100;
+          if (defalutValue) {
+            const lineCount = defalutValue.split('\n').length; // 计算行数
+            height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
+          }
+          return (
+            <div className='type-param-input'>
+              <div className='param-addon-before'>{addonBefore}</div>
+              <div className='param-code-editor'>
+                <Form.Item name={attr.name} rules={[{ required: attr.required, message: '该属性为必填项' }]}>
+                  <CodeEditor handleChange={() => handleAttrChange(index, attr)} />
+                </Form.Item>
+                {/* <CodeMirror
+                value={attrForm.getFieldValue(attr.name)}
+                options={{
+                  lineNumbers: false,
+                  theme: 'material',
+                  cursorBlinkRate: -1,
+                }}
+                onBeforeChange={(editor, data, value) => {
+                  attrForm.setFieldValue(attr.name, value);
+                  handleAttrChange(index, attr);
+                }}
+              /> */}
+              </div>
+            </div>
+          )
+        }
         const { stringMaxLength } = attr
         return rendeCustomAddon(attr, (
           <Input addonBefore={addonBefore} maxLength={stringMaxLength} onChange={() => handleAttrChange(index, attr)} />
@@ -927,32 +966,6 @@ export default function Right(props: RightProps) {
           >
           </Select>
         ), addonBefore);
-      case 'code':
-        let height = 100;
-        if (defalutValue) {
-          const lineCount = defalutValue.split('\n').length; // 计算行数
-          height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
-        }
-        return (
-          <div className='type-param-input'>
-            <div className='param-addon-before'>{addonBefore}</div>
-            <div className='param-code-editor readOnly'>
-              <CodeMirror
-                value={attrForm.getFieldValue(attr.name)}
-                options={{
-                  lineNumbers: false,
-                  theme: 'material',
-                  cursorBlinkRate: -1,
-                  // viewportMargin: Infinity
-                }}
-                onBeforeChange={(editor, data, value) => {
-                  attrForm.setFieldValue(attr.name, value);
-                  handleAttrChange(index, attr);
-                }}
-              />
-            </div>
-          </div>
-        )
       default:
         return rendeCustomAddon(attr, (
           <InputNumber addonBefore={addonBefore} onChange={() => handleAttrChange(index, attr)} />
@@ -992,7 +1005,6 @@ export default function Right(props: RightProps) {
                 theme: 'material',
                 readOnly: true,
                 cursorBlinkRate: -1,
-                // lineWrapping: true
               }}
               onBeforeChange={(editor, data, value) => { }}
             />
