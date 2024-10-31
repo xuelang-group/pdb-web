@@ -183,28 +183,30 @@ export default function Editor(props: EditorProps) {
           id = relation["r.type.name"],
           binds = relation['r.type.constraints']['r.binds'];
         binds.forEach(function (bind) {
-          const { source, target } = bind;
-          const edge = {
-            source,
-            target,
-            name: label,
-            label,
-            uid: id,
-            data: { ...relation },
-          };
-          if (source === target) {
-            Object.assign(edge, {
-              type: 'loop',
-              style: {
-                endArrow: {
-                  path: G6.Arrow.vee(5, 5),
-                  d: 0
-                },
-                startArrow: false,
-              }
-            });
+          const { source, target, override } = bind;
+          if (!override) {
+            const edge = {
+              source,
+              target,
+              name: label,
+              label,
+              uid: id,
+              data: { ...relation },
+            };
+            if (source === target) {
+              Object.assign(edge, {
+                type: 'loop',
+                style: {
+                  endArrow: {
+                    path: G6.Arrow.vee(5, 5),
+                    d: 0
+                  },
+                  startArrow: false,
+                }
+              });
+            }
+            edges.push(edge);
           }
-          edges.push(edge);
         });
       });
       if (graph) {
