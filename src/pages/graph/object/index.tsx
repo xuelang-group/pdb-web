@@ -342,7 +342,8 @@ export default function Editor(props: EditorProps) {
             }
           },
           'drag-enter',
-          'graph-select'
+          'graph-select',
+          'activate-relations-object'// 高亮相邻关系及节点
         ]
       },
       defaultCombo: {
