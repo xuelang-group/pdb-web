@@ -34,6 +34,8 @@ export default function List(props: any) {
   useEffect(() => {
     if(requestId) {
       updateList()
+    } else {
+      updateListWithoutRequestId()
     }
   }, [])
 
@@ -65,6 +67,19 @@ export default function List(props: any) {
             dispatch(setMetrics(response || []));
           }
         })
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+      dispatch(setIndicatorLoading(false));
+    })
+  }
+
+  // 本地环境没有requestId，则不请求权限相关接口
+  const updateListWithoutRequestId = () => {
+    dispatch(setIndicatorLoading(true));
+    getMetrics(function (response: any) {
+      if (response) {
+        dispatch(setMetrics(response || []));
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
