@@ -2,7 +2,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef } from 'react'
 import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
-import { CustomLayout } from '@visactor/vtable'
+import { CustomLayout, themes } from '@visactor/vtable'
+import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { isEmpty, compact } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
@@ -27,7 +28,7 @@ export default function VTable(props: {width: number, height: number}) {
   const func = useSelector((state: StoreState) => state.indicator.func);
   const result = useSelector((state: StoreState) => state.indicator.result);
 
-  const option = {
+  const option: IOption = {
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 46,
@@ -40,7 +41,11 @@ export default function VTable(props: {width: number, height: number}) {
       blankAreaClickDeselect: false,
       outsideClickDeselect: false,
     },
+    hover: {
+      highlightMode: 'cross'
+    },
     theme: {
+      underlayBackgroundColor: 'transparent',
       // 冻结列效果
       frozenColumnLine: {
         shadow: {
@@ -49,12 +54,22 @@ export default function VTable(props: {width: number, height: number}) {
           endColor: 'rgba(0, 29, 77, 0)'
         }
       },
+      frameStyle: {
+        borderColor: '#DCDEE1',
+        borderLineWidth: 0,
+        cornerRadius: 0,
+      },
       defaultStyle: {
         color: '#4C5A67',
         fontSize: 14,
         borderColor: '#DCDEE1',
         padding: [8, 15],
         autoWrapText: true,
+        hover:{
+          cellBgColor: '#F1F8FF',
+          inlineRowBgColor: 'rgba(0,0,0,0.02)',
+          inlineColumnBgColor: 'rgba(0,0,0,0.02)',
+        },
         select: {
           inlineRowBgColor: '#F1F8FF',
           inlineColumnBgColor: '#F1F8FF'
@@ -62,7 +77,7 @@ export default function VTable(props: {width: number, height: number}) {
       },
       headerStyle: {
         color: '#1C2126',
-        bgColor: '#F9FBFC',
+        // bgColor: '#F9FBFC',
         fontWeight: 600,
       },
       groupTitleStyle: {
@@ -72,8 +87,10 @@ export default function VTable(props: {width: number, height: number}) {
         bgColor: '#fafafa'
       },
       scrollStyle: {
+        visible: 'always',
         scrollSliderColor: 'rgba(0,0,0,0.2)',
-        // visible: 'always',
+        scrollRailColor: 'rgba(0,0,0,0)',
+        // barToSide: true,
       },
       selectionStyle: {
         cellBgColor: 'rgba(139, 211, 255, 0.1)',
