@@ -442,8 +442,26 @@ export default function AppExplore() {
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
-          const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+          let sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
             targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+          if (currentTags.length > 1) {
+            // 前一个的前一个tag的类型
+            const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
+              priorSearchTagType = _.get(priorSearchTag, 'type', "");
+            //如果都为对象类型，下拉框选择只显示关系类型列表
+            if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
+              console.log(typeRelationMap)
+              sourceRelations = _.intersection(
+                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'source', []),
+                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []),
+              );
+              targetRelations = _.intersection(
+                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'target', []),
+                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+              );
+            }
+          }
+
           // 正向关系数据
           const positiveRelations = Array.from(new Set(sourceRelations))
             .map((id: string) => relationMap[id]);
