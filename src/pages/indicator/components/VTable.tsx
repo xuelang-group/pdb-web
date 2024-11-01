@@ -29,6 +29,7 @@ export default function VTable(props: {width: number, height: number}) {
   const result = useSelector((state: StoreState) => state.indicator.result);
 
   const option: IOption = {
+    widthMode: 'autoWidth',
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 46,
