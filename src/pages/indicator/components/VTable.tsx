@@ -123,7 +123,7 @@ export default function VTable(props: {width: number, height: number}) {
               fontWeight: 600,
               fontSize: 12,
               color: '#1C2126',
-              bgColor: '#fffcfc'
+              bgColor: '#F9FBFC'
             },
             customLayout: (args: any) => {
               const { width, height } = args.rect;
