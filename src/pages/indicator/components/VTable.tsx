@@ -66,7 +66,8 @@ export default function VTable(props: {width: number, height: number}) {
         padding: [8, 15],
         autoWrapText: true,
         hover:{
-          cellBgColor: '#F1F8FF',
+          // cellBgColor: '#F1F8FF',
+          cellBgColor: 'rgba(0,0,0,0.02)',
           inlineRowBgColor: 'rgba(0,0,0,0.02)',
           inlineColumnBgColor: 'rgba(0,0,0,0.02)',
         },
@@ -75,6 +76,8 @@ export default function VTable(props: {width: number, height: number}) {
           inlineColumnBgColor: '#F1F8FF'
         }
       },
+      // bodyStyle: {
+      // },
       headerStyle: {
         color: '#1C2126',
         // bgColor: '#F9FBFC',
