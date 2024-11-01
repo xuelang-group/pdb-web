@@ -171,6 +171,18 @@ export const indicatorSlice = createSlice({
       state.loading = action.payload;
     },
     setTableData: (state, action: PayloadAction<any>) => {
+      state.csv = [];
+      state.mergeCell = { col: [], row: [] };
+      state.records = [];
+      state.columns = [];
+      state.disabledField = [];
+      state.dimentionInitial = '';
+      state.dimention = '';
+      state.func = '';
+      state.groupByResult = [];
+      state.result = [];
+      state.groupBy = [];
+      state.funcOptions = [];
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
@@ -189,19 +201,6 @@ export const indicatorSlice = createSlice({
         state.records = records;
         state.columns = columns;
         state.funcOptions = updateFuncOptions(columns, dimention);
-      } else {
-        state.csv = [];
-        state.mergeCell = { col: [], row: [] };
-        state.records = [];
-        state.columns = [];
-        state.disabledField = [];
-        state.dimentionInitial = '';
-        state.dimention = '';
-        state.func = '';
-        state.groupByResult = [];
-        state.result = [];
-        state.groupBy = [];
-        state.funcOptions = [];
       }
     },
     updateDisabledField: (state, action: PayloadAction<any>) => {
