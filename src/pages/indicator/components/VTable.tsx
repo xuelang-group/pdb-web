@@ -2,12 +2,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef } from 'react'
 import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
-import { CustomLayout, themes } from '@visactor/vtable'
+import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { isEmpty, compact } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
+import { setLoading, setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
@@ -232,13 +232,19 @@ export default function VTable(props: {width: number, height: number}) {
   }
 
   useEffect(() => {
-    query.graphId ? getCsv(query, function (success: boolean, response: any) {
+    if (query.graphId) {
+      dispatch(setLoading(true));
+      getCsv(query, function (success: boolean, response: any) {
       if (success) {
+        dispatch(setLoading(false));
         dispatch(setTableData(response.trim()));
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
-    }) : dispatch(setTableData(""));
+    })
+   } else {
+    dispatch(setTableData(""));
+   }
   }, [query])
 
   useEffect(() => {

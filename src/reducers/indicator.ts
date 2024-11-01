@@ -32,6 +32,7 @@ interface IndicatorState {
   needEditId: string | null; // 从门户跳转过来时带上需要编辑的指标id，需要在拿到指标列表后编辑该id的指标
   checkId: string | null;   // 当前正在查看的指标id
   editId: string | null;    // 当前正在编辑的指标id
+  loading: boolean;         // csv数据获取loading
   csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
@@ -56,6 +57,7 @@ const initialState: IndicatorState = {
   needEditId: null,
   checkId: null,
   editId: null,
+  loading: false,
   csv: [],
   records: [],
   columns: [],
@@ -165,6 +167,9 @@ export const indicatorSlice = createSlice({
   name: 'indicator',
   initialState,
   reducers: {
+    setLoading: (state, action: PayloadAction<any>) => {
+      state.loading = action.payload;
+    },
     setTableData: (state, action: PayloadAction<any>) => {
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
@@ -295,6 +300,6 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, exit } = indicatorSlice.actions
+export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, exit } = indicatorSlice.actions
 
 export default indicatorSlice.reducer
