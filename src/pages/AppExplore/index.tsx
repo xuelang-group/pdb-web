@@ -572,13 +572,12 @@ export default function AppExplore() {
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
-          typeId = data['x.type.name'],
-          typeLabel = data['x.type.label'];
+          typeId = data['x.type.name'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
             attrId: name,
-            attrName: display + '_' + typeLabel,
+            attrName: display,
             attrType: type,
             index: searchTags[index].length
           });
@@ -685,7 +684,7 @@ export default function AppExplore() {
     let csv: any = [];
     _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
-        let pqlItem: any[] = [], csvItem: any[] = [];
+        let pqlItem: any[] = [], csvItem: any[] = [], csvDisplayMap: any = {};
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
           let name = _.get(detail, 'label', '');
@@ -726,7 +725,15 @@ export default function AppExplore() {
 
             const objectCsvOpt = _.get(detail, 'csv');
             if (type === "object" && objectCsvOpt) {
-              csvItem = csvItem.concat(objectCsvOpt);
+
+              csvItem = csvItem.concat(objectCsvOpt.map(function ({ attrName, ...other }: any) {
+                if (csvDisplayMap[attrName]) {
+                  return { ...other, attrName: attrName + "_" + name };
+                } else {
+                  Object.assign(csvDisplayMap, { [attrName]: attrName });
+                }
+                return { attrName, ...other };
+              }));
             }
           }
           pqlItem.push(option);
@@ -920,7 +927,20 @@ export default function AppExplore() {
       Object.assign(newTagMap[index], { [newRelationId]: value });
 
       if (_.isEmpty(prevTargetTag)) {
-        Object.assign(newTagMap[index], { [currTargetTag.value]: currTargetTag });
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
+          currTargetTagData = currTargetTag.data,
+          typeId = currTargetTagData['x.type.name'],
+          tagIndex = searchTags[index].length + 1;
+        currTargetTagData['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+          csv.push({
+            typeId: typeId,
+            attrId: name,
+            attrName: display,
+            attrType: type,
+            index: tagIndex
+          });
+        });
+        Object.assign(newTagMap[index], { [currTargetTag.value]: { ...currTargetTag, csv } });
       }
 
       if (filterPanelOpenKey === "__TEMPORARY_RELATION__") {

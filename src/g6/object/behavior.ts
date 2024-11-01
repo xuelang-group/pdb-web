@@ -2121,7 +2121,7 @@ export function registerBehavior() {
       return {
         // 可选 mouseenter || click
         // 选择 click 会监听 touch，mouseenter 不会监听
-        trigger: 'mouseenter',
+        trigger: 'click',
         activeState: 'highlight',
         inactiveState: 'inactive',
         resetSelected: false,
@@ -2131,12 +2131,12 @@ export function registerBehavior() {
       };
     },
     getEvents(): { [key in G6Event]?: string } {
-      // if ((this as any).get('trigger') === 'mouseenter') {
-      //   return {
-      //     'node:mouseenter': 'setAllItemStates',
-      //     'node:mouseleave': 'clearActiveState',
-      //   };
-      // }
+      if ((this as any).get('trigger') === 'mouseenter') {
+        return {
+          'node:mouseenter': 'setAllItemStates',
+          'node:mouseleave': 'clearActiveState',
+        };
+      }
       return {
         'node:click': 'setAllItemStates',
         'combo:click': 'clearActiveState',
