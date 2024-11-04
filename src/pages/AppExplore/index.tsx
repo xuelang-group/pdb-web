@@ -314,8 +314,10 @@ export default function AppExplore() {
       for (let i = 0; i < newValLen; i++) {
         // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
         // 当前两个tag都不为对象类型，满足当前条件
-        if (i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
-          newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) {
+        if ((i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" ||
+          (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) ||
+          // 当前tag为对象类型且prevSearchTagType为对象类型，但前一个对象tag被删除，当前前一个tag不为对象类型
+          (newValue[i].split(".")[0] === "Type" && searchTagMap[index][newValue[i]].prevSearchTagType === "type" && (i === 0 || newValue[i - 1].split(".")[0] !== "Type"))) {
           return;
         }
       }
