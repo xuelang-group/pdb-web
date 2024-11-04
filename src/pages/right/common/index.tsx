@@ -359,40 +359,43 @@ export default function Right(props: RightProps) {
           })();
         }
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
-        const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-        // 获取对象关系列表数据
-        const relations: any[] = [];
-        Object.keys(response).forEach((key: string) => {
-          if (key.startsWith("Relation_")) {
-            const relationKey = key.replace('_', '.');
-            if (isArray(response[key])) {
-              response[key].forEach((target: any) => {
+
+        if (currentGraphTab === "main") {
+          const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+          // 获取对象关系列表数据
+          const relations: any[] = [];
+          Object.keys(response).forEach((key: string) => {
+            if (key.startsWith("Relation_")) {
+              const relationKey = key.replace('_', '.');
+              if (isArray(response[key])) {
+                response[key].forEach((target: any) => {
+                  relations.push({
+                    relation: relationKey,
+                    target: {
+                      uid: _.get(target, 'dst', '').toString()
+                    },
+                    attrValue: _.get(target, 'props', {})
+                  });
+                });
+              } else {
                 relations.push({
                   relation: relationKey,
                   target: {
-                    uid: _.get(target, 'dst', '').toString()
+                    uid: _.get(response[key], 'dst', '').toString()
                   },
-                  attrValue: _.get(target, 'props', {})
+                  attrValue: _.get(response[key], 'props', {})
                 });
-              });
-            } else {
-              relations.push({
-                relation: relationKey,
-                target: {
-                  uid: _.get(response[key], 'dst', '').toString()
-                },
-                attrValue: _.get(response[key], 'props', {})
-              });
+              }
             }
-          }
-        });
-        Object.assign(relationLines, {
-          [objectData.uid]: relations
-        });
-        dispatch(setToolbarConfig({
-          key: currentGraphTab,
-          config: { relationLines }
-        }));
+          });
+          Object.assign(relationLines, {
+            [objectData.uid]: relations
+          });
+          dispatch(setToolbarConfig({
+            key: currentGraphTab,
+            config: { relationLines }
+          }));
+        }
         const filedValue = objectData['x_attr_value'];
         const attFormValue = {};
         attrs && attrs.forEach((attr: AttrConfig) => {
