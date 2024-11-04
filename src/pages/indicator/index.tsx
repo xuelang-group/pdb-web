@@ -1,12 +1,16 @@
 import { setShowSearch } from '@/reducers/editor';
 import { useEffect, useRef, useState } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { StoreState } from "@/store";
 import VTable from './components/VTable';
 import './index.less';
+import { Spin } from 'antd';
 
 export default function Indicator(props: any) {
   const wrapRef = useRef(null);
   const dispatch = useDispatch();
+  const loading = useSelector((state: StoreState) => state.indicator.loading);
+
   const [width, setWidth] = useState(1000)
   const [height, setHeight] = useState(500)
 
@@ -31,7 +35,9 @@ export default function Indicator(props: any) {
 
   return (
     <div className='pdb-indicator' ref={wrapRef}>
-      <VTable width={width - PADDING * 2} height={height - PADDING} />
+      <Spin spinning={loading}>
+        <VTable width={width - PADDING * 2} height={height - PADDING} />
+      </Spin>
     </div>
   )
 }

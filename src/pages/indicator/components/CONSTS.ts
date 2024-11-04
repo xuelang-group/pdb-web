@@ -100,10 +100,10 @@ export function getColumns(cols: Col[]) {
     } : {},
     "fieldFormat": fieldFormat,
     // 只有一行的表头
-    // "headerStyle": disabled ? {
-    //   "bgColor": "#F4F6F9",
-    //   "color": "#C2C7CC",
-    // } : {},
+    "headerStyle": disabled ? {
+      "bgColor": "#F4F6F9",
+      "color": "#C2C7CC",
+    } : {},
     // "headerIcon": disabled ? `${type}Disabled` : type,
     // "headerCustomRender": (args: TYPES.CustomRenderFunctionArg) => {
     //   const { rect } = args;
@@ -151,10 +151,10 @@ export function getColumns(cols: Col[]) {
         {
           type: 'rect',
           x: 0.5,
-          y: 0.5,
+          y: checked ? 0.5 : rowHeight + 0.5,
           width: checked ? (width - 1) : width,
           height: checked ? height : (rowHeight),
-          fill: checked ? '#F1F8FF' : disabled ? '#F4F6F9' : '#FFF',
+          fill: checked ? 'rgba(139, 211, 255, 0.1)' : disabled ? 'transparent' : 'rgba(220, 230, 235, 0.16)',
           stroke: checked ? '#8BD3FF' : '#DCDEE1',
         }, {
           type: 'icon',
@@ -176,7 +176,7 @@ export function getColumns(cols: Col[]) {
         }, {
           type: 'line',
           points: [{ x: 1, y: rowHeight + 0.5 }, { x: width - 1, y: rowHeight + 0.5 }],
-          lineWidth: 1,
+          lineWidth: checked ? 1 : 0,
           stroke: '#DCDEE1'
         }, {
           type: 'text',
