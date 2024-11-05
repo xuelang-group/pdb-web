@@ -209,13 +209,7 @@ export default function Right(props: any) {
                 <Select
                   value={func}
                   placeholder='请选择指标度量'
-                  // options={[
-                  //   { label: 'sum', value:'sum' },
-                  //   { label: 'avg', value: 'avg' },
-                  //   { label: 'median', value:'median' },
-                  //   { label:'min', value:'min' },
-                  //   { label:'max', value:'max' },
-                  // ]}
+                  allowClear
                   options={funcOptions.map((item) => ({ label: item, value: item }))}
                   onChange={(value) => { dispatch(setFunc(value)) }}
                   disabled={!!checkId}
