@@ -21,7 +21,7 @@ import { ConditionState, initialParams, setQueryParams } from "@/reducers/query"
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
-import { setModalVisible } from "@/reducers/indicator";
+import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -236,6 +236,8 @@ export default function AppExplore() {
   const onUnsave = () => {
     saveConfrimModal && saveConfrimModal.destroy();
     setSaveConfirmModal("");
+    dispatch(setFunc(undefined))
+    dispatch(setGroupBy([]));
     if (saveConfirmModal === "clear") {
       dispatch(setQueryParams(initialParams));
     } else {
