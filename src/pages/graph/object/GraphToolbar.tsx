@@ -12,11 +12,11 @@ import { Parent, setObjects } from "@/reducers/object";
 import { addObject, clearObjects, getChildren } from "@/actions/object";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
-import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
+import { nodeColorList, typeLabelMap, typeMap, uuid } from "@/utils/common";
 import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
 import { RelationConfig, setRelations } from "@/reducers/relation";
 import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/type";
-import { setTypes, TypeConfig } from "@/reducers/type";
+import { setTypes, TypeConfig, AttrConfig } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
 
@@ -1208,6 +1208,79 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     XLSX.writeFile(workbook, '示例数据.xlsx');
   }
 
+  const handleExportData = function () {
+    if (location.pathname.endsWith("/template")) {
+      const types: any[] = [], properties: any[] = [], connections: any[] = [];
+      const typeLabelMap: any = {};
+
+      typeList.forEach(function (type) {
+        const typeLabel = type["x.type.label"];
+        types.push({
+          "名称（唯一标识）": typeLabel,
+          "类型（默认对象类型）": "对象类型"
+        });
+        Object.assign(typeLabelMap, { [type["x.type.name"]]: typeLabel });
+        (type["x.type.attrs"] as AttrConfig[]).forEach(function (attr: AttrConfig) {
+          const { name, display, type, datetimeFormat } = attr;
+          properties.push({
+            "类型名称（唯一标识）": typeLabel,
+            "属性名称（唯一标识）": name || "",
+            "属性展示名称": display || "",
+            "属性类型": typeMap['type'][type],
+            "默认值": attr.default || "",
+            "日期类型格式（默认YYYY-MM-DD）": datetimeFormat || ""
+          });
+        });
+      });
+
+      relationList.forEach(function (relation) {
+        const relationLabel = relation["r.type.label"];
+        types.push({
+          "名称（唯一标识）": relationLabel,
+          "类型（默认对象类型）": "对象类型"
+        });
+        Object.keys(relation["r.type.constraints"]).forEach(function (attrKey: any) {
+          if (attrKey !== "r.binds") {
+            const { name, display, type, datetimeFormat } = relation["r.type.constraints"][attrKey];
+            properties.push({
+              "类型名称（唯一标识）": relationLabel,
+              "属性名称（唯一标识）": name || "",
+              "属性展示名称": display || "",
+              "属性类型": typeMap['type'][type],
+              "默认值": relation["r.type.constraints"][attrKey]['default'] || "",
+              "日期类型格式（默认YYYY-MM-DD）": datetimeFormat || ""
+            });
+          } else {
+            relation["r.type.constraints"]["r.binds"].forEach(function (bind) {
+              const { source, target } = bind;
+              connections.push({
+                "类型名称（唯一标识）": relationLabel,
+                "关系类型连接对象（源对象类型）": typeLabelMap[source],
+                "关系类型连接对象（目标对象类型）": typeLabelMap[target],
+              });
+            });
+          }
+        });
+      });
+
+
+      // 创建工作表
+      const worksheet1 = XLSX.utils.json_to_sheet(types);
+      const worksheet2 = XLSX.utils.json_to_sheet(properties);
+      const worksheet3 = XLSX.utils.json_to_sheet(connections);
+
+      // 创建工作簿并添加工作表
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet1, "类型表");
+      XLSX.utils.book_append_sheet(workbook, worksheet2, "类型属性表");
+      XLSX.utils.book_append_sheet(workbook, worksheet3, "连接对象表（仅关系类型）");
+      // 导出 Excel 文件
+      XLSX.writeFile(workbook, "类型数据.xlsx");
+    } else {
+
+    }
+  }
+
   return (
     <>
       <div className='pdb-graph-toolbar'>
@@ -1281,6 +1354,16 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               </div>
             </div>
           }
+        </Tooltip>
+        <Tooltip title="导出数据" placement="right">
+          <div
+            className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === 'export' ? 'selected' : ''}`}
+            onClick={handleExportData}
+          >
+            <div className="pdb-graph-toolbar-icon">
+              <i className={`operation-icon spicon icon-daochu`}></i>
+            </div>
+          </div>
         </Tooltip>
       </div>
       {contextHolder}
