@@ -1,4 +1,4 @@
-import { Input, InputRef, Tabs, Tree, Dropdown, Tooltip, Spin, Button, Segmented } from 'antd';
+import { Input, InputRef, Tabs, Tree, Dropdown, Tooltip, Spin, Button, Segmented, Empty } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -181,7 +181,7 @@ export default function TypeList() {
         const currentItem = graph.findById(currentEditModel.id);
         if (currentItem) currentItem.setState('selected', false);
       }
-      const { sourceNode, targetNode, ...otherModel} = item.getModel();
+      const { sourceNode, targetNode, ...otherModel } = item.getModel();
       dispatch(setCurrentEditModel(otherModel));
       item.setState('selected', true);
       graph.focusItem(item);
@@ -212,34 +212,39 @@ export default function TypeList() {
           </div>
         </div>
         <div className='list-content'>
-          <div className='type-list'>
-            <Tree
-              showLine={{ showLeafIcon: false }}
-              treeData={treeData}
-              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x_type_name']] : []}
-              switcherIcon={() => (<span></span>)}
-              titleRender={(item: any) => (
-                <Dropdown
-                  overlayClassName='pdb-dropdown-menu'
-                  menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, 'type', item) }}
-                  trigger={['contextMenu']}
-                >
-                  <span
-                    className='type-item'
-                    // draggable={currentGraphTab === 'main'}
-                    onDragStart={event => handleDragStart(event, item.data)}
+          {treeData.length === 0 ?
+            <div className='list-empty'>
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            </div> :
+            <div className='type-list'>
+              <Tree
+                showLine={{ showLeafIcon: false }}
+                treeData={treeData}
+                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x_type_name']] : []}
+                switcherIcon={() => (<span></span>)}
+                titleRender={(item: any) => (
+                  <Dropdown
+                    overlayClassName='pdb-dropdown-menu'
+                    menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, 'type', item) }}
+                    trigger={['contextMenu']}
                   >
-                    <i className='iconfont icon-duixiangleixing'></i>
-                    <span className='type-item-label'>{item.title}</span>
-                  </span>
-                </Dropdown>
-              )}
-              expandedKeys={expandedKeys}
-              blockNode
-              showIcon
-              onSelect={(selectedKeys, event) => handleSelectItem(selectedKeys)}
-            />
-          </div>
+                    <span
+                      className='type-item'
+                      // draggable={currentGraphTab === 'main'}
+                      onDragStart={event => handleDragStart(event, item.data)}
+                    >
+                      <i className='iconfont icon-duixiangleixing'></i>
+                      <span className='type-item-label'>{item.title}</span>
+                    </span>
+                  </Dropdown>
+                )}
+                expandedKeys={expandedKeys}
+                blockNode
+                showIcon
+                onSelect={(selectedKeys, event) => handleSelectItem(selectedKeys)}
+              />
+            </div>
+          }
           {list.length === 0 && isSearched && !typeLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
@@ -285,33 +290,38 @@ export default function TypeList() {
           </div>
         </div>
         <div className='list-content'>
-          <div className='type-list relation-list'>
-            {relList.map((item: any, index: number) => {
-              const label: any = item[prevLabel + 'type.label']
-              return (
-                <Dropdown
-                  overlayClassName='pdb-dropdown-menu'
-                  menu={{
-                    items: typeMenus,
-                    onClick: (menu) => handleClickMenu(routerParams.id, 'relation', { 
-                      data: item, 
-                      dataIndex: index ,
-                      title: item['r.type.label'],
-                      key: item['r.type.name']
-                    })
-                  }}
-                  trigger={['contextMenu']}
-                >
-                  <span
-                    className='type-item'
+          {relList.length === 0 ?
+            <div className='list-empty'>
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            </div> :
+            <div className='type-list relation-list'>
+              {relList.map((item: any, index: number) => {
+                const label: any = item[prevLabel + 'type.label']
+                return (
+                  <Dropdown
+                    overlayClassName='pdb-dropdown-menu'
+                    menu={{
+                      items: typeMenus,
+                      onClick: (menu) => handleClickMenu(routerParams.id, 'relation', {
+                        data: item,
+                        dataIndex: index,
+                        title: item['r.type.label'],
+                        key: item['r.type.name']
+                      })
+                    }}
+                    trigger={['contextMenu']}
                   >
-                    <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
-                    {(<span className='type-item-label'>{label}</span>)}
-                  </span>
-                </Dropdown>
-              );
-            })}
-          </div>
+                    <span
+                      className='type-item'
+                    >
+                      <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
+                      {(<span className='type-item-label'>{label}</span>)}
+                    </span>
+                  </Dropdown>
+                );
+              })}
+            </div>
+          }
           {relList.length === 0 && isRelSearched && !relationLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
@@ -333,7 +343,7 @@ export default function TypeList() {
 
   return (
     <div className='pdb-type-list'>
-      <Segmented 
+      <Segmented
         value={currentTab}
         options={[{
           label: '对象',

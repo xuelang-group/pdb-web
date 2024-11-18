@@ -1,4 +1,4 @@
-import { Checkbox, Dropdown, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
+import { Checkbox, Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -517,22 +517,27 @@ export default function Left(props: any) {
           </Tooltip>
         </div>
         <div className='list-content'>
-          <div className='type-list relation-list'>
-            {list.map((item: any, index: number) => {
-              const label: any = item[prevLabel + 'type.label']
-              return (
-                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
-                  <span
-                    className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
-                    onClick={() => handleSelectItem(item, type, index)}
-                  >
-                    <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
-                    {item.title || (<span className='type-item-label'>{label}</span>)}
-                  </span>
-                </Dropdown>
-              );
-            })}
-          </div>
+          {list.length === 0 ?
+            <div className='list-empty'>
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            </div> :
+            <div className='type-list relation-list'>
+              {list.map((item: any, index: number) => {
+                const label: any = item[prevLabel + 'type.label']
+                return (
+                  <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
+                    <span
+                      className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
+                      onClick={() => handleSelectItem(item, type, index)}
+                    >
+                      <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
+                      {item.title || (<span className='type-item-label'>{label}</span>)}
+                    </span>
+                  </Dropdown>
+                );
+              })}
+            </div>
+          }
           {list.length === 0 && isSearched && !relationLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
@@ -573,26 +578,31 @@ export default function Left(props: any) {
           </Tooltip>
         </div>
         <div className='list-content'>
-          <div className='type-list'>
-            <Tree
-              showLine={{ showLeafIcon: false }}
-              treeData={treeData}
-              selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
-              switcherIcon={() => (<span></span>)}
-              titleRender={(item: any) => (
-                <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
-                  <span>
-                    <i className='iconfont icon-duixiangleixing'></i>
-                    <span className='type-item-label'>{item.title}</span>
-                  </span>
-                </Dropdown>
-              )}
-              expandedKeys={expandedKeys}
-              blockNode
-              showIcon
-              onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
-            />
-          </div>
+          {treeData.length === 0 ?
+            <div className='list-empty'>
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            </div> :
+            <div className='type-list'>
+              <Tree
+                showLine={{ showLeafIcon: false }}
+                treeData={treeData}
+                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
+                switcherIcon={() => (<span></span>)}
+                titleRender={(item: any) => (
+                  <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
+                    <span>
+                      <i className='iconfont icon-duixiangleixing'></i>
+                      <span className='type-item-label'>{item.title}</span>
+                    </span>
+                  </Dropdown>
+                )}
+                expandedKeys={expandedKeys}
+                blockNode
+                showIcon
+                onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
+              />
+            </div>
+          }
           {treeData.length === 0 && isSearched && !typeLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>

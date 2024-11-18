@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Input, InputRef, Spin, message, Dropdown, Tag } from 'antd';
+import { Input, InputRef, Spin, message, Dropdown, Tag, Empty } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getMetrics } from "@/actions/indicator";
@@ -32,7 +32,7 @@ export default function List(props: any) {
   const { Search } = Input;
 
   useEffect(() => {
-    if(requestId) {
+    if (requestId) {
       updateList()
     } else {
       updateListWithoutRequestId()
@@ -40,7 +40,7 @@ export default function List(props: any) {
   }, [])
 
   useEffect(() => {
-    if(requestId) {
+    if (requestId) {
       updateList()
     }
   }, [requestId])
@@ -59,7 +59,7 @@ export default function List(props: any) {
     getMetrics(function (response: any) {
       if (response) {
         dispatch(setMetrics(response || []));
-        getPdbIdList({ requestId: requestId }, (success:boolean, res: any) => {
+        getPdbIdList({ requestId: requestId }, (success: boolean, res: any) => {
           if (success) {
             const tempArr = response.filter((item: any) => (res?.data || []).includes(item.id))
             dispatch(setMetrics(tempArr || []));
@@ -89,9 +89,9 @@ export default function List(props: any) {
 
   const checkNeed = (_needCheckId: string | null, _needEditId: string | null, arr: any[]) => {
     // 如果URL中有checkId，则自动跳转到对应的指标
-    if(_needCheckId) {
+    if (_needCheckId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needCheckId)
-      if(tempObj) {
+      if (tempObj) {
         dispatch(setCheckId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
         dispatch(setDimention(tempObj.metric_params.dimention));
@@ -100,9 +100,9 @@ export default function List(props: any) {
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
       }
-    } else if(_needEditId) {
+    } else if (_needEditId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
-      if(tempObj) {
+      if (tempObj) {
         dispatch(setEditId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
         dispatch(setDimention(tempObj.metric_params.dimention));
@@ -110,7 +110,7 @@ export default function List(props: any) {
         dispatch(setGroupBy(tempObj.metric_params.group_by));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedEditId(null));
-        getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+        getCurrentBuzProcess({ requestId: requestId }, (success: boolean, res: any) => {
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
@@ -200,63 +200,69 @@ export default function List(props: any) {
           </div>
         </div>
         <div className='list-content'>
-          <div className='type-list'>
-            {!indicatorLoading && indList.map((item: any, index: number) => {
-              const label: any = item['name']
-              const menus: any[] =[
-                {
-                  label: '查看基础信息',
-                  key: 'check1',
-                },
-                {
-                  label: '查看指标定义',
-                  key: 'check2',
-                },
-              ]
-              if(item.online === false) {
-                menus.push({ type: 'divider' })
-                menus.push({
-                  label: '编辑',
-                  key: 'edit',
-                })
-              }
-              return (
-                <Dropdown
-                  overlayClassName='pdb-dropdown-menu'
-                  menu={{
-                    items: menus,
-                    onClick: (menu) => handleClickMenu(item, menu)
-                  }}
-                  trigger={['contextMenu']}
-                >
-                  <span
-                    className={`type-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+          {!indicatorLoading &&
+            <div className='type-list'>
+              {indList.map((item: any, index: number) => {
+                const label: any = item['name']
+                const menus: any[] = [
+                  {
+                    label: '查看基础信息',
+                    key: 'check1',
+                  },
+                  {
+                    label: '查看指标定义',
+                    key: 'check2',
+                  },
+                ]
+                if (item.online === false) {
+                  menus.push({ type: 'divider' })
+                  menus.push({
+                    label: '编辑',
+                    key: 'edit',
+                  })
+                }
+                return (
+                  <Dropdown
+                    overlayClassName='pdb-dropdown-menu'
+                    menu={{
+                      items: menus,
+                      onClick: (menu) => handleClickMenu(item, menu)
+                    }}
+                    trigger={['contextMenu']}
                   >
-                    <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
-                    {(<span className='type-item-label'>{label}</span>)}
-                    {item.online === false && <Tag className='indicator-tag'>已下架</Tag>}
-                    {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
-                    {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
-                  </span>
-                </Dropdown>
-              );
-            })}
-          </div>
-          {indList.length === 0 && isIndSearched && !indicatorLoading &&
-            <div className='no-data-info'>
-              <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+                    <span
+                      className={`type-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+                    >
+                      <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
+                      {(<span className='type-item-label'>{label}</span>)}
+                      {item.online === false && <Tag className='indicator-tag'>已下架</Tag>}
+                      {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
+                      {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
+                    </span>
+                  </Dropdown>
+                );
+              })}
             </div>
           }
+          {indList.length === 0 && !indicatorLoading && (
+            isIndSearched ?
+              <div className='no-data-info'>
+                <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
+              </div> :
+              <div className='list-empty'>
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+          )}
           {indicatorLoading && <Spin />}
         </div>
       </div>
     );
   }, [indicatorList, routerParams?.id, indicatorLoading, checkId, editId]);
 
-    return (
-      <div className='pdb-type-list'>
-        {renderIndicatorTree('indicator')}
-        <ChechDrawer isOpen={showCheckDrawer} onClose={() => setShowCheckDrawer(false)} data={checkData}/>
-      </div>
-    )
-  }
+  return (
+    <div className='pdb-type-list'>
+      {renderIndicatorTree('indicator')}
+      <ChechDrawer isOpen={showCheckDrawer} onClose={() => setShowCheckDrawer(false)} data={checkData} />
+    </div>
+  )
+}
