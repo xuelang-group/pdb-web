@@ -11,7 +11,7 @@ import type { StoreState } from '@/store';
 import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
-import { G6OperateFunctions, PAGE_SIZE } from '@/g6/object/behavior';
+import { G6OperateFunctions } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
@@ -413,7 +413,8 @@ export default function Editor(props: EditorProps) {
       return new Promise(async (resolve: any, reject: any) => {
         const children = graph.getComboChildren(`${item.uid}-combo`);
         if (!children || !children.nodes || children.nodes.length === 0) {
-          const limit = Number(PAGE_SIZE());
+          const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+          const limit = Number(PAGE_SIZE);
           let params = { vid: item.uid };
 
           if (limit > 0 && item.childLen > limit) {
@@ -485,8 +486,8 @@ export default function Editor(props: EditorProps) {
               if (params.hasOwnProperty("offset")) {
                 const totalPage = item.childLen ? Math.ceil(item.childLen / limit) : 1;
                 _data.push({
-                  uid: 'pagination-' + item.uid + `-${Number(PAGE_SIZE())}-next`,
-                  id: 'pagination-' + item.uid + `-${Number(PAGE_SIZE())}-next`,
+                  uid: 'pagination-' + item.uid + `-${Number(PAGE_SIZE)}-next`,
+                  id: 'pagination-' + item.uid + `-${Number(PAGE_SIZE)}-next`,
                   totalPage,
                   currentParent: { id: item.uid }
                 });
