@@ -382,7 +382,7 @@ export default function Editor(props: EditorProps) {
           clockwise: false
         },
       },
-      plugins: [tooltip, contextMenu]
+      plugins: [tooltip]
     });
     let graphData: any = {};
     if (data) {
