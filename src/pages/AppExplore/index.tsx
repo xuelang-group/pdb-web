@@ -1147,6 +1147,7 @@ export default function AppExplore() {
                   />
                 );
               }}
+              getPopupContainer={(() => document.getElementById("pdb-explore") || document.body) as any}
               arrow={false}
               trigger="click"
               destroyTooltipOnHide

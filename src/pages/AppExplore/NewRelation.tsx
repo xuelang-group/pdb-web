@@ -258,7 +258,7 @@ export default function NewRelation(props: ExploreFilterProps) {
         <span>关联关系</span>
         <i className="spicon icon-guanbi" onClick={() => close()}></i>
       </div>
-      <div className="pdb-explore-setting-container">
+      <div className="pdb-explore-setting-container" style={{ minHeight: "48rem" }}>
         {renderGroupSetting()}
       </div>
       <div className="pdb-explore-setting-footer">
