@@ -199,7 +199,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 
 // 添加子节点
 export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
-  const id = parent.id;
+  const id = parent.id || parent.uid;
 
   const sortData = data.sort((a, b) => {
     if (!a['x_id'] || !b['x_id']) return 1;
@@ -217,6 +217,20 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   const lastIndex = findLastIndex(currentData.nodes || [], parent.xid);
   const newNodes = JSON.parse(JSON.stringify(currentData.nodes));
 
+  for (let node of newNodes) {
+    if (node.uid === id) {
+      Object.assign(node, {
+        ...node,
+        collapsed: false,
+        data: {
+          ...node.data,
+          collapsed: false
+        }
+      });
+      break;
+    }
+  }
+
   if (lastIndex > -1) {
     newNodes.splice((lastIndex > -1 ? lastIndex + 1 : -1), 0, ...nodes);
   } else {
@@ -226,7 +240,12 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   }
 
   const newEdges = edges.concat(currentData.edges || []);
-  const newCombos = combos.concat(currentData.combos?.map(({ id, parentId }) => ({ id, parentId })) || []);
+  const newCombos = combos.concat(currentData.combos?.map(({ id, parentId, collapsed }) => {
+    if (id === `${parent.id || parent.uid}-combo`) {
+      return { id, parentId, collapsed: false }
+    }
+    return { id, parentId, collapsed }
+  }) || []);
 
   return {
     nodes: JSON.parse(JSON.stringify(newNodes)),
@@ -273,7 +292,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
     if (node.xid && node.xid.startsWith(parent.xid) && node.xid.split(".").length === shoudldRemoveXidLen) {
       Object.assign(removeIdChildrenMap, { [node.id]: node });
     }
-    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent]) {
+    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent] && !removeIds[node.parent]) {
       newNodes.push(node);
     } else if (newDataIdMap[node.parent] && (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.parent && removeIdChildrenMap[node.parent])) {
       removeIdChildren.push(node);

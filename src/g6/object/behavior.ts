@@ -1,4 +1,4 @@
-import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig } from '@antv/g6';
+import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
 import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
@@ -2050,6 +2050,8 @@ export function registerBehavior() {
         'node:click': 'nodeSelected',   // 节点选中
         'edge:click': 'edgeSelected',
         'canvas:click': 'nodeUnselected',
+        'combo:click': 'nodeUnselected',
+        'clear:active': 'nodeUnselected' // 新增
       };
     },
     nodeSelected: function (event: IG6GraphEvent) {
@@ -2145,5 +2147,240 @@ export function registerBehavior() {
       G6OperateFunctions.unSelectedItem('node', 'selected', graph);
       G6OperateFunctions.unSelectedItem('edge', 'selected', graph);
     }
+  });
+
+
+  // 高亮相邻关系及节点
+  G6.registerBehavior('activate-relations-object', {
+    getDefaultCfg(): object {
+      return {
+        // 可选 mouseenter || click
+        // 选择 click 会监听 touch，mouseenter 不会监听
+        trigger: 'click',
+        activeState: 'highlight',
+        inactiveState: 'inactive',
+        resetSelected: false,
+        shouldUpdate() {
+          return true;
+        },
+      };
+    },
+    getEvents(): { [key in G6Event]?: string } {
+      if ((this as any).get('trigger') === 'mouseenter') {
+        return {
+          'node:mouseenter': 'setAllItemStates',
+          'node:mouseleave': 'clearActiveState',
+        };
+      }
+      return {
+        'node:click': 'setAllItemStates',
+        'combo:click': 'clearActiveState',
+        'canvas:click': 'clearActiveState',
+        'node:touchstart': 'setOnTouchStart',
+        'canvas:touchstart': 'clearOnTouchStart',
+        'clear:active': 'clearActiveState' // 新增
+      };
+    },
+    setOnTouchStart(e: IG6GraphEvent) {
+      const self = this as any;
+      try {
+        const touches = (e.originalEvent as TouchEvent).touches;
+        const event1 = touches[0];
+        const event2 = touches[1];
+
+        if (event1 && event2) {
+          return;
+        }
+
+        e.preventDefault();
+      } catch (e) {
+        console.warn('Touch original event not exist!');
+      }
+      self.setAllItemStates(e);
+    },
+    clearOnTouchStart(e: IG6GraphEvent) {
+      const self = this as any;
+      try {
+        const touches = (e.originalEvent as TouchEvent).touches;
+        const event1 = touches[0];
+        const event2 = touches[1];
+
+        if (event1 && event2) {
+          return;
+        }
+
+        e.preventDefault();
+      } catch (e) {
+        console.warn('Touch original event not exist!');
+      }
+      self.clearActiveState(e);
+    },
+    setAllItemStates(e: IG6GraphEvent) {
+      const self = this as any;
+
+      clearTimeout(self.timer);
+      self.throttleSetAllItemStates(e, self);
+      console.log(self)
+    },
+    clearActiveState(e: any) {
+      const self = this as any;
+
+      // avoid clear state frequently, it costs a lot since all the items' states on the graph need to be cleared
+      self.timer = setTimeout(() => {
+        self.throttleClearActiveState(e, self);
+      }, 50)
+    },
+    throttleSetAllItemStates: _.throttle(
+      (e: any, self: any) => {
+        const item: INode = e.item as INode;
+        const itemType = item.getType();
+        if (itemType === "combo") return;
+        const graph = self.graph;
+        if (!graph || graph.destroyed) return;
+        self.item = item;
+        if (!self.shouldUpdate(e.item, { event: e, action: 'activate' }, self)) {
+          return;
+        }
+        const activeState = self.activeState;
+        // const inactiveState = self.inactiveState;
+        const nodes = graph.getNodes();
+        const edges = graph.getEdges();
+        const vEdges = graph.get('vedges');
+        const nodeLength = nodes.length;
+        const edgeLength = edges.length;
+        const vEdgeLength = vEdges.length;
+        // const inactiveItems = self.inactiveItems || {};
+        const activeItems = self.activeItems || {};
+
+        for (let i = 0; i < nodeLength; i++) {
+          const node = nodes[i];
+          const nodeId = node.getID();
+          const hasSelected = node.hasState('selected');
+          if (self.resetSelected) {
+            if (hasSelected) {
+              graph.setItemState(node, 'selected', false);
+            }
+          }
+          if (activeItems[nodeId]) {
+            graph.setItemState(node, activeState, false);
+            delete activeItems[nodeId];
+          }
+          // if (inactiveState && !inactiveItems[nodeId]) {
+          //   graph.setItemState(node, inactiveState, true);
+          //   inactiveItems[nodeId] = node;
+          // }
+        }
+        for (let i = 0; i < edgeLength; i++) {
+          const edge = edges[i];
+          const edgeId = edge.getID();
+          const edgeType = edge.getModel().type;
+          if ((edgeType === "tree-relation-line" || edgeType === "same-tree-relation-line") && activeItems[edgeId]) {
+            graph.setItemState(edge, activeState, false);
+            delete activeItems[edgeId];
+          }
+          // if (inactiveState && !inactiveItems[edgeId]) {
+          //   graph.setItemState(edge, inactiveState, true);
+          //   inactiveItems[edgeId] = edge;
+          // }
+        }
+
+        for (let i = 0; i < vEdgeLength; i++) {
+          const vEdge = vEdges[i];
+          const vEdgeId = vEdge.getID();
+          if (activeItems[vEdgeId]) {
+            graph.setItemState(vEdge, activeState, false);
+            delete activeItems[vEdgeId];
+          }
+          // if (inactiveState && !inactiveItems[vEdgeId]) {
+          //   graph.setItemState(vEdge, inactiveState, true);
+          //   inactiveItems[vEdgeId] = vEdge;
+          // }
+        }
+
+        if (item && !item.destroyed) {
+          // if (inactiveState) {
+          //   graph.setItemState(item, inactiveState, false);
+          //   delete inactiveItems[item.getID()];
+          // }
+          if (!activeItems[item.getID()]) {
+            graph.setItemState(item, activeState, true);
+            activeItems[item.getID()] = item;
+          }
+
+          const rEdges = item.getEdges();
+          const rEdgeLegnth = rEdges.length;
+          for (let i = 0; i < rEdgeLegnth; i++) {
+            const edge = rEdges[i];
+            const edgeType = edge.getModel().type;
+            if (edgeType === "tree-relation-line" || edgeType === "same-tree-relation-line") {
+              const edgeId = edge.getID();
+              let otherEnd: INode;
+              if (edge.getSource() === item) {
+                otherEnd = edge.getTarget();
+              } else {
+                otherEnd = edge.getSource();
+              }
+              const otherEndId = otherEnd.getID();
+              // if (inactiveState && inactiveItems[otherEndId]) {
+              //   graph.setItemState(otherEnd, inactiveState, false);
+              //   delete inactiveItems[otherEndId];
+              // }
+              if (!activeItems[otherEndId]) {
+                graph.setItemState(otherEnd, activeState, true);
+                activeItems[otherEndId] = otherEnd;
+              }
+              // if (inactiveItems[edgeId]) {
+              //   graph.setItemState(edge, inactiveState, false);
+              //   delete inactiveItems[edgeId];
+              // }
+              if (!activeItems[edgeId]) {
+                graph.setItemState(edge, activeState, true);
+                activeItems[edgeId] = edge;
+              }
+              edge.toFront();
+            }
+          }
+        }
+        self.activeItems = activeItems;
+        // self.inactiveItems = inactiveItems;
+        graph.emit('afteractivaterelations', { item: e.item, action: 'activate' });
+      },
+      50,
+      {
+        trailing: true,
+        leading: true
+      }
+    ),
+    throttleClearActiveState: _.throttle(
+      (e: any, self: any) => {
+        const graph = self.get('graph');
+        if (!graph || graph.destroyed) return;
+        if (!self.shouldUpdate(e.item, { event: e, action: 'deactivate' }, self)) return;
+
+        const activeState = self.activeState;
+        // const inactiveState = self.inactiveState;
+
+        const activeItems = self.activeItems || {};
+        // const inactiveItems = self.inactiveItems || {};
+
+        Object.values(activeItems).filter((item: any) => !item.destroyed).forEach(item => {
+          graph.clearItemStates(item, activeState);
+        });
+        // Object.values(inactiveItems).filter((item: any) => !item.destroyed).forEach(item => {
+        //   graph.clearItemStates(item, inactiveState);
+        // });
+        self.activeItems = {};
+        // self.inactiveItems = {};
+        graph.emit('afteractivaterelations', {
+          item: e.item || self.get('item'),
+          action: 'deactivate',
+        });
+      },
+      50,
+      {
+        trailing: true,
+        leading: true
+      }
+    )
   });
 }

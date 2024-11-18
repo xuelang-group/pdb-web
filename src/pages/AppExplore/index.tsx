@@ -21,8 +21,8 @@ import { ConditionState, initialParams, setQueryParams } from "@/reducers/query"
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
-import { setModalVisible } from "@/reducers/indicator";
 import { Parent } from "@/reducers/object";
+import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -239,6 +239,8 @@ export default function AppExplore() {
   const onUnsave = () => {
     saveConfrimModal && saveConfrimModal.destroy();
     setSaveConfirmModal("");
+    dispatch(setFunc(undefined))
+    dispatch(setGroupBy([]));
     if (saveConfirmModal === "clear") {
       dispatch(setQueryParams(initialParams));
     } else {
@@ -317,8 +319,10 @@ export default function AppExplore() {
       for (let i = 0; i < newValLen; i++) {
         // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
         // 当前两个tag都不为对象类型，满足当前条件
-        if (i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" || (
-          newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) {
+        if ((i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" ||
+          (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) ||
+          // 当前tag为对象类型且prevSearchTagType为对象类型，但前一个对象tag被删除，当前前一个tag不为对象类型
+          (newValue[i].split(".")[0] === "Type" && searchTagMap[index][newValue[i]].prevSearchTagType === "type" && (i === 0 || newValue[i - 1].split(".")[0] !== "Type"))) {
           return;
         }
       }
@@ -445,8 +449,26 @@ export default function AppExplore() {
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
-          const sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+          let sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
             targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+          if (currentTags.length > 1) {
+            // 前一个的前一个tag的类型
+            const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
+              priorSearchTagType = _.get(priorSearchTag, 'type', "");
+            //如果都为对象类型，下拉框选择只显示关系类型列表
+            if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
+              console.log(typeRelationMap)
+              sourceRelations = _.intersection(
+                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'source', []),
+                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []),
+              );
+              targetRelations = _.intersection(
+                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'target', []),
+                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+              );
+            }
+          }
+
           // 正向关系数据
           const positiveRelations = Array.from(new Set(sourceRelations))
             .map((id: string) => relationMap[id]);
@@ -575,13 +597,12 @@ export default function AppExplore() {
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
-          typeId = data['x.type.name'],
-          typeLabel = data['x.type.label'];
+          typeId = data['x.type.name'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
             attrId: name,
-            attrName: display + '_' + typeLabel,
+            attrName: display,
             attrType: type,
             index: searchTags[index].length
           });
@@ -750,7 +771,7 @@ export default function AppExplore() {
     let csv: any = [];
     _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
-        let pqlItem: any[] = [], csvItem: any[] = [];
+        let pqlItem: any[] = [], csvItem: any[] = [], csvDisplayMap: any = {};
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
           let name = _.get(detail, 'label', '');
@@ -793,7 +814,15 @@ export default function AppExplore() {
 
             const objectCsvOpt = _.get(detail, 'csv');
             if (type === "object" && objectCsvOpt) {
-              csvItem = csvItem.concat(objectCsvOpt);
+
+              csvItem = csvItem.concat(objectCsvOpt.map(function ({ attrName, ...other }: any) {
+                if (csvDisplayMap[attrName]) {
+                  return { ...other, attrName: attrName + "_" + name };
+                } else {
+                  Object.assign(csvDisplayMap, { [attrName]: attrName });
+                }
+                return { attrName, ...other };
+              }));
             }
           }
           pqlItem.push(option);
@@ -1001,7 +1030,20 @@ export default function AppExplore() {
       Object.assign(newTagMap[index], { [newRelationId]: value });
 
       if (_.isEmpty(prevTargetTag)) {
-        Object.assign(newTagMap[index], { [currTargetTag.value]: currTargetTag });
+        const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
+          currTargetTagData = currTargetTag.data,
+          typeId = currTargetTagData['x.type.name'],
+          tagIndex = searchTags[index].length + 1;
+        currTargetTagData['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+          csv.push({
+            typeId: typeId,
+            attrId: name,
+            attrName: display,
+            attrType: type,
+            index: tagIndex
+          });
+        });
+        Object.assign(newTagMap[index], { [currTargetTag.value]: { ...currTargetTag, csv } });
       }
 
       if (filterPanelOpenKey === "__TEMPORARY_RELATION__") {
@@ -1117,7 +1159,7 @@ export default function AppExplore() {
                 const readOnly = Boolean(indicatorCheckId);
                 const tags = searchTags[index], tagsLen = tags.length;
 
-                if (filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
+                if (filterPanelOpenKey && filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
                   let sourceTag = {}, targetTag = {};
                   const initialValue = _.get(searchTagMap[index], filterPanelOpenKey, {});
 
@@ -1186,6 +1228,7 @@ export default function AppExplore() {
                   />
                 );
               }}
+              getPopupContainer={(() => document.getElementById("pdb-explore") || document.body) as any}
               arrow={false}
               trigger="click"
               destroyTooltipOnHide

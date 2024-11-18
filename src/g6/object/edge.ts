@@ -239,12 +239,16 @@ export function registerEdge() {
       const startPoint: any = { ...points[0] },
         endPoint: any = { ...points[1] };
       if (startPoint.y < endPoint.y) {
-        startPoint.x = startPoint.x + (sourceWidth || 0);
-        endPoint.x = endPoint.x + (targetWidth || 0);
+        if (this.mergeStyle.startPoint.anchorIndex === 0) {
+          startPoint.x = startPoint.x + (sourceWidth || 0);
+        }
+        if (this.mergeStyle.endPoint.anchorIndex === 0) {
+          endPoint.x = endPoint.x + (targetWidth || 0);
+        }
       }
 
       let endX = endPoint.x + 8;
-      if (startPoint.y > endPoint.y) {
+      if (startPoint.y > endPoint.y && this.mergeStyle.endPoint.anchorIndex === 0) {
         endX = endPoint.x - 8;
       }
 
@@ -287,7 +291,7 @@ export function registerEdge() {
 
       const startPoint: any = { ...points[0] },
         endPoint: any = { ...points[1] };
-      startPoint.x = startPoint.x - ROOT_NODE_WIDTH  + 15;
+      startPoint.x = startPoint.x - ROOT_NODE_WIDTH + 15;
       endPoint.x = endPoint.x + 15;
 
       startPoint.y = startPoint.y - NODE_HEIGHT / 2;
@@ -296,7 +300,7 @@ export function registerEdge() {
       this.curveOffset = Math.min(Math.abs(startPoint.y - endPoint.y) * 0.1, 100);
       this.clockwise = 1;
       if (points[0].x > points[1].x) {
-        endPoint.x = points[1].x - ROOT_NODE_WIDTH  + 15;
+        endPoint.x = points[1].x - ROOT_NODE_WIDTH + 15;
         startPoint.x = points[0].x + 15;
 
         startPoint.y = points[0].y - NODE_HEIGHT / 2;
@@ -416,7 +420,7 @@ export function registerEdge() {
         eLabelX = _endPointX;
         eLabelY = _endPointY - 5;
       }
-      
+
       const endTextShape = group.addShape('text', {
         attrs: {
           text: eLabel,
@@ -493,7 +497,7 @@ export function registerEdge() {
             _endPointY = ((50 + metrics.width) * (eControlPoint.y - endPoint.y)) / endTotalLen + endPoint.y;
           let labelX = _endPointX,
             labelY = _endPointY;
-          
+
           if (endM > 0) {
             labelX = _endPointX;
             labelY = _endPointY;

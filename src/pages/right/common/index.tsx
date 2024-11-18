@@ -11,6 +11,9 @@ import update from 'immutability-helper'
 import { useLocation, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import _, { isArray } from 'lodash';
+import { Controlled as CodeMirror } from 'react-codemirror2';
+import 'codemirror/lib/codemirror.css';
+import { js as beautify } from 'js-beautify';
 
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
@@ -40,7 +43,21 @@ import store from '@/store';
 import VersionList from '../object/VersionList';
 
 const { Option } = Select;
-
+const CodeEditor = ({ value = '', onChange, handleChange }: any, other2: any) => (
+  <CodeMirror
+    value={value}
+    options={{
+      lineNumbers: false,
+      theme: 'material',
+    }}
+    onBeforeChange={(editor, data, value) => {
+      onChange(value);
+    }}
+    onChange={() => {
+      handleChange();
+    }}
+  />
+);
 interface RightProps {
   route: string // 路由
 }
@@ -342,40 +359,43 @@ export default function Right(props: RightProps) {
           })();
         }
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
-        const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-        // 获取对象关系列表数据
-        const relations: any[] = [];
-        Object.keys(response).forEach((key: string) => {
-          if (key.startsWith("Relation_")) {
-            const relationKey = key.replace('_', '.');
-            if (isArray(response[key])) {
-              response[key].forEach((target: any) => {
+
+        if (currentGraphTab === "main") {
+          const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+          // 获取对象关系列表数据
+          const relations: any[] = [];
+          Object.keys(response).forEach((key: string) => {
+            if (key.startsWith("Relation_")) {
+              const relationKey = key.replace('_', '.');
+              if (isArray(response[key])) {
+                response[key].forEach((target: any) => {
+                  relations.push({
+                    relation: relationKey,
+                    target: {
+                      uid: _.get(target, 'dst', '').toString()
+                    },
+                    attrValue: _.get(target, 'props', {})
+                  });
+                });
+              } else {
                 relations.push({
                   relation: relationKey,
                   target: {
-                    uid: _.get(target, 'dst', '').toString()
+                    uid: _.get(response[key], 'dst', '').toString()
                   },
-                  attrValue: _.get(target, 'props', {})
+                  attrValue: _.get(response[key], 'props', {})
                 });
-              });
-            } else {
-              relations.push({
-                relation: relationKey,
-                target: {
-                  uid: _.get(response[key], 'dst', '').toString()
-                },
-                attrValue: _.get(response[key], 'props', {})
-              });
+              }
             }
-          }
-        });
-        Object.assign(relationLines, {
-          [objectData.uid]: relations
-        });
-        dispatch(setToolbarConfig({
-          key: currentGraphTab,
-          config: { relationLines }
-        }));
+          });
+          Object.assign(relationLines, {
+            [objectData.uid]: relations
+          });
+          dispatch(setToolbarConfig({
+            key: currentGraphTab,
+            config: { relationLines }
+          }));
+        }
         const filedValue = objectData['x_attr_value'];
         const attFormValue = {};
         attrs && attrs.forEach((attr: AttrConfig) => {
@@ -848,9 +868,38 @@ export default function Right(props: RightProps) {
     )
   }
 
+  const formatCode = (code: string) => {
+    return beautify(code, { indent_size: 2, space_in_empty_paren: true });
+  };
+
   // 可编辑输入框
-  const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number) => {
+  const renderEditorInput = (type: string, defalutValue: any, addonBefore: string, attr: any, index: number, frontType?: string) => {
     if (!isEditing) {
+      if (frontType === "code") {
+        let height = 100;
+        if (defalutValue) {
+          const lineCount = defalutValue.split('\n').length; // 计算行数
+          height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
+        }
+
+        return (
+          <div className='type-param-input'>
+            <div className='param-addon-before'>{addonBefore}</div>
+            <div className='param-code-editor readOnly' style={{ height }}>
+              <CodeMirror
+                value={formatCode(defalutValue)}
+                options={{
+                  lineNumbers: false,
+                  theme: 'material',
+                  readOnly: true,
+                  cursorBlinkRate: -1,
+                }}
+                onBeforeChange={(editor, data, value) => { }}
+              />
+            </div>
+          </div>
+        );
+      }
       return rendeCustomAddon(attr, (
         <Input addonBefore={addonBefore} readOnly disabled />
       ));
@@ -870,6 +919,35 @@ export default function Right(props: RightProps) {
           <DatePicker showTime={datetimeFormat !== 'YYYY-MM-DD'} format={datetimeFormat} onChange={() => handleAttrChange(index, attr)} />
         ), addonBefore);
       case 'string':
+        if (frontType === 'code') {
+          let height = 100;
+          if (defalutValue) {
+            const lineCount = defalutValue.split('\n').length; // 计算行数
+            height = Math.min(lineCount * 22 + 68, 300); // 每行20px，最大300px
+          }
+          return (
+            <div className='type-param-input'>
+              <div className='param-addon-before'>{addonBefore}</div>
+              <div className='param-code-editor'>
+                <Form.Item name={attr.name} rules={[{ required: attr.required, message: '该属性为必填项' }]}>
+                  <CodeEditor handleChange={() => handleAttrChange(index, attr)} />
+                </Form.Item>
+                {/* <CodeMirror
+                value={attrForm.getFieldValue(attr.name)}
+                options={{
+                  lineNumbers: false,
+                  theme: 'material',
+                  cursorBlinkRate: -1,
+                }}
+                onBeforeChange={(editor, data, value) => {
+                  attrForm.setFieldValue(attr.name, value);
+                  handleAttrChange(index, attr);
+                }}
+              /> */}
+              </div>
+            </div>
+          )
+        }
         const { stringMaxLength } = attr
         return rendeCustomAddon(attr, (
           <Input addonBefore={addonBefore} maxLength={stringMaxLength} onChange={() => handleAttrChange(index, attr)} />
@@ -899,7 +977,7 @@ export default function Right(props: RightProps) {
   }
 
   // 只读输入框
-  const renderReadOnlyInput = (type: string, defalutValue: any, addonBefore: string, attr: any) => {
+  const renderReadOnlyInput = (type: string, defalutValue: any, addonBefore: string, attr: any, frontType?: string) => {
     if (type === 'list') {
       return (
         <div className='type-param-input'>
@@ -910,6 +988,30 @@ export default function Right(props: RightProps) {
             options={attr.listEnums || []}
           >
           </Select>
+        </div>
+      )
+    }
+    if (frontType === 'code') {
+      let height = 100;
+      if (defalutValue) {
+        const lineCount = defalutValue.split('\n').length; // 计算行数
+        height = Math.min(lineCount * 22 + 68, 300); // 每行22px，最大300px
+      }
+      return (
+        <div className='type-param-input'>
+          <div className='param-addon-before'>{addonBefore}</div>
+          <div className='param-code-editor readOnly' style={{ height }}>
+            <CodeMirror
+              value={formatCode(defalutValue)}
+              options={{
+                lineNumbers: false,
+                theme: 'material',
+                readOnly: true,
+                cursorBlinkRate: -1,
+              }}
+              onBeforeChange={(editor, data, value) => { }}
+            />
+          </div>
         </div>
       )
     }
@@ -925,14 +1027,17 @@ export default function Right(props: RightProps) {
 
   const renderParamInput = (attr: any, index: number) => {
     if (!attr) return (<></>);
-    const { type } = attr;
+    const { type, frontType } = attr;
     const _default = attr.default;
     if (!typeMap[currentEditType]) return;
-    const addonBefore = typeMap[currentEditType][type];
-    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
-      return renderEditorInput(type, _default, addonBefore, attr, index);
+    let addonBefore = typeMap[currentEditType][type];
+    if (frontType && _.get(typeMap[currentEditType], frontType)) {
+      addonBefore = typeMap[currentEditType][frontType];
     }
-    return renderReadOnlyInput(type, _default, addonBefore, attr);
+    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
+      return renderEditorInput(type, _default, addonBefore, attr, index, frontType);
+    }
+    return renderReadOnlyInput(type, _default, addonBefore, attr, frontType);
   }
 
   const findParam = useCallback(
@@ -1336,7 +1441,8 @@ export default function Right(props: RightProps) {
             currentEditDefaultData={currentEditDefaultData}
             cancel={cancelEditParam}
             currentEditType={currentEditType}
-          />}
+          />
+        }
         {multiEditModel && multiEditModel.length > 0 ?
           <MultiModelParamEditor /> :
           <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>

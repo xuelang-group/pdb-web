@@ -32,6 +32,7 @@ interface IndicatorState {
   needEditId: string | null; // 从门户跳转过来时带上需要编辑的指标id，需要在拿到指标列表后编辑该id的指标
   checkId: string | null;   // 当前正在查看的指标id
   editId: string | null;    // 当前正在编辑的指标id
+  loading: boolean;         // csv数据获取loading
   csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
@@ -46,15 +47,17 @@ interface IndicatorState {
   funcOptions: string[]; // 统计算法选项
   list: any[];
   modalVisible: boolean;
+  currentBuzProcess: String;
 }
 
 // 使用该类型定义初始 state
 const initialState: IndicatorState = {
-  requestId: '1001',  // 暂时写死，默认值1001
+  requestId: null ,  // 暂时写死，默认值1001
   needCheckId: null,
   needEditId: null,
   checkId: null,
   editId: null,
+  loading: false,
   csv: [],
   records: [],
   columns: [],
@@ -68,7 +71,8 @@ const initialState: IndicatorState = {
   funcOptions: [],
   mergeCell: { col: [], row: [] },
   list: [],
-  modalVisible: false
+  modalVisible: false,
+  currentBuzProcess: '',
 }
 
 const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
@@ -163,7 +167,22 @@ export const indicatorSlice = createSlice({
   name: 'indicator',
   initialState,
   reducers: {
+    setLoading: (state, action: PayloadAction<any>) => {
+      state.loading = action.payload;
+    },
     setTableData: (state, action: PayloadAction<any>) => {
+      state.csv = [];
+      state.mergeCell = { col: [], row: [] };
+      state.records = [];
+      state.columns = [];
+      state.disabledField = [];
+      state.dimentionInitial = '';
+      state.dimention = '';
+      state.func = '';
+      state.groupByResult = [];
+      state.result = [];
+      state.groupBy = [];
+      state.funcOptions = [];
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
@@ -182,19 +201,6 @@ export const indicatorSlice = createSlice({
         state.records = records;
         state.columns = columns;
         state.funcOptions = updateFuncOptions(columns, dimention);
-      } else {
-        state.csv = [];
-        state.mergeCell = { col: [], row: [] };
-        state.records = [];
-        state.columns = [];
-        state.disabledField = [];
-        state.dimentionInitial = '';
-        state.dimention = '';
-        state.func = '';
-        state.groupByResult = [];
-        state.result = [];
-        state.groupBy = [];
-        state.funcOptions = [];
       }
     },
     updateDisabledField: (state, action: PayloadAction<any>) => {
@@ -287,9 +293,12 @@ export const indicatorSlice = createSlice({
     setNeedEditId: (state, action: PayloadAction<any>) => {
       state.needEditId = action.payload;
     },
+    setCurrentBuzProcess: (state, action: PayloadAction<any>) => {
+      state.currentBuzProcess = action.payload;
+    },
   }
 })
 
-export const { setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId,exit } = indicatorSlice.actions
+export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, exit } = indicatorSlice.actions
 
 export default indicatorSlice.reducer

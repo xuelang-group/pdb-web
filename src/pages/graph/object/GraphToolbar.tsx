@@ -292,6 +292,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                   fill: '#2EA1FF',
                   stroke: '#2EA1FF',
                 },
+              },
+              'highlight': {
+                lineWidth: 2.5,
+                stroke: '#2EA1FF',
+                endArrow: {
+                  path: G6.Arrow.triangle(5, 5, 1),
+                  fill: '#2EA1FF',
+                  stroke: '#2EA1FF',
+                },
               }
             },
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
