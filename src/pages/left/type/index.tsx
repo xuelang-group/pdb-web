@@ -12,7 +12,7 @@ import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeByGraphId, deleteTypeByGraphId, addTypeByGraphId } from '@/actions/type';
+import { getTypeList, deleteTypeByGraphId, addTypeByGraphId, getTypeInfo } from '@/actions/type';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
@@ -46,7 +46,7 @@ export default function Left(props: any) {
 
   useEffect(() => {
     dispatch(setTypeLoading(true));
-    getTypeByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
+    getTypeList(routerParams?.id, (success: boolean, response: any) => {
       dispatch(setTypeLoading(false));
       if (success) {
         dispatch(setTypes(response || []));
@@ -339,7 +339,7 @@ export default function Left(props: any) {
 
     let node;
     if (type === 'type') {
-      getTypeByGraphId(routerParams?.id, item['x.type.name'], (success: boolean, response: any) => {
+      getTypeInfo(item['x.type.name'], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
         if (success && response && response[0]) {
           const data = response[0];

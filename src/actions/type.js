@@ -9,51 +9,8 @@ const api = {
   get: apiPrefix + '/get',
 };
 
-export const addType = (params, callback) => {
-  return axios.post(api['add'], {
-    ...commonParams,
-    set: params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
-// 类型的创建/更新
-export const setType = (params, callback) => {
-  // mock
-  // callback && callback(true, { "1": 1 });
-
-  return axios.post(api['update'], {
-    ...commonParams,
-    set: params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 类型的删除
-export const deleteType = (type, callback) => {
-  // mock
-  // callback && callback(true);
-
-  return axios.post(api['delete'], {
-    ...commonParams,
-    type
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
 // 获取某个类型数据
 export const getTypeInfo = (type, callback) => {
-  // mock
-  // callback && callback(true);
   let params = { ...commonParams };
   if (type) {
     Object.assign(params, { type });
@@ -66,16 +23,9 @@ export const getTypeInfo = (type, callback) => {
   });
 };
 
-// 获取项目的类型数据
-export const getTypeByGraphId = (graphId, type, callback) => {
-  // mock
-  // callback && callback(true);
-  let params = { graphId: graphId ? Number(graphId) : 0 };
-  if (type) {
-    Object.assign(params, { type });
-  }
-
-  return axios.post(api['get'], params).then(({ data }) => {
+// 获取项目的类型列表
+export const getTypeList = (graphId, callback) => {
+  return axios.post(api['get'], { graphId: graphId ? Number(graphId) : 0 }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
@@ -96,9 +46,6 @@ export const addTypeByGraphId = (graphId, params, callback) => {
 
 // 类型的删除
 export const deleteTypeByGraphId = (graphId, type, callback) => {
-  // mock
-  // callback && callback(true);
-
   return axios.post(api['delete'], {
     graphId: graphId ? Number(graphId) : 0,
     type
@@ -111,9 +58,6 @@ export const deleteTypeByGraphId = (graphId, type, callback) => {
 
 // 类型的创建/更新
 export const setTypeByGraphId = (graphId, params, callback) => {
-  // mock
-  // callback && callback(true, { "1": 1 });
-
   return axios.post(api['update'], {
     graphId: graphId ? Number(graphId) : 0,
     set: params
@@ -125,7 +69,6 @@ export const setTypeByGraphId = (graphId, params, callback) => {
 };
 
 export const resetSchema = (graphId, callback) => {
-
   return axios.post("/pdb/api/v1/schema/reset", {
     graphId: graphId ? Number(graphId) : 0,
   }).then(({ data }) => {

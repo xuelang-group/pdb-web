@@ -19,7 +19,7 @@ import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
 import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
-import { getTypeByGraphId, setTypeByGraphId } from '@/actions/type';
+import { getTypeInfo, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
 import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
 import { updateTemplateInfo } from '@/actions/template';
@@ -427,7 +427,7 @@ export default function Right(props: RightProps) {
     return new Promise((resolve) => {
       if (!typeName) return;
       setTypeLoading(true);
-      getTypeByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
+      getTypeInfo(typeName, (success: boolean, response: any) => {
         setTypeLoading(false);
         if (success) {
           const attrs = _.get(response[0], 'x.type.attrs', []);

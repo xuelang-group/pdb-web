@@ -32,7 +32,7 @@ import { getSystemInfo } from '@/actions/system';
 import { PdbConfig } from '.';
 import './App.less';
 import List from './pages/list';
-import { getTypeByGraphId } from './actions/type';
+import { getTypeList } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
@@ -135,7 +135,7 @@ function App(props: PdbConfig) {
   }, [location.pathname]);
 
   const getCommonData = function (graphId: string) {
-    getTypeByGraphId(graphId, null, (success: boolean, response: any) => {
+    getTypeList(graphId, (success: boolean, response: any) => {
       if (success) {
         dispatch(Type.setTypes(response || []));
       } else {
@@ -223,7 +223,7 @@ function App(props: PdbConfig) {
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
-            <Route path="/:id/template?" element={<ObjectLeft />} />
+            <Route path="/:id" element={<ObjectLeft />} />
             {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
             {/* 指标设计左侧类型列表 */}
@@ -256,7 +256,7 @@ function App(props: PdbConfig) {
               centered
             />
             <Routes>
-              <Route path="/:id/template?" element={<CommonRight route="object" />} />
+              <Route path="/:id" element={<CommonRight route="object" />} />
               {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
               {/* 指标设计右侧列表 */}
