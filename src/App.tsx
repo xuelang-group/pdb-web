@@ -220,7 +220,6 @@ function App(props: PdbConfig) {
           <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
           {/* 类型管理顶部导航栏 */}
           <Route path="/:id/edit" element={<EditHeader route="object" headerEXtraWidth={headerEXtraWidth} />} />
-          <Route path="/:id/indicator" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>

@@ -9,8 +9,6 @@ import 'aliyun-sdk2/dist/aliyun-sdk.min.js';
 import antdLocale from 'antd/es/locale/zh_CN';
 import { legacyLogicalPropertiesTransformer, StyleProvider } from '@ant-design/cssinjs';
 
-import { addTemplate, deleteTemplate, getTemplateList, updateTemplateInfo, getTemplateData, deleteTemplates, updateTemplatesInfo } from './actions/template';
-import { createObject, getObjectData, getObjectList, removeObject, removeObjects, updateObjectInfo, updateObjects } from './actions/object';
 import store from './store';
 import App from './App';
 
@@ -71,27 +69,6 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   );
   currentRoot = root;
 }
-
-export const apiService = (type: string) => ({
-  'pdbTemplate': {
-    list: getTemplateList,
-    create: addTemplate,
-    remove: deleteTemplate,
-    update: updateTemplateInfo,
-    get: getTemplateData,
-    batchRemove: deleteTemplates,
-    batchUpdateInfo: updateTemplatesInfo
-  },
-  'pdbObject': {
-    list: getObjectList,
-    create: createObject,
-    remove: removeObject,
-    update: updateObjectInfo,
-    get: getObjectData,
-    batchRemove: removeObjects,
-    batchUpdateInfo: updateObjects
-  }
-})[type];
 
 // 如果当前代码不是作为库被引用，而是直接运行
 if (typeof window !== 'undefined' && window.document) {
