@@ -391,7 +391,7 @@ export default function AppExplore() {
       prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
       prevSearchTagType = _.get(prevSearchTag, 'type', "");
     }
-    const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+    const searchTypes = value ? types.filter(val => val['x.type.name'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
     const optionMap = {};
     let typeOptions: any[] = [], relationOptions: any[] = [];
     // const enterOption = {
@@ -418,13 +418,13 @@ export default function AppExplore() {
                 Object.assign(targetTypeMap, { [bind.source]: bind.source });
               }
             });
-            _types = _types.filter(type => targetTypeMap[type['x.type.name']]);
+            _types = _types.filter(type => targetTypeMap[type['x.type.id']]);
           }
         }
         typeOptions = typeOptions.concat(_types.map(val => ({
-          label: val['x.type.label'],
-          value: val['x.type.name'] + `-${currentTagLen}`,
-          key: val['x.type.name'],
+          label: val['x.type.name'],
+          value: val['x.type.id'] + `-${currentTagLen}`,
+          key: val['x.type.id'],
           type: 'type',
           data: val,
           prevSearchTagType
@@ -434,11 +434,11 @@ export default function AppExplore() {
       } else if (_.isEmpty(prevSearchTagType) || prevSearchTagType === 'type') {
         // 当前tag为第一个或者前一个tag为对象类型，当前下拉框包含对象类型列表和关系类型列表typeOptions + relationOptions
         // typeOptions为全量对象类型列表
-        const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+        const searchTypes = value ? types.filter(val => val['x.type.name'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
         typeOptions = searchTypes.map(val => ({
-          label: val['x.type.label'],
-          value: val['x.type.name'] + `-${currentTagLen}`,
-          key: val['x.type.name'],
+          label: val['x.type.name'],
+          value: val['x.type.id'] + `-${currentTagLen}`,
+          key: val['x.type.id'],
           type: 'type',
           data: val,
           prevSearchTagType
@@ -594,7 +594,7 @@ export default function AppExplore() {
       const { type, data } = option;
       if (type === 'type' && data['x.type.attrs']) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
-          typeId = data['x.type.name'];
+          typeId = data['x.type.id'];
         data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
@@ -951,7 +951,7 @@ export default function AppExplore() {
       if (_.isEmpty(prevTargetTag)) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
           currTargetTagData = currTargetTag.data,
-          typeId = currTargetTagData['x.type.name'],
+          typeId = currTargetTagData['x.type.id'],
           tagIndex = searchTags[index].length + 1;
         currTargetTagData['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({

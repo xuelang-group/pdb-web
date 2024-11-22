@@ -297,8 +297,8 @@ export default function SearchAround() {
     });
     let typeExist = false;
     const _types = types.filter(type => {
-      if (!typeExist) typeExist = targetTypeMap[type['x.type.name']] === option.object;
-      return targetTypeMap[type['x.type.name']];
+      if (!typeExist) typeExist = targetTypeMap[type['x.type.id']] === option.object;
+      return targetTypeMap[type['x.type.id']];
     });
     if (!typeExist && option.object) {
       changeValue(tabIndex, index, 'object', '');
@@ -339,7 +339,7 @@ export default function SearchAround() {
             <Select
               value={option.object}
               options={_types}
-              fieldNames={{ value: 'x.type.name', label: 'x.type.label' }}
+              fieldNames={{ value: 'x.type.id', label: 'x.type.name' }}
               onChange={value => changeValue(tabIndex, index, 'object', value)}
             ></Select>
             {option.object && <span>{_.get(results, option.object.replace(".", "_"), []).length}</span>}
@@ -373,11 +373,11 @@ export default function SearchAround() {
               const _data: any[][] = [[]];
               const { start, options } = searchAroundOptions[tabIndex] as any;
               const typeMap: any = {};
-              types.forEach(type => Object.assign(typeMap, { [type["x.type.name"]]: type }));
+              types.forEach(type => Object.assign(typeMap, { [type["x.type.id"]]: type }));
               const typeId = start[0]["x_type_name"];
               _data[0].push({
                 value: typeId,
-                label: _.get(typeMap[typeId], "x.type.label", ""),
+                label: _.get(typeMap[typeId], "x.type.name", ""),
                 type: "type",
                 attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
               });
@@ -394,7 +394,7 @@ export default function SearchAround() {
 
                 _data[0].push({
                   value: object,
-                  label: _.get(typeMap[object], "x.type.label", ""),
+                  label: _.get(typeMap[object], "x.type.name", ""),
                   type: "type",
                   attrs: _.get(typeMap[object], "x.type.attrs", ""),
                 });

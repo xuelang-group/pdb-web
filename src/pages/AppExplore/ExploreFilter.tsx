@@ -51,7 +51,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
       tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
-      tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : '',
+      tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.name'] : '',
       tagTypeCsv = _.get(originType, 'csv', []);
 
     if (tagType === 'relation') {
@@ -161,8 +161,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     if (checkedList.length > 0) {
       const tagType: string = _.get(originType, 'type', ''),
         tagTypeData = _.get(originType, 'data', {}),
-        tagTypeId = tagType === 'type' ? tagTypeData['x.type.name'] : '',
-        tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.label'] : '';
+        tagTypeId = tagType === 'type' ? tagTypeData['x.type.id'] : '',
+        tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.name'] : '';
 
       checkedList.forEach(function (value) {
         const valArr = value.split("|");

@@ -7,12 +7,12 @@ import _ from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TypePrototypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteTypeByGraphId, addTypeByGraphId, getTypeInfo } from '@/actions/type';
+import { getTypeList, deleteTypeByGraphId, addType, getTypeInfo } from '@/actions/type';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
@@ -23,7 +23,8 @@ export default function Left(props: any) {
   const routerParams = useParams(),
     location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
-  const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
+  const graphData = useSelector((state: StoreState) => state.object.graphData),
+    currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data),
     typeLoading = useSelector((state: StoreState) => state.editor.typeLoading),
@@ -46,7 +47,7 @@ export default function Left(props: any) {
 
   useEffect(() => {
     dispatch(setTypeLoading(true));
-    getTypeList(routerParams?.id, (success: boolean, response: any) => {
+    getTypeList(graphData?.id, (success: boolean, response: any) => {
       dispatch(setTypeLoading(false));
       if (success) {
         dispatch(setTypes(response || []));
@@ -67,7 +68,7 @@ export default function Left(props: any) {
     });
 
     dispatch(setRelationLoading(true));
-    getRelationByGraphId(routerParams?.id, null, (success: boolean, response: any) => {
+    getRelationByGraphId(graphData?.id, null, (success: boolean, response: any) => {
       dispatch(setRelationLoading(false));
       if (success) {
         dispatch(setRelations(response || []));
@@ -161,12 +162,12 @@ export default function Left(props: any) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
       if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
-        const typeName = type['x.type.name'];
+        const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
           dataIndex,
           className: 'type-item isFolder',
-          title: type['x.type.label'],
+          title: type['x.type.name'],
           key: typeName,
           data: type,
           children,
@@ -181,13 +182,13 @@ export default function Left(props: any) {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
-        const typeName = val['x.type.name'],
+      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(({ id }: TypePrototypeConfig) => id === typeName) > -1) {
+        const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
           dataIndex,
           className: 'type-item isLeaf',
-          title: val['x.type.label'],
+          title: val['x.type.name'],
           key: typeName,
           data: val,
           children: _children,
@@ -205,7 +206,7 @@ export default function Left(props: any) {
 
   // 添加对象类型
   const createType = function (type: any) {
-    addTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
+    addType(graphData?.id, [type], (success: boolean, response: any) => {
       setModalLoading(false);
       const message = modalLabel[modalType] + typeLabel[operateItem.type];
       if (success) {
@@ -231,7 +232,7 @@ export default function Left(props: any) {
 
   // 删除对象类型
   const removeType = function (typeName: string, nameLabel: string) {
-    deleteTypeByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
+    deleteTypeByGraphId(graphData?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -256,7 +257,7 @@ export default function Left(props: any) {
 
   // 添加关系类型
   const createRelation = function (relation: any) {
-    addRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
+    addRelationByGraphId(graphData?.id, [relation], (success: boolean, response: any) => {
       setModalLoading(false);
       const message = modalLabel[modalType] + typeLabel[operateItem.type];
       if (success) {
@@ -282,7 +283,7 @@ export default function Left(props: any) {
 
   // 删除关系类型
   const removeRelation = function (typeName: string, nameLabel: string) {
-    deleteRelationByGraphId(routerParams?.id, typeName, (success: boolean, response: any) => {
+    deleteRelationByGraphId(graphData?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -326,20 +327,20 @@ export default function Left(props: any) {
     graph.clear();
 
     const prevLabel = type === 'type' ? 'x.' : 'r.';
-    const name = item[prevLabel + 'type.label'];
+    const name = item[prevLabel + 'type.name'];
     const centerPoint = graph.getViewPortCenterPoint();
     const { text } = fittingString(name, defaultCircleR * 2);
 
     let commonConfig = {
       label: text,
       name,
-      uid: item[prevLabel + 'type.name'],
+      uid: item[prevLabel + 'type.id'],
       data: item
     };
 
     let node;
     if (type === 'type') {
-      getTypeInfo(item['x.type.name'], (success: boolean, response: any) => {
+      getTypeInfo(item['x.type.id'], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
         if (success && response && response[0]) {
           const data = response[0];
@@ -438,8 +439,8 @@ export default function Left(props: any) {
 
     if (key === 'delete') {
       const title = modalLabel['delete'] + typeLabel[type] + '类型';
-      const nameLabel = type === 'type' ? 'x.type.label' : 'r.type.label',
-        idLabel = type === 'type' ? 'x.type.name' : 'r.type.name';
+      const nameLabel = type === 'type' ? 'x.type.name' : 'r.type.label',
+        idLabel = type === 'type' ? 'x.type.id' : 'r.type.name';
       modal.confirm({
         className: 'pdb-confirm-modal',
         title,
@@ -470,7 +471,7 @@ export default function Left(props: any) {
       });
     } else {
       if (key === 'inherit') {
-        modalForm.setFieldValue('prototype', item['x.type.name']);
+        modalForm.setFieldValue('prototype', item['x.type.id']);
       }
       setModalType(key);
       setOperateItem({ type, item });
@@ -523,11 +524,11 @@ export default function Left(props: any) {
             </div> :
             <div className='type-list relation-list'>
               {list.map((item: any, index: number) => {
-                const label: any = item[prevLabel + 'type.label']
+                const label: any = item[prevLabel + 'type.name']
                 return (
                   <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                     <span
-                      className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
+                      className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.id'] === item[prevLabel + 'type.id'] ? ' selected' : '')}
                       onClick={() => handleSelectItem(item, type, index)}
                     >
                       <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
@@ -586,7 +587,7 @@ export default function Left(props: any) {
               <Tree
                 showLine={{ showLeafIcon: false }}
                 treeData={treeData}
-                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.name']] : []}
+                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.id']] : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => (
                   <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
@@ -633,10 +634,10 @@ export default function Left(props: any) {
       setModalLoading(true);
       if (type === 'type') {
         const newType = {
-          'x.type.name': 'Type.' + uuid(),
+          'x.type.id': 'Type.' + uuid(),
           'x.type.attrs': [],
           'x.type.prototype': item['x.type.prototype'] || [],
-          'x.type.label': name,
+          'x.type.name': name,
           'x.type.version': false
         }
         if (modalType === 'copy') {
@@ -649,7 +650,7 @@ export default function Left(props: any) {
           });
         }
         if (prototype) {
-          Object.assign(newType, { 'x.type.prototype': [prototype] });
+          Object.assign(newType, { 'x.type.prototype': [{ id: prototype }] });
           const new_attrs = JSON.parse(JSON.stringify(item['x.type.attrs'] || []));
           new_attrs.forEach((attr: AttrConfig) => {
             if (!attr.override) {
@@ -713,7 +714,7 @@ export default function Left(props: any) {
                 const _types = JSON.parse(JSON.stringify(prototypeList));
                 if (value.length > 50) {
                   throw new Error('类型名称最多支持50个字符');
-                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
+                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.label"] === value) > -1) {
                   throw new Error('该名称已被使用');
                 }
               }
@@ -725,8 +726,8 @@ export default function Left(props: any) {
             <Form.Item name="prototype" label="继承自">
               <Select disabled={modalType === 'inherit'}>
                 {prototypeList.map((item: any) => (
-                  <Select.Option value={item['x.type.name']}>
-                    {item['x.type.label']}
+                  <Select.Option value={item['x.type.id']}>
+                    {item['x.type.name']}
                   </Select.Option>
                 ))}
               </Select>

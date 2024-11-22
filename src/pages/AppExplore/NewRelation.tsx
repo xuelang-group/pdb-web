@@ -162,15 +162,15 @@ export default function NewRelation(props: ExploreFilterProps) {
                 <Select
                   options={types}
                   fieldNames={{
-                    label: "x.type.label",
-                    value: "x.type.name"
+                    label: "x.type.name",
+                    value: "x.type.id"
                   }}
                   disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
-                      label: option['x.type.label'],
-                      value: option['x.type.name'] + `-${tagsLen + 1}`,
-                      key: option['x.type.name'],
+                      label: option['x.type.name'],
+                      value: option['x.type.id'] + `-${tagsLen + 1}`,
+                      key: option['x.type.id'],
                       type: 'type',
                       data: option,
                       prevSearchTagType: "relation"

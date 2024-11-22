@@ -5,7 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import _ from 'lodash';
 
 import './index.less';
-import { TypeConfig } from '@/reducers/type';
+import { TypeConfig, TypePrototypeConfig } from '@/reducers/type';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { StoreState } from '@/store';
 import { useLocation } from 'react-router';
@@ -41,13 +41,13 @@ export default function TypeList() {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(id => id === typeName) > -1) {
-        const typeName = val['x.type.name'],
+      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(({ id }: TypePrototypeConfig) => id === typeName) > -1) {
+        const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
           dataIndex,
           className: 'type-item isLeaf',
-          title: val['x.type.label'],
+          title: val['x.type.name'],
           key: typeName,
           data: val,
           children: _children,
@@ -62,12 +62,12 @@ export default function TypeList() {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
       if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
-        const typeName = type['x.type.name'];
+        const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
           dataIndex,
           className: 'type-item isFolder',
-          title: type['x.type.label'],
+          title: type['x.type.name'],
           key: typeName,
           data: type,
           children,
@@ -115,7 +115,7 @@ export default function TypeList() {
   const getList = function (list: Array<any>, keyWord: string): Array<any> {
     var arr = [];
     for (var i = 0; i < list.length; i++) {
-      const item = list[i], idKey = 'x.type.name', labelKey = 'x.type.label';
+      const item = list[i], idKey = 'x.type.id', labelKey = 'x.type.name';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
         const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
         let title = (<span className='type-item-label'>{label}</span>);
@@ -296,7 +296,7 @@ export default function TypeList() {
             </div> :
             <div className='type-list relation-list'>
               {relList.map((item: any, index: number) => {
-                const label: any = item[prevLabel + 'type.label']
+                const label: any = item[prevLabel + 'type.name']
                 return (
                   <Dropdown
                     overlayClassName='pdb-dropdown-menu'

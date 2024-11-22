@@ -242,7 +242,7 @@ export default function ParamEditor(props: any) {
                 }
               >
                 {allData.map((item: any) => (
-                  <Option key={item.uid} value={item.uid}>{item[`${prevLabel}.name`]}</Option>
+                  <Option key={item.uid} value={item.uid}>{item[`${prevLabel}.id`]}</Option>
                 ))}
               </Select>
             </Form.Item>

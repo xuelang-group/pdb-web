@@ -152,15 +152,15 @@ export default function Editor(props: EditorProps) {
       const nodes: any[] = [], edges: any[] = [];
       // 初始化节点数据
       types.forEach(function (type: TypeConfig) {
-        const id = type["x.type.name"];
-        const { text } = fittingString(type['x.type.label'] || '', defaultCircleR * 2),
+        const id = type["x.type.id"];
+        const { text } = fittingString(type['x.type.name'] || '', defaultCircleR * 2),
           _metadata = JSON.parse(type['x.type.metadata'] || '{}'),
           fill = _.get(_metadata, 'color', defaultNodeColor.fill),
           icon = _.get(_metadata, 'icon', ''),
           stroke = getBorderColor(_.get(_metadata, 'borderColor'), fill);
         nodes.push({
           label: text,
-          name: type['x.type.label'] || '',
+          name: type['x.type.name'] || '',
           uid: id,
           id,
           data: type,

@@ -1,38 +1,30 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+type AttrType = 'string' | 'int' | 'float' | 'datetime' | 'bool';
+type DatetimeFormat = 'YYYY-MM-DD' | 'YYYY-MM-DD hh' | 'YYYY-MM-DD hh:mm' | 'YYYY-MM-DD hh:mm:ss';
+
 export interface AttrConfig {
-  // 属性类型，包括 int, float, string, text, boolean, datetime, list, refer
-  "type": string
-  // 主键
-  "name": string
-  // 展示名称
-  "display": string
-  // 是否必填
-  "required": true
-  // 默认值
-  "default"?: any
-  "search": string  // 索引类型，动态扩展
-  // string 类型时
-  "stringMaxLength"?: number
-  // datetime 类型时
-  "datetimeFormat"?: string
-  // list 类型时，字段类型，包括 int， float， string
-  "listType"?: string
-  // list 类型时，枚举列表
-  "listEnums"?: Array<any>
-  // refer 类型时，选择对象
-  "referObject"?: string
-  // refer 类型时，选择属性
-  "referProperty"?: string
-  "override"?: string
+  "name": string // 属性名称
+  "display": string // 展示名称
+  "type": AttrType // 类型
+  "default"?: any // 默认值
+  "required"?: true // 是否必填
+  "datetimeFormat"?: DatetimeFormat // 日期时间格式
+  "override"?: boolean // 类型属性是否为继承而来
+}
+
+export interface TypePrototypeConfig {
+  id: string // 父对象类型ID
+  versionId: string // 父对象版本ID
 }
 export interface TypeConfig {
-  'x.type.name': string
-  'x.type.label': string
-  'x.type.metadata'?: string
-  'x.type.attrs': Array<AttrConfig | null>
-  'x.type.prototype': Array<string | null>
-  'x.type.version': boolean
+  'x.type.id': string // 对象类型ID
+  'x.type.name': string // 对象类型名称
+  'x.type.metadata': string // 元数据
+  'x.type.editor': string // 创建人
+  'x.type.prototype': Array<TypePrototypeConfig> // 继承类型
+  'x.type.version': boolean // 开启类型版本控制
+  'x.type.attrs': Array<AttrConfig | null> // 属性列表
   'x.type.last_change': number
   'x.type.created': number
 }
@@ -61,7 +53,7 @@ export const typeSlice = createSlice({
       const newData = JSON.parse(JSON.stringify(state.data));
       if (name) {
         for (let i = 0; i < newData.length; i++) {
-          if (newData[i]['x.type.name'] === name) {
+          if (newData[i]['x.type.id'] === name) {
             Object.assign(newData[i], options);
             break;
           }
@@ -78,7 +70,7 @@ export const getDefaultTypeConfig = () => {
   const timestamp = new Date().getTime();
 
   return {
-    "x.type.label": '新类型',
+    "x.type.name": '新类型',
     "x.type.attrs": [],
     "x.type.last_change": timestamp,
     "x.type.created": timestamp,

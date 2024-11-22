@@ -1984,14 +1984,14 @@ export function registerBehavior() {
     drop: function drop(event: IG6GraphEvent) {
       const { item, target, originalEvent } = event;
       const dropAddType = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
-      const dropAddTypeId = dropAddType['x.type.name'],
+      const dropAddTypeId = dropAddType['x.type.id'],
         dropAddTypeMetadata = dropAddType['x.type.metadata'] || '{}';
       if (!dropAddTypeId) {
         this.dropItem = item;
         this.dropTarget = target;
         return;
       }
-      const dropAddTypeName = dropAddType['x.type.label'];
+      const dropAddTypeName = dropAddType['x.type.name'];
       const dropAddTypeAttrs = {};
       (dropAddType['x.type.attrs'] || []).forEach((attr: any) => {
         if (attr.default !== undefined && attr.default !== '') {

@@ -706,7 +706,7 @@ export function registerNode() {
 
       if (cfg && cfg.data) {
         const icon = _.get(cfg, 'icon'),
-          name = _.get(cfg.data, 'x.type.label', ''),
+          name = _.get(cfg.data, 'x.type.name', ''),
           { text, textWidth, hasEllipsis } = fittingString(name as string, defaultCircleR * 2 - 40, GLOBAL_FONT_SIZE),
           textShape = group.find((ele: any) => ele.get('name') === 'text-shape');
         if (icon) {

@@ -116,7 +116,7 @@ function App(props: PdbConfig) {
     const typeMap = {};
     types.forEach((item: TypeConfig) => {
       Object.assign(typeMap, {
-        [item['x.type.name']]: { ...item }
+        [item['x.type.id']]: { ...item }
       });
     });
     dispatch(setTypeMap(typeMap));

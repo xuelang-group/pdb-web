@@ -154,7 +154,7 @@ export default function Right(props: RightProps) {
         }
       });
       setAttrs(_attrs);
-      uid = _currentEditDefaultData[prevLabel + 'name'];
+      uid = _currentEditDefaultData[prevLabel + 'id'];
     }
 
     setCurrentEditDefaultData(_currentEditDefaultData);
@@ -207,7 +207,7 @@ export default function Right(props: RightProps) {
     setShowMore(Boolean(!currentEditModel));
     let panelTitle = `${props.route === 'object' ? '项目' : '模板'}属性`;
     if (currentEditModel) {
-      if (currentEditModel.data.hasOwnProperty('x.type.name')) {
+      if (currentEditModel.data.hasOwnProperty('x.type.id')) {
         panelTitle = '对象属性'
       } else if (currentEditModel.data.hasOwnProperty('r.type.name')) {
         panelTitle = '关系属性'
@@ -238,7 +238,7 @@ export default function Right(props: RightProps) {
 
     // 判断当前编辑的类型
     let currentEditType = 'object';
-    if (currentEditDefaultData['x.type.label']) {
+    if (currentEditDefaultData['x.type.name']) {
       currentEditType = 'type';
     } else if (currentEditDefaultData['r.type.label']) {
       currentEditType = 'relation';
@@ -459,8 +459,8 @@ export default function Right(props: RightProps) {
 
     setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
       if (success) {
-        const label = type['x.type.label'],
-          name = type['x.type.name'];
+        const label = type['x.type.name'],
+          name = type['x.type.id'];
         if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== currentEditModel.data['x.type.metadata'])) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
           (window as any).PDB_GRAPH?.updateItem(currentEditModel?.id, {
@@ -673,7 +673,7 @@ export default function Right(props: RightProps) {
         const node = (window as any).PDB_GRAPH.findById(currentEditModel.id);
         if (!node || node.getModel().name === name) return;
         let nameLabel = 'x_name';
-        if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.label' : 'r.type.label';
+        if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.name' : 'r.type.label';
         updateItemData({
           ...currentEditDefaultData,
           [nameLabel]: name
@@ -1211,8 +1211,8 @@ export default function Right(props: RightProps) {
                   const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
 
                   if (_types && _types.findIndex((_type: any, index: number) =>
-                    _type[currentEditType === 'type' ? "x.type.label" : "r.type.label"] === value &&
-                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] !== currentEditModel.uid
+                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.label"] === value &&
+                    _type[currentEditType === 'type' ? "x.type.id" : "r.type.name"] !== currentEditModel.uid
                   ) > -1) {
                     throw new Error('该名称已被使用');
                   }

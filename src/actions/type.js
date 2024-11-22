@@ -1,13 +1,29 @@
+/**
+ * 对象类型管理
+ */
 import axios from '@/utils/axios';
 import { commonParams } from '@/utils/common';
+import { apiPrefix } from './graph';
 
-const apiPrefix = '/pdb/api/v1/type';
+const typeApiPrefix = `${apiPrefix}/type`;
 const api = {
-  add: apiPrefix + '/add',
-  update: apiPrefix + '/update',
-  delete: apiPrefix + '/delete',
-  get: apiPrefix + '/get',
+  add: typeApiPrefix + '/add',
+  update: typeApiPrefix + '/update',
+  delete: typeApiPrefix + '/delete',
+  get: typeApiPrefix + '/get',
 };
+
+// 创建对象类型
+export const addType = (graphId, params, callback) => {
+  return axios.post(api['add'], {
+    graphId,
+    set: params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
 
 // 获取某个类型数据
 export const getTypeInfo = (type, callback) => {
@@ -31,18 +47,6 @@ export const getTypeList = (graphId, callback) => {
     callback && callback(false, err);
   });
 };
-
-// 类型的新增
-export const addTypeByGraphId = (graphId, params, callback) => {
-  return axios.post(api['add'], {
-    graphId: graphId ? Number(graphId) : 0,
-    set: params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
 
 // 类型的删除
 export const deleteTypeByGraphId = (graphId, type, callback) => {
