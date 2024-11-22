@@ -19,7 +19,7 @@ import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
 import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
-import { getTypeInfo, setTypeByGraphId } from '@/actions/type';
+import { getTypeInfo, setType } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
 import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
@@ -425,7 +425,7 @@ export default function Right(props: RightProps) {
     return new Promise((resolve) => {
       if (!typeName) return;
       setTypeLoading(true);
-      getTypeInfo(typeName, (success: boolean, response: any) => {
+      getTypeInfo(graphData?.id, [typeName], (success: boolean, response: any) => {
         setTypeLoading(false);
         if (success) {
           const attrs = _.get(response[0], 'x.type.attrs', []);
@@ -457,7 +457,7 @@ export default function Right(props: RightProps) {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const timestamp = new Date();
 
-    setTypeByGraphId(routerParams?.id, [type], (success: boolean, response: any) => {
+    setType(graphData?.id, [type], (success: boolean, response: any) => {
       if (success) {
         const label = type['x.type.name'],
           name = type['x.type.id'];

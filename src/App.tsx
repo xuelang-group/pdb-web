@@ -76,17 +76,17 @@ function App(props: PdbConfig) {
       }
       dispatch(setPageLoading(false));
     });
-    const getRequestId = function() {
+    const getRequestId = function () {
       const requestId = getHashParameterByName('requestId'); // 获取requestId
       const needCheckId = getHashParameterByName('checkId'); // 获取需要查看的id
       const needEditId = getHashParameterByName('editId'); // 获取需要编辑的id
-      if(requestId) {
+      if (requestId) {
         dispatch(setRequestId(requestId))
       }
-      if(needCheckId) {
+      if (needCheckId) {
         dispatch(setNeedCheckId(needCheckId))
       }
-      if(needEditId) {
+      if (needEditId) {
         dispatch(setNeedEditId(needEditId))
       }
     }
@@ -133,7 +133,7 @@ function App(props: PdbConfig) {
   }, [location.pathname]);
 
   const getCommonData = function (graphId: number) {
-    getTypeList(graphId.toString(), (success: boolean, response: any) => {
+    getTypeList(graphId, (success: boolean, response: any) => {
       if (success) {
         dispatch(Type.setTypes(response || []));
       } else {

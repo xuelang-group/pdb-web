@@ -12,7 +12,7 @@ import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteTypeByGraphId, addType, getTypeInfo } from '@/actions/type';
+import { getTypeList, deleteType, addType, getTypeInfo } from '@/actions/type';
 import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
@@ -232,7 +232,7 @@ export default function Left(props: any) {
 
   // 删除对象类型
   const removeType = function (typeName: string, nameLabel: string) {
-    deleteTypeByGraphId(graphData?.id, typeName, (success: boolean, response: any) => {
+    deleteType(graphData?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -340,7 +340,7 @@ export default function Left(props: any) {
 
     let node;
     if (type === 'type') {
-      getTypeInfo(item['x.type.id'], (success: boolean, response: any) => {
+      getTypeInfo(graphData?.id, [item['x.type.id']], (success: boolean, response: any) => {
         let fill = defaultNodeColor.fill, stroke = defaultNodeColor.border;
         if (success && response && response[0]) {
           const data = response[0];

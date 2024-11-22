@@ -16,7 +16,7 @@ import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
 import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
 import { RelationConfig, setRelations } from "@/reducers/relation";
-import { addType, deleteTypeByGraphId, resetSchema } from "@/actions/type";
+import { addType, deleteType, resetSchema } from "@/actions/type";
 import { setTypes, TypeConfig } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
@@ -764,7 +764,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function removeTypes(objectTypes: {}, relationTypes: {}) {
-    deleteTypeByGraphId(graphData?.id, typeList.map(val => val['x.type.id']), (success: boolean, response: any) => {
+    deleteType(graphData?.id, typeList.map(val => val['x.type.id']), (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);

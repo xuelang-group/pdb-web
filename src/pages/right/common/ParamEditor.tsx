@@ -18,8 +18,9 @@ export default function ParamEditor(props: any) {
   const [paramForm] = Form.useForm();
   const { params, attrs } = props;
 
-  const types = useSelector((state: StoreState) => state.type.data);
-  const relations = useSelector((state: StoreState) => state.relation.data);
+  const graphData = useSelector((state: StoreState) => state.object.graphData),
+    types = useSelector((state: StoreState) => state.type.data),
+    relations = useSelector((state: StoreState) => state.relation.data);
   const [code, setCode] = useState('');
   const [allData, setAllData] = useState([] as any), // 关联属性 - 关联对象下拉框列表
     [objectAttrs, setObjectAttrs] = useState([] as any); // 关联属性 - 关联属性下拉框列表
@@ -122,7 +123,7 @@ export default function ParamEditor(props: any) {
 
   useEffect(() => {
     if (referObject && props.currentEditType === 'type') {
-      getTypeInfo(referObject, (success: boolean, response: any) => {
+      getTypeInfo(graphData?.id, [referObject], (success: boolean, response: any) => {
         if (success) {
           const info = response[0];
           if (info) {
@@ -287,7 +288,7 @@ export default function ParamEditor(props: any) {
                   }}
                   onBeforeChange={(editor, data, value) => {
                     setCode(value);
-                    paramForm.setFieldsValue({'default': value}); // 更新表单值
+                    paramForm.setFieldsValue({ 'default': value }); // 更新表单值
                   }}
                 />
               </Form.Item>
