@@ -21,13 +21,12 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, setTypeByGraphId } from '@/actions/type';
 import { setRelationByGraphId } from '@/actions/relation';
-import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, getObjectData, setObject, updateObjectInfo } from '@/actions/object';
-import { updateTemplateInfo } from '@/actions/template';
+import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
+import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
-import { TemplateGraphDataState } from '@/reducers/template';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
@@ -35,7 +34,6 @@ import MultiModelParamEditor from './MultiModelParamEditor';
 import { ParamItem } from './ParamItem';
 import RelationBind from '../relation/RelationBind';
 import RelationList from '../object/RelationList';
-import ConstraintList from '../constraint/ConstraintList';
 
 import './index.less';
 import SearchAround from '@/components/SearchAround';
@@ -98,12 +96,12 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
     if (props.route === 'object') {
-      const { name, id, gmt_modified, gmt_create, description, data } = graphData as ObjectGraphDataState
+      const { name, id, updated, created, description, data } = graphData as ObjectGraphDataState
       infoForm.setFieldsValue({
         name,
         uid: id,
-        lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
-        created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss"),
+        lastChange: moment(updated).format("YYYY-MM-DD HH:mm:ss"),
+        created: moment(created).format("YYYY-MM-DD HH:mm:ss"),
         description
       });
     }
@@ -219,18 +217,18 @@ export default function Right(props: RightProps) {
     if (!currentEditModel) {
       if (!graphData) return;
       if (props.route === 'object' && graphData.id) {
-        getObjectData(graphData.id, (success: boolean, data: any) => {
-          let _graphData = JSON.parse(JSON.stringify(graphData));
+        getGraphInfo(graphData.id, (success: boolean, data: any) => {
+          let _graphData: ObjectGraphDataState = JSON.parse(JSON.stringify(graphData));
           if (success) {
             _graphData = JSON.parse(JSON.stringify(data));
             dispatch(setGraphData(data));
           }
-          const { name, id, gmt_modified, gmt_create } = _graphData as ObjectGraphDataState;
+          const { name, id, updated, created } = _graphData;
           infoForm.setFieldsValue({
             name,
             uid: id,
-            lastChange: moment(gmt_modified).format("YYYY-MM-DD HH:mm:ss"),
-            created: moment(gmt_create).format("YYYY-MM-DD HH:mm:ss")
+            lastChange: moment(updated).format("YYYY-MM-DD HH:mm:ss"),
+            created: moment(created).format("YYYY-MM-DD HH:mm:ss")
           });
         });
       }
@@ -636,25 +634,11 @@ export default function Right(props: RightProps) {
     setAttrs(newAttrs);
   }
 
-  // 更新模板名称和描述
-  const updateTemplate = (info: any) => {
-    updateTemplateInfo(info, (success: boolean, response: any) => {
-      if (success) {
-        dispatch(setGraphData({ ...graphData, ...info }));
-      } else {
-        notification.error({
-          message: '更新模板信息失败',
-          description: response.message || response.msg
-        });
-      }
-    });
-  }
-
   // 更新项目信息
-  const updateAppInfo = (info: any) => {
-    updateObjectInfo(info, (success: boolean, response: any) => {
+  const updateAppInfo = ({ graphId, ...other }: any) => {
+    updateGraphInfo({ graphId, ...other }, (success: boolean, response: any) => {
       if (success) {
-        dispatch(setGraphData({ ...graphData, ...info }));
+        dispatch(setGraphData({ ...graphData, ...other }));
       } else {
         notification.error({
           message: '更新项目信息失败',
@@ -669,10 +653,7 @@ export default function Right(props: RightProps) {
 
     infoForm.validateFields().then(value => {
       const { name, description } = value;
-      if (props.route === 'template') {
-        const { tid } = graphData as TemplateGraphDataState;
-        updateTemplate({ tid, name, description });
-      } else if (props.route === 'object') {
+      if (props.route === 'object') {
         const { id } = graphData as ObjectGraphDataState;
         updateAppInfo({ graphId: id, name, description });
       }
@@ -697,9 +678,6 @@ export default function Right(props: RightProps) {
           ...currentEditDefaultData,
           [nameLabel]: name
         }, undefined, 'name');
-      } else if (props.route === 'template') {
-        const { tid } = graphData as TemplateGraphDataState;
-        updateTemplate({ tid, name });
       } else if (props.route === 'object') {
         const { id } = graphData as ObjectGraphDataState;
         updateAppInfo({ graphId: id, name });
@@ -715,45 +693,6 @@ export default function Right(props: RightProps) {
     const currentMetadata = JSON.parse(currentEditDefaultData[metadataKey] || '{}');
     const currentValue = _.get(currentMetadata, type, '');
     if (currentValue === value) return;
-    if (props.route === 'template' && currentEditModel) {
-      if (currentEditType === 'type') {
-        const newGraphData = JSON.parse(JSON.stringify(graphData));
-        const processes = _.get(newGraphData, `processes`);
-
-        if (processes && processes[currentEditModel.uid as any]) {
-          const newData = processes[currentEditModel.uid as any];
-          const newMetadata = {
-            ...JSON.parse(newData.metadata[metadataKey] || '{}'),
-            [type]: value
-          };
-          if ((type === 'borderColor' && isDefault) ||
-            (type === 'icon' && !value)) {
-            delete newMetadata[type];
-          }
-          Object.assign(newData.metadata, {
-            [metadataKey]: JSON.stringify(newMetadata)
-          });
-          Object.assign(newGraphData.processes, {
-            [currentEditModel.uid as any]: newData
-          });
-          if (JSON.stringify(graphData) !== JSON.stringify(newGraphData)) dispatch(setGraphData(newGraphData));
-          const icon = _.get(newMetadata, 'icon', '');
-          (window as any).PDB_GRAPH.updateItem(currentEditModel.uid, {
-            icon: icon,
-            data: {
-              ...newData.metadata,
-              [metadataKey]: JSON.stringify(newMetadata)
-            }
-          });
-          setCurrentEditDefaultData({
-            ...newData.metadata,
-            [metadataKey]: JSON.stringify(newMetadata)
-          });
-        }
-      }
-      return;
-    }
-
     const newMetadata = {
       ...currentMetadata,
       [type]: value
@@ -1189,14 +1128,7 @@ export default function Right(props: RightProps) {
       label: '版本列表',
       children: (<VersionList source={currentEditDefaultData} loading={typeLoading || attrLoading} checkoutVesion={checkoutVersion} />)
     });
-  } else if (props.route === 'template') {
-    rightPanelTabs.push({
-      key: 'constraint',
-      label: '约束',
-      children: (<ConstraintList />)
-    });
   }
-
 
   const appName = Form.useWatch('name', infoForm),
     appId = Form.useWatch('uid', infoForm);

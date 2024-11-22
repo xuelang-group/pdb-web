@@ -9,7 +9,8 @@ import * as XLSX from 'xlsx';
 import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
 import store, { StoreState } from "@/store";
 import { Parent, setObjects } from "@/reducers/object";
-import { addObject, clearObjects, getChildren } from "@/actions/object";
+import { addObject, getChildren } from "@/actions/object";
+import { clearGraphData } from "@/actions/graph";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
@@ -53,7 +54,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     location = useLocation(),
     routerParams = useParams();
   const [modal, contextHolder] = Modal.useModal();
-  const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
+  const graphData = useSelector((state: StoreState) => state.object.graphData),
+    rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
@@ -671,7 +673,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = _relationTypes.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addRelationByGraphId(routerParams?.id, chunk, (success: boolean, response: any) => {
+          addRelationByGraphId(graphData?.id, chunk, (success: boolean, response: any) => {
             if (success) {
               newRelations = newRelations.concat(response);
             } else {
@@ -711,7 +713,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = _objectTypes.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addTypeByGraphId(routerParams?.id, chunk, (success: boolean, response: any) => {
+          addTypeByGraphId(graphData?.id, chunk, (success: boolean, response: any) => {
             if (success) {
               newTypes = newTypes.concat(response);
             } else {
@@ -762,7 +764,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function removeTypes(objectTypes: {}, relationTypes: {}) {
-    deleteTypeByGraphId(routerParams?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
+    deleteTypeByGraphId(graphData?.id, typeList.map(val => val['x.type.name']), (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);
@@ -917,7 +919,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (override && (relationList.length > 0 || typeList.length > 0)) {
       if (relationList.length > 0) {
-        deleteRelationByGraphId(routerParams?.id, relationList.map(val => val['r.type.name']), (success: any, response: any) => {
+        deleteRelationByGraphId(graphData?.id, relationList.map(val => val['r.type.name']), (success: any, response: any) => {
           if (success) {
             dispatch(setRelations([]));
             if (typeList.length > 0) {
@@ -1054,8 +1056,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (objectRelationMap[uid]) Object.assign(objectInfo, objectRelationMap[uid]);
       objects.push(objectInfo);
     }
-    if (override) {
-      clearObjects((success: boolean, response: any) => {
+    if (override && graphData?.id) {
+      clearGraphData(graphData?.id, (success: boolean, response: any) => {
         if (success) {
           postObject(objects);
         } else {

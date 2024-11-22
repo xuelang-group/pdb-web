@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { setCollapsed } from "@/reducers/app";
-import { getObjectData } from "@/actions/object";
+import { getGraphInfo } from "@/actions/graph";
 import { setGraphData } from "@/reducers/object";
 import { setTypeRelationMap } from "@/reducers/editor";
 
@@ -37,10 +37,9 @@ export default function Header(props: HeaderProps) {
   }, [routerParams?.id]);
 
   function getGraphData(id: number) {
-    getObjectData(id, (success: boolean, data: any) => {
+    getGraphInfo(id, (success: boolean, data: any) => {
       if (success) {
         dispatch(setGraphData(data));
-
       } else {
         notification.error({
           message: '获取项目信息失败',

@@ -6,8 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import _ from "lodash";
 
-import { addTemplate, deleteTemplate, deleteTemplates, getTemplateList, updateTemplateInfo } from "@/actions/template";
-import { removeObject, getObjectList, removeObjects, createObject, updateObjectInfo } from "@/actions/object";
+import { removeObject, getGraphList, removeObjects, createObject, updateGraphInfo } from "@/actions/graph";
 import { getImgHref, putFile } from "@/actions/minioOperate";
 import searchEmpty from '@/assets/images/search_empty.png';
 import FolderOffSvg from '@/assets/images/folder-collpased.svg';
@@ -32,18 +31,11 @@ interface ListProps {
 }
 
 const routeActionMap: any = {
-  template: {
-    get: getTemplateList,
-    create: addTemplate,
-    remove: deleteTemplate,
-    update: updateTemplateInfo,
-    batchRemove: deleteTemplates
-  },
   object: {
-    get: getObjectList,
+    get: getGraphList,
     create: createObject,
     remove: removeObject,
-    update: updateObjectInfo,
+    update: updateGraphInfo,
     batchRemove: removeObjects
   }
 };

@@ -40,29 +40,45 @@ export interface CustomObjectConfig extends ObjectConfig {
 }
 
 interface GraphDataState {
-  'templateId': number
-  'namespace': number
+  'url': string // 图数据库地址
+  'space': string // 图数据库命名空间
 }
 export interface ObjectGraphDataState {
-  'id': number
+  'id': number | null // 项目ID
+  'userId': string // 用户ID
+  'appId': string // 应用ID
+  'nodeId': string // 节点ID
+  'name': string // 项目名称
+  'description': string // 项目描述
   'data': GraphDataState
-  'name': string
-  'type': string
-  'dir': number
-  'description': string
-  'gmt_modified'?: string
-  'gmt_create'?: string
+  'created': string // 项目创建时间
+  'updated': string // 项目修改时间
+  // 'type': string
+  // 'dir': number
 }
 
 interface ObjectState {
   data: Array<CustomObjectConfig>
-  graphData: ObjectGraphDataState | {}
+  graphData: ObjectGraphDataState
 }
 
 // 使用该类型定义初始 state
 const initialState: ObjectState = {
   data: [],
-  graphData: {}
+  graphData: {
+    id: null,
+    userId: "",
+    appId: "",
+    nodeId: "",
+    name: "",
+    description: "",
+    data: {
+      url: "",
+      space: ""
+    },
+    created: "",
+    updated: ""
+  }
 }
 
 // 对象列表
