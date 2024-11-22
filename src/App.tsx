@@ -9,7 +9,7 @@ import * as _Object from '@/reducers/object';
 import * as Relation from '@/reducers/relation';
 import * as Template from '@/reducers/template';
 import * as Type from '@/reducers/type';
-import { setCatalog, setPageLoading, setSystemInfo } from '@/reducers/app';
+import { setCatalog, setPageLoading, setSystemInfo, systemInfoState } from '@/reducers/app';
 
 import ObjectLeft from '@/pages/left/object';
 import ObjectGraph from '@/pages/graph/object';
@@ -62,7 +62,7 @@ function App(props: PdbConfig) {
     setSelectedTab(location.pathname.endsWith("/indicator") ? "indicator" : "pdb");
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
-        const { userId, graphId } = response;
+        const { userId, graphId } = response as systemInfoState;
         getAppFolderList(userId);
         graphId && getCommonData(graphId);
         dispatch(setSystemInfo(response));
@@ -127,15 +127,15 @@ function App(props: PdbConfig) {
   useEffect(() => {
     if (prevPathname.indexOf("/indicator") > -1 && location.pathname.indexOf("/indicator") === -1) {
       setSelectedTab("pdb");
-      systemInfo.graphId && getCommonData(systemInfo.graphId.toString());
+      systemInfo.graphId && getCommonData(systemInfo.graphId);
     } else if (prevPathname.indexOf("/indicator") === -1 && location.pathname.indexOf("/indicator") > -1) {
       setSelectedTab("indicator");
     }
     prevPathname = location.pathname;
   }, [location.pathname]);
 
-  const getCommonData = function (graphId: string) {
-    getTypeList(graphId, (success: boolean, response: any) => {
+  const getCommonData = function (graphId: number) {
+    getTypeList(graphId.toString(), (success: boolean, response: any) => {
       if (success) {
         dispatch(Type.setTypes(response || []));
       } else {
@@ -187,7 +187,8 @@ function App(props: PdbConfig) {
     });
   }
 
-  const getAppFolderList = function (userId: number) {
+  // 获取项目列表文件夹配置文件
+  const getAppFolderList = function (userId: string) {
     const path = `studio/${userId}/pdb/config`;
     getFile(path).then(data => {
       dispatch(setCatalog(data.catalog));

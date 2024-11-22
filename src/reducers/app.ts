@@ -1,13 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface systemInfoState {
-  userId: number | null
-  appId: number | null
-  nodeId: string
-  graphId: number | string | null
+export interface systemInfoState {
+  reqUserId: string // 请求用户ID
+  userId: string // 用户ID
+  appId: string // 应用ID
+  nodeId: string // 节点ID
+  graphId: number | null // 项目ID
 }
 interface ListState {
-  systemInfo: systemInfoState
+  systemInfo: systemInfoState // 系统信息
   collapsed: boolean
   catalog: any
   pageLoading: boolean
@@ -15,8 +16,9 @@ interface ListState {
 
 const initialState: ListState = {
   systemInfo: {
-    userId: null,
-    appId: null,
+    reqUserId: "",
+    userId: "",
+    appId: "",
     nodeId: "",
     graphId: null
   },

@@ -597,7 +597,7 @@ export default function List(props: ListProps) {
       let title = (
         <span className='pdb-app-title'>
           <span className='pdb-app-title-name'>{name}</span>
-          {item.id === systemInfo.graphId && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
+          {item.id.toString() === systemInfo.graphId?.toString() && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
         </span>
       );
       if (!_.isEmpty(searchKeyword) && index > -1) {
@@ -610,7 +610,7 @@ export default function List(props: ListProps) {
             <span className='text-equal'>{equalStr}</span>
             {afterStr}
           </span>
-          {item.id === systemInfo.graphId && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
+          {item.id.toString() === systemInfo.graphId?.toString() && <Tag color="processing" style={{ marginLeft: 10 }}>已绑定</Tag>}
         </span>);
       }
       let items = isFolder ? folderMenuItems : leafMenuItems;
