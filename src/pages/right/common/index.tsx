@@ -635,10 +635,10 @@ export default function Right(props: RightProps) {
   }
 
   // 更新项目信息
-  const updateAppInfo = ({ graphId, ...other }: any) => {
-    updateGraphInfo({ graphId, ...other }, (success: boolean, response: any) => {
+  const updateAppInfo = (graphId: number, info: any) => {
+    updateGraphInfo(graphId, info, (success: boolean, response: any) => {
       if (success) {
-        dispatch(setGraphData({ ...graphData, ...other }));
+        dispatch(setGraphData({ ...graphData, ...info }));
       } else {
         notification.error({
           message: '更新项目信息失败',
@@ -654,8 +654,7 @@ export default function Right(props: RightProps) {
     infoForm.validateFields().then(value => {
       const { name, description } = value;
       if (props.route === 'object') {
-        const { id } = graphData as ObjectGraphDataState;
-        updateAppInfo({ graphId: id, name, description });
+        updateAppInfo(graphData?.id, {name, description });
       }
 
     }).catch(reason => {
@@ -679,8 +678,7 @@ export default function Right(props: RightProps) {
           [nameLabel]: name
         }, undefined, 'name');
       } else if (props.route === 'object') {
-        const { id } = graphData as ObjectGraphDataState;
-        updateAppInfo({ graphId: id, name });
+        updateAppInfo(graphData?.id, { name });
       }
     }).catch(reason => {
       console.log("reason: ", reason)

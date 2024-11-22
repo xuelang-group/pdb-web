@@ -15,7 +15,12 @@ const graphApi = {
   remove: graphApiPrefix + '/delete'// 新版API暂未支持
 }
 
-// 获取项目信息
+/**
+ * 获取项目信息
+ * @param {int} graphId 项目ID
+ * @param {Function} callback 
+ * @returns 
+ */
 export const getGraphInfo = (graphId, callback) => {
   return axios.post(graphApi['get'], { graphId }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
@@ -24,16 +29,27 @@ export const getGraphInfo = (graphId, callback) => {
   });
 }
 
-// 修改项目信息
-export const updateGraphInfo = (params, callback) => {
-  return axios.post(graphApi['update'], params).then(({ data }) => {
+/**
+ * 修改项目信息
+ * @param {int} graphId 项目ID
+ * @param {{name: string, description: string}} params 项目名称、项目描述
+ * @param {*} callback 
+ * @returns 
+ */
+export const updateGraphInfo = (graphId, params, callback) => {
+  return axios.post(graphApi['update'], { graphId, ...params }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
   });
 }
 
-// 清空项目所有图数据
+/**
+ * 清空项目所有图数据
+ * @param {int} graphId 项目ID
+ * @param {Function} callback 
+ * @returns 
+ */
 export const clearGraphData = (graphId, callback) => {
   return axios.post(graphApi['clear'], { graphId }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
