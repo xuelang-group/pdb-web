@@ -3,7 +3,6 @@ import { throttle } from '@antv/util';
 import store from '../../store';
 import { setCurrentEditModel } from '../../reducers/editor';
 import { Modal } from 'antd';
-import { removeDisableType } from '@/reducers/template';
 
 const { confirm } = Modal;
 export const G6OperateFunctions = {
@@ -27,7 +26,6 @@ export const G6OperateFunctions = {
     const nodeModel = node.getModel();
     if (!nodeModel || !nodeModel.uid) return;
     store.dispatch(setCurrentEditModel(null));
-    store.dispatch(removeDisableType(nodeModel.uid));
     graph.emit('clear:active', { item: null });
     graph.removeItem(node);
   },

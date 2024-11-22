@@ -7,7 +7,6 @@ import _, { set } from 'lodash';
 import * as Editor from '@/reducers/editor';
 import * as _Object from '@/reducers/object';
 import * as Relation from '@/reducers/relation';
-import * as Template from '@/reducers/template';
 import * as Type from '@/reducers/type';
 import { setCatalog, setPageLoading, setSystemInfo, systemInfoState } from '@/reducers/app';
 
@@ -97,7 +96,6 @@ function App(props: PdbConfig) {
       dispatch(Editor.reset());
       dispatch(_Object.reset());
       dispatch(Relation.reset());
-      dispatch(Template.reset());
       dispatch(Type.reset());
       (window as any).PDB_GRAPH = null;
       window.removeEventListener('hashchange', getRequestId);
