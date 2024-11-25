@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AttrConfig } from './type';
 
-interface ConstraintsConfig {
-  'r.binds': Array<any>
-  [key: string]: any
-}
+// 废弃字段
+// interface ConstraintsConfig {
+//   'r.binds': Array<any>
+//   [key: string]: any
+// }
 
 interface BindConfig {
   source: string
