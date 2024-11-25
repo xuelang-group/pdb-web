@@ -14,7 +14,7 @@ import { clearGraphData } from "@/actions/graph";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
-import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
+import { addRelation, deleteRelation } from "@/actions/relation";
 import { RelationConfig, setRelations } from "@/reducers/relation";
 import { addType, deleteType, resetSchema } from "@/actions/type";
 import { setTypes, TypeConfig } from "@/reducers/type";
@@ -673,7 +673,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = _relationTypes.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addRelationByGraphId(graphData?.id, chunk, (success: boolean, response: any) => {
+          addRelation(graphData?.id, chunk, (success: boolean, response: any) => {
             if (success) {
               newRelations = newRelations.concat(response);
             } else {
@@ -845,7 +845,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               'r.type.id': _uuid,
               'r.type.name': _label,
               'r.type.prototype': [],
-              'r.type.binds': []
+              'r.type.binds': [],
+              'r.type.attrs': []
             }
           });
         }
@@ -917,7 +918,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (override && (relationList.length > 0 || typeList.length > 0)) {
       if (relationList.length > 0) {
-        deleteRelationByGraphId(graphData?.id, relationList.map(val => val['r.type.id']), (success: any, response: any) => {
+        deleteRelation(graphData?.id, relationList.map(val => val['r.type.id']), (success: any, response: any) => {
           if (success) {
             dispatch(setRelations([]));
             if (typeList.length > 0) {

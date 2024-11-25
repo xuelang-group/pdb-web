@@ -32,7 +32,7 @@ import { PdbConfig } from '.';
 import './App.less';
 import List from './pages/list';
 import { getTypeList } from './actions/type';
-import { getRelationByGraphId } from './actions/relation';
+import { getRelation } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
 import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicator';
@@ -145,7 +145,7 @@ function App(props: PdbConfig) {
       dispatch(setTypeLoading(false));
     });
 
-    getRelationByGraphId(graphId, null, (success: boolean, response: any) => {
+    getRelation(graphId, null, (success: boolean, response: any) => {
       let typeRelationMap: any = {};
       if (success) {
         dispatch(setRelations(response || []));

@@ -13,7 +13,7 @@ import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
 import { getTypeList, deleteType, addType, getTypeInfo } from '@/actions/type';
-import { addRelationByGraphId, deleteRelationByGraphId, getRelationByGraphId } from '@/actions/relation';
+import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
 
@@ -68,7 +68,7 @@ export default function Left(props: any) {
     });
 
     dispatch(setRelationLoading(true));
-    getRelationByGraphId(graphData?.id, null, (success: boolean, response: any) => {
+    getRelation(graphData?.id, null, (success: boolean, response: any) => {
       dispatch(setRelationLoading(false));
       if (success) {
         dispatch(setRelations(response || []));
@@ -257,7 +257,7 @@ export default function Left(props: any) {
 
   // 添加关系类型
   const createRelation = function (relation: any) {
-    addRelationByGraphId(graphData?.id, [relation], (success: boolean, response: any) => {
+    addRelation(graphData?.id, [relation], (success: boolean, response: any) => {
       setModalLoading(false);
       const message = modalLabel[modalType] + typeLabel[operateItem.type];
       if (success) {
@@ -283,7 +283,7 @@ export default function Left(props: any) {
 
   // 删除关系类型
   const removeRelation = function (typeName: string, nameLabel: string) {
-    deleteRelationByGraphId(graphData?.id, typeName, (success: boolean, response: any) => {
+    deleteRelation(graphData?.id, typeName, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
@@ -666,7 +666,7 @@ export default function Left(props: any) {
           'r.type.name': name,
           'r.type.binds': item['r.type.binds'] || [],
           'r.type.prototype': item['r.type.prototype'] || [],
-          'r.type.attrs': []
+          'r.type.attrs': item['r.type.attrs'] || []
         };
         createRelation(newRelation);
       }

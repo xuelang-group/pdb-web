@@ -20,7 +20,7 @@ import ParamEditor from './ParamEditor';
 import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, setType } from '@/actions/type';
-import { setRelationByGraphId } from '@/actions/relation';
+import { setRelation } from '@/actions/relation';
 import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
@@ -499,7 +499,7 @@ export default function Right(props: RightProps) {
       const timestamp = new Date();
 
       if (JSON.stringify(currentEditDefaultData) === JSON.stringify(relation)) return;
-      setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
+      setRelation(routerParams?.id, [relation], (success: boolean, response: any) => {
         if (success) {
           const name = relation['r.type.id'],
             label = relation['r.type.name'];

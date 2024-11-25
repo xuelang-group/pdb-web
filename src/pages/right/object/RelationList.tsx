@@ -138,7 +138,7 @@ export default function RelationList(props: RelationListProps) {
       title: '',
       dataIndex: 'operation',
       width: 23,
-      render: (text: any, record: any, index: number) => <i className="operation-icon spicon icon-shanchu2" onClick={() => deleteRelation(index)} />
+      render: (text: any, record: any, index: number) => <i className="operation-icon spicon icon-shanchu2" onClick={() => handleDeleteRelation(index)} />
     });
   }
   // 添加关系
@@ -153,7 +153,7 @@ export default function RelationList(props: RelationListProps) {
   }
 
   // 删除关系
-  const deleteRelation = function (index: number, deleteId: any = null, deleteItem: any = null, callback?: any) {
+  const handleDeleteRelation = function (index: number, deleteId: any = null, deleteItem: any = null, callback?: any) {
     const _relations = JSON.parse(JSON.stringify(relations));
     if (!_relations[index].relation || !_relations[index].target) {
       if (callback) {
@@ -230,7 +230,7 @@ export default function RelationList(props: RelationListProps) {
   // 更改关系值
   const handleChangeRelation = function (value: string, index: number) {
     setTargetList([]);
-    deleteRelation(index, null, null, () => {
+    handleDeleteRelation(index, null, null, () => {
       form.setFieldValue(['relation', index, 'target'], '');
       const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, props.source.uid, [])));
       newRelationLines[index] = { relation: value, target: {} };
@@ -393,7 +393,7 @@ export default function RelationList(props: RelationListProps) {
 
     if (relations[index] && relations[index]['relation'] && relations[index]['target']) {
 
-      deleteRelation(index, prvRelationId, { uid: prvRelationTarget }, () => {
+      handleDeleteRelation(index, prvRelationId, { uid: prvRelationTarget }, () => {
         createRelation();
       });
     } else {
