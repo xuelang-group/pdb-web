@@ -170,7 +170,12 @@ export const getTypeVerison = (graphId, type, typeVersionID, callback) => {
   });
 };
 
-// 退出类型编辑
+/**
+ * 退出类型编辑
+ * @param {int} graphId 项目ID
+ * @param {*} callback 
+ * @returns 
+ */
 export const resetSchema = (graphId, callback) => {
   return axios.post(`${apiPrefix}/schema/reset`, {
     graphId: graphId ? Number(graphId) : 0,
