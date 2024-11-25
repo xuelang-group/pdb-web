@@ -748,7 +748,7 @@ export default function AppExplore() {
         uid: uid
       };
     });
-    let graphData: any = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
+    let graphData: any = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'), true);
     graph.data(JSON.parse(JSON.stringify(graphData)));
     graph.render();
     graph.zoom(1);

@@ -107,7 +107,7 @@ function findLastIndex(nodes: any[], xid: string) {
 }
 
 // 转换为画布数据
-export function covertToGraphData(data: CustomObjectConfig[], parentId: string, filterMap: any) {
+export function covertToGraphData(data: CustomObjectConfig[], parentId: string, filterMap: any, isQueryNode: boolean = false) {
   const edges: EdgeConfig[] = [];
   const combos: ComboConfig[] = [];
   const nodes: NodeItemData[] = [];
@@ -149,6 +149,8 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
         }
       }
     };
+
+    if (isQueryNode) Object.assign(node,  { isQueryNode: true });
 
     if (parentId) {
       combos.push({
