@@ -179,9 +179,9 @@ export default function Editor(props: EditorProps) {
       });
       // // 初始化边数据
       relations.forEach(function (relation: RelationConfig) {
-        const label = relation['r.type.label'],
-          id = relation["r.type.name"],
-          binds = relation['r.type.constraints']['r.binds'];
+        const label = relation['r.type.name'],
+          id = relation["r.type.id"],
+          binds = relation['r.type.binds'];
         binds.forEach(function (bind) {
           const { source, target, override } = bind;
           if (!override) {

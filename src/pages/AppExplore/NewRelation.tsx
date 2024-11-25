@@ -67,7 +67,7 @@ export default function NewRelation(props: ExploreFilterProps) {
 
   const save = function () {
     form.validateFields().then(values => {
-      const binds = [_.get(values["r.type.constraints"], "r.binds", {})];
+      const binds = [_.get(values,"r.type.binds", {})];
       saveConfig({
         ...initialValue,
         label: values['r.type.label'],
@@ -126,7 +126,7 @@ export default function NewRelation(props: ExploreFilterProps) {
           <div className="pdb-explore-group-item" style={{ marginBottom: 24, marginRight: 8 }}>
             <div className="pdb-explore-group-item-select" style={{ marginBottom: 16, marginRight: 8 }}>
               <Form.Item
-                name={["r.type.constraints", "r.binds", "source"]}
+                name={["r.type.binds", "source"]}
                 label="源对象："
                 rules={[{ required: true, message: "源对象不能为空" }]}
               >
@@ -141,7 +141,7 @@ export default function NewRelation(props: ExploreFilterProps) {
             </div>
             <div className="pdb-explore-group-item-select">
               <Form.Item
-                name={["r.type.constraints", "r.binds", "source.attr"]}
+                name={["r.type.binds", "source.attr"]}
                 label="源对象-关联字段："
                 rules={[{ required: true, message: "源对象属性不能为空" }]}
               >
@@ -155,27 +155,26 @@ export default function NewRelation(props: ExploreFilterProps) {
             </div>
             <div className="pdb-explore-group-item-select" style={{ marginBottom: 16, marginRight: 8 }}>
               <Form.Item
-                name={["r.type.constraints", "r.binds", "target"]}
+                name={["r.type.binds", "target"]}
                 label="目标对象："
                 rules={[{ required: true, message: "目标对象不能为空" }]}
               >
                 <Select
                   options={types}
                   fieldNames={{
-                    label: "x.type.name",
-                    value: "x.type.id"
+                    label: "x.type.label",
+                    value: "x.type.name"
                   }}
                   disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
-                      label: option['x.type.name'],
-                      value: option['x.type.id'] + `-${tagsLen + 1}`,
-                      key: option['x.type.id'],
+                      label: option['x.type.label'],
+                      value: option['x.type.name'] + `-${tagsLen + 1}`,
+                      key: option['x.type.name'],
                       type: 'type',
                       data: option,
                       prevSearchTagType: "relation"
                     });
-                    // form.setFieldValue(["r.type.constraints", "r.binds", "target.attr"], "");
                   }}
                 />
               </Form.Item>
@@ -183,12 +182,12 @@ export default function NewRelation(props: ExploreFilterProps) {
             <div className="pdb-explore-group-item-select">
               <Form.Item
                 noStyle
-                shouldUpdate={(prevValues, curValues) => _.get(_.get(prevValues, "r.type.constraints"), "r.binds", {})["target"] !== _.get(_.get(curValues, "r.type.constraints"), "r.binds", {})}
+                shouldUpdate={(prevValues, curValues) => _.get(prevValues, "r.type.binds")["target"] !== _.get(curValues, "r.type.binds")["target"]}
               >
                 {({ getFieldValue, setFieldValue }) => {
                   return (
                     <Form.Item
-                      name={["r.type.constraints", "r.binds", "target.attr"]}
+                      name={["r.type.binds", "target.attr"]}
                       label="目标对象-关联字段"
                       rules={[{ required: true, message: "目标对象属性不能为空" }]}
                     >
@@ -196,7 +195,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                         options={(_.get(currTargetTag, 'data', {})['x.type.attrs'] || []).map(
                           ({ display, name }: AttrConfig) => ({ label: display, value: name })
                         )}
-                        disabled={!getFieldValue(["r.type.constraints", "r.binds", "target"]) || readOnly}
+                        disabled={!getFieldValue(["r.type.binds", "target"]) || readOnly}
                       />
                     </Form.Item>
                   )

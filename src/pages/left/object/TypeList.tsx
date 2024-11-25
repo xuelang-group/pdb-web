@@ -140,7 +140,7 @@ export default function TypeList() {
   const getRelationList = function (relList: Array<any>, keyWord: string): Array<any> {
     var arr = [];
     for (var i = 0; i < relList.length; i++) {
-      const item = relList[i], idKey = 'r.type.name', labelKey = 'r.type.label';
+      const item = relList[i], idKey = 'r.type.id', labelKey = 'r.type.name';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
         const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
         let title = (<span className='type-item-label'>{label}</span>);
@@ -305,8 +305,8 @@ export default function TypeList() {
                       onClick: (menu) => handleClickMenu(routerParams.id, 'relation', {
                         data: item,
                         dataIndex: index,
-                        title: item['r.type.label'],
-                        key: item['r.type.name']
+                        title: item['r.type.name'],
+                        key: item['r.type.id']
                       })
                     }}
                     trigger={['contextMenu']}

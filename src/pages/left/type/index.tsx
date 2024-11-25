@@ -136,7 +136,7 @@ export default function Left(props: any) {
   const getRelationList = function (list: Array<any>, keyWord: string): Array<any> {
     var arr = [];
     for (var i = 0; i < list.length; i++) {
-      const item = list[i], idKey = 'r.type.name', labelKey = 'r.type.label';
+      const item = list[i], idKey = 'r.type.id', labelKey = 'r.type.name';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
         const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
         let title = (<span className='type-item-label'>{label}</span>);
@@ -439,8 +439,8 @@ export default function Left(props: any) {
 
     if (key === 'delete') {
       const title = modalLabel['delete'] + typeLabel[type] + '类型';
-      const nameLabel = type === 'type' ? 'x.type.name' : 'r.type.label',
-        idLabel = type === 'type' ? 'x.type.id' : 'r.type.name';
+      const nameLabel = type === 'type' ? 'x.type.name' : 'r.type.name',
+        idLabel = type === 'type' ? 'x.type.id' : 'r.type.id';
       modal.confirm({
         className: 'pdb-confirm-modal',
         title,
@@ -662,10 +662,11 @@ export default function Left(props: any) {
         createType(newType);
       } else {
         const newRelation = {
-          'r.type.name': 'Relation.' + uuid(),
-          'r.type.label': name,
-          'r.type.constraints': item['r.type.constraints'] || { 'r.binds': [] },
+          'r.type.id': 'Relation.' + uuid(),
+          'r.type.name': name,
+          'r.type.binds': item['r.type.binds'] || [],
           'r.type.prototype': item['r.type.prototype'] || [],
+          'r.type.attrs': []
         };
         createRelation(newRelation);
       }
@@ -714,7 +715,7 @@ export default function Left(props: any) {
                 const _types = JSON.parse(JSON.stringify(prototypeList));
                 if (value.length > 50) {
                   throw new Error('类型名称最多支持50个字符');
-                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.label"] === value) > -1) {
+                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.name"] === value) > -1) {
                   throw new Error('该名称已被使用');
                 }
               }

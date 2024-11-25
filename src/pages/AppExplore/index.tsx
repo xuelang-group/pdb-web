@@ -95,16 +95,10 @@ export default function AppExplore() {
       const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
       let conditionLabel = "";
       if (!_.isEmpty(conditionRaw) && id) {
-        let attrMap: any = {};
-        if (type === "object") {
-          _.get(typeMap[typeId], "x.type.attrs", []).forEach((val: any) => {
-            Object.assign(attrMap, { [val?.name]: val });
-          });
-        } else {
-          attrMap = _.get(relationMap[typeId], "r.type.constraints", {});
-          delete attrMap['r.binds'];
-          delete attrMap['r.constraints'];
-        }
+        const attrMap: any = {};
+        _.get(typeMap[typeId], `${type === "object" ? 'x' : 'r'}.type.attrs`, []).forEach((val: any) => {
+          Object.assign(attrMap, { [val?.name]: val });
+        });
         conditions.forEach((val: ConditionState) => {
           const attrName = val.name,
             functionVal = functionSymbolMap[val.function],
@@ -166,8 +160,8 @@ export default function AppExplore() {
             key: _id,
             binds: binds || [],
             data: {
-              "r.type.constraints": { "r.binds": _.get(binds, '0') },
-              "r.type.label": name
+              "r.type.binds": _.get(binds, '0'),
+              "r.type.name": name
             }
           });
         } else {
@@ -411,7 +405,7 @@ export default function AppExplore() {
             targetTypeMap: any = {};
 
           if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent" && !relationName.startsWith("__TEMPORARY_RELATION__")) {
-            relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
+            relationMap[relationName]['r.type.binds'].forEach(bind => {
               if (!relationsIsReverse && bind.source === sourceType) {
                 Object.assign(targetTypeMap, { [bind.target]: bind.target });
               } else if (relationsIsReverse && bind.target === sourceType) {
@@ -469,12 +463,12 @@ export default function AppExplore() {
           // 正向关系数据
           const positiveRelations = Array.from(new Set(sourceRelations))
             .map((id: string) => relationMap[id]);
-          const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
+          const positiveSearchRelations = value ? positiveRelations.filter((val: RelationConfig) => val['r.type.name'].toLowerCase().indexOf(value.toLowerCase()) > -1) : positiveRelations;
 
           // 反向关系数据
           const reverseRelations = Array.from(new Set(targetRelations))
             .map((id: string) => relationMap[id]);
-          const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
+          const reverseSearchRelations = value ? reverseRelations.filter((val: RelationConfig) => val['r.type.name'].toLowerCase().indexOf(value.toLowerCase()) > -1) : reverseRelations;
 
           // relationOptions = [enterOption];
           if ("所属父级".indexOf(value) > -1) {
@@ -503,9 +497,9 @@ export default function AppExplore() {
             relationOptions.push({
               label: "正向关系",
               options: positiveSearchRelations.map((val: RelationConfig, index: number) => ({
-                label: val['r.type.label'],
-                value: val['r.type.name'] + `-${currentTagLen}`,
-                key: val['r.type.name'],
+                label: val['r.type.name'],
+                value: val['r.type.id'] + `-${currentTagLen}`,
+                key: val['r.type.id'],
                 type: 'relation',
                 isReverse: false,
                 data: val
@@ -523,9 +517,9 @@ export default function AppExplore() {
             relationOptions.push({
               label: "反向关系",
               options: reverseSearchRelations.map((val: RelationConfig, index: number) => ({
-                label: "~" + val['r.type.label'],
-                value: val['r.type.name'] + `-${currentTagLen}`,
-                key: val['r.type.name'],
+                label: "~" + val['r.type.name'],
+                value: val['r.type.id'] + `-${currentTagLen}`,
+                key: val['r.type.id'],
                 type: 'relation',
                 isReverse: true,
                 data: val
@@ -1103,12 +1097,10 @@ export default function AppExplore() {
                     }
                     Object.assign(initialValue, {
                       "data": {
-                        "r.type.label": "关联",
-                        "r.type.constraints": {
-                          "r.binds": {
-                            "source": _.get(sourceTag, "key", ""),
-                            "target": _.get(targetTag, "key", "")
-                          }
+                        "r.type.name": "关联",
+                        "r.type.binds": {
+                          "source": _.get(sourceTag, "key", ""),
+                          "target": _.get(targetTag, "key", "")
                         },
                         "group": "inner"
                       }
@@ -1220,12 +1212,7 @@ export default function AppExplore() {
       {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
           const tagType = tag.startsWith("Type.") ? "type" : "relation";
-          let attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.constraints"), [])));
-          if (tagType === "relation" && !_.isEmpty(attrs)) {
-            delete attrs["r.binds"];
-            delete attrs["r.constraints"];
-            attrs = Object.values(attrs);
-          }
+          const attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.attrs"), [])));
           return {
             value: tag,
             label: _.get(searchTagMap[index][tag], "label", ""),

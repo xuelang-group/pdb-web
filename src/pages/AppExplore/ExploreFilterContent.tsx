@@ -37,12 +37,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
   useEffect(() => {
     const tagType: string = _.get(originType, 'type', ''),
       data: any = _.get(originType, 'data', {});
-    let attrs = JSON.parse(JSON.stringify(data[tagType === 'type' ? "x.type.attrs" : "r.type.constraints"] || {}));
-    if (tagType === 'relation' && !_.isEmpty(attrs)) {
-      delete attrs['r.binds'];
-      delete attrs['r.constraints'];
-      attrs = Object.values(attrs);
-    }
+    const attrs = JSON.parse(JSON.stringify(data[tagType === 'type' ? "x.type.attrs" : "r.type.attrs"] || {}));
     setFilterOption(_.get(originType, 'config.options', []));
     setAttrs(attrs);
     setTagType(tagType);

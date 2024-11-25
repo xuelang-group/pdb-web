@@ -127,17 +127,11 @@ export default function Right(props: RightProps) {
     } else {
       if (currentEditType === 'type') {
         prevLabel = 'x.type.';
-        _attrs = _currentEditDefaultData['x.type.attrs'] || [];
       } else {
         prevLabel = 'r.type.';
-        const constraints = _currentEditDefaultData['r.type.constraints' || { 'r.binds': [] }];
-        Object.keys(constraints).map(key => {
-          if (!key.startsWith('r.')) {
-            _attrs.push(constraints[key]);
-          }
-        });
       }
-      _attrs && _attrs.forEach((attr: any) => {
+      _attrs = _currentEditDefaultData[prevLabel + 'attrs'] || [];
+      _attrs.forEach((attr: any) => {
         const { datetimeFormat, type, name } = attr;
         if (type === 'datetime') {
           _currentEditDefaultData[name] && Object.assign(_currentEditDefaultData, {
@@ -209,7 +203,7 @@ export default function Right(props: RightProps) {
     if (currentEditModel) {
       if (currentEditModel.data.hasOwnProperty('x.type.id')) {
         panelTitle = '对象属性'
-      } else if (currentEditModel.data.hasOwnProperty('r.type.name')) {
+      } else if (currentEditModel.data.hasOwnProperty('r.type.id')) {
         panelTitle = '关系属性'
       }
     }
@@ -240,7 +234,7 @@ export default function Right(props: RightProps) {
     let currentEditType = 'object';
     if (currentEditDefaultData['x.type.name']) {
       currentEditType = 'type';
-    } else if (currentEditDefaultData['r.type.label']) {
+    } else if (currentEditDefaultData['r.type.name']) {
       currentEditType = 'relation';
     }
     setCurrentEditType(currentEditType);
@@ -291,41 +285,23 @@ export default function Right(props: RightProps) {
   // 更新属性列表
   const updateAttrs = function (attrs: any, callback?: Function) {
     if (!currentEditDefaultData) return;
-    if (currentEditType === 'type') {
-      if (JSON.stringify(currentEditDefaultData['x.type.attrs']) !== JSON.stringify(attrs)) {
-        updateItemData({
-          ...currentEditDefaultData,
-          'x.type.attrs': attrs
-        }, callback, 'x.type.attrs');
-      }
-    } else {
-      const constraints = currentEditDefaultData['r.type.constraints'];
-      const new_constraints = JSON.parse(JSON.stringify(constraints || {}));
-      Object.keys(new_constraints).forEach(key => {
-        if (!key.startsWith('r.')) delete new_constraints[key];
-      });
-      attrs.forEach((attr: any) => {
-        Object.assign(new_constraints, { [attr.name]: attr });
-      });
-      if (JSON.stringify(constraints) !== JSON.stringify(new_constraints)) {
-        updateItemData({
-          ...currentEditDefaultData,
-          'r.type.constraints': new_constraints
-        }, callback, 'r.type.constraints');
-      }
+    const prevLabel = currentEditType === 'type' ? 'x' : 'r';
+    if (JSON.stringify(currentEditDefaultData[`${prevLabel}.type.attrs`]) !== JSON.stringify(attrs)) {
+      updateItemData({
+        ...currentEditDefaultData,
+        [`${prevLabel}.type.attrs`]: attrs
+      }, callback, `${prevLabel}.type.attrs`);
     }
   }
 
   // 关系类型 - 连接对象更新
   const updateBinds = function (newBind: any) {
     if (currentEditType === 'relation' && currentEditModel) {
-      const constraints = JSON.parse(JSON.stringify(currentEditDefaultData['r.type.constraints'] || {}));
-      if (JSON.stringify(newBind) !== JSON.stringify(constraints['r.binds'])) {
-        Object.assign(constraints, { 'r.binds': newBind });
+      if (JSON.stringify(newBind) !== JSON.stringify(currentEditDefaultData['r.type.binds'] || [])) {
         updateItemData({
           ...currentEditDefaultData,
-          'r.type.constraints': constraints
-        }, undefined, 'r.type.constraints');
+          'r.type.binds': newBind
+        }, undefined, 'r.type.binds');
       }
     }
   }
@@ -525,8 +501,8 @@ export default function Right(props: RightProps) {
       if (JSON.stringify(currentEditDefaultData) === JSON.stringify(relation)) return;
       setRelationByGraphId(routerParams?.id, [relation], (success: boolean, response: any) => {
         if (success) {
-          const name = relation['r.type.name'],
-            label = relation['r.type.label'];
+          const name = relation['r.type.id'],
+            label = relation['r.type.name'];
 
           if (label !== currentEditModel.name) {
             (window as any).PDB_GRAPH?.updateItem(item, {
@@ -654,7 +630,7 @@ export default function Right(props: RightProps) {
     infoForm.validateFields().then(value => {
       const { name, description } = value;
       if (props.route === 'object') {
-        updateAppInfo(graphData?.id, {name, description });
+        updateAppInfo(graphData?.id, { name, description });
       }
 
     }).catch(reason => {
@@ -672,7 +648,7 @@ export default function Right(props: RightProps) {
         const node = (window as any).PDB_GRAPH.findById(currentEditModel.id);
         if (!node || node.getModel().name === name) return;
         let nameLabel = 'x_name';
-        if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.name' : 'r.type.label';
+        if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.name' : 'r.type.name';
         updateItemData({
           ...currentEditDefaultData,
           [nameLabel]: name
@@ -1109,7 +1085,7 @@ export default function Right(props: RightProps) {
         label: '连接对象',
         children: (
           <RelationBind
-            data={currentEditDefaultData && currentEditDefaultData['r.type.constraints'] ? (currentEditDefaultData['r.type.constraints']['r.binds'] || []) : []}
+            data={currentEditDefaultData['r.type.binds'] || []}
             update={updateBinds}
             readOnly={location.pathname.endsWith("/template")}
           />)
@@ -1209,8 +1185,8 @@ export default function Right(props: RightProps) {
                   const _types = JSON.parse(JSON.stringify(currentEditType === 'type' ? types : relations));
 
                   if (_types && _types.findIndex((_type: any, index: number) =>
-                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.label"] === value &&
-                    _type[currentEditType === 'type' ? "x.type.id" : "r.type.name"] !== currentEditModel.uid
+                    _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] === value &&
+                    _type[currentEditType === 'type' ? "x.type.id" : "r.type.id"] !== currentEditModel.uid
                   ) > -1) {
                     throw new Error('该名称已被使用');
                   }

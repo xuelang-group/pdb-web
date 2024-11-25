@@ -209,7 +209,7 @@ export default function Editor(props: EditorProps) {
           return id.endsWith("-next") ? "下一页" : "上一页";
         }
         if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
-          return _.get(relationMap, `${relationName}`, { 'r.type.label': '' })['r.type.label'] || name || id;
+          return _.get(relationMap, `${relationName}`, { 'r.type.name': '' })['r.type.name'] || name || id;
         }
         return "";
       },

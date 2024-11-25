@@ -57,7 +57,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const graphData = useSelector((state: StoreState) => state.object.graphData),
     rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
-    relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.name': xxxx},根据关系唯一键能够快速获取关系详细数据
+    relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.id': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
@@ -71,7 +71,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(2),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.name]: ...}, 'type': {[x.type.id]: ...}}
+    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.id]: ...}, 'type': {[x.type.id]: ...}}
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
     [operateDisabled, setOperateDisabled] = useState(false); // 重置按钮灰化
   const [filterForm] = Form.useForm();
@@ -256,7 +256,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             source: objectUid,
             target: target.uid.toString(),
             relationName: relation,
-            name: relationMap[relation]['r.type.label'],
+            name: relationMap[relation]['r.type.name'],
             data: {
               ...relationMap[relation],
               ...attrValue
@@ -314,7 +314,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               y: sourceItemModel.y
             })
           }
-          if (_showRelationLabel && relationMap[relation]) Object.assign(edgeOption, { label: relationMap[relation]['r.type.label'] });
+          if (_showRelationLabel && relationMap[relation]) Object.assign(edgeOption, { label: relationMap[relation]['r.type.name'] });
           edgeItem = graph.addItem('edge', edgeOption);
           addEdge = true;
         }
@@ -366,7 +366,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           labelColor = '#DCDEE1';
         }
         graph.updateItem(edge, {
-          label: checked && relationMap[edgeModel.relationName] ? relationMap[edgeModel.relationName]['r.type.label'] : '',
+          label: checked && relationMap[edgeModel.relationName] ? relationMap[edgeModel.relationName]['r.type.name'] : '',
           labelCfg: getRelationLabelCfg(labelColor, checked, props.theme)
         });
         return true;
@@ -615,7 +615,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                                     }
                                   >
                                     {target === 'relation' && relationList.map((info: RelationConfig) => (
-                                      <Select.Option value={info['r.type.name']} disabled={_.get(filterMap.relation, info['r.type.name'])}>{info['r.type.label']}</Select.Option>
+                                      <Select.Option value={info['r.type.id']} disabled={_.get(filterMap.relation, info['r.type.id'])}>{info['r.type.name']}</Select.Option>
                                     ))}
                                     {target === 'type' && typeList.map((info: TypeConfig) => (
                                       <Select.Option value={info['x.type.id']} disabled={_.get(filterMap.type, info['x.type.id'])}>{info['x.type.name']}</Select.Option>
@@ -842,12 +842,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           const _uuid = 'Relation.' + uuid();
           Object.assign(relationTypes, {
             [_label]: {
-              'r.type.name': _uuid,
-              'r.type.label': _label,
+              'r.type.id': _uuid,
+              'r.type.name': _label,
               'r.type.prototype': [],
-              'r.type.constraints': {
-                'r.binds': []
-              }
+              'r.type.binds': []
             }
           });
         }
@@ -873,7 +871,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
           if (row[1] !== undefined) {
             const newAttr = getRowAttr(row);
-            Object.assign(_relationType['r.type.constraints'], { [newAttr.name]: newAttr });
+            _relationType['r.type.attrs'].push(newAttr);
             Object.assign(relationTypes, { [_label]: _relationType });
           }
         }
@@ -890,12 +888,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           const _relationType = relationTypes[_label];
 
           if (row[1] && row[2]) {
-            const _binds = JSON.parse(JSON.stringify(_relationType['r.type.constraints']['r.binds'] || []));
+            const _binds = JSON.parse(JSON.stringify(_relationType['r.type.binds'] || []));
             _binds.push({
               source: row[1],
               target: row[2]
             });
-            Object.assign(_relationType['r.type.constraints'], { 'r.binds': _binds });
+            Object.assign(_relationType, { 'r.type.binds': _binds });
             Object.assign(relationTypes, { [_label]: _relationType });
           }
         }
@@ -904,7 +902,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     Object.values(relationTypes).forEach(function (type: any) {
       console.log(type)
-      const binds = type['r.type.constraints']['r.binds'].filter(function (bind: { source: string; target: string; }) {
+      const binds = type['r.type.binds'].filter(function (bind: { source: string; target: string; }) {
         const { source, target } = bind;
         if (objectTypeMap[source] && objectTypeMap[target]) {
           Object.assign(bind, { source: objectTypeMap[source], target: objectTypeMap[target] })
@@ -912,14 +910,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         }
         return false;
       });
-      Object.assign(type['r.type.constraints'], {
-        'r.binds': binds
+      Object.assign(type, {
+        'r.type.binds': binds
       });
     });
 
     if (override && (relationList.length > 0 || typeList.length > 0)) {
       if (relationList.length > 0) {
-        deleteRelationByGraphId(graphData?.id, relationList.map(val => val['r.type.name']), (success: any, response: any) => {
+        deleteRelationByGraphId(graphData?.id, relationList.map(val => val['r.type.id']), (success: any, response: any) => {
           if (success) {
             dispatch(setRelations([]));
             if (typeList.length > 0) {

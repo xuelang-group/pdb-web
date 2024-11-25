@@ -8,6 +8,7 @@ import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6
 import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
 import { StoreState } from '@/store';
 import './index.less';
+import { AttrConfig } from '@/reducers/type';
 
 interface RelationListProps {
   source: NodeItemData
@@ -40,7 +41,7 @@ export default function RelationList(props: RelationListProps) {
     setTableLoading(true);
     _.get(relationLines, props.source.uid, []).forEach((item: ObjectRelationConig) => {
       const { relation, target } = item;
-      const relationId = _.get(relationMap[relation], 'r.type.name', ''),
+      const relationId = _.get(relationMap[relation], 'r.type.id', ''),
         targetLabel = _.get(target, 'x_name', ''),
         targetId = _.get(target, 'uid', '');
       if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
@@ -110,7 +111,7 @@ export default function RelationList(props: RelationListProps) {
     const usedRelationMap: any = {};
     Array.from(new Set(_.get(typeRelationMap[typeId], 'source', [])))
       .forEach((relationName: any) => {
-        const relationLabel = relationMap[relationName]['r.type.label'];
+        const relationLabel = relationMap[relationName]['r.type.name'];
         if (!usedRelationMap[relationName]) {
           relationList.push({
             value: relationName,
@@ -303,7 +304,7 @@ export default function RelationList(props: RelationListProps) {
           currentNum -= 1;
         }
         if (maxTgt <= currentNum) {
-          message.warning(`从 “${srcLabel}” 对象类型到 “${tgtLabel}” 对象类型的 “${relationMap[relation]['r.type.label']}” 关系达到上限，最高上限为${currentNum}`);
+          message.warning(`从 “${srcLabel}” 对象类型到 “${tgtLabel}” 对象类型的 “${relationMap[relation]['r.type.name']}” 关系达到上限，最高上限为${currentNum}`);
           form.setFieldValue(['relation', index, 'target'], '');
           return;
         }
@@ -317,15 +318,13 @@ export default function RelationList(props: RelationListProps) {
         target: targetOption
       });
 
-      const relationConstrarints: any = _.get(relationMap[relation], 'r.type.constraints', {});
-      Object.keys(relationConstrarints).forEach((key: string) => {
-        if (key !== "r.binds") {
-          const defalutValue = _.get(relationConstrarints[key], 'default');
-          if (defalutValue || defalutValue === 0) {
-            Object.assign(targetOption, {
-              [`${relation}|${key}`]: defalutValue
-            });
-          }
+      // 设置实例关系连线时，传递关系类型属性默认值
+      _.get(relationMap[relation], 'r.type.attrs', []).forEach((attr: AttrConfig) => {
+        const defalutValue = _.get(attr, 'default');
+        if (defalutValue || defalutValue === 0) {
+          Object.assign(targetOption, {
+            [`${relation}|${attr.name}`]: defalutValue
+          });
         }
       });
 

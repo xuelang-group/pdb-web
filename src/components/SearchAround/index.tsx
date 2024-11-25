@@ -290,7 +290,7 @@ export default function SearchAround() {
   const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[], results = {}) {
     const relationName = option.id,
       targetTypeMap: any = {};
-    relationMap[relationName]['r.type.constraints']['r.binds'].forEach(bind => {
+    relationMap[relationName]['r.type.binds'].forEach(bind => {
       if (bind.source === objectType) {
         Object.assign(targetTypeMap, { [bind.target]: bind.target });
       }
@@ -363,7 +363,7 @@ export default function SearchAround() {
     }
     const relations = !sourceType ? [] :
       Array.from(new Set(_.get(_.get(typeRelationMap, sourceType, {}), 'source', [])))
-        .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
+        .map((id: string) => ({ key: relationMap[id]['r.type.id'], label: relationMap[id]['r.type.name'], data: relationMap[id] }));
     const btnDisabled = options.length > 0 && !_.get(options[options.length - 1], 'object');
     return (
       <div className="pdb-search-around-content">
@@ -382,12 +382,10 @@ export default function SearchAround() {
                 attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
               });
               options.forEach(({ object, data }: any) => {
-                const relationAttrs = JSON.parse(JSON.stringify(data["r.type.constraints"]));
-                delete relationAttrs["r.binds"];
-                delete relationAttrs["r.constraints"];
+                const relationAttrs = JSON.parse(JSON.stringify(data["r.type.attrs"]));
                 _data[0].push({
-                  value: data["r.type.name"],
-                  label: data["r.type.label"],
+                  value: data["r.type.id"],
+                  label: data["r.type.name"],
                   type: "relation",
                   attrs: Object.values(relationAttrs)
                 });
@@ -447,7 +445,7 @@ export default function SearchAround() {
             if (index > 0) objectType = options[index - 1]['object'];
             const relations = !objectType ? [] :
               Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))
-                .map((id: string) => ({ key: relationMap[id]['r.type.name'], label: relationMap[id]['r.type.label'], data: relationMap[id] }));
+                .map((id: string) => ({ key: relationMap[id]['r.type.id'], label: relationMap[id]['r.type.name'], data: relationMap[id] }));
             return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
           })}
           <div>

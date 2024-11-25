@@ -116,11 +116,9 @@ export default function Right(props: any) {
     // pql && pql.length > 0 && pql[0].forEach(function ({ type, id, name, binds }) {
     //   if (type === "relation" && !id) {
     //     autoRelation.push({
-    //       "r.type.name": 'Relation.' + uuid(),
-    //       "r.type.label": name,
-    //       "r.type.constraints": {
-    //         "r.binds": binds
-    //       }
+    //       "r.type.id": 'Relation.' + uuid(),
+    //       "r.type.name": name,
+    //       "r.type.binds": binds
     //     });
     //   }
     // });

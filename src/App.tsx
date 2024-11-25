@@ -106,7 +106,7 @@ function App(props: PdbConfig) {
     const relationMap = {};
     relations.forEach((item: RelationConfig) => {
       Object.assign(relationMap, {
-        [item['r.type.name']]: { ...item }
+        [item['r.type.id']]: { ...item }
       });
     });
     dispatch(setRelationMap(relationMap));
@@ -150,8 +150,8 @@ function App(props: PdbConfig) {
       if (success) {
         dispatch(setRelations(response || []));
         (response || []).forEach(function (relation: Relation.RelationConfig) {
-          const binds = _.get(relation['r.type.constraints'], 'r.binds', []),
-            relationId = relation['r.type.name'];
+          const binds = _.get(relation, 'r.type.binds', []),
+            relationId = relation['r.type.id'];
           binds.forEach(function (bind) {
             const { source, target } = bind;
             if (typeRelationMap[source]) {

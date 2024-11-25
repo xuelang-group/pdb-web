@@ -1,13 +1,21 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AttrConfig } from './type';
 
 interface ConstraintsConfig {
   'r.binds': Array<any>
   [key: string]: any
 }
+
+interface BindConfig {
+  source: string
+  target: string
+}
 export interface RelationConfig {
+  'r.type.id': string
   'r.type.name': string
-  'r.type.label': string
-  'r.type.constraints': ConstraintsConfig
+  'r.type.binds': BindConfig[]
+  'r.type.attrs': AttrConfig[]
+  // 'r.type.constraints': ConstraintsConfig 废弃字段
   'r.type.prototype'?: Array<string | null>
   'r.type.last_change'?: number
   'r.type.created'?: number
@@ -37,7 +45,7 @@ export const typeSlice = createSlice({
       const newData = JSON.parse(JSON.stringify(state.data));
       if (name) {
         for (let i = 0; i < newData.length; i++) {
-          if (newData[i]['r.type.name'] === name) {
+          if (newData[i]['r.type.id'] === name) {
             Object.assign(newData[i], options);
             break;
           }
@@ -54,8 +62,9 @@ export const getDefaultRelationConfig = () => {
   const timestamp = new Date().getTime();
 
   return {
-    "r.type.label": '新类型',
-    "r.type.constraints": { 'r.binds': [] },
+    "r.type.name": '新类型',
+    "r.type.attrs": [],
+    "r.type.binds": [],
     "r.type.prototype": [],
     "r.type.last_change": timestamp,
     "r.type.created": timestamp,
