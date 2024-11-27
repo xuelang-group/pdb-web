@@ -10,6 +10,7 @@ import { AttrConfig } from './type';
 interface BindConfig {
   source: string
   target: string
+  override?: boolean
 }
 export interface RelationConfig {
   'r.type.id': string

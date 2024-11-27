@@ -634,7 +634,7 @@ export default function Left(props: any) {
       setModalLoading(true);
       if (type === 'type') {
         const newType = {
-          'x.type.id': 'Type.' + uuid(),
+          'x.type.id': 'Type_' + uuid(),
           'x.type.attrs': [],
           'x.type.prototype': item['x.type.prototype'] || [],
           'x.type.name': name,
@@ -662,7 +662,7 @@ export default function Left(props: any) {
         createType(newType);
       } else {
         const newRelation = {
-          'r.type.id': 'Relation.' + uuid(),
+          'r.type.id': 'Relation_' + uuid(),
           'r.type.name': name,
           'r.type.binds': item['r.type.binds'] || [],
           'r.type.prototype': item['r.type.prototype'] || [],

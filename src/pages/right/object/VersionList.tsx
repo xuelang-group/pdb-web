@@ -71,7 +71,7 @@ export default function VersionList(props: RelationListProps) {
     const attrs = JSON.parse(JSON.stringify(record["v_attrs"]));
     const attrData: any[] = [], relationData: any[] = [], childrenList: any[] = record["v_children"];
     Object.keys(attrs).forEach(key => {
-      if (key.startsWith("Relation.")) {
+      if (key.startsWith("Relation_")) {
         attrs[key].forEach(function ({ uid }: { uid: string }) {
           relationData.push({
             relation: key,

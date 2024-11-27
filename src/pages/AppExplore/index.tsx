@@ -88,7 +88,7 @@ export default function AppExplore() {
     });
     pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
       let typeId = id;
-      if (type !== "object" && id.startsWith("~Relation.")) typeId = id.slice(1);
+      if (type !== "object" && id.startsWith("~Relation_")) typeId = id.slice(1);
       const _id = (typeId ? (typeId + "-") : ("__TEMPORARY_RELATION__")) + index;
       _tags.push(_id);
 
@@ -165,7 +165,7 @@ export default function AppExplore() {
             }
           });
         } else {
-          Object.assign(_tagsMap[_id], { data: relationMap[typeId], isReverse: id.startsWith("~Relation.") });
+          Object.assign(_tagsMap[_id], { data: relationMap[typeId], isReverse: id.startsWith("~Relation_") });
         }
       }
     });
@@ -1211,7 +1211,7 @@ export default function AppExplore() {
       </Tooltip> */}
       {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
-          const tagType = tag.startsWith("Type.") ? "type" : "relation";
+          const tagType = tag.startsWith("Type_") ? "type" : "relation";
           const attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.attrs"), [])));
           return {
             value: tag,
