@@ -665,7 +665,6 @@ export default function Left(props: any) {
           'r.type.id': 'Relation_' + uuid(),
           'r.type.name': name,
           'r.type.binds': item['r.type.binds'] || [],
-          'r.type.prototype': item['r.type.prototype'] || [],
           'r.type.attrs': item['r.type.attrs'] || []
         };
         createRelation(newRelation);

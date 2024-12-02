@@ -8,19 +8,21 @@ import { AttrConfig } from './type';
 // }
 
 interface BindConfig {
-  source: string
-  target: string
-  override?: boolean
+  'source': string
+  'target': string
+  'override'?: boolean
 }
 export interface RelationConfig {
-  'r.type.id': string
-  'r.type.name': string
-  'r.type.binds': BindConfig[]
-  'r.type.attrs': AttrConfig[]
+  'r.type.id': string // 关系类型ID
+  'r.type.name': string // 关系类型名称
+  'r.type.metadata'?: string // 元数据
+  'r.type.description'?: string // 关系类型描述
+  'r.type.editor'?: string // 关系类型创建人
+  'r.type.binds': BindConfig[] // 关系绑定对象类型列表
+  'r.type.attrs': AttrConfig[] // 关系绑定对象类型列表
+  'r.type.created'?: number // 类型创建时间
+  'r.type.updated'?: number // 类型修改时间
   // 'r.type.constraints': ConstraintsConfig 废弃字段
-  'r.type.prototype'?: Array<string | null>
-  'r.type.last_change'?: number
-  'r.type.created'?: number
 }
 
 interface RelationState {
@@ -67,8 +69,7 @@ export const getDefaultRelationConfig = () => {
     "r.type.name": '新类型',
     "r.type.attrs": [],
     "r.type.binds": [],
-    "r.type.prototype": [],
-    "r.type.last_change": timestamp,
+    "r.type.updated": timestamp,
     "r.type.created": timestamp,
   }
 };
