@@ -55,7 +55,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     routerParams = useParams();
   const [modal, contextHolder] = Modal.useModal();
   const graphData = useSelector((state: StoreState) => state.object.graphData),
-    rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),   // sroot节点uid
+    rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.id': xxxx},根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
@@ -1045,12 +1045,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         index = parentIndexMap[parentUid];
         Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       }
-      const parentInfo = { 'x.object.id': parentUid, 'x.object.index': index * 1024 };
-      let objectInfo = {
+      const objectInfo = {
         'x.type.id': row[2],
         'x.object.id': uid,
         'x.object.name': row[1].toString(),
-        'x.object.version.parents': [parentInfo],
+        'x.object.version.parents': { 
+          'x.object.id': parentUid, 
+          'x.object.index': index * 1024 
+        },
         'x.object.version.attrvalue': attrs
       };
       if (objectRelationMap[uid]) {

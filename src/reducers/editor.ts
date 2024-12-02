@@ -9,18 +9,14 @@ export interface EdgeItemData extends EdgeConfig {
   style?: any
 }
 export interface NodeItemData extends NodeConfig {
-  xid: string
-  id: string
-  uid: string
-  name: string
-  comboId: string // 所属combo id
-  data: any // 原始数据
-  dataIndex: number // 原始数据index
-  parent: string // 当前数据上级id
-  childLen: number
-  collapsed?: boolean // 是否折叠
-  labelCfg?: any
-  isDisabled?: boolean
+  'id': string // 对象节点ID
+  'xid': string // 对象节点层级ID
+  'comboId'?: string // 所属combo id
+  'data': ObjectConfig // 原始数据
+  'collapsed'?: boolean // 是否折叠
+  'isDisabled'?: boolean // 是否灰化
+  'totalPage'?: number // 分页数量
+  'nextDisabled'?: boolean // 下一页是否灰化
 }
 
 export interface TypeItemData extends NodeConfig {

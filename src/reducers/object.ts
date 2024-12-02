@@ -18,7 +18,7 @@ interface LatestVersionConfig {
 }
 
 // 父对象信息
-interface ObjectParentInfo {
+export interface ObjectParentInfo {
   'x.object.id': string // 父对象ID
   'x.object.version.id'?: string // 父对象版本ID
   'x.object.index': number // 顺序号
@@ -44,14 +44,15 @@ export interface ObjectVersionConfig {
   'x.object.version.created'?: number // 对象版本创建时间
   'x.object.version.updated'?: number // 对象版本修改时间
   'x.object.version.state'?: VersionState // 对象版本修改时间
-  'x.object.version.parents'?: ObjectParentInfo[] // 父对象信息
+  'x.object.version.parents'?: ObjectParentInfo // 父对象信息
   'x.object.version.relations'?: ObjectRelationInfo[] // 对象关系信息
+  'x.object.version.childs'?: number // 子对象个数
 }
 
 export interface ObjectConfig extends ObjectVersionConfig {
   'x.type.id': string // 对象类型ID
   'x.type.version.id'?: string // 对象类型版本ID
-  'x.object.id'?: string // 对象ID
+  'x.object.id': string // 对象ID
   'x.object.name': string // 对象名称
   'x.object.metadata'?: string // 元数据
   'x.object.created'?: number // 对象创建时间
@@ -60,10 +61,10 @@ export interface ObjectConfig extends ObjectVersionConfig {
 }
 
 export interface CustomObjectConfig extends ObjectConfig {
-  'currentParent': any
-  'collapsed'?: boolean
-  'x_id': string
-  'id': string
+  'xid': string // 对象节点层级ID
+  'collapsed'?: boolean // 是否折叠
+  'totalPage'?: number // 分页数量
+  'nextDisabled'?: boolean // 下一页是否灰化
 }
 
 interface GraphDataState {

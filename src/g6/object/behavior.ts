@@ -1,18 +1,19 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
 import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
-import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
 import { addObject, checkOutObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
+import { TypeConfig } from '@/reducers/type';
 
 export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
 export const G6OperateFunctions = {
-  addNode: function (newObject: ObjectConfig, callback: any) {
+  addNode: function (newObject: any, callback: any) {
     const graphId = store.getState().object.graphData.id;
     addObject(graphId, [newObject], (success: boolean, response: any) => {
       if (success) {
@@ -840,11 +841,11 @@ export const G6OperateFunctions = {
  * @param defaultTypeName 默认类型数据
  * @param prev 是否在节点上方添加，否就在节点下方添加
  */
-export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: any = {}, prev = false) {
+export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, prev = false) {
 
-  const defaultTypeName = _.get(typeData, 'id', ''),
-    typeAttrs = _.get(typeData, 'attrs', {}),
-    typeMetadata = _.get(typeData, 'metadata', '{}'),
+  const defaultTypeName = _.get(typeInfo, 'id', ''),
+    typeAttrValue = _.get(typeInfo, 'attrDefaultValue', {}),
+    typeMetadata = _.get(typeInfo, 'metadata', '{}'),
     sourceNodeId = sourceNode.get('id');
   if (!sourceNodeId) return;
 
@@ -867,77 +868,71 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
     return item.getModel().xid === (parentNodeXid + '.' + (xIndex - 1));
   });
-  const sourceNodeXIndex = sourceNodeModel.data.currentParent['x_index'];
-  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any).currentParent['x_index'] : sourceNodeXIndex - 1;
+  const sourceNodeXIndex = sourceNodeModel.data['x.object.version.parents']['x.object.index'];
+  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any)['x.object.version.parents']['x.object.index'] : sourceNodeXIndex - 1;
   const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
-    "uid": parentNodeModel.uid,
-    "x_index": newParentIndex,
+    "x.object.id": parentNodeModel.uid,
+    "x.object.index": newParentIndex,
   };
 
-  let isCheckout = false;
-  if (parentNodeModel.data && parentNodeModel.data['x_version'] && !parentNodeModel.data['x_checkout']) {
-    await (() => {
-      return new Promise((resolve) => {
-        checkOutObject(parentNodeModel.uid, (success: boolean, response: any) => {
-          resolve(null);
-          if (success) {
-            isCheckout = true;
-            graph.updateItem(parentNode, {
-              data: {
-                ...parentNodeModel.data,
-                'x_checkout': true
-              }
-            });
-          } else {
-            notification.error({
-              message: '创建实例失败',
-              description: response.message || response.msg
-            });
-          }
-        });
-      })
-    })();
-    if (!isCheckout) return;
-  }
+  /**
+   * 版本相关，暂不支持
+   */
+  // let isCheckout = false;
+  // if (parentNodeModel.data && parentNodeModel.data['x.object.version'] && !parentNodeModel.data['x_checkout']) {
+  //   await (() => {
+  //     return new Promise((resolve) => {
+  //       checkOutObject(parentNodeModel.uid, (success: boolean, response: any) => {
+  //         resolve(null);
+  //         if (success) {
+  //           isCheckout = true;
+  //           graph.updateItem(parentNode, {
+  //             data: {
+  //               ...parentNodeModel.data,
+  //               'x_checkout': true
+  //             }
+  //           });
+  //         } else {
+  //           notification.error({
+  //             message: '创建实例失败',
+  //             description: response.message || response.msg
+  //           });
+  //         }
+  //       });
+  //     })
+  //   })();
+  //   if (!isCheckout) return;
+  // }
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
     "x.type.id": defaultTypeName,
-    "x.object.name": typeData.name,
+    "x.object.name": typeInfo.name,
     "x.object.metadata": typeMetadata,
-    "x.object.version.parents": [{
-      "x.object.id": newParent['uid'],
-      "x.object.index": newParent['x_index']
-    }],
-    "x.object.version.attrvalue": typeAttrs
-  }, (newData: any) => {
-    const childLen = parentNodeModel.data['x_children'] || 0;
+    "x.object.version.parents": newParent,
+    "x.object.version.attrvalue": typeAttrValue
+  }, (newData: ObjectConfig) => {
+    const childLen = parentNodeModel.data['x.object.version.childs'] || 0;
     parentNode.update({
-      childLen: childLen + 1,
       data: {
         ...(parentNodeModel?.data),
-        'x_children': childLen + 1,
-        collapsed: false
-      }
+        'x.object.version.childs': childLen + 1,
+      },
+      collapsed: false
     });
     store.dispatch(setObjectDetail({
       uid: parentNodeId,
       options: {
-        'x_children': childLen + 1,
+        'x.object.version.childs': childLen + 1,
         collapsed: false
       }
     }));
 
     const updateGraphData = function () {
-      const newObj = {
+      const newObj: CustomObjectConfig = {
         ...newData,
-        "x_id": newXid,
-        currentParent: {
-          ...newParent,
-          "x_name": parentNodeModel.name,
-          id: parentNodeId
-        }
+        "xid": newXid
       };
 
       const objectState = store.getState().object;
@@ -948,8 +943,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
       let prevIsSource: any = false;
       for (let i = 0; i < data.length; i++) {
         const obj = data[i],
-          xid = obj['x_id'],
-          parentId = obj['currentParent'].id;
+          xid = obj['xid'],
+          parentId = (obj['x.object.version.parents'] || {})['x.object.id'];
         if (!parentId) return;
         if (!hasAdd) {
           if (prev) {
@@ -971,12 +966,12 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
           if (newId !== xid) {
             const newObj = {
               ...obj,
-              'x_id': newId,
+              'xid': newId,
             };
 
             _data.push(newObj);
             Object.assign(modifyIdMaps, {
-              [obj.id]: {
+              [obj['x.object.id']]: {
                 new: newId,
                 old: xid
               }
@@ -991,7 +986,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
         if (modifyIdMaps[parentId] && xid) {
           const modifyId = modifyIdMaps[parentId];
           const newId = xid.replace(modifyId.old, modifyId.new);
-          const newObj = { ...obj, 'x_id': newId };
+          const newObj = { ...obj, 'xid': newId };
           _data.push(newObj);
           continue;
         }
@@ -1022,7 +1017,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
         graph.changeData(graphData);
         graph.layout();
 
-        const item = graph.findById(newObj.id);
+        const item = graph.findById(newObj['x.object.id']);
         if (item) {
           graph.emit('node:click', {
             item: item,
@@ -1060,7 +1055,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
 
 // 在节点尾部增加子节点
 function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, graph: Graph) {
-  const childLen = newObj.currentParent['x_children'];
+  const childLen = sourceNode.data['x.object.version.childs'];
   if (childLen === undefined) return;
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
@@ -1077,47 +1072,23 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
 
   let hasAdd = false;
   for (let i = data.length - 1; i >= 0; i--) {
-    let obj = JSON.parse(JSON.stringify(data[i]));
-    const parent = obj['currentParent'].id,
-      xid = obj['x_id'];
+    const obj = JSON.parse(JSON.stringify(data[i])) as CustomObjectConfig;
+    const parent = (obj['x.object.version.parents'] || {})['x.object.id'],
+      xid = obj['xid'];
 
-    if (obj.id === sourceNodeId) {
-      Object.assign(obj, { 'x_children': childLen });
+    if (obj['x.object.id'] === sourceNodeId) {
+      Object.assign(obj, { 'x.object.version.childs': childLen });
     }
 
-    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['x_id'] === sourceNodeXid)) {
+    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['xid'] === sourceNodeXid)) {
       _data.unshift(newObj);
       hasAdd = true;
     }
     _data.unshift(obj);
   }
 
-  const curentGraphData: any = graph.save();
-  for (let i = 0; i < curentGraphData.nodes.length; i++) {
-    const node = curentGraphData.nodes[i];
-    if (node.id === sourceNodeId) {
-      const childLen = Number(node.childLen) + 1;
-      Object.assign(node, {
-        ...node,
-        childLen: childLen,
-        data: {
-          ...node.data,
-          'x_children': childLen,
-          collapsed: false
-        }
-      });
-      store.dispatch(setObjectDetail({
-        uid: sourceNodeId,
-        options: {
-          'x_children': childLen,
-          collapsed: false
-        }
-      }));
-      break;
-    }
-  }
   const { toolbarConfig, currentGraphTab } = store.getState().editor;
-  const graphData = addChildrenToGraphData(sourceNode, [newObj], curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+  const graphData = addChildrenToGraphData(sourceNode, [newObj], graph.save(), _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
 
   let shouldUpdate = true;
   const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE());
@@ -1144,31 +1115,30 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
 }
 
 // 增加根节点
-function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
+function addRootNode(objectData: ObjectConfig, customData: any, graph: Graph) {
   const objectState = store.getState().object;
   const rootId = store.getState().editor.rootNode['x.object.id'];
 
   const _data = JSON.parse(JSON.stringify(objectState.data || []));
-  _data.push(newObj);
+  _data.push(objectData);
   store.dispatch(setObjects(_data));
 
   const curentGraphData: any = graph.save();
   const { nodes, edges, combos } = curentGraphData;
 
-  const { uid, id, } = newObj;
-  const name = newObj['x_name'],
-    metadata = JSON.parse(newObj['x_metadata'] || '{}'),
+  const objId = objectData['x.object.id'],
+    name = objectData['x.object.name'],
+    metadata = JSON.parse(objectData['x.object.metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
     iconKey = _.get(metadata, 'icon', '');
-  const node = {
-    uid,
-    id,
-    xid: newObj['x_id'],
+  const node: NodeItemData = {
+    id: objId,
+    xid: customData['xid'],
     parent: rootId,
     name: name,
-    data: newObj,
+    data: objectData,
     comboId: rootId + '-combo',
-    childLen: Number(newObj['x_children'] || 0),
+    childLen: Number(objectData['x.object.version.childs'] || 0),
     icon: iconKey,
     style: {
       ...nodeStateStyle.default,
@@ -1182,7 +1152,7 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   };
 
   const combo = {
-    id: `${id}-combo`,
+    id: `${objId}-combo`,
     parentId: rootId + '-combo',
     collapsed: true
   };
@@ -1196,80 +1166,82 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
 }
 
 // 新增子节点
-async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: any) {
+async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }) {
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
 
   const typeId = _.get(typeData, 'id', ''),
     defaultTypeName = _.get(typeData, 'name', ''),
-    typeAttrs = _.get(typeData, 'attrs', {}),
+    typeAttrDefaultValue = _.get(typeData, 'attrs', {}),
     typeMetadata = _.get(typeData, 'metadata', '{}')
 
   const sourceNodeXid = sourceNode.xid;
 
-  const childLen = sourceNode.data['x_children'] || 0;
+  const childLen = sourceNode.data['x.object.version.childs'] || 0;
 
   const newXid = sourceNodeXid + '.' + childLen;
 
-  const newParent = {
-    "uid": sourceNode.uid,
-    "x_index": (childLen + 1) * 1024,
-    "x_children": childLen + 1
+  const newParent: ObjectParentInfo = {
+    "x.object.id": sourceNodeId,
+    "x.object.index": (childLen + 1) * 1024,
   };
 
-  let isCheckout = false;
-  if (sourceNode.data && sourceNode.data['x_version'] && !sourceNode.data['x_checkout']) {
-    await (() => {
-      return new Promise((resolve) => {
-        checkOutObject(sourceNode.uid, (success: boolean, response: any) => {
-          resolve(null);
-          if (success) {
-            isCheckout = true;
-            graph.updateItem(sourceNode.uid, {
-              data: {
-                ...sourceNode.data,
-                'x_checkout': true
-              }
-            });
-          } else {
-            notification.error({
-              message: '创建实例失败',
-              description: response.message || response.msg
-            });
-          }
-        });
-      })
-    })();
-    if (!isCheckout) return;
-  }
+  /**
+   * 版本相关，暂不支持
+   */
+  // let isCheckout = false;
+  // if (sourceNode.data && sourceNode.data['x_version'] && !sourceNode.data['x_checkout']) {
+  //   await (() => {
+  //     return new Promise((resolve) => {
+  //       checkOutObject(sourceNode.uid, (success: boolean, response: any) => {
+  //         resolve(null);
+  //         if (success) {
+  //           isCheckout = true;
+  //           graph.updateItem(sourceNode.uid, {
+  //             data: {
+  //               ...sourceNode.data,
+  //               'x_checkout': true
+  //             }
+  //           });
+  //         } else {
+  //           notification.error({
+  //             message: '创建实例失败',
+  //             description: response.message || response.msg
+  //           });
+  //         }
+  //       });
+  //     })
+  //   })();
+  //   if (!isCheckout) return;
+  // }
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.type.id": typeId,
     "x.object.name": defaultTypeName,
-    "x.object.version.parents": [{
-      "x.object.id": newParent['uid'],
-      "x.object.index": newParent['x_index']
-    }],
+    "x.object.version.parents": newParent,
     "x.object.metadata": typeMetadata,
-    "x.object.version.attrvalue": typeAttrs
-  }, (newData: any) => {
-    const id = newData.uid;
-    const newObj = {
+    "x.object.version.attrvalue": typeAttrDefaultValue
+  }, (newData: ObjectConfig) => {
+    const newObj: CustomObjectConfig = {
       ...newData,
-      id,
-      "x_id": newXid,
-      currentParent: {
-        ...newParent,
-        "x_name": sourceNode.name,
-        id: sourceNodeId
-      }
+      "xid": newXid,
     };
 
-    addNodeChildren(newObj, sourceNode, graph);
+    const sourceItem = graph.findById(sourceNodeId);
+    const newSourceNodeData = {
+      ...sourceNode.data,
+      "x.object.version.childs": childLen + 1
+    };
+    sourceItem.update({
+      data: newSourceNodeData,
+      collapsed: false
+    });
+
+    addNodeChildren(newObj, { ...sourceNode, data: newSourceNodeData }, graph);
     store.dispatch(setGraphLoading(false));
 
-    const item = graph.findById(newObj.id);
+    const item = graph.findById(newObj['x.object.id']);
     if (!item) return;
     graph.emit('node:click', {
       item: item,
@@ -1278,7 +1250,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   });
 }
 
-export function addChildNode(sourceNode: Item, graph: Graph, typeData: any = {}) {
+export function addChildNode(sourceNode: Item, graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }) {
   const model = sourceNode.get('model');
   if (!model) return;
   if (Number(model.childLen) > 0 && (model.data.collapsed === undefined || model.data.collapsed)) {
@@ -1299,6 +1271,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     typeMetadata = _.get(typeData, 'metadata', '{}');
   const rootNode = store.getState().editor.rootNode;
   const rootId = rootNode['x.object.id'];
+  if (!rootId) return;
   const children = graph.getComboChildren(`${rootId}-combo`);
   let childLen = children && children.nodes ? children.nodes.length : 0;
   if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
@@ -1310,36 +1283,21 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
 
   const newXid = rootId + '.' + childLen;
 
-  const newParent = {
-    "uid": rootId,
-    "x_index": (childLen + 1) * 1024
+  const newParent: ObjectParentInfo = {
+    "x.object.id": rootId,
+    "x.object.index": (childLen + 1) * 1024
   };
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.type.id": typeId,
     "x.object.name": defaultName,
-    "x.object.version.parents": [{
-      "x.object.id": newParent['uid'],
-      "x.object.index": newParent['x_index']
-    }],
+    "x.object.version.parents": newParent,
     "x.object.metadata": typeMetadata,
     "x.object.version.attrvalue": typeAttrs
-  }, (newData: any) => {
-    const id = newData.uid;
-    const newObject = {
-      ...newData,
-      currentParent: {
-        ...newParent,
-        "x_name": rootNode['x.object.name'],
-        id: rootId
-      },
-      'x_id': newXid,
-      id
-    };
-    addRootNode(newObject, graph);
+  }, (newData: ObjectConfig) => {
+    addRootNode(newData, { 'xid': newXid }, graph);
     store.dispatch(setGraphLoading(false));
-
-    const item = graph.findById(newObject.id);
+    const item = graph.findById(newData['x.object.id']);
     if (!item) return;
     graph.emit('node:click', {
       item: item,
@@ -1351,10 +1309,10 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   })
 }
 
-export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
+export function insertRootNode(graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, dropItem: any) {
   const defaultName = _.get(typeData, 'name', ''),
     typeId = _.get(typeData, 'id', ''),
-    typeAttrs = _.get(typeData, 'attrs', {}),
+    typeAttrDefaultValue = _.get(typeData, 'attrs', {}),
     typeMetadata = _.get(typeData, 'metadata', '{}');
   const rootNode = store.getState().editor.rootNode;
   const rootId = rootNode['x.object.id'];
@@ -1364,67 +1322,54 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     dropItemXid = dropItemModel.xid,
     dropItemIndex = Number(dropItemXid.replace(rootId + ".", "")),
     newXid = dropItemXid,
-    newParent: {
-      uid: string,
-      "x_index"?: number
-    } = {
-      "uid": rootId,
-      // "x_index": dropItemIndex
+    newParent: ObjectParentInfo = {
+      "x.object.id": rootId,
+      "x.object.index": 0
     };
 
   const dropPrevItemXid = dropItemIndex > 1 ? (rootId + "." + (dropItemIndex - 1)) : "";
   let currentIndex = dropItemIndex, dropItemDataIndex = -1;
   const newObjData = JSON.parse(JSON.stringify(data));
-  let newParentIndex: any;
+  let newParentIndex: number;
+  const dropItemParentIndex = Number((dropItemModel.data['x.object.version.parents'] || {})['x.object.index']);
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
-
-    if (item['x_id'] === dropPrevItemXid) {
-      const dropPrevItemXindex: number = Number(item.currentParent['x_index']);
-      newParentIndex = dropPrevItemXindex + (Number(dropItemModel.data.currentParent['x_index']) - dropPrevItemXindex) / 2;
+    if (item['xid'] === dropPrevItemXid) {
+      const dropPrevItemXindex: number = Number((item['x.object.version.parents'] || {})['x.object.index']);
+      newParentIndex = dropPrevItemXindex + (dropItemParentIndex - dropPrevItemXindex) / 2;
       Object.assign(newParent, {
-        "x_index": newParentIndex
+        "x.object.index": newParentIndex
       });
     } else if (dropItemIndex === 0 && index === 0) {
-      newParentIndex = Number(dropItemModel.data.currentParent['x_index']) / 2;
+      newParentIndex = dropItemParentIndex / 2;
       Object.assign(newParent, {
-        "x_index": newParentIndex
+        "x.object.index": newParentIndex
       });
     }
 
-    if (dropItemDataIndex === -1 && item['x_id'] === dropItemXid) dropItemDataIndex = index;
+    if (dropItemDataIndex === -1 && item['xid'] === dropItemXid) dropItemDataIndex = index;
 
-    if (item['x_id'] && item['x_id'].startsWith(rootId + '.' + (currentIndex + 1))) {
+    if (item['xid'] && item['xid'].startsWith(rootId + '.' + (currentIndex + 1))) {
       currentIndex += 1;
     }
 
-    if (item['x_id'] && item['x_id'].startsWith(rootId + '.' + currentIndex)) {
+    if (item['xid'] && item['xid'].startsWith(rootId + '.' + currentIndex)) {
       const newIndex = currentIndex + 1;
-      item['x_id'] = item['x_id'].replace(rootId + '.' + currentIndex, rootId + '.' + newIndex);
+      item['xid'] = item['xid'].replace(rootId + '.' + currentIndex, rootId + '.' + newIndex);
     }
   });
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
     "x.object.name": defaultName,
-    "x.object.version.parents": [{
-      "x.object.id": newParent['uid'],
-      "x.object.index": newParent['x_index'] || 1024
-    }],
+    "x.object.version.parents": newParent,
     "x.type.id": typeId,
     "x.object.metadata": typeMetadata,
-    "x.object.version.attrvalue": typeAttrs
-  }, (newData: any) => {
-    const id = newData.uid;
-    const newObject = {
+    "x.object.version.attrvalue": typeAttrDefaultValue
+  }, (newData: ObjectConfig) => {
+    const newObject: CustomObjectConfig = {
       ...newData,
-      currentParent: {
-        ...newParent,
-        "x_name": rootNode['x.object.name'],
-        id: rootId
-      },
-      'x_id': newXid,
-      id
-    }
+      'xid': newXid
+    };
 
     const updateGraphData = function () {
       newObjData.splice(dropItemDataIndex, 0, newObject);
@@ -1434,7 +1379,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       graph.layout();
       store.dispatch(setGraphLoading(false));
 
-      const item = graph.findById(newObject.id);
+      const item = graph.findById(newObject['x.object.id']);
       if (!item) return;
       graph.emit('node:click', {
         item: item,
@@ -1444,121 +1389,125 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
         graph.focusItem(item, true);
       }, 0);
     }
-    if (Number.isInteger(newParentIndex)) {
+    // if (Number.isInteger(newParentIndex)) {
       updateGraphData();
-    } else {
-      const parentUid = newParent.uid;
+    /**
+     * rearrangeChildren接口没有，暂不支持
+     */
+    // } else {
+    //   const parentUid = newParent['x.object.id'];
 
-      rearrangeChildren({ uid: parentUid }, (success: boolean, response: any) => {
-        if (success) {
-          getChildren({ vid: parentUid }, (success: boolean, data: any) => {
-            if (success) {
+    //   rearrangeChildren({ uid: parentUid }, (success: boolean, response: any) => {
+    //     if (success) {
+    //       getChildren({ vid: parentUid }, (success: boolean, data: any) => {
+    //         if (success) {
 
-              const { toolbarConfig, currentGraphTab } = store.getState().editor;
-              const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-              let _data: any[] = [];
+    //           const { toolbarConfig, currentGraphTab } = store.getState().editor;
+    //           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+    //           let _data: any[] = [];
 
-              _data = _data.concat(data.map((value: any, index: number) => {
-                const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-                  attrIndex = infoIndex === 0 ? 1 : 0;
-                const newValue = JSON.parse(JSON.stringify(value)),
-                  parents = newValue['e_x_parent'],
-                  currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-                  defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-                  attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-                  uid = newValue['vid'].toString();
+    //           _data = _data.concat(data.map((value: any, index: number) => {
+    //             const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+    //               attrIndex = infoIndex === 0 ? 1 : 0;
+    //             const newValue = JSON.parse(JSON.stringify(value)),
+    //               parents = newValue['e_x_parent'],
+    //               currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
+    //               defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+    //               attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
+    //               uid = newValue['vid'].toString();
 
-                // 获取对象关系列表数据
-                const relations: any[] = [];
-                Object.keys(newValue).forEach((key: string) => {
-                  if (key.startsWith("Relation_")) {
-                    const relationKey = key.replace('_', '.');
-                    if (_.isArray(newValue[key])) {
-                      newValue[key].forEach((target: any) => {
-                        relations.push({
-                          relation: relationKey,
-                          target: {
-                            uid: _.get(target, 'dst', '').toString()
-                          },
-                          attrValue: _.get(target, 'props', {})
-                        });
-                      });
-                    } else {
-                      relations.push({
-                        relation: relationKey,
-                        target: {
-                          uid: _.get(newValue[key], 'dst', '').toString()
-                        },
-                        attrValue: _.get(newValue[key], 'props', {})
-                      });
-                    }
-                  }
-                });
-                Object.assign(relationLines, {
-                  [uid]: relations
-                });
+    //             // 获取对象关系列表数据
+    //             const relations: any[] = [];
+    //             Object.keys(newValue).forEach((key: string) => {
+    //               if (key.startsWith("Relation_")) {
+    //                 const relationKey = key.replace('_', '.');
+    //                 if (_.isArray(newValue[key])) {
+    //                   newValue[key].forEach((target: any) => {
+    //                     relations.push({
+    //                       relation: relationKey,
+    //                       target: {
+    //                         uid: _.get(target, 'dst', '').toString()
+    //                       },
+    //                       attrValue: _.get(target, 'props', {})
+    //                     });
+    //                   });
+    //                 } else {
+    //                   relations.push({
+    //                     relation: relationKey,
+    //                     target: {
+    //                       uid: _.get(newValue[key], 'dst', '').toString()
+    //                     },
+    //                     attrValue: _.get(newValue[key], 'props', {})
+    //                   });
+    //                 }
+    //               }
+    //             });
+    //             Object.assign(relationLines, {
+    //               [uid]: relations
+    //             });
 
-                return {
-                  ...defaultInfo,
-                  'x_attr_value': { ...attrValue },
-                  'e_x_parent': parents,
-                  'x_children': _.get(newValue, 'x_children', 0),
-                  currentParent: {
-                    ...(_.get(currentParent, 'props', {})),
-                    uid: currentParent.dst.toString(),
-                    id: rootId,
-                  },
-                  'x_id': rootId + '.' + index,
-                  id: uid,
-                  uid: uid
-                };
-              }));
+    //             return {
+    //               ...defaultInfo,
+    //               'x_attr_value': { ...attrValue },
+    //               'e_x_parent': parents,
+    //               'x_children': _.get(newValue, 'x_children', 0),
+    //               currentParent: {
+    //                 ...(_.get(currentParent, 'props', {})),
+    //                 uid: currentParent.dst.toString(),
+    //                 id: rootId,
+    //               },
+    //               'x_id': rootId + '.' + index,
+    //               id: uid,
+    //               uid: uid
+    //             };
+    //           }));
 
-              store.dispatch(setToolbarConfig({
-                key: 'main',
-                config: { relationLines }
-              }));
-              const curentGraphData: any = graph.save();
+    //           store.dispatch(setToolbarConfig({
+    //             key: 'main',
+    //             config: { relationLines }
+    //           }));
+    //           const curentGraphData: any = graph.save();
 
-              const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentUid, xid: parentUid }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
-              let newData: any[] = _data;
+    //           const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentUid, xid: parentUid }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+    //           let newData: any[] = _data;
 
-              store.getState().object.data.forEach(function (obj: any) {
-                if (!obj['x_id'] || obj['x_id'].split(".").length > 2) {
-                  newData.push(obj);
-                }
-              });
-              store.dispatch(setObjects(newData));
-              graph.changeData({
-                nodes,
-                edges,
-                combos
-              }, false);
-            } else {
-              notification.error({
-                message: '获取子实例失败：',
-                description: data.message || data.msg
-              });
-            }
-            store.dispatch(setGraphLoading(false));
-          });
-        } else {
-          updateGraphData();
-        }
-      });
-    }
+    //           store.getState().object.data.forEach(function (obj: any) {
+    //             if (!obj['x_id'] || obj['x_id'].split(".").length > 2) {
+    //               newData.push(obj);
+    //             }
+    //           });
+    //           store.dispatch(setObjects(newData));
+    //           graph.changeData({
+    //             nodes,
+    //             edges,
+    //             combos
+    //           }, false);
+    //         } else {
+    //           notification.error({
+    //             message: '获取子实例失败：',
+    //             description: data.message || data.msg
+    //           });
+    //         }
+    //         store.dispatch(setGraphLoading(false));
+    //       });
+    //     } else {
+    //       updateGraphData();
+    //     }
+    //   });
+    // }
   });
 }
 
-export function dropCanvasAddNode({ id, name, attrs, metadata }: any, dropItem: any, position: string, graph: Graph) {
+// 从类型拖拽创建实例
+export function dropCanvasAddNode(typeInfo: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, dropItem: any, position: string, graph: Graph) {
   if (position === 'top-rect') {
-    addBrotherNode(dropItem, graph, { id, attrs, metadata, name }, true);
+    addBrotherNode(dropItem, graph, typeInfo, true);
   } else if (position === 'node-rect') {
-    addChildNode(dropItem, graph, { id, name, attrs, metadata });
+    addChildNode(dropItem, graph, typeInfo);
   } else if (position === 'left-rect') {
-    insertRootNode(graph, { id, name, attrs, metadata }, dropItem);
+    insertRootNode(graph, typeInfo, dropItem);
   } else {
-    createRootNode(graph, { id, name, attrs, metadata });
+    createRootNode(graph, typeInfo);
   }
 }
 
@@ -1959,15 +1908,15 @@ export function registerBehavior() {
     },
     drop: function drop(event: IG6GraphEvent) {
       const { item, target, originalEvent } = event;
-      const dropAddType = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
-      const dropAddTypeId = dropAddType['x.type.id'],
-        dropAddTypeMetadata = dropAddType['x.type.metadata'] || '{}';
+      const dropAddType: TypeConfig = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
+      const dropAddTypeId = dropAddType['x.type.id'];
       if (!dropAddTypeId) {
         this.dropItem = item;
         this.dropTarget = target;
         return;
       }
-      const dropAddTypeName = dropAddType['x.type.name'];
+      const dropAddTypeName = dropAddType['x.type.name'],
+        dropAddTypeMetadata = dropAddType['x.type.metadata'];
       const dropAddTypeAttrs = {};
       (dropAddType['x.type.version.attrs'] || []).forEach((attr: any) => {
         if (attr.default !== undefined && attr.default !== '') {
@@ -1981,7 +1930,7 @@ export function registerBehavior() {
       dropCanvasAddNode({
         id: dropAddTypeId,
         name: dropAddTypeName,
-        attrs: dropAddTypeAttrs,
+        attrDefaultValue: dropAddTypeAttrs,
         metadata: dropAddTypeMetadata
       }, item, cfg.name, graph);
     },

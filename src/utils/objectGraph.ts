@@ -118,27 +118,19 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
   }
   let index = 0;
   for (const item of data) {
-    const uid = item['uid'],
-      xid = item['x_id'] || uid,
-      name = item['x_name'] || uid,
-      childLen = item['x_children'] || 0,
-      currentParent = item['currentParent'],
-      id = uid,
+    const id = item['x.object.id'],
+      xid = item['xid'] || id,
       collapsed = item.collapsed === undefined ? true : item.collapsed,
-      metadata = JSON.parse(item['x_metadata'] || '{}'),
+      metadata = JSON.parse(item['x.object.metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     const comboId = `${id}-combo`;
     const node = {
       id,
       xid,
-      uid,
-      parent: currentParent.id,
-      name,
       data: item,
-      childLen,
       icon: iconKey,
-      isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x_type_name'] || ''),
+      isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.id'] || ''),
       style: {
         ...nodeStateStyle.default,
         fill
@@ -174,12 +166,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 
     nodes.push(node as NodeItemData);
 
-    if (currentParent.uid !== rootId) {
-      // if (index === 0) {
-      //   edges.push({ source: parentId, target: id });
-      // } else {
-      //   edges.push({ source: nodes[index - 1].id, target: id });
-      // }
+    if (item['x.object.version.parents'] && item['x.object.version.parents']['x.object.id'] !== rootId) {
       if (!isPagination) {
         const prevIsPagination = index > 0 && nodes[index - 1].id.startsWith("pagination-");
         edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index - 2].id : parentId) : nodes[index - 1].id), target: id });
@@ -198,12 +185,12 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 
 // 添加子节点
 export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
-  const id = parent.id || parent.uid;
+  const id = parent.id;
 
   const sortData = data.sort((a, b) => {
-    if (!a['x_id'] || !b['x_id']) return 1;
-    const aIds: any = a['x_id'].split('.'),
-      bIds: any = b['x_id'].split('.');
+    if (!a['xid'] || !b['xid']) return 1;
+    const aIds: any = a['xid'].split('.'),
+      bIds: any = b['xid'].split('.');
     for (let i = 1; i < aIds.length; i++) {
       if (Number(aIds[i]) === Number(bIds[i])) continue;
       return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
@@ -519,26 +506,18 @@ export function convertAllData(data: CustomObjectConfig[]) {
   const rootId = store.getState().editor.rootNode['x.object.id'];
   combos.push({ id: `${rootId}-combo` });
   for (const item of data) {
-    const uid = item['uid'],
-      xid = item['x_id'] || uid,
-      name = item['x_name'] || uid,
-      childLen = item['x_children'] || 0,
-      currentParent = item['currentParent'],
-      id = item.id || uid,
-      metadata = JSON.parse(item['x_metadata'] || '{}'),
+    const id = item['x.object.id'],
+      xid = item['xid'] || id,
+      metadata = JSON.parse(item['x.object.metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     const comboId = `${id}-combo`;
-    const parentId = currentParent.id;
+    const parentId = (item['x.object.version.parents'] || {})['x.object.id'];
     const collapsed = Boolean(item.collapsed === undefined ? true : item.collapsed);
-    const node = {
+    const node: NodeItemData = {
       id,
       xid,
-      uid,
-      parent: parentId,
-      name,
       data: item,
-      childLen,
       collapsed,
       icon: iconKey,
       style: {
@@ -576,17 +555,16 @@ export function convertAllData(data: CustomObjectConfig[]) {
 
     nodes.push(node as NodeItemData);
 
-    if (currentParent.id) {
-      if (currentParent.uid !== rootId) {
-        if (edgeIdMap[currentParent.id] && !isPagination) {
-          edges.push({ source: edgeIdMap[currentParent.id], target: id });
+    if (parentId) {
+      if (parentId !== rootId) {
+        if (edgeIdMap[parentId] && !isPagination) {
+          edges.push({ source: edgeIdMap[parentId], target: id });
         }
       }
       Object.assign(edgeIdMap, {
         [id]: id
       });
     }
-
   }
 
   return {
