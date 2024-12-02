@@ -830,10 +830,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             [_label]: {
               'x.type.id': _uuid,
               'x.type.name': _label,
-              'x.type.prototype': [],
               'x.type.metadata': JSON.stringify({ color: colors[colorIndex] }),
               'x.type.version': row[2] === undefined || row[2] === 'FALSE' ? false : true,
-              'x.type.attrs': []
+              'x.type.version.attrs': [],
+              'x.type.version.prototype': [],
             }
           });
           colorIndex++;
@@ -844,7 +844,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             [_label]: {
               'r.type.id': _uuid,
               'r.type.name': _label,
-              'r.type.prototype': [],
               'r.type.binds': [],
               'r.type.attrs': []
             }
@@ -864,7 +863,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           if (row[1] !== undefined) {
             const newAttr = getRowAttr(row);
             const _objectType = objectTypes[_label];
-            _objectType['x.type.attrs'].push(newAttr);
+            _objectType['x.type.version.attrs'].push(newAttr);
             Object.assign(objectTypes, { [_label]: _objectType });
           }
         } else if (relationTypes[_label]) {

@@ -50,7 +50,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   useEffect(() => {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
-      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [],
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.version.attrs'] : [],
       tagTypeLabel = tagType === 'type' ? tagTypeData['x.type.name'] : '',
       tagTypeCsv = _.get(originType, 'csv', []);
 
@@ -186,7 +186,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const onChange = (list: any[]) => {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
-      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [];
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.version.attrs'] : [];
 
     setCheckedList(list);
     setIndeterminate(!!list.length && list.length < tagTypeAttr.length);
@@ -203,7 +203,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const renderColumnSelect = function () {
     const tagType: string = _.get(originType, 'type', ''),
       tagTypeData = _.get(originType, 'data', {}),
-      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [];
+      tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.version.attrs'] : [];
     return (
       <div className="pdb-explore-column">
         <div className="pdb-explore-column-all">

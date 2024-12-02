@@ -379,7 +379,7 @@ export default function SearchAround() {
                 value: typeId,
                 label: _.get(typeMap[typeId], "x.type.name", ""),
                 type: "type",
-                attrs: _.get(typeMap[typeId], "x.type.attrs", ""),
+                attrs: _.get(typeMap[typeId], "x.type.version.attrs", ""),
               });
               options.forEach(({ object, data }: any) => {
                 const relationAttrs = JSON.parse(JSON.stringify(data["r.type.attrs"]));
@@ -394,7 +394,7 @@ export default function SearchAround() {
                   value: object,
                   label: _.get(typeMap[object], "x.type.name", ""),
                   type: "type",
-                  attrs: _.get(typeMap[object], "x.type.attrs", ""),
+                  attrs: _.get(typeMap[object], "x.type.version.attrs", ""),
                 });
               });
 

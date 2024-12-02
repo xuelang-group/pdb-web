@@ -127,7 +127,7 @@ export default function ParamEditor(props: any) {
         if (success) {
           const info = response[0];
           if (info) {
-            setObjectAttrs(info['x.type.attrs'] || []);
+            setObjectAttrs(info['x.type.version.attrs'] || []);
           }
         } else {
           notification.error({

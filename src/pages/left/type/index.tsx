@@ -161,7 +161,7 @@ export default function Left(props: any) {
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
-      if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
+      if (!type['x.type.version.prototype'] || type['x.type.version.prototype'].length === 0) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
@@ -182,7 +182,7 @@ export default function Left(props: any) {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(({ id }: TypePrototypeConfig) => id === typeName) > -1) {
+      if (val['x.type.version.prototype'] && val['x.type.version.prototype'].findIndex((item: TypePrototypeConfig) => item['x.type.id'] === typeName) > -1) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
@@ -635,13 +635,13 @@ export default function Left(props: any) {
       if (type === 'type') {
         const newType = {
           'x.type.id': 'Type_' + uuid(),
-          'x.type.attrs': [],
-          'x.type.prototype': item['x.type.prototype'] || [],
+          'x.type.version.attrs': [],
+          'x.type.version.prototype': item['x.type.version.prototype'] || [],
           'x.type.name': name,
           'x.type.version': false
         }
         if (modalType === 'copy') {
-          Object.assign(newType, { 'x.type.attrs': item['x.type.attrs'] || [], 'x.type.version': item['x.type.version'] });
+          Object.assign(newType, { 'x.type.version.attrs': item['x.type.version.attrs'] || [], 'x.type.version': item['x.type.version'] });
         } else if (modalType === 'add') {
           const colors = Object.keys(nodeColorList);
           Object.assign(newType, {
@@ -650,14 +650,14 @@ export default function Left(props: any) {
           });
         }
         if (prototype) {
-          Object.assign(newType, { 'x.type.prototype': [{ id: prototype }] });
-          const new_attrs = JSON.parse(JSON.stringify(item['x.type.attrs'] || []));
+          Object.assign(newType, { 'x.type.version.prototype': [{ 'x.type.id': prototype }] });
+          const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
           new_attrs.forEach((attr: AttrConfig) => {
             if (!attr.override) {
               Object.assign(attr, { override: prototype });
             }
           });
-          Object.assign(newType, { 'x.type.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
+          Object.assign(newType, { 'x.type.version.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
         }
         createType(newType);
       } else {

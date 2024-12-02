@@ -1993,7 +1993,7 @@ export function registerBehavior() {
       }
       const dropAddTypeName = dropAddType['x.type.name'];
       const dropAddTypeAttrs = {};
-      (dropAddType['x.type.attrs'] || []).forEach((attr: any) => {
+      (dropAddType['x.type.version.attrs'] || []).forEach((attr: any) => {
         if (attr.default !== undefined && attr.default !== '') {
           Object.assign(dropAddTypeAttrs, {
             [attr.name]: attr.default

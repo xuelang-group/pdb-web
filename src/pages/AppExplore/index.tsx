@@ -96,7 +96,8 @@ export default function AppExplore() {
       let conditionLabel = "";
       if (!_.isEmpty(conditionRaw) && id) {
         const attrMap: any = {};
-        _.get(typeMap[typeId], `${type === "object" ? 'x' : 'r'}.type.attrs`, []).forEach((val: any) => {
+        const attrKey = type === "object" ? 'x.type.version.attrs' : 'r.type.attrs';
+        _.get(typeMap[typeId], attrKey, []).forEach((val: any) => {
           Object.assign(attrMap, { [val?.name]: val });
         });
         conditions.forEach((val: ConditionState) => {
@@ -586,10 +587,10 @@ export default function AppExplore() {
       newMap[index] = { ...newMap[index], [value]: option };
 
       const { type, data } = option;
-      if (type === 'type' && data['x.type.attrs']) {
+      if (type === 'type' && data['x.type.version.attrs']) {
         const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [],
           typeId = data['x.type.id'];
-        data['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+        data['x.type.version.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
             attrId: name,
@@ -947,7 +948,7 @@ export default function AppExplore() {
           currTargetTagData = currTargetTag.data,
           typeId = currTargetTagData['x.type.id'],
           tagIndex = searchTags[index].length + 1;
-        currTargetTagData['x.type.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
+        currTargetTagData['x.type.version.attrs'].forEach(function ({ display, name, type }: AttrConfig) {
           csv.push({
             typeId: typeId,
             attrId: name,
@@ -1212,7 +1213,7 @@ export default function AppExplore() {
       {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
           const tagType = tag.startsWith("Type_") ? "type" : "relation";
-          const attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.attrs" : "r.type.attrs"), [])));
+          const attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.version.attrs" : "r.type.attrs"), [])));
           return {
             value: tag,
             label: _.get(searchTagMap[index][tag], "label", ""),

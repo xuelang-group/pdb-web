@@ -41,7 +41,7 @@ export default function TypeList() {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.prototype'] && val['x.type.prototype'].findIndex(({ id }: TypePrototypeConfig) => id === typeName) > -1) {
+      if (val['x.type.version.prototype'] && val['x.type.version.prototype'].findIndex((item: TypePrototypeConfig) => item['x.type.id'] === typeName) > -1) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
@@ -61,7 +61,7 @@ export default function TypeList() {
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
-      if (!type['x.type.prototype'] || type['x.type.prototype'].length === 0) {
+      if (!type['x.type.version.prototype'] || type['x.type.version.prototype'].length === 0) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({

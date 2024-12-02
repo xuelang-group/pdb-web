@@ -125,12 +125,15 @@ export default function Right(props: RightProps) {
       getObjectInfo(_currentEditDefaultData.uid, _attrs);
       uid = _currentEditDefaultData.uid;
     } else {
+      let attrKey = "";
       if (currentEditType === 'type') {
         prevLabel = 'x.type.';
+        attrKey = 'x.type.version.attrs';
       } else {
         prevLabel = 'r.type.';
+        attrKey = 'r.type.attrs';
       }
-      _attrs = _currentEditDefaultData[prevLabel + 'attrs'] || [];
+      _attrs = _currentEditDefaultData[attrKey] || [];
       _attrs.forEach((attr: any) => {
         const { datetimeFormat, type, name } = attr;
         if (type === 'datetime') {
@@ -168,7 +171,7 @@ export default function Right(props: RightProps) {
     attrForm.setFieldsValue(attFormValue);
 
     let _created = _.get(_currentEditDefaultData, prevLabel + 'created', ''),
-      _lastChange = _.get(_currentEditDefaultData, prevLabel + 'last_change', '');
+      _lastChange = _.get(_currentEditDefaultData, prevLabel + 'updated', '');
 
     if (Number(_created).toString() === _created) {
       _created = Number(_created);
@@ -285,12 +288,12 @@ export default function Right(props: RightProps) {
   // 更新属性列表
   const updateAttrs = function (attrs: any, callback?: Function) {
     if (!currentEditDefaultData) return;
-    const prevLabel = currentEditType === 'type' ? 'x' : 'r';
-    if (JSON.stringify(currentEditDefaultData[`${prevLabel}.type.attrs`]) !== JSON.stringify(attrs)) {
+    const attrKey = currentEditType === 'type' ? 'x.type.version.attrs' : 'r.type.attrs';
+    if (JSON.stringify(currentEditDefaultData[attrKey]) !== JSON.stringify(attrs)) {
       updateItemData({
         ...currentEditDefaultData,
-        [`${prevLabel}.type.attrs`]: attrs
-      }, callback, `${prevLabel}.type.attrs`);
+        [attrKey]: attrs
+      }, callback, attrKey);
     }
   }
 
@@ -404,7 +407,7 @@ export default function Right(props: RightProps) {
       getTypeInfo(graphData?.id, [typeName], (success: boolean, response: any) => {
         setTypeLoading(false);
         if (success) {
-          const attrs = _.get(response[0], 'x.type.attrs', []);
+          const attrs = _.get(response[0], 'x.type.version.attrs', []);
           resolve(attrs);
           setAttrs(attrs);
         } else {

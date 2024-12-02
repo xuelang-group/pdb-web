@@ -146,7 +146,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                 rules={[{ required: true, message: "源对象属性不能为空" }]}
               >
                 <Select
-                  options={(_.get(sourceTag, 'data', {})['x.type.attrs'] || []).map(
+                  options={(_.get(sourceTag, 'data', {})['x.type.version.attrs'] || []).map(
                     ({ display, name }: AttrConfig) => ({ label: display, value: name })
                   )}
                   disabled={readOnly}
@@ -192,7 +192,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                       rules={[{ required: true, message: "目标对象属性不能为空" }]}
                     >
                       <Select
-                        options={(_.get(currTargetTag, 'data', {})['x.type.attrs'] || []).map(
+                        options={(_.get(currTargetTag, 'data', {})['x.type.version.attrs'] || []).map(
                           ({ display, name }: AttrConfig) => ({ label: display, value: name })
                         )}
                         disabled={!getFieldValue(["r.type.binds", "target"]) || readOnly}
