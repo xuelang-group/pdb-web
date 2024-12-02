@@ -72,8 +72,7 @@ export const G6OperateFunctions = {
         });
         if (!_.isEmpty(response)) {
           const rootNode = store.getState().editor.rootNode;
-          if (!rootNode) return;
-          const rootId = rootNode.uid;
+          const rootId = rootNode['x.object.id'];
           const children = graph.getComboChildren(`${rootId}-combo`);
           let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
           const shouldUpdateObject: any[] = [];
@@ -93,7 +92,7 @@ export const G6OperateFunctions = {
               ...item,
               currentParent: {
                 ...newParent,
-                "x_name": rootNode['x_name'],
+                "x_name": rootNode['x.object.name'],
                 id: rootId
               },
               'x_id': newXid,
@@ -294,9 +293,7 @@ export const G6OperateFunctions = {
     const dropItemId = dropItem.get('id'),
       dropItemModel = dropItem.get('model'),
       dropItemXid = dropItemModel.xid;
-    const rootNode = store.getState().editor.rootNode;
-    if (!rootNode) return;
-    const rootId = rootNode.uid;
+    const rootId = store.getState().editor.rootNode['x.object.id'];
 
     let dragItemParentUid: any;
     if (dragItemParent === rootId) {
@@ -563,11 +560,10 @@ export const G6OperateFunctions = {
   },
   pasteNode: function (copyItem: NodeItemData, graph: Graph, pasteItem: any) {
     const rootNode = store.getState().editor.rootNode;
-    if (!rootNode) return;
-    const rootId = rootNode.uid;
+    const rootId = rootNode['x.object.id'];
 
     const parentId = pasteItem ? pasteItem.id : rootId;
-    const parentName = pasteItem ? pasteItem.name : rootNode['x_name'];
+    const parentName = pasteItem ? pasteItem.name : rootNode['x.object.name'];
     const parentUid = pasteItem ? pasteItem.uid : rootId;
     const parentXid = pasteItem ? pasteItem.xid : rootId;
 
@@ -1150,9 +1146,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
 // 增加根节点
 function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const objectState = store.getState().object;
-  const rootNode = store.getState().editor.rootNode;
-  if (!rootNode) return;
-  const rootId = rootNode.uid;
+  const rootId = store.getState().editor.rootNode['x.object.id'];
 
   const _data = JSON.parse(JSON.stringify(objectState.data || []));
   _data.push(newObj);
@@ -1304,8 +1298,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     typeAttrs = _.get(typeData, 'attrs', {}),
     typeMetadata = _.get(typeData, 'metadata', '{}');
   const rootNode = store.getState().editor.rootNode;
-  if (!rootNode) return;
-  const rootId = rootNode.uid;
+  const rootId = rootNode['x.object.id'];
   const children = graph.getComboChildren(`${rootId}-combo`);
   let childLen = children && children.nodes ? children.nodes.length : 0;
   if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
@@ -1337,7 +1330,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
       ...newData,
       currentParent: {
         ...newParent,
-        "x_name": rootNode['x_name'],
+        "x_name": rootNode['x.object.name'],
         id: rootId
       },
       'x_id': newXid,
@@ -1364,8 +1357,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
     typeAttrs = _.get(typeData, 'attrs', {}),
     typeMetadata = _.get(typeData, 'metadata', '{}');
   const rootNode = store.getState().editor.rootNode;
-  if (!rootNode) return;
-  const rootId = rootNode.uid;
+  const rootId = rootNode['x.object.id'];
   const objectState = store.getState().object;
   const { data } = objectState;
   const dropItemModel = dropItem.getModel(),
@@ -1427,7 +1419,7 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
       ...newData,
       currentParent: {
         ...newParent,
-        "x_name": rootNode['x_name'],
+        "x_name": rootNode['x.object.name'],
         id: rootId
       },
       'x_id': newXid,
@@ -1675,8 +1667,8 @@ export function registerBehavior() {
 
       const lastChangeTime = new Date().getTime();
       if (type === 'top-rect' || type === 'left-rect') {
-        const rootInfo = store.getState().editor.rootNode,
-          rootId = rootInfo?.uid;
+        const rootInfo = store.getState().editor.rootNode;
+        const rootId = rootInfo['x.object.id'];
         let dragItemParentUid = rootId, dragItemParentModel: any = rootInfo,
           dropItemParentUid = rootId, dropItemParentModel: any = rootInfo;
 

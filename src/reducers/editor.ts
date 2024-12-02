@@ -80,7 +80,7 @@ interface EditorState {
   currentGraphTab: string // 对象管理 - 画布当前tab
   graphDataMap: any
   multiEditModel: Array<NodeItemData | EdgeItemData | TypeItemData> | null // 对象管理 - 多个选中编辑
-  rootNode: ObjectConfig | null // 对象管理 - 根节点数据
+  rootNode: ObjectConfig // 对象管理 - 根节点数据
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
   typeMap: TypeMapConfig // 对象管理 - 对象类型Map，根据关系ID快速获取对象类型信息
   toolbarConfig: ToolbarConfig // 对象管理 - 工具栏,每个tab都有对应的工具栏
@@ -102,7 +102,11 @@ const initialState: EditorState = {
   currentGraphTab: 'main',
   graphDataMap: {},
   multiEditModel: null,
-  rootNode: null,
+  rootNode: {
+    "x.type.id": "",
+    "x.object.id": "",
+    "x.object.name": ""
+  },
   relationMap: {},
   typeMap: {},
   toolbarConfig: {
@@ -148,7 +152,7 @@ export const editorSlice = createSlice({
   initialState,
   reducers: {
     reset: (state) => initialState,
-    setRootNode: (state, action: PayloadAction<any>) => {
+    setRootNode: (state, action: PayloadAction<ObjectConfig>) => {
       state.rootNode = action.payload;
     },
     setGraphDataMap: (state, action: PayloadAction<any>) => {

@@ -44,7 +44,7 @@ export function registerLayout() {
         nodeXMap = self.nodeXMap;
       let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null,
         currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
-      const rootId = store.getState().editor.rootNode?.uid;
+      const rootId = store.getState().editor.rootNode['x.object.id'];
       self.nodes.forEach((item: any, index: number) => {
         if (item.parent !== rootId) {
           const itemParentX = nodeXMap.get(item.parent);
@@ -63,7 +63,7 @@ export function registerLayout() {
           if (item.type === "paginationBtn") {
             item.x += paginationOption().size[0] / 2;
             prevNodeHeight = 10;
-            
+
             if (prevNode && Number(prevNode.childLen) > 0) {
               item.y += 5;
             }

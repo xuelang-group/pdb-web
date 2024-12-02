@@ -13,7 +13,7 @@ export const contextMenu = new G6.Menu({
     }
 
     const model = evt.item.get('model');
-    const rootId = store.getState().editor.rootNode?.uid;
+    const rootId = store.getState().editor.rootNode['x.object.id'];
     if (model.parent === rootId) {
       return `
         <ul class="graph-contextmenu">
@@ -31,7 +31,7 @@ export const contextMenu = new G6.Menu({
   handleMenuClick: (target, item) => {
     const graph = (window as any).PDB_GRAPH;
     const key = target.getAttribute('key');
-    switch(key) {
+    switch (key) {
       case 'create_root':
         createRootNode(graph);
         break;

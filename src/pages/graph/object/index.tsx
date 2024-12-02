@@ -38,7 +38,8 @@ export default function Editor(props: EditorProps) {
     dispatch = useDispatch(),
     navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
-  const objectData = useSelector((state: StoreState) => state.object.data),
+  const graphInfo = useSelector((state: StoreState) => state.object.graphData),
+    objectData = useSelector((state: StoreState) => state.object.data),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
@@ -90,16 +91,12 @@ export default function Editor(props: EditorProps) {
 
   function getRootsData() {
     dispatch(setGraphLoading(true));
-    getRoots((success: boolean, data: any) => {
+    getRoots(graphInfo?.id, (success: boolean, data: any) => {
       if (success) {
         if (!data || data.length === 0) return;
         const rootData = data[0];
         const rootId = rootData.vid.toString();
-        const infoIndex = _.get(rootData, 'tags.0.name') === 'v_node' ? 0 : 1;
-        dispatch(setRootNode({
-          uid: rootId,
-          ...(_.get(rootData.tags[infoIndex], 'props', {}))
-        }));
+        dispatch(setRootNode(rootData));
         getChildren({ vid: rootId }, (success: boolean, data: any) => {
           let newData = [];
           if (success) {
@@ -305,7 +302,7 @@ export default function Editor(props: EditorProps) {
           //   shouldBegin: function (event: IG6GraphEvent) {
           //     if (!event.item) return false;
           //     const model = event.item.get('model');
-          //     return model.parent !== rootNode?.uid;
+          //     return model.parent !== rootNode['x.object.id'];
           //   },
           //   shouldEnd: function (event: IG6GraphEvent) {
           //     return false;
@@ -335,7 +332,7 @@ export default function Editor(props: EditorProps) {
             shouldBegin: function (event: IG6GraphEvent) {
               if (!event.item) return false;
               const model = event.item.get('model');
-              return model.parent !== rootNode?.uid;
+              return model.parent !== rootNode['x.object.id'];
             },
             shouldEnd: function (event: IG6GraphEvent) {
               return false;
@@ -521,7 +518,7 @@ export default function Editor(props: EditorProps) {
             resolve();
           });
         } else {
-          
+
           for (const node of curentGraphData.nodes) {
             if (node.uid === item.uid) {
               Object.assign(node, { collapsed: false, data: { ...node.data, collapsed: false } });
@@ -534,7 +531,7 @@ export default function Editor(props: EditorProps) {
               break;
             }
           }
-          
+
           for (const node of children.nodes) {
             const model = node.get('model');
 
@@ -570,12 +567,12 @@ export default function Editor(props: EditorProps) {
       key: currentGraphTab,
       config: { relationLines }
     }));
-    shouldExpandCombo.forEach(function(comboId: string) {
+    shouldExpandCombo.forEach(function (comboId: string) {
       graph.expandCombo(comboId);
     });
     graph.changeData(graphData);
     graph.layout();
-    
+
     item.update({
       data: {
         ...model.data,
@@ -768,7 +765,7 @@ export default function Editor(props: EditorProps) {
   const handleModalOk = async function (currentEditModel: any, removeAll: boolean) {
     if (currentEditModel.type === "pdbNode") {
       const parentId = currentEditModel.parent;
-      if (parentId && parentId !== rootNode?.uid) {
+      if (parentId && parentId !== rootNode['x.object.id']) {
         const parentNode = graph.findById(parentId);
         if (parentNode) {
           const parentData = parentNode.getModel().data;

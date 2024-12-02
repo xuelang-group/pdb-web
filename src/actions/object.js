@@ -4,10 +4,10 @@ import { apiPrefix } from './graph';
 const objectApiPrefix = `${apiPrefix}/object`;
 const api = {
   add: `${objectApiPrefix}/add`,
+  roots: `${objectApiPrefix}/roots`,
   get: `${objectApiPrefix}/get`,
   update: `${objectApiPrefix}/update`,
   delete: `${objectApiPrefix}/delete`,
-  roots: `${objectApiPrefix}/roots`,
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
@@ -22,6 +22,7 @@ const api = {
 
 /**
  * 添加对象
+ * @param {int} graphId 项目ID
  * @param {ObjectConfig} params 对象信息
  * @param {*} callback 
  * @returns 
@@ -37,6 +38,19 @@ export const addObject = (graphId, params, callback) => {
   });
 };
 
+/**
+ * 获取根对象
+ * @param {int} graphId 项目ID
+ * @param {*} callback 
+ * @returns 
+ */
+export const getRoots = (graphId, callback) => {
+  return axios.post(api['roots'], { graphId }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
 
 const commonParams = {
   graphId: 0
@@ -155,16 +169,6 @@ export const countObject = (typeName, callback) => {
     callback && callback(false, err);
   });
 };
-
-export const getRoots = (callback) => {
-  return axios.post(api['roots'], {
-    ...commonParams
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
 
 export const getChildren = (params, callback) => {
   // mock

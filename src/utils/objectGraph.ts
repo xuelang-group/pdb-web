@@ -111,7 +111,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
   const edges: EdgeConfig[] = [];
   const combos: ComboConfig[] = [];
   const nodes: NodeItemData[] = [];
-  const rootId = store.getState().editor.rootNode?.uid;
+  const rootId = store.getState().editor.rootNode['x.object.id'];
 
   if (parentId === rootId) {
     combos.push({ id: `${rootId}-combo` });
@@ -257,7 +257,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 // 添加子节点
 export function replaceChildrenToGraphData(parent: { id: string, xid: string }, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
   const id = parent.id;
-  const rootId = store.getState().editor.rootNode?.uid;
+  const rootId = store.getState().editor.rootNode['x.object.id'];
 
   const newDataIdMap: any = {};
   const sortData = data.sort((a, b) => {
@@ -377,7 +377,7 @@ export function convertResultData(
   relationLines: any,
   xid?: string
 ) {
-  const rootId = store.getState().editor.rootNode?.uid;
+  const rootId = store.getState().editor.rootNode['x.object.id'];
 
   if (!currentParent) {
     combos.push({ id: `${rootId}-combo` });
@@ -516,7 +516,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
   const combos: ComboConfig[] = [];
   const nodes: NodeItemData[] = [];
   let edgeIdMap: any = {};
-  const rootId = store.getState().editor.rootNode?.uid;
+  const rootId = store.getState().editor.rootNode['x.object.id'];
   combos.push({ id: `${rootId}-combo` });
   for (const item of data) {
     const uid = item['uid'],
