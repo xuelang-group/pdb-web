@@ -49,7 +49,8 @@ export const G6OperateFunctions = {
     }
 
     store.dispatch(setGraphLoading(true));
-    deleteObject(params, (success: boolean, response: any) => {
+    const graphData = store.getState().object.graphData;
+    deleteObject(graphData?.id, params, (success: boolean, response: any) => {
       if (success) {
         getRemoveIds(comboId);
 
@@ -57,62 +58,59 @@ export const G6OperateFunctions = {
           parentNodeId = deleteModel.parent;
 
         let newIndex = 0;
-        const _data = JSON.parse(JSON.stringify(data)).filter((val: any) => {
-          if (val.id === parentNodeId || val.uid === parentNodeId) {
-            val['x_children'] = val['x_children'] ? val['x_children'] - 1 : 0;
+        const _data = JSON.parse(JSON.stringify(data)).filter((val: CustomObjectConfig) => {
+          if (val['x.object.id'] === parentNodeId) {
+            val['x.object.version.childs'] = val['x.object.version.childs'] ? val['x.object.version.childs'] - 1 : 0;
           }
-          const shouldRemove = !removeIds.hasOwnProperty(val.id || val.uid);
-          if (val.currentParent.id === parentNodeId && shouldRemove && val['x_id']) {
-            const xid = val['x_id'].split(".");
+          const shouldRemove = !removeIds.hasOwnProperty(val['x.object.id']);
+          if ((val['x.object.version.parents'] || {})['x.object.id'] === parentNodeId && shouldRemove && val['xid']) {
+            const xid = val['xid'].split(".");
             xid.pop();
-            xid.push(newIndex);
-            val['x_id'] = xid.join(".");
+            xid.push(newIndex.toString());
+            val['xid'] = xid.join(".");
             newIndex++;
           }
           return shouldRemove;
         });
-        if (!_.isEmpty(response)) {
-          const rootNode = store.getState().editor.rootNode;
-          const rootId = rootNode['x.object.id'];
-          const children = graph.getComboChildren(`${rootId}-combo`);
-          let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
-          const shouldUpdateObject: any[] = [];
-          if (deleteModel.parent === rootId) {
-            if (lastRootNodeIndex > 0) {
-              lastRootNodeIndex -= 1;
-            }
-          }
-          response.map((item: ObjectConfig) => {
-            const newXid = rootId + '.' + lastRootNodeIndex;
-            const id = item.uid;
-            const newParent = {
-              "uid": rootId,
-              "x_index": (lastRootNodeIndex + 1) * 1024
-            };
-            const newObject: CustomObjectConfig = {
-              ...item,
-              currentParent: {
-                ...newParent,
-                "x_name": rootNode['x.object.name'],
-                id: rootId
-              },
-              'x_id': newXid,
-              id
-            }
-            _data.push(newObject);
-            shouldUpdateObject.push({
-              "vid": id,
-              "e_x_parent": [{
-                "vid": newParent['uid'],
-                "x_index": newParent['x_index']
-              }]
-            });
-            lastRootNodeIndex++;
-          });
-          if (shouldUpdateObject.length > 0) {
-            setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => { });
-          }
-        }
+        /**
+         * 暂不确定，联调时修改
+         */
+        // if (!_.isEmpty(response)) {
+        //   const rootNode = store.getState().editor.rootNode;
+        //   const rootId = rootNode['x.object.id'];
+        //   const children = graph.getComboChildren(`${rootId}-combo`);
+        //   let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
+        //   const shouldUpdateObject: any[] = [];
+        //   if (deleteModel.parent === rootId) {
+        //     if (lastRootNodeIndex > 0) {
+        //       lastRootNodeIndex -= 1;
+        //     }
+        //   }
+        //   response.map((item: ObjectConfig) => {
+        //     const newXid = rootId + '.' + lastRootNodeIndex;
+        //     const id = item.uid;
+        //     const newParent = {
+        //       "uid": rootId,
+        //       "x_index": (lastRootNodeIndex + 1) * 1024
+        //     };
+        //     const newObject: CustomObjectConfig = {
+        //       ...item,
+        //       'xid': newXid,
+        //     }
+        //     _data.push(newObject);
+        //     shouldUpdateObject.push({
+        //       "vid": id,
+        //       "e_x_parent": [{
+        //         "vid": newParent['uid'],
+        //         "x_index": newParent['x_index']
+        //       }]
+        //     });
+        //     lastRootNodeIndex++;
+        //   });
+        //   if (shouldUpdateObject.length > 0) {
+        //     setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => { });
+        //   }
+        // }
 
         let shouldUpdate = true;
         const graphData = convertAllData(_data);
@@ -1390,7 +1388,7 @@ export function insertRootNode(graph: Graph, typeData: { id: string; name: strin
       }, 0);
     }
     // if (Number.isInteger(newParentIndex)) {
-      updateGraphData();
+    updateGraphData();
     /**
      * rearrangeChildren接口没有，暂不支持
      */

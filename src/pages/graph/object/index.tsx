@@ -13,7 +13,7 @@ import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions, PAGE_SIZE } from '@/g6/object/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
-import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
@@ -764,41 +764,44 @@ export default function Editor(props: EditorProps) {
 
   const handleModalOk = async function (currentEditModel: any, removeAll: boolean) {
     if (currentEditModel.type === "pdbNode") {
-      const parentId = currentEditModel.parent;
-      if (parentId && parentId !== rootNode['x.object.id']) {
-        const parentNode = graph.findById(parentId);
-        if (parentNode) {
-          const parentData = parentNode.getModel().data;
-          let isCheckout = false;
-          if (parentData && parentData['x_version'] && !parentData['x_checkout']) {
-            await (() => {
-              return new Promise((resolve) => {
-                checkOutObject(parentId, (success: boolean, response: any) => {
-                  resolve(null);
-                  if (success) {
-                    isCheckout = true;
-                    graph.updateItem(parentNode, {
-                      data: {
-                        ...parentData,
-                        'x_checkout': true
-                      }
-                    });
-                  } else {
-                    notification.error({
-                      message: '删除实例失败',
-                      description: response.message || response.msg
-                    });
-                  }
-                });
-              })
-            })();
-            if (!isCheckout) return;
-          }
-        }
-      }
+      /**
+       * 版本相关，暂不支持
+       */
+      // const parentId = currentEditModel.data['x.object.version.parents']['x.object.id'];
+      // if (parentId && parentId !== rootNode['x.object.id']) {
+      //   const parentNode = graph.findById(parentId);
+      //   if (parentNode) {
+      //     const parentData: ObjectConfig = parentNode.getModel().data;
+      //     let isCheckout = false;
+      //     if (parentData && parentData['x_version'] && !parentData['x_checkout']) {
+      //       await (() => {
+      //         return new Promise((resolve) => {
+      //           checkOutObject(parentId, (success: boolean, response: any) => {
+      //             resolve(null);
+      //             if (success) {
+      //               isCheckout = true;
+      //               graph.updateItem(parentNode, {
+      //                 data: {
+      //                   ...parentData,
+      //                   'x_checkout': true
+      //                 }
+      //               });
+      //             } else {
+      //               notification.error({
+      //                 message: '删除实例失败',
+      //                 description: response.message || response.msg
+      //               });
+      //             }
+      //           });
+      //         })
+      //       })();
+      //       if (!isCheckout) return;
+      //     }
+      //   }
+      // }
       G6OperateFunctions.removeNode(currentEditModel?.id, {
-        vid: currentEditModel?.uid,
-        recurse: removeAll
+        'x.object.id': currentEditModel?.data['x.object.id'],
+        'recurse': removeAll
       }, graph, () => {
         handleModalCancel();
       });

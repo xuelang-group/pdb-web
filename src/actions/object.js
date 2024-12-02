@@ -5,9 +5,10 @@ const objectApiPrefix = `${apiPrefix}/object`;
 const api = {
   add: `${objectApiPrefix}/add`,
   roots: `${objectApiPrefix}/roots`,
+  delete: `${objectApiPrefix}/delete`,
+
   get: `${objectApiPrefix}/get`,
   update: `${objectApiPrefix}/update`,
-  delete: `${objectApiPrefix}/delete`,
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
@@ -51,6 +52,25 @@ export const getRoots = (graphId, callback) => {
     callback && callback(false, err);
   });
 }
+
+/**
+ * 删除对象
+ * @param {int} graphId 项目ID
+ * @param {{'x.object.id': string, 'recurse'?: boolean}} params {'x.object.id': 对象ID, 'recurse'?: 包含删除下级实例}
+ * @param {*} callback 
+ * @returns 
+ */
+export const deleteObject = (graphId, params, callback) => {
+  return axios.post(api['delete'], {
+    graphId,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
 
 const commonParams = {
   graphId: 0
@@ -124,18 +144,6 @@ export const getObjects = (vid, callback) => {
   return axios.post(api['list'], {
     ...commonParams,
     vid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 删除对象
-export const deleteObject = (params, callback) => {
-  return axios.post(api['delete'], {
-    ...commonParams,
-    ...params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
