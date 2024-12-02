@@ -1,10 +1,10 @@
 import axios from '../utils/axios';
+import { apiPrefix } from './graph';
 
-const apiPrefix = '/pdb/api/v1';
-const objectApiPrefix = `${apiPrefix}/object`
+const objectApiPrefix = `${apiPrefix}/object`;
 const api = {
-  get: `${objectApiPrefix}/get`,
   add: `${objectApiPrefix}/add`,
+  get: `${objectApiPrefix}/get`,
   update: `${objectApiPrefix}/update`,
   delete: `${objectApiPrefix}/delete`,
   roots: `${objectApiPrefix}/roots`,
@@ -19,6 +19,24 @@ const api = {
   rearrange: `${objectApiPrefix}/children/rearrange`,
   list: `${objectApiPrefix}/list`
 };
+
+/**
+ * 添加对象
+ * @param {ObjectConfig} params 对象信息
+ * @param {*} callback 
+ * @returns 
+ */
+export const addObject = (graphId, params, callback) => {
+  return axios.post(api['add'], {
+    graphId,
+    set: params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
 
 const commonParams = {
   graphId: 0
@@ -57,18 +75,6 @@ export const discardObject = (vid, callback) => {
   return axios.post(api['discard'], {
     ...commonParams,
     vid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 创建对象
-export const addObject = (params, callback) => {
-  return axios.post(api['add'], {
-    ...commonParams,
-    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

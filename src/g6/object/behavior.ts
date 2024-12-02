@@ -12,27 +12,11 @@ import { defaultNodeColor, getTextColor } from '@/utils/common';
 export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
 export const G6OperateFunctions = {
-  addNode: function (newObject: any, callback: any) {
-    let newData: any = { ...newObject };
-
-    addObject([newObject], (success: boolean, response: any) => {
+  addNode: function (newObject: ObjectConfig, callback: any) {
+    const graphId = store.getState().object.graphData.id;
+    addObject(graphId, [newObject], (success: boolean, response: any) => {
       if (success) {
-        const uid = response['vid'][0];
-        Object.assign(newData, { uid });
-
-        getObject(uid, (success: boolean, response: any) => {
-          if (success && response) {
-            newData = response;
-          }
-          const infoIndex = _.get(newData, 'tags.0.name') === 'v_node' ? 0 : 1,
-            attrIndex = infoIndex === 0 ? 1 : 0;
-          callback && callback({
-            ...(_.get(newData, `tags.${infoIndex}.props`, {})),
-            x_attr_value: { ...(_.get(newData, `tags.${attrIndex}.props`, {})) },
-            'e_x_parent': newData['e_x_parent'],
-            uid,
-          });
-        });
+        callback(response[0]);
       } else {
         notification.error({
           message: '创建实例失败',
@@ -923,14 +907,14 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeData: a
   store.dispatch(setGraphLoading(true));
 
   G6OperateFunctions.addNode({
-    "x_name": typeData.name,
-    "e_x_parent": [{
-      "vid": newParent['uid'],
-      "x_index": newParent['x_index']
+    "x.type.id": defaultTypeName,
+    "x.object.name": typeData.name,
+    "x.object.metadata": typeMetadata,
+    "x.object.version.parents": [{
+      "x.object.id": newParent['uid'],
+      "x.object.index": newParent['x_index']
     }],
-    "x_type_name": defaultTypeName,
-    "x_metadata": typeMetadata,
-    ...typeAttrs
+    "x.object.version.attrvalue": typeAttrs
   }, (newData: any) => {
     const childLen = parentNodeModel.data['x_children'] || 0;
     parentNode.update({
@@ -1267,14 +1251,14 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x_name": defaultTypeName,
-    "e_x_parent": [{
-      "vid": newParent['uid'],
-      "x_index": newParent['x_index']
+    "x.type.id": typeId,
+    "x.object.name": defaultTypeName,
+    "x.object.version.parents": [{
+      "x.object.id": newParent['uid'],
+      "x.object.index": newParent['x_index']
     }],
-    "x_type_name": typeId,
-    "x_metadata": typeMetadata,
-    ...typeAttrs
+    "x.object.metadata": typeMetadata,
+    "x.object.version.attrvalue": typeAttrs
   }, (newData: any) => {
     const id = newData.uid;
     const newObj = {
@@ -1339,14 +1323,14 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   };
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x_name": defaultName,
-    "e_x_parent": [{
-      "vid": newParent['uid'],
-      "x_index": newParent['x_index']
+    "x.type.id": typeId,
+    "x.object.name": defaultName,
+    "x.object.version.parents": [{
+      "x.object.id": newParent['uid'],
+      "x.object.index": newParent['x_index']
     }],
-    "x_type_name": typeId,
-    "x_metadata": typeMetadata,
-    ...typeAttrs
+    "x.object.metadata": typeMetadata,
+    "x.object.version.attrvalue": typeAttrs
   }, (newData: any) => {
     const id = newData.uid;
     const newObject = {
@@ -1429,14 +1413,14 @@ export function insertRootNode(graph: Graph, typeData: any, dropItem: any) {
 
   store.dispatch(setGraphLoading(true));
   G6OperateFunctions.addNode({
-    "x_name": defaultName,
-    "e_x_parent": [{
-      "vid": newParent['uid'],
-      "x_index": newParent['x_index']
+    "x.object.name": defaultName,
+    "x.object.version.parents": [{
+      "x.object.id": newParent['uid'],
+      "x.object.index": newParent['x_index'] || 1024
     }],
-    "x_type_name": typeId,
-    "x_metadata": typeMetadata,
-    ...typeAttrs
+    "x.type.id": typeId,
+    "x.object.metadata": typeMetadata,
+    "x.object.version.attrvalue": typeAttrs
   }, (newData: any) => {
     const id = newData.uid;
     const newObject = {

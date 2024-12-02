@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 
 import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
 import store, { StoreState } from "@/store";
-import { Parent, setObjects } from "@/reducers/object";
+import { ObjectConfig, ObjectRelationInfo, Parent, setObjects } from "@/reducers/object";
 import { addObject, getChildren } from "@/actions/object";
 import { clearGraphData } from "@/actions/graph";
 import { covertToGraphData } from "@/utils/objectGraph";
@@ -953,7 +953,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = objects.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addObject(chunk, (success: boolean, response: any) => {
+          addObject(graphData?.id, chunk, (success: boolean, response: any) => {
             if (!success) {
               isAllSuccess = false;
               error = response;
@@ -995,7 +995,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             Object.assign(relationAttrs, { [`${relationUid}|${key}`]: attrValues[key] });
           });
         } catch (err) { }
-        const info = { vid: targetUid, ...relationAttrs };
+        const info = {
+          'r.type.id': relationUid,
+          'r.object.binds': {
+            'source': sourceUid,
+            'target': targetUid
+          },
+          'r.object.attrvalue': relationAttrs
+        };
         if (!objectRelationMap[sourceUid]) {
           Object.assign(objectRelationMap, { [sourceUid]: { [relationUid]: [info] } });
         } else if (!objectRelationMap[sourceUid][relationUid]) {
@@ -1014,12 +1021,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         nextRootNodeIndex = Math.floor(lastRootNode.getModel().data.currentParent['x_index'] / 1024) + 1;
       }
     }
-    const objects: {
-      vid: string;
-      'x_name': any;
-      'x_type_name': any;
-      'e_x_parent': { vid: string; 'x_index': any; }[];
-    }[] = [],
+    const objects: ObjectConfig[] = [],
       parentIndexMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
@@ -1043,15 +1045,21 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         index = parentIndexMap[parentUid];
         Object.assign(parentIndexMap, { [parentUid]: index + 1 });
       }
-      const parentInfo = { vid: parentUid, 'x_index': index * 1024 };
+      const parentInfo = { 'x.object.id': parentUid, 'x.object.index': index * 1024 };
       let objectInfo = {
-        vid: uid,
-        'x_name': row[1].toString(),
-        'x_type_name': row[2],
-        'e_x_parent': [parentInfo],
-        ...attrs
+        'x.type.id': row[2],
+        'x.object.id': uid,
+        'x.object.name': row[1].toString(),
+        'x.object.version.parents': [parentInfo],
+        'x.object.version.attrvalue': attrs
       };
-      if (objectRelationMap[uid]) Object.assign(objectInfo, objectRelationMap[uid]);
+      if (objectRelationMap[uid]) {
+        let relations: ObjectRelationInfo[] = [];
+        Object.values(objectRelationMap[uid]).forEach((values: any) => {
+          relations = relations.concat(values);
+        })
+        Object.assign(objectInfo, { 'x.object.version.relations': relations });
+      }
       objects.push(objectInfo);
     }
     if (override && graphData?.id) {

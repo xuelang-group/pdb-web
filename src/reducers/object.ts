@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { VersionState } from './type';
 
 export interface Parent {
   uid?: string
@@ -16,21 +17,47 @@ interface LatestVersionConfig {
   'v_version': string
 }
 
-export interface ObjectConfig {
-  'uid': string
-  'x_name': string
-  'e_x_parent': Array<Parent>
-  'x_type_name': string
-  'x_last_change': any
-  'x_created': any
-  'x_children': number
-  'x_metadata': string
-  'x_version'?: boolean
-  'x_checkout'?: boolean
-  'x_latest_version': LatestVersionConfig
-  [key: string]: any
+// 父对象信息
+interface ObjectParentInfo {
+  'x.object.id': string // 父对象ID
+  'x.object.version.id'?: string // 父对象版本ID
+  'x.object.index': number // 顺序号
 }
 
+interface ObjectBindInfo {
+  'source': string
+  'target': string
+}
+
+export interface ObjectRelationInfo {
+  'r.type.id': string // 关系类型ID
+  'r.object.binds': ObjectBindInfo // 关系绑定对象
+  'r.object.attrvalue': any // 关系属性键值对
+}
+
+export interface ObjectVersionConfig {
+  'x.object.version'?: boolean // 开启版本控制
+  'x.object.version.id'?: string // 对象版本ID
+  'x.object.version.name'?: string // 对象版本名称
+  'x.object.version.description'?: string // 对象版本描述
+  'x.object.version.attrvalue'?: any // 属性值
+  'x.object.version.created'?: number // 对象版本创建时间
+  'x.object.version.updated'?: number // 对象版本修改时间
+  'x.object.version.state'?: VersionState // 对象版本修改时间
+  'x.object.version.parents'?: ObjectParentInfo[] // 父对象信息
+  'x.object.version.relations'?: ObjectRelationInfo[] // 对象关系信息
+}
+
+export interface ObjectConfig extends ObjectVersionConfig {
+  'x.type.id': string // 对象类型ID
+  'x.type.version.id'?: string // 对象类型版本ID
+  'x.object.id'?: string // 对象ID
+  'x.object.name': string // 对象名称
+  'x.object.metadata'?: string // 元数据
+  'x.object.created'?: number // 对象创建时间
+  'x.object.update'?: number // 对象修改时间
+  'x.object.editor'?: string // 创建人
+}
 
 export interface CustomObjectConfig extends ObjectConfig {
   'currentParent': any
