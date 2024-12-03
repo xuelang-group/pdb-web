@@ -427,14 +427,14 @@ export default function SearchAround() {
             <span>起始对象</span>
             <span>
               {start.map((item: ObjectConfig) => {
-                const metadata = JSON.parse(item['x_metadata'] || '{}'),
+                const metadata = JSON.parse(item['x.object.metadata'] || '{}'),
                   color = _.get(metadata, 'color', defaultNodeColor.fill);
                 return (
                   <Tag
                     color={color}
                     style={{ color: getTextColor(color), borderColor: getBorderColor(_.get(metadata, 'borderColor'), color), cursor: "pointer" }}
-                    onClick={() => onFocusItem(item["uid"])}
-                  >{item["x_name"]}</Tag>
+                    onClick={() => onFocusItem(item['x.object.id'])}
+                  >{item['x.object.name']}</Tag>
                 );
               })
               }

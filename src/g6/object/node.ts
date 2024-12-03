@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
+import { ObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60;
 
@@ -61,7 +62,7 @@ export function registerNode() {
       const userId = store.getState().app.systemInfo.userId;
       const { parent, name, id, data, childLen } = cfg;
       const isRootNode = parent === rootId;
-      const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
+      const metadata = JSON.parse((data as ObjectConfig)['x.object.metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
@@ -376,7 +377,7 @@ export function registerNode() {
       let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
         topRect = group?.find(child => child.get('name') === 'top-rect');
 
-      const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
+      const metadata = JSON.parse((data as ObjectConfig)['x.object.metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),

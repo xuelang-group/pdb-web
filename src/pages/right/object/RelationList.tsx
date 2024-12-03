@@ -39,7 +39,7 @@ export default function RelationList(props: RelationListProps) {
     const _relations: any = [], _relationMap: any = {}, _targetList: any = [];
     const usedTargetMap: any = {}, noLabelObject = {};
     setTableLoading(true);
-    _.get(relationLines, props.source.uid, []).forEach((item: ObjectRelationConig) => {
+    _.get(relationLines, props.source.id, []).forEach((item: ObjectRelationConig) => {
       const { relation, target } = item;
       const relationId = _.get(relationMap[relation], 'r.type.id', ''),
         targetLabel = _.get(target, 'x_name', ''),
@@ -103,7 +103,7 @@ export default function RelationList(props: RelationListProps) {
   }, [props.source, relationLines]);
 
   useEffect(() => {
-    currentEditModel && updateRelationList(currentEditModel.data['x_type_name']);
+    currentEditModel && updateRelationList(_.get(currentEditModel.data, 'x_type_name'));
   }, [currentEditModel?.id]);
 
   function updateRelationList(typeId: any) {
@@ -164,7 +164,7 @@ export default function RelationList(props: RelationListProps) {
       setRelations(_relations);
       return;
     }
-    const sourceUid = props.source.uid;
+    const sourceUid = props.source.id;
     const relationId = deleteId || _relations[index].relationId || _relations[index].relation;
     const deleteItemConfig = deleteItem || { uid: _relations[index].target };
     deleteObjectRelation([{
@@ -232,14 +232,14 @@ export default function RelationList(props: RelationListProps) {
     setTargetList([]);
     handleDeleteRelation(index, null, null, () => {
       form.setFieldValue(['relation', index, 'target'], '');
-      const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, props.source.uid, [])));
+      const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, props.source.id, [])));
       newRelationLines[index] = { relation: value, target: {} };
       dispatch(setToolbarConfig({
         key: 'main',
         config: {
           relationLines: {
             ...relationLines,
-            [props.source.uid]: newRelationLines
+            [props.source.id]: newRelationLines
           }
         }
       }));
@@ -252,7 +252,7 @@ export default function RelationList(props: RelationListProps) {
     setTableLoading(true);
     const relation = form.getFieldValue(['relation', index, 'relation']);
     getRelationTarget({
-      'x.type.id': props.source.data['x_type_name'],
+      'x.type.id': props.source.data['x.type.id'],
       'x.relation.name': relation
     }, (success: any, response: any) => {
       if (success) {
@@ -287,7 +287,7 @@ export default function RelationList(props: RelationListProps) {
     const relation = form.getFieldValue(['relation', index, 'relation']);
     const prvRelationId = relations[index]['relation'],
       prvRelationTarget = relations[index]['target'];
-    const sourceUid = props.source.uid;
+    const sourceUid = props.source.id;
     const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
 
     function createRelation() {
@@ -296,8 +296,8 @@ export default function RelationList(props: RelationListProps) {
         const relationConstrarint = relationConstrarintMap[relation];
         const tgtLabel = option.label,
           tgtType = option.type;
-        const srcLabel = props.source.data['x_name'],
-          srcType = props.source.data['x_type_name'];
+        const srcLabel = props.source.data['x.object.name'],
+          srcType = props.source.data['x.type.id'];
         const maxTgt = relationConstrarint[srcType + '-' + tgtType] || Infinity;
         let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x_type_name') === tgtType).length;
         if (_.get(targetMap[prvRelationTarget], 'x_type_name') === tgtType) {
@@ -329,7 +329,7 @@ export default function RelationList(props: RelationListProps) {
       });
 
       createObjectRelation([{
-        vid: props.source.uid,
+        vid: props.source.id,
         [relation]: [{
           'vid': targetOption['uid'],
           'x_name': targetOption['x_name']

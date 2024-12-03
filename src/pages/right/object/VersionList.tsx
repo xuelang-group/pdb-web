@@ -39,7 +39,7 @@ export default function VersionList(props: RelationListProps) {
   function getVersions(offset: number) {
     setVersionLoading(true);
     getVersionList({
-      vid: source.uid,
+      vid: source['x.object.id'],
       offset,
       first: pageSize
     }, (success: boolean, response: any) => {
@@ -54,7 +54,7 @@ export default function VersionList(props: RelationListProps) {
             ...versionInfo,
             v_attrs,
             v_children,
-            'v_status': source['x_checkout'] && _.get(checkoutVesion, "vid", "").toString() === version.vid.toString() ? "编辑中" : "已发布",
+            // 'v_status': source['x_checkout'] && _.get(checkoutVesion, "vid", "").toString() === version.vid.toString() ? "编辑中" : "已发布",
             'v_created': formatTimestamp(Number(versionInfo['v_created']))
           }
         }));
@@ -134,7 +134,7 @@ export default function VersionList(props: RelationListProps) {
   }
 
   useEffect(() => {
-    if (source && source.uid) {
+    if (source && source['x.object.id']) {
       getVersions(0);
     }
     return () => {

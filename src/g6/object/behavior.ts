@@ -1,7 +1,7 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
 import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
-import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
 import { addObject, checkOutObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
@@ -148,10 +148,10 @@ export const G6OperateFunctions = {
     });
   },
   expandNode: function (node: Item, graph: Graph, callback?: any) {
-    const model = node.get('model'),
-      xid = model.xid,
-      id = node.get('id');
-    const comboId = `${id}-combo`,
+    const model: NodeItemData = node.get('model'),
+      modelChildLen = model.data['x.object.version.childs'],
+      xid = model.xid;
+    const comboId = `${model.id}-combo`,
       collapsed = false;
     const children = graph.getComboChildren(comboId);
     if (!children || !children.nodes || children.nodes.length === 0) {
@@ -159,67 +159,38 @@ export const G6OperateFunctions = {
       const limit = Number(PAGE_SIZE());
       let params = { vid: model.uid };
 
-      if (limit > 0 && Number(model.childLen) > limit) {
+      if (limit > 0 && Number(modelChildLen) > limit) {
         Object.assign(params, { first: limit, offset: 0 });
       }
       getChildren(params, (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-          const _data = data.map((value: any, index: number) => {
-            const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-              attrIndex = infoIndex === 0 ? 1 : 0;
-            const newValue = JSON.parse(JSON.stringify(value)),
-              parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.dst?.toString() === model.uid)[0],
-              _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-              attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-              uid = newValue['vid'].toString();
+          const _data = data.map((value: ObjectConfig, index: number) => {
+            const _xid = xid + '.' + index;
 
             // 获取对象关系列表数据
             const relations: any[] = [];
-            Object.keys(newValue).forEach((key: string) => {
-              if (key.startsWith("Relation_")) {
-                const relationKey = key.replace('_', '.');
-                if (isArray(newValue[key])) {
-                  newValue[key].forEach((target: any) => {
-                    relations.push({
-                      relation: relationKey,
-                      target: {
-                        uid: _.get(target, 'dst', '').toString()
-                      },
-                      attrValue: _.get(target, 'props', {})
-                    });
-                  });
-                } else {
-                  relations.push({
-                    relation: relationKey,
-                    target: {
-                      uid: _.get(newValue[key], 'dst', '').toString()
-                    },
-                    attrValue: _.get(newValue[key], 'props', {})
-                  });
-                }
+            (value['x.object.version.relations'] || []).forEach((info: ObjectRelationInfo) => {
+              const typeId = info['r.type.id'],
+                { target } = info['r.object.binds'];
+              if (typeId.startsWith("Relation_")) {
+                relations.push({
+                  relation: typeId,
+                  target: {
+                    uid: target
+                  },
+                  attrValue: info['r.object.attrvalue']
+                });
               }
             });
             Object.assign(relationLines, {
-              [uid]: relations
+              [value['x.object.id']]: relations
             });
 
             return {
-              ...defaultInfo,
-              'x_attr_value': { ...attrValue },
-              'x_children': _.get(newValue, 'x_children', 0),
-              'e_x_parent': parents,
-              currentParent: {
-                ...(_.get(currentParent, 'props', {})),
-                uid: currentParent.dst.toString(),
-                id
-              },
-              'x_id': _xid,
-              id: uid,
-              uid: uid
+              ...value,
+              'x_id': _xid
             }
           });
           store.dispatch(setToolbarConfig({
@@ -229,18 +200,18 @@ export const G6OperateFunctions = {
           graph.expandCombo(comboId);
           const curentGraphData: any = graph.save();
           if (params.hasOwnProperty("offset")) {
-            const totalPage = model.childLen ? Math.ceil(model.childLen / limit) : 1;
+            const totalPage = modelChildLen ? Math.ceil(modelChildLen / limit) : 1;
             _data.push({
-              uid: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
-              id: 'pagination-' + model.uid + `-${Number(PAGE_SIZE())}-next`,
+              uid: 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
+              id: 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
               totalPage,
-              currentParent: { id }
+              currentParent: { id: model.id }
             });
           }
           const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
           let newData: any[] = [];
-          store.getState().object.data.forEach(function (obj: any) {
-            if (obj['x_id'] === xid) {
+          store.getState().object.data.forEach(function (obj: CustomObjectConfig) {
+            if (obj['xid'] === xid) {
               newData.push({
                 ...obj,
                 collapsed
@@ -272,7 +243,7 @@ export const G6OperateFunctions = {
         store.dispatch(setGraphLoading(false));
       });
     } else {
-      store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
+      store.dispatch(setObjectDetail({ uid: model.id, options: { collapsed } }));
       graph.expandCombo(comboId);
       node.update({
         data: {
@@ -577,33 +548,14 @@ export const G6OperateFunctions = {
       recurse: true
     }, (success: boolean, response: any) => {
       if (success) {
-        const newObj = {
-          ...copyItem.data,
-          uid: response,
-          id: response,
-          "x_id": newXid,
-          "e_x_parent": [{
-            'src': copyItem.uid,
-            'dst': newParent['uid'],
-            'type': 1,
-            'name': 'e_x_parent',
-            'ranking': 0,
-            'props': {
-              'x_index': newParent['x_index']
-            }
-          }],
-          currentParent: {
-            ...newParent,
-            id: parentId,
-            "x_name": parentName
-          },
+        const customData = {
+          "xid": newXid,
           collapsed: true
-        };
-
+        }
         if (pasteItem) {
-          addNodeChildren(newObj, pasteItem, graph);
+          addNodeChildren({ ...response, ...customData }, pasteItem, graph);
         } else {
-          addRootNode(newObj, graph);
+          addRootNode(response, customData, graph);
         }
       } else {
         notification.error({

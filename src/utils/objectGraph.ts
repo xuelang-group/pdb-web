@@ -248,14 +248,14 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
 
   const newDataIdMap: any = {};
   const sortData = data.sort((a, b) => {
-    if (!a['x_id'] || !b['x_id']) return 1;
+    if (!a['xid'] || !b['xid']) return 1;
 
     Object.assign(newDataIdMap, {
-      [a.id]: a,
-      [b.id]: b
+      [a['x.object.id']]: a,
+      [b['x.object.id']]: b
     });
-    const aIds: any = a['x_id'].split('.'),
-      bIds: any = b['x_id'].split('.');
+    const aIds: any = a['xid'].split('.'),
+      bIds: any = b['xid'].split('.');
     for (let i = 1; i < aIds.length; i++) {
       if (Number(aIds[i]) === Number(bIds[i])) continue;
       return Number(aIds[i]) > Number(bIds[i]) ? 1 : -1;
