@@ -12,7 +12,7 @@ import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions } from '@/g6/object/behavior';
-import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { checkOutObject, deleteObjectRelation, getChildren, getRoots } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
@@ -38,7 +38,9 @@ export default function Editor(props: EditorProps) {
     dispatch = useDispatch(),
     navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
-  const objectData = useSelector((state: StoreState) => state.object.data),
+  const rootId = useSelector((state: StoreState) => state.editor.rootNode?.uid),
+    graphId = useSelector((state: StoreState) => state.app.systemInfo.graphId),
+    objectData = useSelector((state: StoreState) => state.object.data),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
@@ -76,10 +78,7 @@ export default function Editor(props: EditorProps) {
 
   useEffect(() => {
     if (!routerParams.id) return;
-    const graphId = Number(routerParams.id);
-    setCommonParams({ graphId });
     initG6('object');
-    getRootsData();
 
     return () => {
       graph?.destroy();
@@ -88,96 +87,84 @@ export default function Editor(props: EditorProps) {
     }
   }, [routerParams?.id]);
 
+  useEffect(() => {
+    if (!graphId) return;
+    getRootsData();
+  }, [rootId, graphId]);
+
   function getRootsData() {
+    if (!rootId) return;
     dispatch(setGraphLoading(true));
-    getRoots((success: boolean, data: any) => {
+    getChildren({ vid: rootId }, (success: boolean, data: any) => {
+      let newData = [];
       if (success) {
-        if (!data || data.length === 0) return;
-        const rootData = data[0];
-        const rootId = rootData.vid.toString();
-        const infoIndex = _.get(rootData, 'tags.0.name') === 'v_node' ? 0 : 1;
-        dispatch(setRootNode({
-          uid: rootId,
-          ...(_.get(rootData.tags[infoIndex], 'props', {}))
-        }));
-        getChildren({ vid: rootId }, (success: boolean, data: any) => {
-          let newData = [];
-          if (success) {
-            const relationLines = {};
-            newData = data.map((value: any, index: number) => {
-              const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-                attrIndex = infoIndex === 0 ? 1 : 0;
-              const newValue = JSON.parse(JSON.stringify(value)),
-                parents = newValue['e_x_parent'],
-                currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-                defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-                attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-                uid = newValue['vid'].toString();
+        const relationLines = {};
+        newData = data.map((value: any, index: number) => {
+          const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+            attrIndex = infoIndex === 0 ? 1 : 0;
+          const newValue = JSON.parse(JSON.stringify(value)),
+            parents = newValue['e_x_parent'],
+            currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
+            defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+            attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
+            uid = newValue['vid'].toString();
 
-              // 获取对象关系列表数据
-              const relations: any[] = [];
-              Object.keys(newValue).forEach((key: string) => {
-                if (key.startsWith("Relation_")) {
-                  const relationKey = key.replace('_', '.');
-                  if (_.isArray(newValue[key])) {
-                    newValue[key].forEach((target: any) => {
-                      relations.push({
-                        relation: relationKey,
-                        target: {
-                          uid: _.get(target, 'dst', '').toString()
-                        },
-                        attrValue: _.get(target, 'props', {})
-                      });
-                    });
-                  } else {
-                    relations.push({
-                      relation: relationKey,
-                      target: {
-                        uid: _.get(newValue[key], 'dst', '').toString()
-                      },
-                      attrValue: _.get(newValue[key], 'props', {})
-                    });
-                  }
-                }
-              });
-              Object.assign(relationLines, {
-                [uid]: relations
-              });
+          // 获取对象关系列表数据
+          const relations: any[] = [];
+          Object.keys(newValue).forEach((key: string) => {
+            if (key.startsWith("Relation_")) {
+              const relationKey = key.replace('_', '.');
+              if (_.isArray(newValue[key])) {
+                newValue[key].forEach((target: any) => {
+                  relations.push({
+                    relation: relationKey,
+                    target: {
+                      uid: _.get(target, 'dst', '').toString()
+                    },
+                    attrValue: _.get(target, 'props', {})
+                  });
+                });
+              } else {
+                relations.push({
+                  relation: relationKey,
+                  target: {
+                    uid: _.get(newValue[key], 'dst', '').toString()
+                  },
+                  attrValue: _.get(newValue[key], 'props', {})
+                });
+              }
+            }
+          });
+          Object.assign(relationLines, {
+            [uid]: relations
+          });
 
-              return {
-                ...defaultInfo,
-                'x_attr_value': { ...attrValue },
-                'e_x_parent': parents,
-                'x_children': _.get(newValue, 'x_children', 0),
-                currentParent: {
-                  ...(_.get(currentParent, 'props', {})),
-                  uid: currentParent.dst.toString(),
-                  id: rootId,
-                },
-                'x_id': rootId + '.' + index,
-                id: uid,
-                uid: uid
-              };
-            });
-            dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
-            dispatch(setObjects(newData));
-            initLayout(newData, rootId);
-            initEvent();
-          } else {
-            notification.error({
-              message: '获取对象实例失败',
-              description: data.message || data.msg
-            });
-          }
-          dispatch(setGraphLoading(false));
+          return {
+            ...defaultInfo,
+            'x_attr_value': { ...attrValue },
+            'e_x_parent': parents,
+            'x_children': _.get(newValue, 'x_children', 0),
+            currentParent: {
+              ...(_.get(currentParent, 'props', {})),
+              uid: currentParent.dst.toString(),
+              id: rootId,
+            },
+            'x_id': rootId + '.' + index,
+            id: uid,
+            uid: uid
+          };
         });
+        dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
+        dispatch(setObjects(newData));
+        initLayout(newData, rootId);
+        initEvent();
       } else {
         notification.error({
-          message: '获取根对象失败',
+          message: '获取对象实例失败',
           description: data.message || data.msg
         });
-        dispatch(setGraphLoading(false));
       }
+      dispatch(setGraphLoading(false));
     });
   }
 
@@ -522,7 +509,7 @@ export default function Editor(props: EditorProps) {
             resolve();
           });
         } else {
-          
+
           for (const node of curentGraphData.nodes) {
             if (node.uid === item.uid) {
               Object.assign(node, { collapsed: false, data: { ...node.data, collapsed: false } });
@@ -535,7 +522,7 @@ export default function Editor(props: EditorProps) {
               break;
             }
           }
-          
+
           for (const node of children.nodes) {
             const model = node.get('model');
 
@@ -571,12 +558,12 @@ export default function Editor(props: EditorProps) {
       key: currentGraphTab,
       config: { relationLines }
     }));
-    shouldExpandCombo.forEach(function(comboId: string) {
+    shouldExpandCombo.forEach(function (comboId: string) {
       graph.expandCombo(comboId);
     });
     graph.changeData(graphData);
     graph.layout();
-    
+
     item.update({
       data: {
         ...model.data,
