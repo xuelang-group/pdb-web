@@ -853,7 +853,7 @@ export default function AppExplore() {
         header: csv
       }
     }));
-
+    
     if (location.pathname.indexOf("/indicator") > -1) return;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
