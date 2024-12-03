@@ -107,10 +107,6 @@ export const commonParams = {
   graphId: 0
 }
 
-export function setCommonParams(params: any) {
-  Object.assign(commonParams, params);
-}
-
 /**
  * 使用test方法实现模糊查询
  * @param  {Array}  list     原数组

@@ -9,7 +9,7 @@ import { useNavigate, useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
-import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setRootNode, setShowSearch, setToolbarConfig } from "@/reducers/editor";
+import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { getQueryChildren, getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
 import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
@@ -23,7 +23,6 @@ import dayjs from "dayjs";
 import moment from "moment";
 import { Parent } from "@/reducers/object";
 import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
-import { getRoots } from "@/actions/object";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -77,28 +76,6 @@ export default function AppExplore() {
       document.removeEventListener('keydown', onFocusSearch);
     }
   }, []);
-
-  useEffect(() => {
-    if (systemInfo.graphId) {
-      getRoots((success: boolean, data: any) => {
-        if (success) {
-          if (!data || data.length === 0) return;
-          const rootData = data[0];
-          const rootId = rootData.vid.toString();
-          const infoIndex = _.get(rootData, 'tags.0.name') === 'v_node' ? 0 : 1;
-          dispatch(setRootNode({
-            uid: rootId,
-            ...(_.get(rootData.tags[infoIndex], 'props', {}))
-          }));
-        } else {
-          notification.error({
-            message: '获取根对象失败',
-            description: data.message || data.msg
-          });
-        }
-      });
-    }
-  }, [systemInfo.graphId]);
 
   function reverseParsing() {
     const { pql, csv } = queryParams;
