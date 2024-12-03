@@ -6,7 +6,8 @@ import { StoreState } from '@/store';
 import { getMetrics } from "@/actions/indicator";
 import { useParams, useNavigate } from 'react-router-dom';
 import _, { set } from 'lodash';
-import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention, setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess } from "@/reducers/indicator";
+import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention,
+  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
@@ -95,25 +96,29 @@ export default function List(props: any) {
         dispatch(setCheckId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
         dispatch(setDimention(tempObj.metric_params.dimention));
-        dispatch(setFunc(tempObj.metric_params.func));
-        dispatch(setGroupBy(tempObj.metric_params.group_by));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
+        setTimeout(() => {
+          dispatch(setFunc(tempObj.metric_params.func));
+          dispatch(setGroupBy(tempObj.metric_params.group_by));
+        }, 500)
       }
     } else if (_needEditId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
-      if (tempObj) {
-        dispatch(setEditId(tempObj.id));
-        dispatch(setQueryParams(tempObj.pql_params.params));
-        dispatch(setDimention(tempObj.metric_params.dimention));
-        dispatch(setFunc(tempObj.metric_params.func));
-        dispatch(setGroupBy(tempObj.metric_params.group_by));
-        dispatch(setApi(tempObj.pql_params.api));
-        dispatch(setNeedEditId(null));
-        getCurrentBuzProcess({ requestId: requestId }, (success: boolean, res: any) => {
+      if(tempObj) {
+        getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+          dispatch(setEditId(tempObj.id));
+          dispatch(setNeedEditId(null));
+          dispatch(setQueryParams(tempObj.pql_params.params));
+          dispatch(setDimention(tempObj.metric_params.dimention));
+          dispatch(setApi(tempObj.pql_params.api));
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
+          setTimeout(() => {
+            dispatch(setFunc(tempObj.metric_params.func));
+            dispatch(setGroupBy(tempObj.metric_params.group_by));
+          }, 500)
         })
       }
     }
