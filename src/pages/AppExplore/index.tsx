@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import moment from "moment";
 import { Parent } from "@/reducers/object";
 import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
+import { useLocation } from "react-router";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -34,6 +35,7 @@ export default function AppExplore() {
   const dispatch = useDispatch();
   const routerParams = useParams();
   const navigator = useNavigate();
+  const location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
 
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
@@ -852,6 +854,7 @@ export default function AppExplore() {
       }
     }));
 
+    if (location.pathname.indexOf("/indicator") > -1) return;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
         const params = { vid: rootId, childrenVid: response, graphId, typeNames, relationNames };
