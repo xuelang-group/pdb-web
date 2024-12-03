@@ -1,4 +1,5 @@
 import axios from '../utils/axios';
+import { commonParams } from '@/utils/common';
 
 const apiPrefix = '/pdb/api/v1';
 const objectApiPrefix = `${apiPrefix}/object`
@@ -19,14 +20,6 @@ const api = {
   rearrange: `${objectApiPrefix}/children/rearrange`,
   list: `${objectApiPrefix}/list`
 };
-
-const commonParams = {
-  graphId: 0
-};
-
-export function setCommonParams(params) {
-  Object.assign(commonParams, params);
-}
 
 export const checkOutObject = (vid, callback) => {
 

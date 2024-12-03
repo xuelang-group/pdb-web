@@ -12,7 +12,7 @@ import store from '@/store';
 import { initG6 } from '@/g6';
 import { edgeLabelStyle } from '@/g6/type/edge';
 import { G6OperateFunctions, PAGE_SIZE } from '@/g6/object/behavior';
-import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { checkOutObject, deleteObjectRelation, getChildren, getRoots } from '@/actions/object';
 import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
@@ -24,6 +24,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
+import { setCommonParams } from '@/utils/common';
 
 interface EditorProps {
   theme: string

@@ -1,5 +1,4 @@
 import axios from '../utils/axios';
-import { commonParams } from '@/utils/common';
 
 const apiPrefix = '/pdb/api/v1/relation';
 const api = {
