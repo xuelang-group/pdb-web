@@ -56,7 +56,7 @@ export interface ObjectConfig extends ObjectVersionConfig {
   'x.object.name': string // 对象名称
   'x.object.metadata'?: string // 元数据
   'x.object.created'?: number // 对象创建时间
-  'x.object.update'?: number // 对象修改时间
+  'x.object.updated'?: number // 对象修改时间
   'x.object.editor'?: string // 创建人
 }
 

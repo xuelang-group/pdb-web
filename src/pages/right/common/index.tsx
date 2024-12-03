@@ -38,7 +38,7 @@ import RelationList from '../object/RelationList';
 import './index.less';
 import SearchAround from '@/components/SearchAround';
 import store from '@/store';
-import VersionList from '../object/VersionList';
+// import VersionList from '../object/VersionList';
 
 const { Option } = Select;
 const CodeEditor = ({ value = '', onChange, handleChange }: any, other2: any) => (
@@ -65,7 +65,7 @@ export default function Right(props: RightProps) {
     idRef = useRef<any>(),
     location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
-  const graphData = useSelector((state: any) => state[props.route].graphData),
+  const graphData = useSelector((state: any) => state.object.graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
@@ -81,22 +81,22 @@ export default function Right(props: RightProps) {
     [showMore, setShowMore] = useState(Boolean(!currentEditModel)), // 查看更多
     [metadataKey, setMetadataKey] = useState(''),
     [attrLoading, setAttrLoading] = useState(false),
-    [panelTitle, setPanelTitle] = useState(''),
-    [hasVersion, setHasVersion] = useState(false),
-    [checkoutVersion, setCheckoutVersion] = useState({});
+    [panelTitle, setPanelTitle] = useState('');
+    // [hasVersion, setHasVersion] = useState(false),
+    // [checkoutVersion, setCheckoutVersion] = useState({});
 
   const [infoForm] = Form.useForm(),
     [attrForm] = Form.useForm();
   const inputRef = useRef<InputRef>(null);
 
   useEffect(() => {
-    setMetadataKey(props.route === 'object' && !location.pathname.endsWith("/template") ? 'x_metadata' : 'x.type.metadata');
+    setMetadataKey(props.route === 'object' && !location.pathname.endsWith("/template") ? 'x.object.metadata' : 'x.type.metadata');
   }, [props.route]);
 
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
     if (props.route === 'object') {
-      const { name, id, updated, created, description, data } = graphData as ObjectGraphDataState
+      const { name, id, updated, created, description } = graphData as ObjectGraphDataState;
       infoForm.setFieldsValue({
         name,
         uid: id,
@@ -112,18 +112,19 @@ export default function Right(props: RightProps) {
   }, [currentEditParam]);
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
-    let prevLabel = 'x_';
+    let prevLabel = '';
     let uid = '';
     let _currentEditDefaultData = JSON.parse(JSON.stringify(currentEditDefaultData));
     let _attrs: any = [];
 
     // 获取属性列表
     if (currentEditType === 'object') {
+      prevLabel = 'x.object.';
       if (_currentEditDefaultData['x_type_name']) {
         _attrs = await getObjectTypeInfo(_currentEditDefaultData['x_type_name']);
       }
-      getObjectInfo(_currentEditDefaultData.uid, _attrs);
-      uid = _currentEditDefaultData.uid;
+      uid = _currentEditDefaultData[prevLabel + 'id'];
+      getObjectInfo(uid, _attrs);
     } else {
       let attrKey = "";
       if (currentEditType === 'type') {
@@ -188,7 +189,7 @@ export default function Right(props: RightProps) {
 
     if (currentEditType === 'object') {
       Object.assign(formValues, {
-        typeName: _currentEditDefaultData['x_type_name'] || ''
+        typeName: _currentEditDefaultData['x.type.id'] || ''
       });
     } else if (currentEditType === 'relation') {
       Object.assign(formValues, {
@@ -203,7 +204,7 @@ export default function Right(props: RightProps) {
     attrForm.resetFields();
     setShowMore(Boolean(!currentEditModel));
     let panelTitle = `${props.route === 'object' ? '项目' : '模板'}属性`;
-    if (currentEditModel) {
+    if (currentEditModel && currentEditModel.data) {
       if (currentEditModel.data.hasOwnProperty('x.type.id')) {
         panelTitle = '对象属性'
       } else if (currentEditModel.data.hasOwnProperty('r.type.id')) {
@@ -242,16 +243,17 @@ export default function Right(props: RightProps) {
     }
     setCurrentEditType(currentEditType);
     initData(currentEditType, currentEditDefaultData, currentEditModel);
-    const hasVersion = Boolean(currentEditDefaultData['x_version']);
-    setHasVersion(hasVersion);
-    hasVersion && dispatch(setIsEditing(currentEditDefaultData['x_checkout']));
+
+    // const hasVersion = Boolean(currentEditDefaultData['x_version']);
+    // setHasVersion(hasVersion);
+    // hasVersion && dispatch(setIsEditing(currentEditDefaultData['x_checkout']));
 
     return () => {
       setCurrentEditParam(null);
       setCurrentEditDefaultData(null);
       setCurrentEditType('');
       dispatch(setIsEditing(true));
-      setHasVersion(false);
+      // setHasVersion(false);
     }
   }, [currentEditModel]);
 
@@ -321,20 +323,20 @@ export default function Right(props: RightProps) {
           uid: response.vid,
           'e_x_parent': _.get(response, 'e_x_parent', [])
         };
-        if (objectData['x_version'] && objectData['x_checkout']) {
-          await (() => {
-            return new Promise((resolve) => {
-              getCheckoutVersion(uid, (success: boolean, response: any) => {
-                if (success) {
-                  const _attrs = _.get(response, 'e_v_attrs.tags.0.props', {});
-                  Object.assign(objectData['x_attr_value'], _attrs);
-                  setCheckoutVersion(response);
-                }
-                resolve(null);
-              });
-            });
-          })();
-        }
+        // if (objectData['x_version'] && objectData['x_checkout']) {
+        //   await (() => {
+        //     return new Promise((resolve) => {
+        //       getCheckoutVersion(uid, (success: boolean, response: any) => {
+        //         if (success) {
+        //           const _attrs = _.get(response, 'e_v_attrs.tags.0.props', {});
+        //           Object.assign(objectData['x_attr_value'], _attrs);
+        //           setCheckoutVersion(response);
+        //         }
+        //         resolve(null);
+        //       });
+        //     });
+        //   })();
+        // }
         const { toolbarConfig, currentGraphTab } = store.getState().editor;
 
         if (currentGraphTab === "main") {
@@ -421,13 +423,13 @@ export default function Right(props: RightProps) {
   }
 
   // 更新当前编辑item
-  const updateItemData = function (data: any, callback?: Function, key?: string, deleteConfig?: any) {
+  const updateItemData = function (data: any, callback?: Function, key?: string) {
     if (currentEditType === 'type') {
       updateType(data, callback);
     } else if (currentEditType === 'relation') {
       updateRelation(data, callback);
     } else {
-      updateObject(data, key, deleteConfig, callback);
+      updateObject(data, key, callback);
     }
   }
 
@@ -440,7 +442,7 @@ export default function Right(props: RightProps) {
       if (success) {
         const label = type['x.type.name'],
           name = type['x.type.id'];
-        if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== currentEditModel.data['x.type.metadata'])) {
+        if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== _.get(currentEditModel.data, 'x.type.metadata'))) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
           (window as any).PDB_GRAPH?.updateItem(currentEditModel?.id, {
             icon: icon,
@@ -538,26 +540,11 @@ export default function Right(props: RightProps) {
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();
 
-    const { id, currentParent, collapsed, uid, x_attr_value, ...newObject } = JSON.parse(JSON.stringify(object));
-    delete newObject['x_id'];
-    const exparent = newObject['e_x_parent'].map((val: any) => ({
-      'vid': val['dst'],
-      'x_index': val['props']['x_index']
-    }));
-    const params = {
-      'set': [{
-        ...newObject,
-        ...x_attr_value,
-        'e_x_parent': exparent,
-        'vid': uid
-      }]
-    };
-    if (deleteConfig) Object.assign(params, { 'delete': deleteConfig });
-
-    setObject(params, (success: boolean, response: any) => {
+    const { xid, collapsed, totalPage, nextDisabled, ...newObject } = JSON.parse(JSON.stringify(object));
+    setObject(graphData?.id, [newObject], (success: boolean, response: any) => {
       if (success) {
-        const name = object['x_name'];
-        const icon = _.get(JSON.parse(object['x_metadata'] || '{}'), 'icon', '');
+        const name = object['x.object.name'];
+        const icon = _.get(JSON.parse(object['x.object.metadata'] || '{}'), 'icon', '');
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
           icon: icon,
@@ -588,7 +575,7 @@ export default function Right(props: RightProps) {
         if (currentEditModel.dataIndex) {
           dispatch(setObjectDetail({ index: Number(currentEditModel.dataIndex), options: object }));
         } else {
-          dispatch(setObjectDetail({ uid: object.uid, options: object }));
+          dispatch(setObjectDetail({ uid: object['x.object.id'], options: object }));
         }
         infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
       } else {
@@ -726,13 +713,14 @@ export default function Right(props: RightProps) {
           delete newValues[attr.name];
           const newData = JSON.parse(JSON.stringify({
             ...currentEditDefaultData,
-            'x_attr_value': {
-              ...currentEditDefaultData['x_attr_value'],
-              ...newValues
+            'x.object.version.attrvalue': {
+              ...currentEditDefaultData['x.object.version.attrvalue'],
+              ...newValues,
+              [attr.name]: null
             }
           }));
           delete newData['x_attr_value'][attr.name];
-          updateItemData(newData, undefined, 'attr', [{ uid: currentEditDefaultData.uid, [attr.name]: null }]);
+          updateItemData(newData, undefined, 'attr');
         } else {
           updateItemData({
             ...currentEditDefaultData,
@@ -1100,11 +1088,11 @@ export default function Right(props: RightProps) {
       label: '关系列表',
       children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
-    hasVersion && rightPanelTabs.push({
-      key: 'version',
-      label: '版本列表',
-      children: (<VersionList source={currentEditDefaultData} loading={typeLoading || attrLoading} checkoutVesion={checkoutVersion} />)
-    });
+    // hasVersion && rightPanelTabs.push({
+    //   key: 'version',
+    //   label: '版本列表',
+    //   children: (<VersionList source={currentEditDefaultData} loading={typeLoading || attrLoading} checkoutVesion={checkoutVersion} />)
+    // });
   }
 
   const appName = Form.useWatch('name', infoForm),
@@ -1250,95 +1238,99 @@ export default function Right(props: RightProps) {
     );
   }
 
-  const handleEditItem = function () {
-    modal.confirm({
-      title: "编辑将生成一个新版本数据实体，请确认是否修订？",
-      okText: "确定",
-      cancelText: "取消",
-      onOk: function () {
-        checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
-          if (success) {
-            getCheckoutVersion(currentEditModel?.uid, (success: boolean, response: any) => {
-              dispatch(setIsEditing(true));
-              setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': true });
-              const graph = (window as any).PDB_GRAPH;
-              const item = graph.findById(currentEditModel?.id);
-              if (item) {
-                graph?.updateItem(item, {
-                  data: {
-                    ...currentEditModel?.data,
-                    'x_checkout': true
-                  }
-                });
-              }
-              success && setCheckoutVersion(response);
-            });
-          } else {
-            notification.error({
-              message: '检出对象失败',
-              description: response.message || response.msg
-            });
-          }
-        });
-      }
-    });
-  }
+  /**
+   * 版本相关，暂不支持
+   */
+  // const handleEditItem = function () {
+  //   modal.confirm({
+  //     title: "编辑将生成一个新版本数据实体，请确认是否修订？",
+  //     okText: "确定",
+  //     cancelText: "取消",
+  //     onOk: function () {
+  //       checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //         if (success) {
+  //           getCheckoutVersion(currentEditModel?.uid, (success: boolean, response: any) => {
+  //             dispatch(setIsEditing(true));
+  //             setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': true });
+  //             const graph = (window as any).PDB_GRAPH;
+  //             const item = graph.findById(currentEditModel?.id);
+  //             if (item) {
+  //               graph?.updateItem(item, {
+  //                 data: {
+  //                   ...currentEditModel?.data,
+  //                   'x_checkout': true
+  //                 }
+  //               });
+  //             }
+  //             success && setCheckoutVersion(response);
+  //           });
+  //         } else {
+  //           notification.error({
+  //             message: '检出对象失败',
+  //             description: response.message || response.msg
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 
-  const handleCheckIn = function () {
-    modal.confirm({
-      title: "确定发布此数据实体吗？",
-      okText: "确定",
-      cancelText: "取消",
-      onOk: function () {
-        checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
-          if (success) {
-            dispatch(setIsEditing(false));
-            setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
-            const graph = (window as any).PDB_GRAPH;
-            const item = graph.findById(currentEditModel?.id);
-            if (item) {
-              graph?.updateItem(item, {
-                data: {
-                  ...currentEditModel?.data,
-                  'x_checkout': false
-                }
-              });
-            }
-          } else {
-            notification.error({
-              message: '发布对象失败',
-              description: response.message || response.msg
-            });
-          }
-        });
-      }
-    });
-  }
+  // const handleCheckIn = function () {
+  //   modal.confirm({
+  //     title: "确定发布此数据实体吗？",
+  //     okText: "确定",
+  //     cancelText: "取消",
+  //     onOk: function () {
+  //       checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //         if (success) {
+  //           dispatch(setIsEditing(false));
+  //           setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
+  //           const graph = (window as any).PDB_GRAPH;
+  //           const item = graph.findById(currentEditModel?.id);
+  //           if (item) {
+  //             graph?.updateItem(item, {
+  //               data: {
+  //                 ...currentEditModel?.data,
+  //                 'x_checkout': false
+  //               }
+  //             });
+  //           }
+  //         } else {
+  //           notification.error({
+  //             message: '发布对象失败',
+  //             description: response.message || response.msg
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+  // }
 
-  const handleDiscard = function () {
-    discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
-      if (success) {
-        dispatch(setIsEditing(false));
-        setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
-        setCheckoutVersion({});
-        const graph = (window as any).PDB_GRAPH;
-        const item = graph.findById(currentEditModel?.id);
-        if (item) {
-          graph?.updateItem(item, {
-            data: {
-              ...currentEditModel?.data,
-              'x_checkout': false
-            }
-          });
-        }
-      } else {
-        notification.error({
-          message: '取消检出对象失败',
-          description: response.message || response.msg
-        });
-      }
-    });
-  }
+  // const handleDiscard = function () {
+  //   discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //     if (success) {
+  //       dispatch(setIsEditing(false));
+  //       setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
+  //       setCheckoutVersion({});
+  //       const graph = (window as any).PDB_GRAPH;
+  //       const item = graph.findById(currentEditModel?.id);
+  //       if (item) {
+  //         graph?.updateItem(item, {
+  //           data: {
+  //             ...currentEditModel?.data,
+  //             'x_checkout': false
+  //           }
+  //         });
+  //       }
+  //     } else {
+  //       notification.error({
+  //         message: '取消检出对象失败',
+  //         description: response.message || response.msg
+  //       });
+  //     }
+  //   });
+  // }
+
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
@@ -1380,7 +1372,7 @@ export default function Right(props: RightProps) {
               </div>
             }
             {currentEditModel && <Tabs className='pdb-right-panel-tabs' items={rightPanelTabs} />}
-            {hasVersion &&
+            {/* {hasVersion &&
               <div className='pdb-right-panel-footer'>
                 {isEditing ?
                   <>
@@ -1395,7 +1387,7 @@ export default function Right(props: RightProps) {
                   <Button onClick={handleEditItem}>编辑</Button>
                 }
               </div>
-            }
+            } */}
           </PdbPanel>
         }
       </div>

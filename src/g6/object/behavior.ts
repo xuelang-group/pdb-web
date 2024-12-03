@@ -288,34 +288,39 @@ export const G6OperateFunctions = {
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
       dragItemXid = dragItemModel.xid,
-      dragItemParent = dragItemModel.parent;
+      dragItemParent = dragItemModel.data['x.object.version.parents']['x.object.id'];
     const dropItemId = dropItem.get('id'),
       dropItemModel = dropItem.get('model'),
       dropItemXid = dropItemModel.xid;
     const rootId = store.getState().editor.rootNode['x.object.id'];
 
-    let dragItemParentUid: any;
+    let dragItemParentId: any;
     if (dragItemParent === rootId) {
-      dragItemParentUid = rootId;
+      dragItemParentId = rootId;
     } else {
-      let dragItemParentModel = graph.findById(dragItemParent).get('model');
-      dragItemParentUid = dragItemParentModel.uid;
+      dragItemParentId = graph.findById(dragItemParent).get('id');
     }
 
     const lastChangeTime = new Date().getTime();
 
     let dragItems: CustomObjectConfig[] = [];
-    let newData: CustomObjectConfig[] = [], sameParentWithDrag = 0, dropItemLastChildrenIndex = -1, modifyIdMaps: any = {}, dropItemLastChildrenXIndex: any = 0;
+    let newData: CustomObjectConfig[] = [],
+      sameParentWithDrag = 0,
+      dropItemLastChildrenIndex = -1,
+      modifyIdMaps: any = {},
+      dropItemLastChildrenXIndex: any = 0;
 
-    let shouldUpdateObject: ObjectConfig[] = [], dragItemIdMap = { [dragItemId]: dragItem };
+    let shouldUpdateObject: ObjectConfig[] = [],
+      dragItemIdMap = { [dragItemId]: dragItem };
 
     allData.forEach(function (value) {
-      const xid = value['x_id'],
-        parent: any = value['currentParent'].id;
+      const xid = value['xid'],
+        objId = value['x.object.id'],
+        parent: any = (value['x.object.version.parents'] || {})['x.object.id'];
       if (!parent) return;
-      if (value.id === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
+      if (objId === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
         dragItems.push({ ...value });
-        Object.assign(dragItemIdMap, { [value.id]: value });
+        Object.assign(dragItemIdMap, { [objId]: value });
       } else {
         if (parent === dragItemParent) {
           const dragItemIds = dragItemXid.split('.');
@@ -324,23 +329,24 @@ export const G6OperateFunctions = {
           const obj = JSON.parse(JSON.stringify(value));
           if (newId !== xid) {
             Object.assign(obj, {
-              'x_id': newId
+              'xid': newId
             });
             Object.assign(modifyIdMaps, {
-              [value.id]: {
+              [objId]: {
                 new: newId,
                 old: xid
               }
             });
           }
-          if (value.id === dropItemId) {
+          const childLen = Number(value['x.object.version.childs'] || 0);
+          if (objId === dropItemId) {
             Object.assign(obj, {
-              'x_children': Number(value['x_children'] || 0) + 1,
+              'x.object.version.childs': childLen + 1,
               collapsed: false
             });
-          } else if (value.id === dragItemParent) {
+          } else if (objId === dragItemParent) {
             Object.assign(obj, {
-              'x_children': Number(value['x_children'] || 0) - 1
+              'x.object.version.childs': childLen - 1
             });
           }
           newData.push(obj);
@@ -348,39 +354,39 @@ export const G6OperateFunctions = {
         } else {
           if (modifyIdMaps[parent] && xid) {
             const newId = xid.replace(modifyIdMaps[parent].old, modifyIdMaps[parent].new);
-            const data = {
+            const data: CustomObjectConfig = {
               ...value,
-              'x_id': newId,
-              'x_last_change': lastChangeTime
+              'xid': newId,
+              'x.object.updated': lastChangeTime
             };
-            if (value.id === dropItemId) {
+            if (objId === dropItemId) {
               Object.assign(data, {
-                'x_children': Number(value['x_children'] || 0) + 1,
+                'x.object.version.childs': Number(value['x.object.version.childs'] || 0) + 1,
                 collapsed: false
               });
-            } else if (value.id === dragItemParent) {
+            } else if (objId === dragItemParent) {
               Object.assign(data, {
-                'x_children': Number(value['x_children'] || 0) - 1
+                'x.object.version.childs': Number(value['x.object.version.childs'] || 0) - 1
               });
             }
             newData.push(data);
             Object.assign(modifyIdMaps, {
-              [value.id]: {
+              [objId]: {
                 new: newId,
                 old: xid
               }
             });
           } else {
-            if (value.id === dropItemId) {
+            if (objId === dropItemId) {
               newData.push({
                 ...value,
-                'x_children': Number(value['x_children'] || 0) + 1,
+                'x.object.version.childs': Number(value['x.object.version.childs'] || 0) + 1,
                 collapsed: false
               });
-            } else if (value.id === dragItemParent) {
+            } else if (objId === dragItemParent) {
               newData.push({
                 ...value,
-                'x_children': Number(value['x_children'] || 0) - 1
+                'x.object.version.childs': Number(value['x.object.version.childs'] || 0) - 1
               });
             } else {
               newData.push(value);
@@ -389,9 +395,9 @@ export const G6OperateFunctions = {
         }
       }
 
-      if (value.id === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
+      if (objId === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
-        dropItemLastChildrenXIndex = value?.currentParent['x_index'];
+        dropItemLastChildrenXIndex = (value['x.object.version.parents'] || {})['x.object.index'];
       }
     });
 
@@ -399,43 +405,23 @@ export const G6OperateFunctions = {
 
     const newIndex = (Math.floor((dropItemLastChildrenXIndex || 0) / 1024) + 1) * 1024;
     dragItems = dragItems.map(function (value) {
-      if (value.id === dragItemId) {
-        const newParent = {
-          src: dragItemId,
-          dst: dropItemModel.uid,
-          type: 1,
-          name: "e_x_parent",
-          ranking: 0,
-          props: {
-            'x_index': newIndex
-          }
+      const objId = value['x.object.id'];
+      if (objId === dragItemId) {
+        const newParent: ObjectParentInfo = {
+          'x.object.id': dropItemId,
+          'x.object.index': newIndex
         }
-        value['e_x_parent'] = [newParent];
         Object.assign(value, {
-          currentParent: {
-            'uid': newParent['dst'],
-            'x_index': newParent['props']['x_index'],
-            'x_name': dropItemModel['name'],
-            id: dropItemId
-          }
+          'x.object.version.parents': newParent
         });
 
-        const { currentParent, collapsed, id, uid, ...newObj } = JSON.parse(JSON.stringify(value));
-        const exparent = [{
-          'vid': newParent['dst'],
-          'x_index': newParent['props']['x_index']
-        }];
-        delete newObj['x_id'];
-        shouldUpdateObject.push({
-          ...newObj,
-          'e_x_parent': exparent,
-          'vid': uid
-        });
+        const { collapsed, xid, totalPage, nextDisabled, ...newObj } = JSON.parse(JSON.stringify(value));
+        shouldUpdateObject.push(newObj);
       }
-      if (value['x_id']) {
+      if (value['xid']) {
         return {
           ...value,
-          'x_id': value['x_id'].replace(dragItemXid, dragItemNewXid),
+          'xid': value['xid'].replace(dragItemXid, dragItemNewXid),
         };
       }
       return value;
@@ -446,7 +432,7 @@ export const G6OperateFunctions = {
       let dropItemIndex = -1;
       for (let i = newData.length - 1; i >= 0; i--) {
         const value = newData[i];
-        if (value['x_id'] && (value['x_id'] === newDropItemXid || value['x_id'].startsWith(newDropItemXid + '.'))) {
+        if (value['xid'] && (value['xid'] === newDropItemXid || value['xid'].startsWith(newDropItemXid + '.'))) {
           dropItemIndex = i;
           break;
         }
@@ -461,11 +447,11 @@ export const G6OperateFunctions = {
 
       let shouldUpdate = true;
       const limit = Number(PAGE_SIZE());
-      const prevParentCombo: any = graph.findById(dragItemParentUid + "-combo");
+      const prevParentCombo: any = graph.findById(dragItemParentId + "-combo");
       if (prevParentCombo) {
         const comboLastNodes = prevParentCombo.getChildren().nodes || [],
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
-        if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
+        if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentId) && comboLastNode.get("id").endsWith("-next")) {
           const { name, parent } = comboLastNode.get('model');
           const config = name.split('-');
           let offset = Number(config[2]) - limit;
@@ -500,16 +486,17 @@ export const G6OperateFunctions = {
       }
 
       const currentEditModel = store.getState().editor.currentEditModel;
-      if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
-        const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
+      if (currentEditModel && currentEditModel.id) {
+        const graphNodeItem = graph.findById(currentEditModel.id as string);
         graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
       }
       store.dispatch(setGraphLoading(false));
     }
     store.dispatch(setGraphLoading(true));
-    if (dragItemParentUid === dropItemModel.uid) {
+    if (dragItemParentId === dropItemId) {
       if (shouldUpdateObject.length > 0) {
-        setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => {
+        const graphId = store.getState().object.graphData?.id;
+        setObject(graphId, shouldUpdateObject, (success: boolean, response: any) => {
           if (!success) {
             notification.error({
               message: '更新实例失败：',
@@ -526,9 +513,9 @@ export const G6OperateFunctions = {
       return;
     }
     moveObject({
-      vid: dragItemModel.uid,
-      src: dragItemParentUid,
-      dest: dropItemModel.uid,
+      vid: dragItemId,
+      src: dragItemParentId,
+      dest: dropItemId,
       newIndex
     }, (success: boolean, response: any) => {
       if (!success) {
@@ -1594,10 +1581,10 @@ export function registerBehavior() {
       if (type !== 'top-rect' && type !== 'node-rect' && type !== 'left-rect') return;
       const graph = this.graph as Graph;
       const dragItemId = dragItem.get('id'),
-        dragItemModel = dragItem.get('model'),
+        dragItemModel = dragItem.get('model') as NodeItemData,
         dragItemXid = dragItemModel.xid,
         dropItemId = dropItem.get('id'),
-        dropItemModel = dropItem.get('model'),
+        dropItemModel = dropItem.get('model') as NodeItemData,
         dropItemXid = dropItemModel.xid;
 
       if (dragItemId === dropItemId) return;
@@ -1608,30 +1595,27 @@ export function registerBehavior() {
       ) return;
 
       let newData: any[] = [];
-      const dropItemParentId = dropItemModel.parent;
-      const dragItemData = JSON.parse(JSON.stringify(dragItemModel.data));
+      const dropItemParentId = (dropItemModel.data['x.object.version.parents'] || {})['x.object.id'];
+      const dragItemData = JSON.parse(JSON.stringify(dragItemModel.data)) as ObjectConfig;
       const shouldUpdateObject: ObjectConfig[] = [];
 
       const lastChangeTime = new Date().getTime();
       if (type === 'top-rect' || type === 'left-rect') {
         const rootInfo = store.getState().editor.rootNode;
         const rootId = rootInfo['x.object.id'];
-        let dragItemParentUid = rootId, dragItemParentModel: any = rootInfo,
+        let dragItemParentUid = rootId,
           dropItemParentUid = rootId, dropItemParentModel: any = rootInfo;
 
-        if (dragItemModel.parent !== rootId) {
-          dragItemParentModel = graph.findById(dragItemModel.parent).get('model');
-          dragItemParentUid = dragItemParentModel.uid;
+        const dragitemParentId = (dragItemData['x.object.version.parents'] || {})['x.object.id'] || '';
+        if (dragitemParentId !== rootId) {
+          dragItemParentUid = graph.findById(dragitemParentId).get('id');
         }
-        if (dropItemParentId !== rootId) {
-          const dropItemParentModel = graph.findById(dropItemParentId).get('model');
-          dropItemParentUid = dropItemParentModel.uid;
+        if (dropItemParentId && dropItemParentId !== rootId) {
+          dropItemParentUid = graph.findById(dropItemParentId).get('id');
         }
-        if (dropItemParentId !== rootId && dropItemParentId !== dragItemModel.parent) {
-          if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.dst.toString() === dropItemParentUid) > -1) {
-            message.warning(`当前${dropItemParentModel.name}对象中存在${dragItemModel.name}对象`);
-            return;
-          }
+        if (dropItemParentId !== rootId && dropItemParentId !== dragitemParentId && dragitemParentId === dropItemParentUid) {
+          message.warning(`当前${dropItemParentModel.data['x.object.name']}对象中存在${dragItemModel.data['x.object.name']}对象`);
+          return;
         }
 
         const objectState = store.getState().object;
@@ -1639,61 +1623,61 @@ export function registerBehavior() {
         // 插入某个节点前面
         let currentDropParentChildrenIndex = 0,
           originDragItems: CustomObjectConfig[] = [],
-          dragItemsIdMap = { [dragItemId]: dragItemData },
           dragItems = [],
+          dragItemsIdMap: any = { [dragItemId]: dragItemData },
           currentDragParentChildrenIndex = 0;
 
         data.forEach(function (value) {
-          if (value['x_id'] && value['x_id'] !== dragItemXid && value['x_id'] !== dropItemXid && value['x_id'].startsWith(dragItemXid + '.') || dragItemsIdMap[_.get(value, 'currentParent.id', '')]) {
-            Object.assign(dragItemsIdMap, { [value.id]: value })
+          if (value['xid'] && value['xid'] !== dragItemXid && value['xid'] !== dropItemXid && value['xid'].startsWith(dragItemXid + '.') || dragItemsIdMap[(value['x.object.version.parents'] || {})['x.object.id'] || '']) {
+            Object.assign(dragItemsIdMap, { [value['x.object.id']]: value })
             originDragItems.push(value);
           }
         });
 
         let modifyIdMaps: any = {};
-        data.forEach(function (value: any) {
-          const new_value = JSON.parse(JSON.stringify(value));
+        data.forEach(function (value: CustomObjectConfig) {
+          const new_value = JSON.parse(JSON.stringify(value)) as CustomObjectConfig;
           Object.assign(new_value, {
-            'x_last_change': lastChangeTime
+            'x.object.updated': lastChangeTime
           });
-          if (value.uid === dragItemParentUid) {
+          const childLen = Number(new_value['x.object.version.childs']);
+          if (value['x.object.id'] === dragItemParentUid) {
             Object.assign(new_value, {
-              "x_children": new_value["x_children"] - 1
+              "x.object.version.childs": childLen - 1
             });
-          } else if (value.uid === dropItemParentUid) {
+          } else if (value['x.object.id'] === dropItemParentUid) {
             Object.assign(new_value, {
-              "x_children": new_value["x_children"] + 1
+              "x.object.version.childs": childLen + 1
             });
           }
-          const xid = value['x_id'],
-            parentId = value['currentParent'].id;
+          const _xid = value['xid'],
+            parentId = (value['x.object.version.parents'] || {})['x.object.id'] || '';
           if (parentId !== rootId && !graph.findById(parentId)) {
             newData.push(new_value);
             return;
           }
-          let parentUid: any = rootId, parentModel: any = rootInfo;
+          let parentUid: any = rootId;
           if (parentId !== rootId) {
-            parentModel = graph.findById(parentId).get('model');
-            parentUid = parentModel.uid;
+            parentUid = graph.findById(parentId).get('id');
           }
 
-          if (xid && (xid.startsWith(dragItemXid + '.') || xid === dragItemXid) || dragItemsIdMap[parentId]) {
+          if (_xid && (_xid.startsWith(dragItemXid + '.') || _xid === dragItemXid) || dragItemsIdMap[parentId]) {
             return;
           }
 
-          if (!xid) {
+          if (!_xid) {
             newData.push(new_value);
             return;
           }
 
-          if (xid === dropItemXid) {
+          if (_xid === dropItemXid) {
             // 节点xid等于dropItemXid时，先将dragItem数据推入data
             const dropItemIds = dropItemXid.split('.');
-            dropItemIds[dropItemIds.length - 1] = currentDropParentChildrenIndex;
+            dropItemIds[dropItemIds.length - 1] = currentDropParentChildrenIndex.toString();
             let newId = dropItemIds.join('.');
-            if (modifyIdMaps[parentUid] && xid) {
+            if (modifyIdMaps[parentUid] && _xid) {
               const modifyId = modifyIdMaps[parentUid];
-              newId = xid.replace(modifyId.old, modifyId.new);
+              newId = _xid.replace(modifyId.old, modifyId.new);
             }
             const ids = JSON.parse(JSON.stringify(dropItemIds)),
               lastIndex = Number(ids.pop());
@@ -1702,44 +1686,28 @@ export function registerBehavior() {
             const dropPrevNodeItem = graph.find("node", function (item, index) {
               return item.getModel().xid === dropPrevXid;
             });
-            const droNodeXIndex = dropItemModel.data.currentParent['x_index'];
-            const dropPrevNodeXIndex = dropPrevNodeItem ? (dropPrevNodeItem.getModel().data as any).currentParent['x_index'] : droNodeXIndex - 1;
-            const newParent = {
-              'dst': parentUid,
-              'props': {
-                'x_index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2)
-              }
+            const droNodeXIndex = (dropItemModel.data['x.object.version.parents'] || {})['x.object.index'] || 1024;
+            const dropPrevNodeXIndex = dropPrevNodeItem ? (((dropPrevNodeItem.getModel().data as ObjectConfig)['x.object.version.parents'] || {})['x.object.index'] || 1024) : droNodeXIndex - 1;
+            const newParent: ObjectParentInfo = {
+              'x.object.id': parentUid,
+              'x.object.index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2)
             };
 
-            dragItemData['e_x_parent'] = [newParent];
-            const obj = {
+            const obj: CustomObjectConfig = {
               ...dragItemData,
-              'x_id': newId,
-              'currentParent': {
-                ...newParent,
-                'x_name': parentModel.name,
-                id: parentId
-              },
-              'x_last_change': lastChangeTime
+              'xid': newId,
+              'x.object.version.parents': newParent,
+              'x.object.updated': lastChangeTime
             };
             newData.push(obj);
-            const { currentParent, collapsed, id, uid, ...newObj } = JSON.parse(JSON.stringify(obj));
-            const exparent = [{
-              'vid': newParent['dst'],
-              'x_index': newParent['props']['x_index']
-            }];
-            delete newObj['x_id'];
-            shouldUpdateObject.push({
-              ...newObj,
-              'e_x_parent': exparent,
-              'vid': uid
-            });
+            const { xid, collapsed, totalPage, nextDisabled, ...newObj } = JSON.parse(JSON.stringify(obj));
+            shouldUpdateObject.push(newObj);
 
             dragItems = originDragItems.map(item => {
-              if (item['x_id']) {
+              if (item['xid']) {
                 const newItem = {
                   ...item,
-                  'x_id': item['x_id'].replace(dragItemXid, newId),
+                  'xid': item['xid'].replace(dragItemXid, newId),
                 }
                 newData.push(newItem);
               } else {
@@ -1751,47 +1719,47 @@ export function registerBehavior() {
           if (parentId === dropItemParentId) {
             // drop对象的父级下所有children index 设置
             const dropItemIds = dropItemXid.split('.');
-            dropItemIds[dropItemIds.length - 1] = currentDropParentChildrenIndex;
+            dropItemIds[dropItemIds.length - 1] = currentDropParentChildrenIndex.toString();
             const newId = dropItemIds.join('.');
-            if (xid !== newId) {
-              new_value['x_id'] = newId;
+            if (_xid !== newId) {
+              new_value['xid'] = newId;
 
               Object.assign(modifyIdMaps, {
-                [new_value.uid]: {
+                [new_value['x.object.id']]: {
                   new: newId,
-                  old: xid
+                  old: _xid
                 }
               });
             }
             currentDropParentChildrenIndex++;
-          } else if (parentId === dragItemModel.parent) {
+          } else if (parentId === (dragItemModel.data['x.object.version.parents'] || {})['x.object.id']) {
             // drag对象的父级下所有children index 设置
             const dragItemIds = dragItemXid.split('.');
-            dragItemIds[dragItemIds.length - 1] = currentDragParentChildrenIndex;
+            dragItemIds[dragItemIds.length - 1] = currentDragParentChildrenIndex.toString();
             const newId = dragItemIds.join('.');
-            if (xid !== newId) {
-              new_value['x_id'] = newId;
+            if (_xid !== newId) {
+              new_value['xid'] = newId;
               Object.assign(modifyIdMaps, {
-                [new_value.uid]: {
+                [new_value['x.object.id']]: {
                   new: newId,
-                  old: xid
+                  old: _xid
                 }
               });
             }
             currentDragParentChildrenIndex++;
           }
 
-          if (modifyIdMaps[parentUid] && new_value['x_id']) {
+          if (modifyIdMaps[parentUid] && new_value['xid']) {
             const modifyId = modifyIdMaps[parentUid];
-            new_value['x_id'] = new_value['x_id'].replace(modifyId.old, modifyId.new);
+            new_value['xid'] = new_value['xid'].replace(modifyId.old, modifyId.new);
             Object.assign(modifyIdMaps, {
-              [new_value.uid]: {
-                new: new_value['x_id'],
-                old: xid
+              [new_value['x.object.id']]: {
+                new: new_value['xid'],
+                old: _xid
               }
             });
-            if (modifyIdMaps[new_value.id]) {
-              Object.assign(modifyIdMaps[new_value.id], { new: new_value['x_id'] });
+            if (modifyIdMaps[new_value['x.object.id']]) {
+              Object.assign(modifyIdMaps[new_value['x.object.id']], { new: new_value['xid'] });
             }
           }
 
@@ -1847,8 +1815,8 @@ export function registerBehavior() {
           }
 
           const currentEditModel = store.getState().editor.currentEditModel;
-          if (currentEditModel && (currentEditModel.uid || currentEditModel.id)) {
-            const graphNodeItem = graph.findById((currentEditModel.uid || currentEditModel.id) as string);
+          if (currentEditModel && currentEditModel.id) {
+            const graphNodeItem = graph.findById(currentEditModel.id as string);
             graphNodeItem && store.dispatch(setCurrentEditModel(graphNodeItem.get("model")));
           }
         }
@@ -1856,7 +1824,8 @@ export function registerBehavior() {
         store.dispatch(setGraphLoading(true));
         if (dragItemParentUid === dropItemParentUid) {
           if (shouldUpdateObject.length > 0) {
-            setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => {
+            const graphId = store.getState().object.graphData?.id;
+            setObject(graphId, shouldUpdateObject, (success: boolean, response: any) => {
               if (success) {
                 handleUpdateObjects();
               } else {
@@ -1872,10 +1841,10 @@ export function registerBehavior() {
           }
         } else {
           moveObject({
-            vid: dragItemModel.uid,
+            vid: dragItemId,
             src: dragItemParentUid,
             dest: dropItemParentUid,
-            newIndex: _.get(shouldUpdateObject, '0.e_x_parent.0.x_index')
+            newIndex: _.get(shouldUpdateObject[0], 'x.object.version.parents', { 'x.object.index': 1024 })['x.object.index']
           }, (success: boolean, response: any) => {
             if (!success) {
               notification.error({
@@ -1889,12 +1858,12 @@ export function registerBehavior() {
           });
         }
       } else if (type === 'node-rect') {
-        if (dragItemData['e_x_parent'].findIndex((val: Parent) => val.dst.toString() === dropItemModel.uid) > -1) {
-          message.warning(`当前${dropItemModel.name}对象中存在${dragItemModel.name}对象`);
+        if ((dragItemData['x.object.version.parents'] || {})['x.object.id'] === dropItemId) {
+          message.warning(`当前${dropItemModel.data['x.object.name']}对象中存在${dragItemModel.data['x.object.name']}对象`);
           return;
         }
 
-        if (Number(dropItemModel.childLen) > 0 && (dropItemModel.data.collapsed === undefined || dropItemModel.data.collapsed)) {
+        if (Number(dropItemModel.data['x.object.version.childs']) > 0 && (dropItemModel.collapsed === undefined || dropItemModel.collapsed)) {
           G6OperateFunctions.expandNode(dropItem, (this as any).graph, () => {
             G6OperateFunctions.moveNode(dragItem, dropItem, graph);
           });

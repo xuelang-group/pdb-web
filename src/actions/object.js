@@ -6,9 +6,9 @@ const api = {
   add: `${objectApiPrefix}/add`,
   roots: `${objectApiPrefix}/roots`,
   delete: `${objectApiPrefix}/delete`,
+  update: `${objectApiPrefix}/update`,
 
   get: `${objectApiPrefix}/get`,
-  update: `${objectApiPrefix}/update`,
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
@@ -71,6 +71,23 @@ export const deleteObject = (graphId, params, callback) => {
   });
 };
 
+/**
+ * 修改对象
+ * @param {int} graphId 项目ID
+ * @param {ObjectConfig[]} objects 对象数组
+ * @param {*} callback 
+ * @returns 
+ */
+export const setObject = (graphId, objects, callback) => {
+  return axios.post(api['update'], {
+    graphId,
+    set: objects
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
 
 const commonParams = {
   graphId: 0
@@ -109,18 +126,6 @@ export const discardObject = (vid, callback) => {
   return axios.post(api['discard'], {
     ...commonParams,
     vid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 更新对象
-export const setObject = (params, callback) => {
-  return axios.post(api['update'], {
-    ...commonParams,
-    ...params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

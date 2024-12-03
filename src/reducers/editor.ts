@@ -75,7 +75,7 @@ type GraphTabKey =
 interface EditorState {
   currentGraphTab: string // 对象管理 - 画布当前tab
   graphDataMap: any
-  multiEditModel: Array<NodeItemData | EdgeItemData | TypeItemData> | null // 对象管理 - 多个选中编辑
+  multiEditModel: Array<NodeItemData> | null // 对象管理 - 多个选中编辑
   rootNode: ObjectConfig // 对象管理 - 根节点数据
   relationMap: RelationMapConfig // 对象管理 - 关系Map，根据关系ID快速获取关系信息
   typeMap: TypeMapConfig // 对象管理 - 对象类型Map，根据关系ID快速获取对象类型信息

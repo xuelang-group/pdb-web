@@ -10,14 +10,16 @@ import { StoreState } from '@/store';
 import { defaultNodeColor, getBorderColor } from '@/utils/common';
 import { setObject } from '@/actions/object';
 import './index.less';
-import { setSearchAround } from '@/reducers/editor';
+import { NodeItemData, setSearchAround } from '@/reducers/editor';
+import { ObjectConfig } from '@/reducers/object';
 
 export default function MultiModelParamEditor(props: any) {
   const dispatch = useDispatch();
-  const multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
+  const graphData = useSelector((state: any) => state[props.route].graphData),
+    multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround);
 
-  const [currentEditModel, setCurrentEditModel] = useState<any>([]),
+  const [currentEditModel, setCurrentEditModel] = useState<NodeItemData[]>([]),
     [currentIcon, setCurrentIcon] = useState(''),
     [currentFillColor, setCurrentFillColor] = useState(''),
     [currentBorderColor, setCurrentBorderColor] = useState(''),
@@ -30,14 +32,15 @@ export default function MultiModelParamEditor(props: any) {
     if (!multiEditModel) return;
     let isSameType = true;
     for (let i = 0; i < multiEditModel?.length; i++) {
-      const { icon, color, borderColor } = JSON.parse(_.get(multiEditModel[i], 'data', {})['x_metadata'] || '{}');
+      const modelData = multiEditModel[i].data || {};
+      const { icon, color, borderColor } = JSON.parse(modelData['x.object.metadata'] || '{}');
       const currentColor = color || defaultNodeColor.fill,
         currentBorderColor = getBorderColor(borderColor, currentColor);
       if (i !== 0) {
         if (!hasDiffIcon) hasDiffIcon = icon !== prevIcon;
         if (!hasDiffColor) hasDiffColor = currentColor !== prevColor;
         if (!hasDiffBorderColor) hasDiffBorderColor = currentBorderColor !== prevBorderColor;
-        if (isSameType) isSameType = multiEditModel[i]['data']['x_type_name'] === multiEditModel[i - 1]['data']['x_type_name'];
+        if (isSameType) isSameType = modelData['x.type.id'] === multiEditModel[i - 1]['data']['x.type.id'];
       }
       if (hasDiffIcon && hasDiffColor && hasDiffBorderColor) break;
       prevIcon = icon;
@@ -56,24 +59,24 @@ export default function MultiModelParamEditor(props: any) {
     }
   }, [multiEditModel]);
 
-  const changeNodeMetadata = function (type: string, value: string, isDefault = false) {
-    const shouldUpdateData: { vid: string; 'x_metadata': string; }[] = [];
-    currentEditModel?.forEach((model: any) => {
-      const data = _.get(model, 'data');
+  const changeNodeMetadata = function (type: string, value: string) {
+    const shouldUpdateData: ObjectConfig[] = [];
+    currentEditModel?.forEach((model: NodeItemData) => {
+      const data = model.data;
       if (data) {
-        const _metadata = JSON.parse(data['x_metadata'] || '{}');
-        if (currentIcon) Object.assign(_metadata)
+        const _metadata = JSON.parse(data['x.object.metadata'] || '{}');
+        if (currentIcon) Object.assign(_metadata);
         Object.assign(_metadata, {
           [type]: value
         });
         shouldUpdateData.push({
-          'vid': data.uid,
-          'x_metadata': JSON.stringify(_metadata)
+          ...data,
+          'x.object.metadata': JSON.stringify(_metadata)
         });
-        Object.assign(data, { 'x_metadata': JSON.stringify(_metadata) });
+        Object.assign(data, { 'x.object.metadata': JSON.stringify(_metadata) });
       }
     });
-    setObject({ 'set': shouldUpdateData }, (success: boolean, response: any) => {
+    setObject(graphData?.id, shouldUpdateData, (success: boolean, response: any) => {
       if (success) {
         const graph = (window as any).PDB_GRAPH;
         shouldUpdateData.forEach(function (data) {
@@ -83,7 +86,7 @@ export default function MultiModelParamEditor(props: any) {
           } else if (currentIcon) {
             Object.assign(option, { icon: currentIcon });
           }
-          graph?.updateItem(data.vid, option);
+          graph?.updateItem(data['x.object.id'], option);
         });
         if (type === 'icon') {
           setCurrentIcon(value);
@@ -133,7 +136,7 @@ export default function MultiModelParamEditor(props: any) {
         <NodeColorPicker
           type='border'
           fillColor={currentFillColor}
-          changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
+          changeColor={(color: string) => changeNodeMetadata('borderColor', color)}
           currentColor={currentBorderColor}
         />
       </div>

@@ -43,7 +43,7 @@ export default function NodeColorPicker(props: NodeColorPickerProps) {
     if (type === 'fill') {
       changeColor(defaultNodeColor.fill);
     } else {
-      changeColor(getBorderColor(undefined, fillColor), true);
+      changeColor(getBorderColor(undefined, fillColor));
     }
     setIsCustomColor(true);
   }
