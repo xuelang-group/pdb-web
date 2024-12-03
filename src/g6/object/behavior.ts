@@ -3,7 +3,7 @@ import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } fr
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, checkOutObject, copyObject, deleteObject, getChildren, getObject, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import { addObject, checkOutObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
 import { nodeStateStyle } from '../type/node';

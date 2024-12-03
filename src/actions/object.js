@@ -7,8 +7,8 @@ const api = {
   roots: `${objectApiPrefix}/roots`,
   delete: `${objectApiPrefix}/delete`,
   update: `${objectApiPrefix}/update`,
-
   get: `${objectApiPrefix}/get`,
+
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
@@ -89,6 +89,25 @@ export const setObject = (graphId, objects, callback) => {
   });
 };
 
+// 获取对象
+/**
+ * 
+ * @param {int} graphId 项目ID
+ * @param {{'x.object.id': string}[]} ids 对象ID列表
+ * @param {*} callback 
+ * @returns 
+ */
+export const getObject = (graphId, ids, callback) => {
+  return axios.post(api['get'], {
+    graphId,
+    set: ids
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
 const commonParams = {
   graphId: 0
 };
@@ -124,18 +143,6 @@ export const checkInObject = (vid, callback) => {
 export const discardObject = (vid, callback) => {
 
   return axios.post(api['discard'], {
-    ...commonParams,
-    vid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 获取对象
-export const getObject = (vid, callback) => {
-  return axios.post(api['get'], {
     ...commonParams,
     vid
   }).then(({ data }) => {

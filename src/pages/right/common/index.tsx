@@ -25,7 +25,7 @@ import { checkInObject, checkOutObject, createObjectRelation, discardObject, get
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { CustomObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -82,8 +82,8 @@ export default function Right(props: RightProps) {
     [metadataKey, setMetadataKey] = useState(''),
     [attrLoading, setAttrLoading] = useState(false),
     [panelTitle, setPanelTitle] = useState('');
-    // [hasVersion, setHasVersion] = useState(false),
-    // [checkoutVersion, setCheckoutVersion] = useState({});
+  // [hasVersion, setHasVersion] = useState(false),
+  // [checkoutVersion, setCheckoutVersion] = useState({});
 
   const [infoForm] = Form.useForm(),
     [attrForm] = Form.useForm();
@@ -313,16 +313,9 @@ export default function Right(props: RightProps) {
 
   const getObjectInfo = function (uid: string, attrs: any) {
     setAttrLoading(true);
-    getObject(uid, async (success: boolean, response: any) => {
+    getObject(graphData?.id, [{ 'x.object.id': uid }], async (success: boolean, response: any) => {
       if (success && response) {
-        const infoIndex = _.get(response, 'tags.0.name') === 'v_node' ? 0 : 1,
-          attrIndex = infoIndex === 0 ? 1 : 0;
-        const objectData = {
-          ...(_.get(response, `tags.${infoIndex}.props`, {})),
-          'x_attr_value': { ...(_.get(response, `tags.${attrIndex}.props`, {})) },
-          uid: response.vid,
-          'e_x_parent': _.get(response, 'e_x_parent', [])
-        };
+        const objectData = response[0] as ObjectConfig;
         // if (objectData['x_version'] && objectData['x_checkout']) {
         //   await (() => {
         //     return new Promise((resolve) => {
@@ -368,21 +361,21 @@ export default function Right(props: RightProps) {
             }
           });
           Object.assign(relationLines, {
-            [objectData.uid]: relations
+            [objectData['x.object.id']]: relations
           });
           dispatch(setToolbarConfig({
             key: currentGraphTab,
             config: { relationLines }
           }));
         }
-        const filedValue = objectData['x_attr_value'];
+        const filedValue = objectData['x.object.version.attrvalue'];
         const attFormValue = {};
         attrs && attrs.forEach((attr: AttrConfig) => {
           const { datetimeFormat, type, name } = attr;
           const value = filedValue[name] !== undefined ? filedValue[name] : attr.default;
           if (type === 'datetime') {
             if (value) {
-              Object.assign(objectData['x_attr_value'], { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
+              Object.assign(objectData['x.object.version.attrvalue'], { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
               Object.assign(attFormValue, { [name]: dayjs(moment(value).format(datetimeFormat), datetimeFormat) });
             }
           } else {
