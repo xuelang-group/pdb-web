@@ -161,7 +161,7 @@ export default function Left(props: any) {
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
-      if (!type['x.type.version.prototype'] || type['x.type.version.prototype'].length === 0) {
+      if (!type['x.type.version.prototype'] || !type['x.type.version.prototype']['x.type.id']) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
@@ -182,7 +182,7 @@ export default function Left(props: any) {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.version.prototype'] && val['x.type.version.prototype'].findIndex((item: TypePrototypeConfig) => item['x.type.id'] === typeName) > -1) {
+      if (val['x.type.version.prototype'] && val['x.type.version.prototype']['x.type.id'] === typeName) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
@@ -242,7 +242,7 @@ export default function Left(props: any) {
           message: '删除对象成功',
         });
         const currentEditModel = store.getState().editor.currentEditModel;
-        if (currentEditModel && currentEditModel.data[nameLabel] === typeName) {
+        if (currentEditModel && _.get(currentEditModel.data, nameLabel) === typeName) {
           dispatch(setCurrentEditModel(null));
           (window as any).PDB_GRAPH.clear();
         }
@@ -293,7 +293,7 @@ export default function Left(props: any) {
           message: '删除关系成功',
         });
         const currentEditModel = store.getState().editor.currentEditModel;
-        if (currentEditModel && currentEditModel.data[nameLabel] === typeName) {
+        if (currentEditModel && _.get(currentEditModel.data, nameLabel) === typeName) {
           dispatch(setCurrentEditModel(null));
           (window as any).PDB_GRAPH.clear();
         }
@@ -528,7 +528,7 @@ export default function Left(props: any) {
                 return (
                   <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                     <span
-                      className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.id'] === item[prevLabel + 'type.id'] ? ' selected' : '')}
+                      className={'type-item' + (currentEditModel && _.get(currentEditModel.data, prevLabel + 'type.id') === item[prevLabel + 'type.id'] ? ' selected' : '')}
                       onClick={() => handleSelectItem(item, type, index)}
                     >
                       <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
@@ -587,7 +587,7 @@ export default function Left(props: any) {
               <Tree
                 showLine={{ showLeafIcon: false }}
                 treeData={treeData}
-                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x.type.id']] : []}
+                selectedKeys={currentEditModel ? [_.get(currentEditModel.data, 'x.type.id', '')] : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => (
                   <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
@@ -636,7 +636,7 @@ export default function Left(props: any) {
         const newType = {
           'x.type.id': 'Type_' + uuid(),
           'x.type.version.attrs': [],
-          'x.type.version.prototype': item['x.type.version.prototype'] || [],
+          'x.type.version.prototype': item['x.type.version.prototype'] || {},
           'x.type.name': name,
           'x.type.version': false
         }
@@ -650,7 +650,7 @@ export default function Left(props: any) {
           });
         }
         if (prototype) {
-          Object.assign(newType, { 'x.type.version.prototype': [{ 'x.type.id': prototype }] });
+          Object.assign(newType, { 'x.type.version.prototype': { 'x.type.id': prototype } });
           const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
           new_attrs.forEach((attr: AttrConfig) => {
             if (!attr.override) {

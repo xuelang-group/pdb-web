@@ -35,7 +35,7 @@ export interface TypeVersionConfig {
   'x.type.version.updated': number // 版本修改时间
   'x.type.version.state': VersionState // 版本状态
   'x.type.version.editor': string // 版本创建人
-  'x.type.version.prototype'?: Array<TypePrototypeConfig> // 继承类型
+  'x.type.version.prototype'?: TypePrototypeConfig // 继承类型
   'x.type.version.attrs'?: Array<AttrConfig> // 属性列表
 }
 export interface TypeConfig extends TypeVersionConfig {
@@ -92,7 +92,7 @@ export const getDefaultTypeConfig = () => {
     "x.type.version.attrs": [],
     "x.type.updated": timestamp,
     "x.type.created": timestamp,
-    "x.type.version.prototype": []
+    "x.type.version.prototype": {}
   }
 };
 

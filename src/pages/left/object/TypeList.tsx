@@ -41,7 +41,7 @@ export default function TypeList() {
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
     types.forEach((val: TypeConfig, dataIndex: number) => {
-      if (val['x.type.version.prototype'] && val['x.type.version.prototype'].findIndex((item: TypePrototypeConfig) => item['x.type.id'] === typeName) > -1) {
+      if (val['x.type.version.prototype'] && val['x.type.version.prototype']['x.type.id'] === typeName) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
@@ -61,7 +61,7 @@ export default function TypeList() {
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig, dataIndex: number) => {
-      if (!type['x.type.version.prototype'] || type['x.type.version.prototype'].length === 0) {
+      if (!type['x.type.version.prototype'] || !type['x.type.version.prototype']['x.type.id']) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
@@ -220,7 +220,7 @@ export default function TypeList() {
               <Tree
                 showLine={{ showLeafIcon: false }}
                 treeData={treeData}
-                selectedKeys={currentEditModel && currentEditModel.data ? [currentEditModel.data['x_type_name']] : []}
+                selectedKeys={currentEditModel ? _.get(currentEditModel.data, 'x.type.id', []) : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => (
                   <Dropdown

@@ -833,7 +833,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
               'x.type.metadata': JSON.stringify({ color: colors[colorIndex] }),
               'x.type.version': row[2] === undefined || row[2] === 'FALSE' ? false : true,
               'x.type.version.attrs': [],
-              'x.type.version.prototype': [],
+              'x.type.version.prototype': {},
             }
           });
           colorIndex++;
