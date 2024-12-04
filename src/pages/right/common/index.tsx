@@ -60,8 +60,7 @@ interface RightProps {
   route: string // 路由
 }
 export default function Right(props: RightProps) {
-  const routerParams = useParams(),
-    dispatch = useDispatch(),
+  const dispatch = useDispatch(),
     idRef = useRef<any>(),
     location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
@@ -584,7 +583,7 @@ export default function Right(props: RightProps) {
   const updateAppInfo = (graphId: number, info: any) => {
     updateGraphInfo(graphId, info, (success: boolean, response: any) => {
       if (success) {
-        dispatch(setGraphData({ ...graphData, ...info }));
+        dispatch(setGraphData({ ...graphData, ...response }));
       } else {
         notification.error({
           message: '更新项目信息失败',
