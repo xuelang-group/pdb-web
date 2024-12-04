@@ -244,7 +244,7 @@ function App(props: PdbConfig) {
         </Routes>
         <Content className="pdb-layout-content">
           <Routes>
-            <Route path="/:id" element={<ObjectLeft />} />
+            <Route path="/:id/*" element={<ObjectLeft />} />
             {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
             {/* 指标设计左侧类型列表 */}
@@ -277,7 +277,7 @@ function App(props: PdbConfig) {
               centered
             />
             <Routes>
-              <Route path="/:id" element={<CommonRight route="object" />} />
+              <Route path="/:id/*" element={<CommonRight route="object" />} />
               {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
               {/* 指标设计右侧列表 */}

@@ -41,7 +41,7 @@ export const outerCircleStyle: any = {
     stroke: '#0084FF',
     fill: 'rgba(0, 132, 255, 0.2)',
     lineWidth: 3,
-    r: defaultCircleR + 7
+    r: defaultCircleR + 5
   },
   sourceHightLight: {
     lineWidth: 0,
@@ -862,7 +862,6 @@ export function registerNode() {
     setState(name, value, item) {
       if (!item) return;
       const group = item.getContainer(),
-        outerCircle = group.find(ele => ele.get('name') === 'outer-circle'),
         innerCircle = group.find(ele => ele.get('name') === 'circle-node-keyShape'),
         textShape = group.find(ele => ele.get('name') === 'text-shape'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
@@ -880,14 +879,12 @@ export function registerNode() {
         textColor = getTextColor(newFill),
         iconColor = iconColorMap[textColor];
 
-
+      const nodeIsSelected = item.hasState('selected');
       if (name === 'selected') {
         if (value) {
-          outerCircle.attr(outerCircleStyle['selected']);
-          innerCircle.attr(defaultNodeStyle);
-          outerCircle.show();
+          innerCircle.attr(outerCircleStyle['selected']);
         } else {
-          outerCircle.hide();
+          innerCircle.attr(defaultNodeStyle);
         }
       } else if (name === 'inactive') {
         if (value) {
@@ -897,7 +894,9 @@ export function registerNode() {
         innerCircle.attr(value ? {
           fill: disabledNodeColor.fill,
           stroke: disabledNodeColor.border
-        } : defaultNodeStyle);
+        } : (
+          nodeIsSelected ? outerCircleStyle['selected'] : defaultNodeStyle
+        ));
       }
 
       textShape && textShape.attr({ fill: textColor });

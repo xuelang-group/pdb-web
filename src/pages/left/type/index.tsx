@@ -55,7 +55,6 @@ export default function Left() {
         setTreeData(treeData);
         setAllTreeData(treeData);
 
-        console.log(currentEditModel)
         if (currentEditModel && _.get(currentEditModel.data, 'x.type.id')) {
           handleSelectItem(currentEditModel.data, 'type');
         }
@@ -73,7 +72,7 @@ export default function Left() {
       if (success) {
         dispatch(setRelations(response || []));
 
-        if (currentEditModel && currentEditModel.type === 'relation') {
+        if (currentEditModel && _.get(currentEditModel.data, 'r.type.id')) {
           handleSelectItem(currentEditModel.data, 'relation');
         }
       } else {
@@ -366,34 +365,38 @@ export default function Left() {
         dispatch(setCurrentEditModel({ ...model }));
       });
     } else {
-      const { x, y } = centerPoint;
-      const sourceNode = graph.addItem('node', {
-        x: x - 100,
-        y,
-        label: '',
-        style: {
-          fill: 'transparent',
-          stroke: 'transparent',
+      getRelation(graphData?.id, [item['r.type.id']], (success: boolean, response: any) => {
+        if (success && response && response[0]) {
+          const data = response[0];
+          Object.assign(commonConfig, { data });
         }
+        const { x, y } = centerPoint;
+        const sourceNode = graph.addItem('node', {
+          x: x - 100,
+          y,
+          label: '',
+          style: {
+            fill: 'transparent',
+            stroke: 'transparent',
+          }
+        });
+        const targetNode = graph.addItem('node', {
+          x: x + 100,
+          y,
+          label: '',
+          style: {
+            fill: 'transparent',
+            stroke: 'transparent',
+          }
+        });
+        node = graph.addItem('edge', {
+          ...commonConfig,
+          source: sourceNode.get('id'),
+          target: targetNode.get('id')
+        });
+        const model = node.getModel();
+        dispatch(setCurrentEditModel({ ...model }));
       });
-      const targetNode = graph.addItem('node', {
-        x: x + 100,
-        y,
-        label: '',
-        style: {
-          fill: 'transparent',
-          stroke: 'transparent',
-        }
-      });
-      node = graph.addItem('edge', {
-        ...commonConfig,
-        label: name,
-        relationName: item['r.type.id'],
-        source: sourceNode.get('id'),
-        target: targetNode.get('id')
-      });
-      const model = node.getModel();
-      dispatch(setCurrentEditModel({ ...model }));
     }
   }
 
@@ -636,7 +639,11 @@ export default function Left() {
           'x.type.version': false
         }
         if (modalType === 'copy') {
-          Object.assign(newType, { 'x.type.version.attrs': item['x.type.version.attrs'] || [], 'x.type.version': item['x.type.version'] });
+          Object.assign(newType, {
+            'x.type.version.attrs': item['x.type.version.attrs'] || [],
+            'x.type.metadata': item['x.type.metadata'],
+            'x.type.version': item['x.type.version']
+          });
         } else if (modalType === 'add') {
           const colors = Object.keys(nodeColorList);
           Object.assign(newType, {

@@ -58,6 +58,8 @@ export default function ParamEditor(props: any) {
         case 'datetime':
           if (_default) {
             Object.assign(newData, { default: _default.format(datetimeFormat) });
+          } else {
+            Object.assign(newData, { default: null });
           }
           Object.assign(newData, { required, datetimeFormat });
           break;
@@ -65,7 +67,7 @@ export default function ParamEditor(props: any) {
           Object.assign(newData, { default: _default, required, stringMaxLength });
           break;
         case 'boolean':
-          Object.assign(newData, { default: Boolean(_default), required });
+          Object.assign(newData, { default: _default === null ? null : Boolean(_default), required });
           break;
         case 'code':
           _default = paramForm.getFieldValue("default");
@@ -102,6 +104,7 @@ export default function ParamEditor(props: any) {
       case 'boolean':
         return (
           <Select>
+            <Option value={null}>无</Option>
             <Option value={true}>True</Option>
             <Option value={false}>False</Option>
           </Select>

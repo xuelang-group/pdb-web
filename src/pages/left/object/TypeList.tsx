@@ -61,16 +61,36 @@ export default function TypeList() {
     const data: any = [], expandedKeys: Array<string> = [];
     types.forEach((type: TypeConfig) => {
       if (!type['x.type.version.prototype'] || !type['x.type.version.prototype']['x.type.id']) {
-        const typeName = type['x.type.id'];
-        const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
+        const typeId = type['x.type.id'];
+        const children: any = getTypeTreeChildren(types, typeId, expandedKeys);
+        const searchedVal: string = _.get(searchRef, "current.input.value", "");
+        const typeName = type['x.type.name'];
+        let title = (
+          <span className='type-item-label'>{typeName}</span>
+        );
+        if (searchedVal) {
+          const _index = typeName.toLowerCase().indexOf(searchedVal.toLowerCase());
+          if (_index > -1) {
+            const beforeStr = typeName.substring(0, _index),
+              innerStr = typeName.substring(_index, _index + searchedVal.length),
+              afterStr = typeName.slice(_index + searchedVal.length);
+            title = (
+              <span className='type-item-label'>
+                {beforeStr}
+                <span className="pdb-searched-value">{innerStr}</span>
+                {afterStr}
+              </span>
+            );
+          }
+        }
         data.push({
           className: 'type-item isFolder',
-          title: type['x.type.name'],
-          key: typeName,
+          title,
+          key: typeId,
           data: type,
           children,
         });
-        if (children.length > 0) expandedKeys.push(typeName);
+        if (children.length > 0) expandedKeys.push(typeId);
       }
     });
     return { data, expandedKeys };
@@ -78,7 +98,7 @@ export default function TypeList() {
 
   useEffect(() => {
     const { data, expandedKeys } = getTypeTreeData(list);
-    setTreeData(JSON.parse(JSON.stringify(data)));
+    setTreeData(data);
     setExpandedKeys(expandedKeys);
   }, [list]);
 
@@ -108,6 +128,12 @@ export default function TypeList() {
 
   const handleChangeTab = function (activeKey: string) {
     setCurrentTab(activeKey);
+    const searchVal = _.get(searchRef, "current.input.value", "");
+    if (activeKey === 'relation') {
+      handleRelationSearch(searchVal);
+    } else if (activeKey === 'type') {
+      handleSearch(searchVal);
+    }
   }
 
   const getList = function (list: Array<any>, keyWord: string): Array<any> {
@@ -115,21 +141,7 @@ export default function TypeList() {
     for (var i = 0; i < list.length; i++) {
       const item = list[i], idKey = 'x.type.id', labelKey = 'x.type.name';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
-        const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
-        let title = (<span className='type-item-label'>{label}</span>);
-        if (_index > -1) {
-          const beforeStr = label.substring(0, _index),
-            innerStr = label.substring(_index, _index + keyWord.length),
-            afterStr = label.slice(_index + keyWord.length);
-          title = (
-            <span className='type-item-label'>
-              {beforeStr}
-              <span className="pdb-searched-value">{innerStr}</span>
-              {afterStr}
-            </span>
-          );
-        }
-        arr.push({ ...list[i], title });
+        arr.push({ ...list[i] });
       }
     }
     return arr;
@@ -186,7 +198,7 @@ export default function TypeList() {
     }
   }
 
-  const renderTypeTree = useCallback((type: string) => {
+  const renderTypeTree = useCallback(() => {
     return (
       <div className='list-container'>
         <div className='list-header'>
@@ -232,7 +244,7 @@ export default function TypeList() {
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
                       <i className='iconfont icon-duixiangleixing'></i>
-                      <span className='type-item-label'>{item.title}</span>
+                      {item.title}
                     </span>
                   </Dropdown>
                 )}
@@ -263,8 +275,6 @@ export default function TypeList() {
   }, [treeData, routerParams?.id, typeLoading, currentEditModel, location.pathname]);
 
   const renderRelationTree = useCallback((type: string) => {
-    const prevLabel = type === 'type' ? 'x.' : 'r.';
-    let relList = JSON.parse(JSON.stringify(relationList));
     return (
       <div className='list-container'>
         <div className='list-header'>
@@ -288,13 +298,12 @@ export default function TypeList() {
           </div>
         </div>
         <div className='list-content'>
-          {relList.length === 0 ?
+          {relationList.length === 0 ?
             <div className='list-empty'>
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
             </div> :
             <div className='type-list relation-list'>
-              {relList.map((item: any, index: number) => {
-                const label: any = item[prevLabel + 'type.name']
+              {relationList.map((item: any, index: number) => {
                 return (
                   <Dropdown
                     overlayClassName='pdb-dropdown-menu'
@@ -312,14 +321,14 @@ export default function TypeList() {
                       className='type-item'
                     >
                       <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
-                      {(<span className='type-item-label'>{label}</span>)}
+                      {item.title || (<span className='type-item-label'>{item['r.type.name']}</span>)}
                     </span>
                   </Dropdown>
                 );
               })}
             </div>
           }
-          {relList.length === 0 && isRelSearched && !relationLoading &&
+          {relationList.length === 0 && isRelSearched && !relationLoading &&
             <div className='no-data-info'>
               <div className='pdb-alert pdb-alert-danger'><i className="spicon icon-jingshi"></i>搜索结果为空</div>
             </div>
@@ -352,7 +361,7 @@ export default function TypeList() {
         onChange={handleChangeTab}
         block
       />
-      {currentTab === 'type' ? renderTypeTree('type') : renderRelationTree('relation')}
+      {currentTab === 'type' ? renderTypeTree() : renderRelationTree('relation')}
     </div>
   )
 }

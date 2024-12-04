@@ -94,11 +94,10 @@ export default function Editor(props: EditorProps) {
         dispatch(setRootNode(data));
         const rootId = data['x.object.id'];
         getChildren({ vid: rootId }, (success: boolean, data: any) => {
-          if (!data) return;
           let newData = [];
           if (success) {
             const relationLines = {};
-            newData = data.map((value: any, index: number) => {
+            newData = (data || []).map((value: any, index: number) => {
               const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
                 attrIndex = infoIndex === 0 ? 1 : 0;
               const newValue = JSON.parse(JSON.stringify(value)),

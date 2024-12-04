@@ -493,7 +493,7 @@ export default function Right(props: RightProps) {
       const timestamp = new Date();
 
       if (JSON.stringify(currentEditDefaultData) === JSON.stringify(relation)) return;
-      setRelation(routerParams?.id, [relation], (success: boolean, response: any) => {
+      setRelation(graphData?.id, [relation], (success: boolean, response: any) => {
         if (success) {
           const id = relation['r.type.id'],
             name = relation['r.type.name'];
@@ -1187,12 +1187,12 @@ export default function Right(props: RightProps) {
                   <Input bordered={false} readOnly />
                 </Form.Item>
               }
-              {currentEditType === 'relation' &&
+              {currentEditType === 'relation' && props.route === "object" &&
                 <Form.Item name='source' label='源对象' >
                   <Input bordered={false} readOnly />
                 </Form.Item>
               }
-              {currentEditType === 'relation' &&
+              {currentEditType === 'relation' && props.route === "object" &&
                 <Form.Item name='target' label='目标对象' >
                   <Input bordered={false} readOnly />
                 </Form.Item>
