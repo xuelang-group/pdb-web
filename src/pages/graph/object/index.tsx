@@ -92,14 +92,12 @@ export default function Editor(props: EditorProps) {
   function getRootsData() {
     dispatch(setGraphLoading(true));
     getRoots(graphInfo?.id, (success: boolean, data: any) => {
-      if (success) {
-        if (!data || data.length === 0) return;
-        const rootData = data[0];
-        const rootId = rootData.vid.toString();
-        dispatch(setRootNode(rootData));
+      if (success && data) {
+        dispatch(setRootNode(data));
+        const rootId = data['x.object.id'];
         getChildren({ vid: rootId }, (success: boolean, data: any) => {
           let newData = [];
-          if (success) {
+          if (success && data) {
             const relationLines = {};
             newData = data.map((value: any, index: number) => {
               const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
