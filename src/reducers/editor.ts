@@ -6,7 +6,8 @@ import { RelationConfig } from './relation';
 import { set } from 'lodash';
 
 export interface EdgeItemData extends EdgeConfig {
-  style?: any
+  'id': string
+  'label': string
 }
 export interface NodeItemData extends NodeConfig {
   'id': string // 对象节点ID
@@ -20,12 +21,9 @@ export interface NodeItemData extends NodeConfig {
 }
 
 export interface TypeItemData extends NodeConfig {
-  id: string
-  uid: string
-  label: string
-  name: string
-  data: TypeConfig
-  dataIndex: number
+  'id': string
+  'label': string
+  'data': TypeConfig
 }
 export interface RelationTargetConfig {
   uid: string
@@ -127,7 +125,7 @@ const initialState: EditorState = {
     }
   },
   currentEditModel: null,
-  isEditing: false,
+  isEditing: true,
   typeRelationMap: {},
   showSearch: false, //显示搜索框
   graphLoading: false,

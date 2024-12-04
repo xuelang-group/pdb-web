@@ -18,7 +18,7 @@ import { js as beautify } from 'js-beautify';
 import type { StoreState } from '@/store';
 import ParamEditor from './ParamEditor';
 import { defaultNodeColor, typeMap } from '@/utils/common';
-import { resizeGraph } from '@/utils/objectGraph';
+import { fittingString, resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
@@ -96,6 +96,7 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
     if (props.route === 'object') {
+      // 项目相关信息
       const { name, id, updated, created, description } = graphData as ObjectGraphDataState;
       infoForm.setFieldsValue({
         name,
@@ -181,7 +182,7 @@ export default function Right(props: RightProps) {
       _lastChange = Number(_lastChange);
     }
     const formValues = {
-      name: currentEditModel?.name,
+      name: _currentEditDefaultData[prevLabel + 'name'],
       uid,
       lastChange: _lastChange ? moment(_lastChange).format("YYYY-MM-DD HH:mm:ss") : '',
       created: _created ? moment(_created).format("YYYY-MM-DD HH:mm:ss") : ''
@@ -206,9 +207,9 @@ export default function Right(props: RightProps) {
     let panelTitle = `${props.route === 'object' ? '项目' : '模板'}属性`;
     if (currentEditModel && currentEditModel.data) {
       if (currentEditModel.data.hasOwnProperty('x.type.id')) {
-        panelTitle = '对象属性'
+        panelTitle = '对象属性';
       } else if (currentEditModel.data.hasOwnProperty('r.type.id')) {
-        panelTitle = '关系属性'
+        panelTitle = '关系属性';
       }
     }
     setPanelTitle(panelTitle);
@@ -433,23 +434,18 @@ export default function Right(props: RightProps) {
 
     setType(graphData?.id, [type], (success: boolean, response: any) => {
       if (success) {
-        const label = type['x.type.name'],
-          name = type['x.type.id'];
-        if (currentEditModel && (label !== currentEditModel.name || type['x.type.metadata'] !== _.get(currentEditModel.data, 'x.type.metadata'))) {
+        const typeName = type['x.type.name'],
+          typeId = type['x.type.id'];
+        if (currentEditModel && (typeName !== _.get(currentEditModel.data, 'x.type.name') || type['x.type.metadata'] !== _.get(currentEditModel.data, 'x.type.metadata'))) {
           const icon = _.get(JSON.parse(type['x.type.metadata'] || '{}'), 'icon', '');
           (window as any).PDB_GRAPH?.updateItem(currentEditModel?.id, {
             icon: icon,
-            data: type,
-            name: label
+            data: type
           });
         }
 
         setCurrentEditDefaultData(type);
-        if (currentEditModel.dataIndex) {
-          dispatch(setTypeDetail({ index: Number(currentEditModel.dataIndex), options: type }));
-        } else {
-          dispatch(setTypeDetail({ name, options: type }));
-        }
+        dispatch(setTypeDetail({ id: typeId, options: type }));
         infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
       } else {
         notification.error({
@@ -499,22 +495,17 @@ export default function Right(props: RightProps) {
       if (JSON.stringify(currentEditDefaultData) === JSON.stringify(relation)) return;
       setRelation(routerParams?.id, [relation], (success: boolean, response: any) => {
         if (success) {
-          const name = relation['r.type.id'],
-            label = relation['r.type.name'];
+          const id = relation['r.type.id'],
+            name = relation['r.type.name'];
 
-          if (label !== currentEditModel.name) {
+          if (name !== _.get(currentEditModel.data, 'r.type.name')) {
             (window as any).PDB_GRAPH?.updateItem(item, {
-              data: relation,
-              name: label
+              data: relation
             });
           }
 
           setCurrentEditDefaultData(relation);
-          if (currentEditModel.dataIndex) {
-            dispatch(setRelationDetail({ index: Number(currentEditModel.dataIndex), options: relation }));
-          } else {
-            dispatch(setRelationDetail({ name, options: relation }));
-          }
+          dispatch(setRelationDetail({ id, options: relation }));
           infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
         } else {
           notification.error({
@@ -565,11 +556,7 @@ export default function Right(props: RightProps) {
 
 
         setCurrentEditDefaultData(object);
-        if (currentEditModel.dataIndex) {
-          dispatch(setObjectDetail({ index: Number(currentEditModel.dataIndex), options: object }));
-        } else {
-          dispatch(setObjectDetail({ uid: object['x.object.id'], options: object }));
-        }
+        dispatch(setObjectDetail({ id: object['x.object.id'], options: object }));
         infoForm.setFieldValue('lastChange', moment(timestamp).format("YYYY-MM-DD HH:mm:ss"));
       } else {
         notification.error({
@@ -1023,25 +1010,25 @@ export default function Right(props: RightProps) {
     );
   }
 
-  const renderCommon = () => {
-    return (
-      <div className='pdb-type-common'>
-        <div className='pdb-type-common-item'>
-          <span>开启版本控制： </span>
-          <Switch
-            value={currentEditDefaultData['x.type.version']}
-            onChange={checked => {
-              updateItemData({
-                ...currentEditDefaultData,
-                'x.type.version': checked
-              });
-            }}
-            disabled
-          />
-        </div>
-      </div>
-    )
-  }
+  // const renderCommon = () => {
+  //   return (
+  //     <div className='pdb-type-common'>
+  //       <div className='pdb-type-common-item'>
+  //         <span>开启版本控制： </span>
+  //         <Switch
+  //           value={currentEditDefaultData['x.type.version']}
+  //           onChange={checked => {
+  //             updateItemData({
+  //               ...currentEditDefaultData,
+  //               'x.type.version': checked
+  //             });
+  //           }}
+  //           disabled
+  //         />
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   // 复制id
   const copyId = (ref: any) => {

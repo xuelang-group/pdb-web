@@ -121,19 +121,15 @@ export const objectSlice = createSlice({
     setGraphData: (state, action: PayloadAction<any>) => {
       state.graphData = JSON.parse(JSON.stringify(action.payload));
     },
-    setObjectDetail: (state, action: PayloadAction<{ uid?: string, options: any, index?: number }>) => {
-      const { uid, options, index } = action.payload;
-      if (!uid && (typeof index !== 'number' || index < 0)) return;
-      const newData = JSON.parse(JSON.stringify(state.data));
-      if (uid) {
-        for (let i = 0; i < newData.length; i++) {
-          if (newData[i].uid === uid) {
-            Object.assign(newData[i], options);
-            break;
-          }
+    setObjectDetail: (state, action: PayloadAction<{ id: string, options: any }>) => {
+      const { id, options } = action.payload;
+      if (!id) return;
+      const newData = JSON.parse(JSON.stringify(state.data)) as CustomObjectConfig[];
+      for (let i = 0; i < newData.length; i++) {
+        if (newData[i]['x.object.id'] === id) {
+          Object.assign(newData[i], options);
+          break;
         }
-      } else if (index && index >= 0) {
-        Object.assign(newData[index], options);
       }
       state.data = newData;
     }

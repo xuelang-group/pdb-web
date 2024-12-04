@@ -1,14 +1,14 @@
-import { Input, InputRef, Tabs, Tree, Dropdown, Tooltip, Spin, Button, Segmented, Empty } from 'antd';
+import { Input, InputRef, Tree, Dropdown, Spin, Button, Segmented, Empty } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import _ from 'lodash';
 
-import './index.less';
-import { TypeConfig, TypePrototypeConfig } from '@/reducers/type';
+import { TypeConfig } from '@/reducers/type';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { StoreState } from '@/store';
-import { useLocation } from 'react-router';
+import './index.less';
 
 const { Search } = Input;
 
@@ -40,12 +40,11 @@ export default function TypeList() {
 
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
-    types.forEach((val: TypeConfig, dataIndex: number) => {
+    types.forEach((val: TypeConfig) => {
       if (val['x.type.version.prototype'] && val['x.type.version.prototype']['x.type.id'] === typeName) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
-          dataIndex,
           className: 'type-item isLeaf',
           title: val['x.type.name'],
           key: typeName,
@@ -60,12 +59,11 @@ export default function TypeList() {
 
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
-    types.forEach((type: TypeConfig, dataIndex: number) => {
+    types.forEach((type: TypeConfig) => {
       if (!type['x.type.version.prototype'] || !type['x.type.version.prototype']['x.type.id']) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
-          dataIndex,
           className: 'type-item isFolder',
           title: type['x.type.name'],
           key: typeName,
@@ -168,7 +166,7 @@ export default function TypeList() {
 
   const handleClickMenu = function (id: any, tab: string, item?: any) {
     navigate(`/${id}/edit`, { state: { tab } });
-    dispatch(setCurrentEditModel(item ? { ...item, name: item.title || item.name, type: tab } : null));
+    dispatch(setCurrentEditModel(item || null));
   }
 
   const handleSelectItem = function (data: any) {
@@ -230,7 +228,7 @@ export default function TypeList() {
                   >
                     <span
                       className='type-item'
-                      // draggable={currentGraphTab === 'main'}
+                      draggable={currentGraphTab === 'main'}
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
                       <i className='iconfont icon-duixiangleixing'></i>
@@ -304,7 +302,6 @@ export default function TypeList() {
                       items: typeMenus,
                       onClick: (menu) => handleClickMenu(routerParams.id, 'relation', {
                         data: item,
-                        dataIndex: index,
                         title: item['r.type.name'],
                         key: item['r.type.id']
                       })

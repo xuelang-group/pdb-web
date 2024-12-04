@@ -43,19 +43,15 @@ export const typeSlice = createSlice({
     setRelations: (state, action: PayloadAction<Array<RelationConfig>>) => {
       state.data = JSON.parse(JSON.stringify(action.payload));
     },
-    setRelationDetail: (state, action: PayloadAction<{ name?: string, options: any, index?: number }>) => {
-      const { name, options, index } = action.payload;
-      if (!name && (typeof index !== 'number' || index < 0)) return;
+    setRelationDetail: (state, action: PayloadAction<{ id: string, options: any }>) => {
+      const { id, options } = action.payload;
+      if (!id) return;
       const newData = JSON.parse(JSON.stringify(state.data));
-      if (name) {
-        for (let i = 0; i < newData.length; i++) {
-          if (newData[i]['r.type.id'] === name) {
-            Object.assign(newData[i], options);
-            break;
-          }
+      for (let i = 0; i < newData.length; i++) {
+        if (newData[i]['r.type.id'] === id) {
+          Object.assign(newData[i], options);
+          break;
         }
-      } else if (index && index >= 0) {
-        Object.assign(newData[index], options);
       }
       state.data = newData;
     }

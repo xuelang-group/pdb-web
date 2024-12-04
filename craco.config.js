@@ -52,7 +52,7 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55202/c207fb90965e11ef946afbafcbd1c39e/7000",
+        target: "http://10.88.40.73:30080/pdb",
         changeOrigin: true,
         // onProxyReq(proxyReq) {
         //   // 设置Cookie

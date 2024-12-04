@@ -1,13 +1,12 @@
-import { Checkbox, Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Switch, Tabs, Tooltip, Tree } from 'antd';
+import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-import { useParams } from 'react-router-dom';
 import _ from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TypePrototypeConfig } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
@@ -19,10 +18,13 @@ import './index.less';
 
 const { Search } = Input;
 
-export default function Left(props: any) {
-  const routerParams = useParams(),
-    location = useLocation();
+export default function Left() {
+  const location = useLocation();
+  const dispatch = useDispatch();
+
   const [modal, contextHolder] = Modal.useModal();
+  const searchRef = useRef<InputRef>(null);
+
   const graphData = useSelector((state: StoreState) => state.object.graphData),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     types = useSelector((state: StoreState) => state.type.data),
@@ -41,11 +43,9 @@ export default function Left(props: any) {
     [filterValue, setFilterValue] = useState(''),
     [isSearched, setSearchedStatus] = useState(false),
     [currentTab, setCurrentTab] = useState('type');
-  const searchRef = useRef<InputRef>(null);
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
+    if (!graphData?.id) return;
     dispatch(setTypeLoading(true));
     getTypeList(graphData?.id, (success: boolean, response: any) => {
       dispatch(setTypeLoading(false));
@@ -55,9 +55,9 @@ export default function Left(props: any) {
         setTreeData(treeData);
         setAllTreeData(treeData);
 
-        if (currentEditModel && currentEditModel.type === 'type') {
-          const { dataIndex, data } = currentEditModel;
-          handleSelectItem(data, 'type', Number(dataIndex));
+        console.log(currentEditModel)
+        if (currentEditModel && _.get(currentEditModel.data, 'x.type.id')) {
+          handleSelectItem(currentEditModel.data, 'type');
         }
       } else {
         notification.error({
@@ -74,8 +74,7 @@ export default function Left(props: any) {
         dispatch(setRelations(response || []));
 
         if (currentEditModel && currentEditModel.type === 'relation') {
-          const { dataIndex, data } = currentEditModel;
-          handleSelectItem(data, 'relation', Number(dataIndex));
+          handleSelectItem(currentEditModel.data, 'relation');
         }
       } else {
         notification.error({
@@ -84,7 +83,7 @@ export default function Left(props: any) {
         });
       }
     });
-  }, []);
+  }, [graphData?.id]);
 
   useEffect(() => {
     const treeData = getTypeTreeData(types);
@@ -160,12 +159,11 @@ export default function Left(props: any) {
 
   const getTypeTreeData = function (types: Array<TypeConfig>) {
     const data: any = [], expandedKeys: Array<string> = [];
-    types.forEach((type: TypeConfig, dataIndex: number) => {
+    types.forEach((type: TypeConfig) => {
       if (!type['x.type.version.prototype'] || !type['x.type.version.prototype']['x.type.id']) {
         const typeName = type['x.type.id'];
         const children: any = getTypeTreeChildren(types, typeName, expandedKeys);
         data.push({
-          dataIndex,
           className: 'type-item isFolder',
           title: type['x.type.name'],
           key: typeName,
@@ -181,12 +179,11 @@ export default function Left(props: any) {
 
   const getTypeTreeChildren = function (types: Array<TypeConfig>, typeName: string, expandedKeys: Array<string>) {
     const children: any = [];
-    types.forEach((val: TypeConfig, dataIndex: number) => {
+    types.forEach((val: TypeConfig) => {
       if (val['x.type.version.prototype'] && val['x.type.version.prototype']['x.type.id'] === typeName) {
         const typeName = val['x.type.id'],
           _children = getTypeTreeChildren(types, typeName, expandedKeys);
         children.push({
-          dataIndex,
           className: 'type-item isLeaf',
           title: val['x.type.name'],
           key: typeName,
@@ -213,7 +210,7 @@ export default function Left(props: any) {
         let newTypes = JSON.parse(JSON.stringify(types));
         if (modalType === 'add' || modalType === 'copy' || modalType === 'inherit') {
           Object.assign(type, { ...response[0] });
-          handleSelectItem(type, operateItem.type, newTypes.length);
+          handleSelectItem(type, operateItem.type);
           newTypes.push(type);
           notification.success({
             message: `${message}成功`,
@@ -264,7 +261,7 @@ export default function Left(props: any) {
         let newRelations = JSON.parse(JSON.stringify(relations));
         if (modalType === 'add' || modalType === 'copy') {
           Object.assign(relation, { ...response[0] });
-          handleSelectItem(relation, operateItem.type, newRelations.length);
+          handleSelectItem(relation, operateItem.type);
           newRelations.push(relation);
           notification.success({
             message: `${message}成功`,
@@ -321,7 +318,7 @@ export default function Left(props: any) {
   }
 
   // 点击左侧item，画布更新
-  const handleSelectItem = (item: any, type: string, index: number) => {
+  const handleSelectItem = (item: any, type: string) => {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     graph.clear();
@@ -333,8 +330,6 @@ export default function Left(props: any) {
 
     let commonConfig = {
       label: text,
-      name,
-      uid: item[prevLabel + 'type.id'],
       data: item
     };
 
@@ -368,7 +363,7 @@ export default function Left(props: any) {
           }
         });
         const model = node.getModel();
-        dispatch(setCurrentEditModel({ ...model, dataIndex: index }));
+        dispatch(setCurrentEditModel({ ...model }));
       });
     } else {
       const { x, y } = centerPoint;
@@ -393,12 +388,12 @@ export default function Left(props: any) {
       node = graph.addItem('edge', {
         ...commonConfig,
         label: name,
-        relationName: commonConfig.uid,
+        relationName: item['r.type.id'],
         source: sourceNode.get('id'),
         target: targetNode.get('id')
       });
       const model = node.getModel();
-      dispatch(setCurrentEditModel({ ...model, dataIndex: index }));
+      dispatch(setCurrentEditModel({ ...model }));
     }
   }
 
@@ -529,7 +524,7 @@ export default function Left(props: any) {
                   <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                     <span
                       className={'type-item' + (currentEditModel && _.get(currentEditModel.data, prevLabel + 'type.id') === item[prevLabel + 'type.id'] ? ' selected' : '')}
-                      onClick={() => handleSelectItem(item, type, index)}
+                      onClick={() => handleSelectItem(item, type)}
                     >
                       <i className={'iconfont icon-' + (type === 'type' ? 'duixiangleixing' : 'guanxileixing')}></i>
                       {item.title || (<span className='type-item-label'>{label}</span>)}
@@ -600,7 +595,7 @@ export default function Left(props: any) {
                 expandedKeys={expandedKeys}
                 blockNode
                 showIcon
-                onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type', (event.node as any).dataIndex)}
+                onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type')}
               />
             </div>
           }

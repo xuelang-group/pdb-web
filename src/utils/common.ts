@@ -75,23 +75,17 @@ export const typeMap: any = {
     int: '整数',
     float: '浮点数',
     string: '字符串',
-    // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
     code: '代码'
-    // list: '值列表',
-    // refer: '关联属性'
   },
   object: {
     int: '整数',
     float: '浮点数',
     string: '字符串',
-    // text: '多行文本',
     boolean: '布尔值',
     datetime: '日期时间',
     code: '代码'
-    // list: '值列表',
-    // refer: '关联属性'
   },
   relation: {
     int: '整数',

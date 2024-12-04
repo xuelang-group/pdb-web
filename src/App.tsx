@@ -34,11 +34,13 @@ import List from './pages/list';
 import { getTypeList } from './actions/type';
 import { getRelation } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
-import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
+import { setRelationMap, setTypeLoading, setTypeMap, setTypeRelationMap } from '@/reducers/editor';
 import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicator';
 import { TypeConfig } from '@/reducers/type';
 
 import { getHashParameterByName } from '@/utils/common';
+import { getGraphInfo } from './actions/graph';
+import { setGraphData } from '@/reducers/object';
 import { initG6 } from './g6';
 
 const { Content } = Layout;
@@ -56,6 +58,21 @@ function App(props: PdbConfig) {
     types = useSelector((state: StoreState) => state.type.data);
 
   const [selectedTab, setSelectedTab] = useState("");
+
+  function getGraphData(id: number) {
+    getGraphInfo(id, (success: boolean, data: any) => {
+      if (success) {
+        dispatch(setGraphData(data));
+      } else {
+        notification.error({
+          message: '获取项目信息失败',
+          description: data.message || data.msg
+        });
+        dispatch(setTypeRelationMap({}));
+      }
+    });
+  }
+
   useEffect(() => {
     initG6();
     prevPathname = location.pathname;
@@ -65,7 +82,10 @@ function App(props: PdbConfig) {
       if (success) {
         const { userId, graphId } = response as systemInfoState;
         getAppFolderList(userId);
-        graphId && getCommonData(graphId);
+        if (graphId) {
+          getCommonData(graphId);
+          getGraphData(graphId);
+        }
         dispatch(setSystemInfo(response));
         if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/${graphId}`) && location.pathname.indexOf(`/${graphId}/`) === -1) {
           navigate(`/${graphId}`);

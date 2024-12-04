@@ -1,15 +1,10 @@
-import { Divider, Layout, notification } from "antd";
+import { Divider, Layout } from "antd";
 import _ from "lodash";
 import "moment/locale/zh-cn";
 import { ReactNode, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
 
 import { setCollapsed } from "@/reducers/app";
-import { getGraphInfo } from "@/actions/graph";
-import { setGraphData } from "@/reducers/object";
-import { setTypeRelationMap } from "@/reducers/editor";
-
 import './index.less'
 
 const title: any = {
@@ -25,30 +20,9 @@ interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const dispatch = useDispatch();
-  const routerParams = useParams();
-
   const { route, headerEXtraWidth, centerContent } = props;
   const graphData = useSelector((store: any) => store[route].graphData),
     graphSavedMsg = useSelector((store: any) => store[route].graphSavedMsg);
-
-  useEffect(() => {
-    if (!routerParams || !routerParams.id) return;
-    getGraphData(Number(routerParams.id));
-  }, [routerParams?.id]);
-
-  function getGraphData(id: number) {
-    getGraphInfo(id, (success: boolean, data: any) => {
-      if (success) {
-        dispatch(setGraphData(data));
-      } else {
-        notification.error({
-          message: '获取项目信息失败',
-          description: data.message || data.msg
-        });
-        dispatch(setTypeRelationMap({}));
-      }
-    });
-  }
 
   let timer: any,
     len = 10.501562118716425,

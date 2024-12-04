@@ -243,7 +243,7 @@ export const G6OperateFunctions = {
         store.dispatch(setGraphLoading(false));
       });
     } else {
-      store.dispatch(setObjectDetail({ uid: model.id, options: { collapsed } }));
+      store.dispatch(setObjectDetail({ id: model.id, options: { collapsed } }));
       graph.expandCombo(comboId);
       node.update({
         data: {
@@ -859,7 +859,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: {
       collapsed: false
     });
     store.dispatch(setObjectDetail({
-      uid: parentNodeId,
+      id: parentNodeId,
       options: {
         'x.object.version.childs': childLen + 1,
         collapsed: false
@@ -1490,7 +1490,7 @@ export function registerBehavior() {
       //   return;
       // }
 
-      store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
+      store.dispatch(setObjectDetail({ id, options: { collapsed } }));
       if (collapsed) {
         setTimeout(() => {
           graph.collapseCombo(comboId);

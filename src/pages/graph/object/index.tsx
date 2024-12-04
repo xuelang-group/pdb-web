@@ -12,7 +12,7 @@ import store from '@/store';
 import { edgeLabelStyle } from '@/g6/edge';
 import { G6OperateFunctions, PAGE_SIZE } from '@/g6/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
-import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, Parent, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
@@ -78,7 +78,6 @@ export default function Editor(props: EditorProps) {
     if (!routerParams.id) return;
     const graphId = Number(routerParams.id);
     setCommonParams({ graphId });
-    initG6('object');
     getRootsData();
 
     return () => {
@@ -95,8 +94,9 @@ export default function Editor(props: EditorProps) {
         dispatch(setRootNode(data));
         const rootId = data['x.object.id'];
         getChildren({ vid: rootId }, (success: boolean, data: any) => {
+          if (!data) return;
           let newData = [];
-          if (success && data) {
+          if (success) {
             const relationLines = {};
             newData = data.map((value: any, index: number) => {
               const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
