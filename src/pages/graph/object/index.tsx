@@ -9,9 +9,8 @@ import _ from 'lodash';
 import { addChildrenToGraphData, covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
 import store from '@/store';
-import { initG6 } from '@/g6';
-import { edgeLabelStyle } from '@/g6/type/edge';
-import { G6OperateFunctions, PAGE_SIZE } from '@/g6/object/behavior';
+import { edgeLabelStyle } from '@/g6/edge';
+import { G6OperateFunctions, PAGE_SIZE } from '@/g6/behavior';
 import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, ObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {

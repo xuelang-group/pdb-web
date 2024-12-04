@@ -6,8 +6,8 @@ import { useResizeDetector } from 'react-resize-detector';
 import _ from 'lodash';
 
 import type { StoreState } from '@/store';
-import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
-import { edgeLabelStyle, edgeStyle } from '@/g6/type/edge';
+import { defaultCircleR, nodeStateStyle } from '@/g6/node';
+import { edgeLabelStyle, edgeStyle } from '@/g6/edge';
 
 import './index.less';
 import { RelationConfig } from '@/reducers/relation';

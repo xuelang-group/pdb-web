@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { deleteObjectRelation, getRelationTarget, createObjectRelation, getObjects } from '@/actions/object';
-import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/object/edge';
+import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/edge';
 import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
 import { StoreState } from '@/store';
 import './index.less';

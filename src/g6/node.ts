@@ -3,12 +3,12 @@ import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingStri
 import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import _ from 'lodash';
-import { iconImgWidth } from '../type/node';
 import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
 import { ObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60;
+export const iconImgWidth = 20;
 
 export const nodeStateStyle: any = {
   default: {
@@ -767,8 +767,7 @@ export function registerNode() {
         nodeIcon = group.find((ele: any) => ele.get('name') === 'node-icon'),
         nodeShape = group.find((ele: any) => ele.get('name') === 'circle-node-keyShape');
 
-      const { name } = cfg;
-      const { text, textWidth, hasEllipsis } = fittingString(name as string, defaultCircleR * 2 - 40, GLOBAL_FONT_SIZE);
+      const { text, textWidth, hasEllipsis } = fittingString(_.get(cfg.data, 'x.type.name', ''), defaultCircleR * 2 - 40, GLOBAL_FONT_SIZE);
       let _textWidth = textWidth;
       if (hasEllipsis) _textWidth += 10;
       if (cfg && cfg.data) {
@@ -863,6 +862,7 @@ export function registerNode() {
     setState(name, value, item) {
       if (!item) return;
       const group = item.getContainer(),
+        outerCircle = group.find(ele => ele.get('name') === 'outer-circle'),
         innerCircle = group.find(ele => ele.get('name') === 'circle-node-keyShape'),
         textShape = group.find(ele => ele.get('name') === 'text-shape'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
@@ -883,9 +883,11 @@ export function registerNode() {
 
       if (name === 'selected') {
         if (value) {
-          innerCircle.attr(outerCircleStyle['selected']);
-        } else {
+          outerCircle.attr(outerCircleStyle['selected']);
           innerCircle.attr(defaultNodeStyle);
+          outerCircle.show();
+        } else {
+          outerCircle.hide();
         }
       } else if (name === 'inactive') {
         if (value) {

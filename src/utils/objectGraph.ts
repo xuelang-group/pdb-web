@@ -1,4 +1,4 @@
-import { nodeStateStyle } from '@/g6/type/node';
+import { nodeStateStyle } from '@/g6/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData } from '@antv/g6';
 import _, { isArray } from 'lodash';

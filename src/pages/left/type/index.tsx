@@ -5,7 +5,7 @@ import { useLocation } from 'react-router';
 import { useParams } from 'react-router-dom';
 import _ from 'lodash';
 
-import { defaultCircleR, nodeStateStyle } from '@/g6/type/node';
+import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
 import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TypePrototypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';

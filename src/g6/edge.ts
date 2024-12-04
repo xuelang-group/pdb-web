@@ -1,6 +1,7 @@
 import G6, { EdgeConfig } from '@antv/g6';
 import _ from 'lodash';
-import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../../utils/objectGraph';
+import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../utils/objectGraph';
+import { defaultCircleR } from './node';
 
 export const defaultEdgeStyle = {
   stroke: '#F77234',
@@ -10,6 +11,75 @@ export const defaultEdgeStyle = {
     path: G6.Arrow.triangle(),
     fill: '#F77234',
     stroke: '#F77234',
+  }
+}
+
+export const labelThemeStyle: any = {
+  light: {
+    fill: '#1C2126',
+    background: '#F9FBFC'
+  },
+  dark: {
+    fill: '#DEDFE0',
+    background: '#262829'
+  }
+}
+
+export const edgeLabelStyle: any = (theme: string = 'light') => ({
+  default: {
+    fill: labelThemeStyle[theme].fill,
+    fontSize: 12,
+    lineHeight: 12,
+    background: {
+      fill: labelThemeStyle[theme].background,
+      padding: [0, 0, 0, 0],
+    },
+    cursor: 'pointer'
+  },
+  hover: {
+    fill: '#2EA1FF'
+  },
+  selected: {
+    fill: '#0084FF'
+  }
+});
+
+export const edgeStyle: any = {
+  default: {
+    stroke: 'l(0) 0:#FFE1CB 1:#FFAD72',
+    lineWidth: 1.5,
+    startArrow: {
+      path: G6.Arrow.triangle(0, 0, defaultCircleR + 2),
+      d: defaultCircleR + 2
+    },
+    endArrow: {
+      path: G6.Arrow.triangle(5, 5, defaultCircleR + 2),
+      d: defaultCircleR + 2,
+      fill: '#FFAD72',
+      stroke: '#FFAD72',
+    },
+    cursor: 'pointer'
+  },
+  hover: {
+    stroke: '#2EA1FF',
+    lineWidth: 3,
+    startArrow: {
+      path: G6.Arrow.triangle(0, 0, defaultCircleR + 3),
+      d: defaultCircleR + 3
+    },
+    endArrow: {
+      path: G6.Arrow.triangle(5, 5, defaultCircleR + 3),
+      d: defaultCircleR + 3,
+      fill: '#2EA1FF'
+    },
+  },
+  selected: {
+    stroke: '#0084FF',
+    endArrow: {
+      path: G6.Arrow.triangle(5, 5, defaultCircleR + 3),
+      d: defaultCircleR + 3,
+      fill: '#0084FF'
+    },
   }
 }
 

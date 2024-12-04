@@ -1,5 +1,5 @@
 import G6, { Util } from '@antv/g6';
-import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_LEFT_SEP, NODE_HEIGHT_SEP, paginationOption } from '../../utils/objectGraph';
+import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_HEIGHT_SEP, paginationOption } from '../utils/objectGraph';
 import store from '@/store';
 
 export function registerLayout() {

@@ -1,10 +1,11 @@
-import * as typeG6 from './type';
-import * as objcectG6 from './object';
+import { registerLayout } from './layout';
+import { registerNode } from './node';
+import { registerEdge } from './edge';
+import { registerBehavior } from './behavior';
 
-export function initG6(type: string) {
-  if (type === 'object') {
-    objcectG6.init();
-  } else {
-    typeG6.init();
-  }
+export function initG6() {
+  registerLayout();
+  registerBehavior();
+  registerEdge();
+  registerNode();
 }

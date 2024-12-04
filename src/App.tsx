@@ -39,6 +39,7 @@ import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicato
 import { TypeConfig } from '@/reducers/type';
 
 import { getHashParameterByName } from '@/utils/common';
+import { initG6 } from './g6';
 
 const { Content } = Layout;
 let prevPathname = "";
@@ -56,6 +57,7 @@ function App(props: PdbConfig) {
 
   const [selectedTab, setSelectedTab] = useState("");
   useEffect(() => {
+    initG6();
     prevPathname = location.pathname;
     dispatch(setPageLoading(true));
     setSelectedTab(location.pathname.endsWith("/indicator") ? "indicator" : "pdb");

@@ -1,5 +1,5 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal } from "antd";
-import { labelThemeStyle } from "@/g6/type/edge";
+import { labelThemeStyle } from "@/g6/edge";
 import G6, { Item } from "@antv/g6";
 import _ from "lodash";
 import { useEffect, useState } from "react";

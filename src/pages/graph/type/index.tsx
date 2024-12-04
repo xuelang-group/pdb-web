@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 
 import type { StoreState } from '@/store';
 import type { ObjectConfig } from '@/reducers/object';
-import { nodeStateStyle } from '@/g6/type/node';
-import { labelThemeStyle } from '@/g6/type/edge';
+import { nodeStateStyle } from '@/g6/node';
+import { labelThemeStyle } from '@/g6/edge';
 import './index.less';
 
 let graph: any;

@@ -1,12 +1,12 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
-import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../../utils/objectGraph';
+import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
-import { addObject, checkOutObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _, { isArray } from 'lodash';
-import { nodeStateStyle } from '../type/node';
+import { nodeStateStyle } from './node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 import { TypeConfig } from '@/reducers/type';
 
