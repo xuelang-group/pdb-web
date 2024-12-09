@@ -99,7 +99,8 @@ export const fittingString = (str: string, maxWidth: number = 0, fontSize: numbe
 
 function findLastIndex(nodes: any[], xid: string) {
   for (let i = nodes.length - 1; i >= 0; i--) {
-    if (nodes[i].xid === xid || nodes[i].xid.startsWith(xid + '.')) {
+    const nodeXid = _.get(nodes[i], 'data.xid', '') as string;
+    if (nodeXid && (nodeXid === xid || nodeXid.startsWith(xid + '.'))) {
       return i;
     }
   }
@@ -127,8 +128,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
     const comboId = `${id}-combo`;
     const node = {
       id,
-      xid,
-      data: item,
+      data: { ...item, xid },
       icon: iconKey,
       isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.id'] || ''),
       style: {
@@ -200,7 +200,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   });
   const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
 
-  const lastIndex = parent.xid ? findLastIndex(currentData.nodes || [], parent.xid) : -1;
+  const lastIndex = parent.data.xid ? findLastIndex(currentData.nodes || [], parent.data.xid) : -1;
   const newNodes = JSON.parse(JSON.stringify(currentData.nodes));
 
   for (let node of newNodes) {
@@ -270,22 +270,27 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   if (id === rootId) {
     newNodes = newNodes.concat(nodes);
   }
-  const shoudldRemoveXidLen = parent.xid.split(".").length + 1;
+  const parentXid = parent.xid, parentId = parent.id;
+  const shoudldRemoveXidLen = parentXid.split(".").length + 1;
   let removeIdChildren: any[] = [], removeIdChildrenMap: any = {}, concatIndex = -1;
   for (let i = 0; i < currentNodes.length; i++) {
-    const node = currentNodes[i];
-    if (node.xid && node.xid.startsWith(parent.xid) && node.xid.split(".").length === shoudldRemoveXidLen) {
-      Object.assign(removeIdChildrenMap, { [node.id]: node });
+    const node = currentNodes[i],
+      nodeId = node.id,
+      nodeData = node.data || {},
+      nodeXid = nodeData.xid || '',
+      nodeParent = _.get(nodeData['x.object.version.parent'], 'x.object.id', '');
+    if (nodeXid && nodeXid.startsWith(parentXid) && nodeXid.split(".").length === shoudldRemoveXidLen) {
+      Object.assign(removeIdChildrenMap, { [nodeId]: node });
     }
-    if ((!node.xid.startsWith(parent.xid) || node.xid == parent.xid) && !node.id.startsWith("pagination-" + parent.id) && !removeIdChildrenMap[node.parent] && !removeIds[node.parent]) {
+    if ((!nodeXid.startsWith(parentXid) || nodeXid == parentXid) && !nodeId.startsWith("pagination-" + parentId) && !removeIdChildrenMap[nodeParent] && !removeIds[nodeParent]) {
       newNodes.push(node);
-    } else if (newDataIdMap[node.parent] && (node.xid.startsWith(parent.xid) && node.xid.split(".").length > shoudldRemoveXidLen || node.parent && removeIdChildrenMap[node.parent])) {
+    } else if (newDataIdMap[nodeParent] && (nodeXid.startsWith(parentXid) && nodeXid.split(".").length > shoudldRemoveXidLen || nodeParent && removeIdChildrenMap[nodeParent])) {
       removeIdChildren.push(node);
-      Object.assign(removeIdChildrenMap, { [node.id]: node });
+      Object.assign(removeIdChildrenMap, { [nodeId]: node });
     } else {
-      Object.assign(removeIds, { [node.id]: node });
+      Object.assign(removeIds, { [nodeId]: node });
     }
-    if (node.id === id) {
+    if (nodeId === id) {
       concatIndex = newNodes.length;
     }
   }
@@ -294,21 +299,23 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
   if (removeIdChildren.length > 0) {
     let newRemoveIdChildren: any[] = [];
     nodes.forEach(function (node) {
-      const nodeXid = node.xid;
+      const nodeId = node.id,
+        nodeXid = node.data.xid;
       concatNodes.push(node);
       if (nodeXid) {
         for (let i = 0; i < removeIdChildren.length; i++) {
-          const item = removeIdChildren[i];
-          const itemXid = item.xid;
+          const item = removeIdChildren[i],
+            itemId = item.id,
+            itemXid = item.xid;
           if (itemXid && itemXid.startsWith(nodeXid)) {
-            if (itemXid.split(".").length === nodeXid.split(".").length + 1 && item.parent !== node.id) {
+            if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item.data['x.object.version.parent'], 'x.object.id') !== nodeId) {
               break;
             }
             concatNodes.push(item);
             if (nodeXid.split(".").length + 1 === itemXid.split(".").length) {
-              edges.push({ source: node.id, target: item.id });
+              edges.push({ source: nodeId, target: itemId });
             }
-          } else if (item.id.startsWith("pagination-" + node.id)) {
+          } else if (itemId.startsWith("pagination-" + nodeId)) {
             concatNodes.push(item);
           } else {
             newRemoveIdChildren.push(item);
@@ -515,8 +522,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
     const collapsed = Boolean(item.collapsed === undefined ? true : item.collapsed);
     const node: NodeItemData = {
       id,
-      xid,
-      data: item,
+      data: { ...item, xid },
       icon: iconKey,
       style: {
         ...nodeStateStyle.default,

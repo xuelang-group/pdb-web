@@ -8,7 +8,7 @@ import * as XLSX from 'xlsx';
 
 import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
 import store, { StoreState } from "@/store";
-import { ObjectConfig, ObjectRelationInfo, Parent, setObjects } from "@/reducers/object";
+import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, Parent, setObjects } from "@/reducers/object";
 import { addObject, getChildren } from "@/actions/object";
 import { clearGraphData } from "@/actions/graph";
 import { covertToGraphData } from "@/utils/objectGraph";
@@ -218,8 +218,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           !edgeItem.isVisible() && edgeItem.show();
         } else if (targetItem && sourceItem) {
           // 当前边不存在，sourc和target节点存在，则创建该边
-          const sourceItemModel = sourceItem.get('model');
-          const targetItemModel = targetItem.get('model');
+          const sourceItemModel = sourceItem.get('model'),
+            sourceItemData = sourceItemModel.data as CustomObjectConfig;
+          const targetItemModel = targetItem.get('model'),
+            targetItemData = targetItemModel.data as CustomObjectConfig;
           let lineColor = 'l(0) 0:rgba(255,173,114,0.2) 1:#FFAD72', labelColor = labelThemeStyle[props.theme].fill; // 亮化颜色
           if (!_.isEmpty(filterMap.relation) && !_.get(filterMap.relation, relation)) {
             // 有过滤配置，且不在过滤项里的，灰化处理
@@ -229,25 +231,28 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
           // 默认边类型
           let edgeType = 'tree-relation-line';
-          const sourceIsRoot = sourceItemModel.parent === rootId,
-            targetIsRoot = targetItemModel.parent === rootId,
+          const sourceIsRoot = _.get(sourceItemData['x.object.version.parents'], 'x.object.id') === rootId,
+            targetIsRoot = _.get(targetItemData['x.object.version.parents'], 'x.object.id') === rootId,
             sourceWidth = sourceItemModel.width,
             targetWidth = targetItemModel.width;
 
+          const targetItemXid = targetItemData.xid || '',
+            sourceItemXid = sourceItemData.xid || '';
+
           // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
-          if (targetItemModel.uid === sourceItemModel.uid) {
+          if (targetItemModel.id === sourceItemModel.id) {
             edgeType = "loop";
-          } else if (targetItemModel.xid.split('.')[1] === sourceItemModel.xid.split('.')[1]) {
+          } else if (targetItemXid.split('.')[1] === sourceItemXid.split('.')[1]) {
             edgeType = 'same-tree-relation-line';
             if (sourceItemModel.y > targetItemModel.y) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }
           } else if (sourceIsRoot && targetIsRoot) {
             edgeType = "all-root-relation-line";
-            if (targetItemModel.xid.split('.')[1] < sourceItemModel.xid.split('.')[1]) {
+            if (targetItemXid.split('.')[1] < sourceItemXid.split('.')[1]) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }
-          } else if (targetItemModel.xid.split('.')[1] < sourceItemModel.xid.split('.')[1]) {
+          } else if (targetItemXid.split('.')[1] < sourceItemXid.split('.')[1]) {
             lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
           }
 

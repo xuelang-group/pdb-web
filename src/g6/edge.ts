@@ -1,3 +1,4 @@
+import { CustomObjectConfig } from '@/reducers/object';
 import G6, { EdgeConfig } from '@antv/g6';
 import _ from 'lodash';
 import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../utils/objectGraph';
@@ -94,20 +95,20 @@ export function registerEdge() {
       const startPoint = cfg.sourceNode?.getBBox(),
         endPoint = cfg.targetNode?.getBBox();
       const { stroke } = LINE_SYTLE['default'];
-      const targetModel = cfg.targetNode?.get('model'),
-        sourceModel = cfg.sourceNode?.get('model');
+      const targetData = cfg.targetNode?.get('model').data as CustomObjectConfig,
+        sourceData = cfg.sourceNode?.get('model').data as CustomObjectConfig;
       const lineWidth = cfg.isComboEdge ? 0 : 1;
 
       // 折线
       let startPoinX = Number(startPoint?.x) + 15;
-      if (sourceModel.parent === targetModel.parent) {
+      if (_.get(sourceData['x.object.version.parents'], 'x.object.id') === _.get(targetData['x.object.version.parents'], 'x.object.id')) {
         startPoinX = Number(startPoint?.x) - 15;
       }
 
       let startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 - 3;
-      if (targetModel['xid'] && targetModel['xid'] === (sourceModel['xid'] + '.0')) {
+      if (targetData['xid'] && targetData['xid'] === (sourceData['xid'] + '.0')) {
         startPointY = Number(startPoint?.y) + NODE_HEIGHT + COLLAPSE_SHAPE_R;
-      } else if (sourceModel['xid'] && sourceModel['xid'].split(".").length === 2) {
+      } else if (sourceData['xid'] && sourceData['xid'].split(".").length === 2) {
         startPointY = Number(startPoint?.y) + NODE_HEIGHT;
       }
       const shape: any = group.addShape('path', {

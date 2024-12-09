@@ -150,7 +150,7 @@ export const G6OperateFunctions = {
   expandNode: function (node: Item, graph: Graph, callback?: any) {
     const model: NodeItemData = node.get('model'),
       modelChildLen = model.data['x.object.version.childs'],
-      xid = model.xid;
+      xid = model.data['xid'];
     const comboId = `${model.id}-combo`,
       collapsed = false;
     const children = graph.getComboChildren(comboId);
@@ -256,11 +256,11 @@ export const G6OperateFunctions = {
     const allData = store.getState().object.data;
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
-      dragItemXid = dragItemModel.xid,
+      dragItemXid = dragItemModel.data.xid,
       dragItemParent = dragItemModel.data['x.object.version.parents']['x.object.id'];
     const dropItemId = dropItem.get('id'),
       dropItemModel = dropItem.get('model'),
-      dropItemXid = dropItemModel.xid;
+      dropItemXid = dropItemModel.data.xid;
     const rootId = store.getState().editor.rootNode['x.object.id'];
 
     let dragItemParentId: any;
@@ -517,10 +517,8 @@ export const G6OperateFunctions = {
     const rootNode = store.getState().editor.rootNode;
     const rootId = rootNode['x.object.id'];
 
-    const parentId = pasteItem ? pasteItem.id : rootId;
-    const parentName = pasteItem ? pasteItem.name : rootNode['x.object.name'];
-    const parentUid = pasteItem ? pasteItem.uid : rootId;
-    const parentXid = pasteItem ? pasteItem.xid : rootId;
+    const parentUid = pasteItem ? pasteItem.id : rootId;
+    const parentXid = pasteItem ? pasteItem.data.xid : rootId;
 
     const children = graph.getComboChildren(parentUid + '-combo');
     let childLen = children && children.nodes ? children.nodes.length : 0;
@@ -585,7 +583,7 @@ export const G6OperateFunctions = {
             parentModel = parentNode.get('model'),
             collapsed = false;
           let id = parentModel.id,
-            xid = parentModel.xid,
+            xid = parentModel.data.xid,
             childLen = parentModel.childLen;
           const comboId = `${id}-combo`;
           if (objectData) {
@@ -755,7 +753,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: {
   if (!sourceNodeId) return;
 
   const sourceNodeModel = sourceNode.get('model');
-  const sourceNodeXid = sourceNodeModel.xid;
+  const sourceNodeXid = sourceNodeModel.data.xid;
   const sourceNodeIds = sourceNodeXid.split('.');
   const sourceNodeIndex = sourceNodeIds.pop();
   const parentNodeXid = sourceNodeIds.join('.');
@@ -771,7 +769,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: {
   const newXid = parentNodeXid + '.' + xIndex;
 
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
-    return item.getModel().xid === (parentNodeXid + '.' + (xIndex - 1));
+    return _.get(item.getModel(), 'data.xid') === (parentNodeXid + '.' + (xIndex - 1));
   });
   const sourceNodeXIndex = sourceNodeModel.data['x.object.version.parents']['x.object.index'];
   const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any)['x.object.version.parents']['x.object.index'] : sourceNodeXIndex - 1;
@@ -965,7 +963,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
 
-  const sourceNodeXid = sourceNode.xid;
+  const sourceNodeXid = sourceNode.data.xid;
 
   let prevBrotherXid: any = null;
   if (childLen > 0) {
@@ -1038,10 +1036,9 @@ function addRootNode(objectData: ObjectConfig, customData: any, graph: Graph) {
     iconKey = _.get(metadata, 'icon', '');
   const node: NodeItemData = {
     id: objId,
-    xid: customData['xid'],
     parent: rootId,
     name: name,
-    data: objectData,
+    data: { ...objectData, xid: customData['xid'] },
     comboId: rootId + '-combo',
     childLen: Number(objectData['x.object.version.childs'] || 0),
     icon: iconKey,
@@ -1080,7 +1077,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     typeAttrDefaultValue = _.get(typeData, 'attrs', {}),
     typeMetadata = _.get(typeData, 'metadata', '{}')
 
-  const sourceNodeXid = sourceNode.xid;
+  const sourceNodeXid = sourceNode.data.xid;
 
   const childLen = sourceNode.data['x.object.version.childs'] || 0;
 
@@ -1224,7 +1221,7 @@ export function insertRootNode(graph: Graph, typeData: { id: string; name: strin
   const objectState = store.getState().object;
   const { data } = objectState;
   const dropItemModel = dropItem.getModel(),
-    dropItemXid = dropItemModel.xid,
+    dropItemXid = dropItemModel.data.xid,
     dropItemIndex = Number(dropItemXid.replace(rootId + ".", "")),
     newXid = dropItemXid,
     newParent: ObjectParentInfo = {
@@ -1502,10 +1499,10 @@ export function registerBehavior() {
       const graph = this.graph as Graph;
       const dragItemId = dragItem.get('id'),
         dragItemModel = dragItem.get('model') as NodeItemData,
-        dragItemXid = dragItemModel.xid,
+        dragItemXid = dragItemModel.data.xid,
         dropItemId = dropItem.get('id'),
         dropItemModel = dropItem.get('model') as NodeItemData,
-        dropItemXid = dropItemModel.xid;
+        dropItemXid = dropItemModel.data.xid;
 
       if (dragItemId === dropItemId || !dragItemXid || !dropItemXid) return;
 
@@ -1604,7 +1601,7 @@ export function registerBehavior() {
             ids.push(lastIndex - 1);
             const dropPrevXid = ids.join(".");
             const dropPrevNodeItem = graph.find("node", function (item, index) {
-              return item.getModel().xid === dropPrevXid;
+              return _.get(item.getModel(), 'data.xid') === dropPrevXid;
             });
             const droNodeXIndex = (dropItemModel.data['x.object.version.parents'] || {})['x.object.index'] || 1024;
             const dropPrevNodeXIndex = dropPrevNodeItem ? (((dropPrevNodeItem.getModel().data as ObjectConfig)['x.object.version.parents'] || {})['x.object.index'] || 1024) : droNodeXIndex - 1;

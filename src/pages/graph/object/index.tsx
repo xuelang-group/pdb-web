@@ -384,7 +384,7 @@ export default function Editor(props: EditorProps) {
               const { toolbarConfig, currentGraphTab } = store.getState().editor;
 
               const _data: CustomObjectConfig[] = data.map((value: ObjectConfig, index: number) => {
-                const _xid = item.xid + '.' + index;
+                const _xid = item.data.xid + '.' + index;
 
                 // 获取对象关系列表数据
                 const relations: any[] = [];
@@ -436,7 +436,7 @@ export default function Editor(props: EditorProps) {
               for (const val of _data) {
                 const childrenLen = _.get(val, 'x.object.version.childs', 0);
                 if (childrenLen > 0) {
-                  await fetchChildren({ id: val['x.object.id'], xid: val['xid'], data: val }, curentGraphData, _objectData, shouldExpandCombo, relationLines);
+                  await fetchChildren({ id: val['x.object.id'], data: val }, curentGraphData, _objectData, shouldExpandCombo, relationLines);
                 }
               }
             } else {

@@ -1,9 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { EdgeConfig, NodeConfig } from '@antv/g6';
 import { TypeConfig } from './type';
-import { ObjectConfig } from './object';
+import { CustomObjectConfig, ObjectConfig } from './object';
 import { RelationConfig } from './relation';
-import { set } from 'lodash';
 
 export interface EdgeItemData extends EdgeConfig {
   'id': string
@@ -11,9 +10,8 @@ export interface EdgeItemData extends EdgeConfig {
 }
 export interface NodeItemData extends NodeConfig {
   'id': string // 对象节点ID
-  'xid'?: string // 对象节点层级ID
   'comboId'?: string // 所属combo id
-  'data': ObjectConfig // 原始数据
+  'data': CustomObjectConfig // 原始数据
   'isDisabled'?: boolean // 是否灰化
   'totalPage'?: number // 分页数量
   'nextDisabled'?: boolean // 下一页是否灰化
