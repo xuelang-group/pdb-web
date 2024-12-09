@@ -14,7 +14,6 @@ export interface NodeItemData extends NodeConfig {
   'xid'?: string // 对象节点层级ID
   'comboId'?: string // 所属combo id
   'data': ObjectConfig // 原始数据
-  'collapsed'?: boolean // 是否折叠
   'isDisabled'?: boolean // 是否灰化
   'totalPage'?: number // 分页数量
   'nextDisabled'?: boolean // 下一页是否灰化

@@ -823,8 +823,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: {
       data: {
         ...(parentNodeModel?.data),
         'x.object.version.childs': childLen + 1,
-      },
-      collapsed: false
+        collapsed: false
+      }
     });
     store.dispatch(setObjectDetail({
       id: parentNodeId,
@@ -1136,11 +1136,11 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     const sourceItem = graph.findById(sourceNodeId);
     const newSourceNodeData = {
       ...sourceNode.data,
-      "x.object.version.childs": childLen + 1
+      "x.object.version.childs": childLen + 1,
+      "collapsed": false
     };
     sourceItem.update({
       data: newSourceNodeData,
-      collapsed: false
     });
 
     addNodeChildren(newObj, { ...sourceNode, data: newSourceNodeData }, graph);
@@ -1783,7 +1783,7 @@ export function registerBehavior() {
           return;
         }
 
-        if (Number(dropItemModel.data['x.object.version.childs']) > 0 && (dropItemModel.collapsed === undefined || dropItemModel.collapsed)) {
+        if (Number(dropItemModel.data['x.object.version.childs']) > 0 && Boolean(_.get(dropItemModel.data, 'collapsed'))) {
           G6OperateFunctions.expandNode(dropItem, (this as any).graph, () => {
             G6OperateFunctions.moveNode(dragItem, dropItem, graph);
           });

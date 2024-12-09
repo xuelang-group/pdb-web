@@ -517,7 +517,6 @@ export function convertAllData(data: CustomObjectConfig[]) {
       id,
       xid,
       data: item,
-      collapsed,
       icon: iconKey,
       style: {
         ...nodeStateStyle.default,
