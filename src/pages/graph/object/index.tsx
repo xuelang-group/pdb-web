@@ -180,7 +180,7 @@ export default function Editor(props: EditorProps) {
           itemModel = evt.item.getModel();
         if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
 
-        if (itemType === "node" && (_.get(itemModel, 'childLen', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
+        if (itemType === "node" && (_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
           return `<ul class="pdb-graph-node-contextmenu">
             <li title="一键展开">一键展开</li>
           </ul>`;
@@ -464,7 +464,7 @@ export default function Editor(props: EditorProps) {
           for (const node of children.nodes) {
             const model = node.get('model');
 
-            if (_.get(model, 'childLen', 0) > 0) {
+            if (_.get(model.data, 'x.object.version.childs', 0) > 0) {
               await fetchChildren(model, curentGraphData, _objectData, shouldExpandCombo, relationLines);
             }
           }
@@ -681,7 +681,7 @@ export default function Editor(props: EditorProps) {
     return (
       <>
         <div className='pdb-confirm-info'>是否删除实例：{name}?</div>
-        {Boolean(currentEditModel.childLen) &&
+        {_.get(currentEditModel.data, 'x.object.version.childs', 0) > 0 &&
           <div className='pdb-confirm-info-checkbox'>
             <Checkbox defaultChecked onChange={event => handleChangeRemoveAll(event, currentEditModel)} />
             <span>同时删除该实例的所有下级实例</span>

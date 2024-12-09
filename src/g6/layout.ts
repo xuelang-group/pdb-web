@@ -1,4 +1,5 @@
 import G6, { Util } from '@antv/g6';
+import _ from 'lodash';
 import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_HEIGHT_SEP, paginationOption } from '../utils/objectGraph';
 import store from '@/store';
 
@@ -46,8 +47,9 @@ export function registerLayout() {
         currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
       const rootId = store.getState().editor.rootNode['x.object.id'];
       self.nodes.forEach((item: any, index: number) => {
-        if (item.parent !== rootId) {
-          const itemParentX = nodeXMap.get(item.parent);
+        const parent = _.get(item.data['x.object.version.parent'], 'x.object.id', '');
+        if (parent !== rootId) {
+          const itemParentX = nodeXMap.get(parent);
           if (!itemParentX) {
             nodeXMap.set(item.id, { ...item });
             return;
@@ -64,7 +66,7 @@ export function registerLayout() {
             item.x += paginationOption().size[0] / 2;
             prevNodeHeight = 10;
 
-            if (prevNode && Number(prevNode.childLen) > 0) {
+            if (prevNode && Number(_.get(prevNode.data, 'x.object.version.childs', 0)) > 0) {
               item.y += 5;
             }
           } else {

@@ -1158,7 +1158,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
 export function addChildNode(sourceNode: Item, graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }) {
   const model = sourceNode.get('model');
   if (!model) return;
-  if (Number(model.childLen) > 0 && (model.data.collapsed === undefined || model.data.collapsed)) {
+  if (Number(_.get(model.data, 'x.object.version.childs', 0)) > 0 && (model.data.collapsed === undefined || model.data.collapsed)) {
     G6OperateFunctions.expandNode(sourceNode, graph, () => {
       createChildNode(model, graph, typeData);
       graph.layout();
@@ -1560,7 +1560,7 @@ export function registerBehavior() {
           Object.assign(new_value, {
             'x.object.updated': lastChangeTime
           });
-          const childLen = Number(new_value['x.object.version.childs']);
+          const childLen = Number(new_value['x.object.version.childs'] || 0);
           if (value['x.object.id'] === dragItemParentUid) {
             Object.assign(new_value, {
               "x.object.version.childs": childLen - 1
