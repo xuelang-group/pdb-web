@@ -5,7 +5,7 @@ import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, ge
 import _ from 'lodash';
 import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
-import { ObjectConfig } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60;
 export const iconImgWidth = 20;
@@ -56,13 +56,18 @@ export function registerNode() {
    * @param {string} type 节点类型，外部引用指定必须，不要与已有布局类型重名
    * @param {object} node 节点方法
    */
+  // 实例管理中的实例节点
   G6.registerNode('pdbNode', {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode['x.object.id'];
       const userId = store.getState().app.systemInfo.userId;
-      const { parent, name, id, data, childLen } = cfg;
+      const { id } = cfg;
+      const nodeData = cfg.data as CustomObjectConfig;
+      const parent = _.get(nodeData['x.object.version.parents'], 'x.object.id', rootId),
+        name = nodeData['x.object.name'] || '',
+        childLen = nodeData['x.object.version.childs'] || 0;
       const isRootNode = parent === rootId;
-      const metadata = JSON.parse((data as ObjectConfig)['x.object.metadata'] || '{}'),
+      const metadata = JSON.parse(nodeData['x.object.metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
@@ -208,7 +213,7 @@ export function registerNode() {
             x: 15,
             y: NODE_HEIGHT,
             symbol: function collapse(x: number, y: number, r: number) {
-              if ((data as any).collapsed === undefined || (data as any).collapsed) {
+              if (nodeData.collapsed === undefined || nodeData.collapsed) {
                 return [['M', x - r + 4.5, y], ['L', x - r + 2 * r - 4.5, y], ['M', x - r + r, y - r + 4.5], ['L', x, y + r - 4.5]]
               }
               return [['M', x - r + 4.5, y], ['L', x + r - 4.5, y]];
@@ -222,51 +227,54 @@ export function registerNode() {
         });
       }
 
-      if ((data as any)['x_version']) {
-        const versionGroup = group.addGroup({
-          name: 'version-group',
-          visible: (data as any)['x_checkout']
-        });
-        versionGroup.addShape('circle', {
-          attrs: {
-            r: 12,
-            x: width - 0.5,
-            y: -0.5,
-            cursor: 'pointer',
-            fill: "#f9fbfc",
-          },
-          name: 'version-circle',
-          draggable: false,
-          modelId: id
-        });
-        versionGroup.addShape('circle', {
-          attrs: {
-            r: 10.5,
-            x: width - 0.5,
-            y: -0.5,
-            cursor: 'pointer',
-            fill: '#f9fbfc',
-            stroke: "#C2C7CC",
-            lineWidth: 1,
-          },
-          name: 'version-shape',
-          draggable: false,
-          modelId: id
-        });
-        versionGroup.addShape('text', {
-          attrs: {
-            x: width - 0.5,
-            // y: 6,
-            fill: "#4C5A67",
-            fontFamily: 'spicon',
-            textAlign: 'center',
-            textBaseline: 'middle',
-            text: String.fromCodePoint(59156),
-            fontSize: 12
-          },
-          name: 'version-icon'
-        });
-      }
+      /**
+       * 版本相关，暂不支持
+       */
+      // if (nodeData['x_version']) {
+      //   const versionGroup = group.addGroup({
+      //     name: 'version-group',
+      //     visible: nodeData['x_checkout']
+      //   });
+      //   versionGroup.addShape('circle', {
+      //     attrs: {
+      //       r: 12,
+      //       x: width - 0.5,
+      //       y: -0.5,
+      //       cursor: 'pointer',
+      //       fill: "#f9fbfc",
+      //     },
+      //     name: 'version-circle',
+      //     draggable: false,
+      //     modelId: id
+      //   });
+      //   versionGroup.addShape('circle', {
+      //     attrs: {
+      //       r: 10.5,
+      //       x: width - 0.5,
+      //       y: -0.5,
+      //       cursor: 'pointer',
+      //       fill: '#f9fbfc',
+      //       stroke: "#C2C7CC",
+      //       lineWidth: 1,
+      //     },
+      //     name: 'version-shape',
+      //     draggable: false,
+      //     modelId: id
+      //   });
+      //   versionGroup.addShape('text', {
+      //     attrs: {
+      //       x: width - 0.5,
+      //       // y: 6,
+      //       fill: "#4C5A67",
+      //       fontFamily: 'spicon',
+      //       textAlign: 'center',
+      //       textBaseline: 'middle',
+      //       text: String.fromCodePoint(59156),
+      //       fontSize: 12
+      //     },
+      //     name: 'version-icon'
+      //   });
+      // }
 
       const searchGroup = group.addGroup({
         name: 'search-group',
@@ -365,9 +373,13 @@ export function registerNode() {
       }
     },
     update: function (cfg: ModelConfig, item: Item) {
-      const { name, data, id, parent, childLen } = cfg;
-      const group = item.getContainer();
       const rootId = store.getState().editor.rootNode['x.object.id'];
+      const { id } = cfg;
+      const nodeData = cfg.data as CustomObjectConfig;
+      const parent = _.get(nodeData['x.object.version.parents'], 'x.object.id', rootId),
+        name = nodeData['x.object.name'] || '',
+        childLen = nodeData['x.object.version.childs'] || 0;
+      const group = item.getContainer();
       const userId = store.getState().app.systemInfo.userId;
       const nodeText = group.find(ele => ele.get('name') === 'node-text'),
         nodeIcon = group.find(ele => ele.get('name') === 'node-icon'),
@@ -377,7 +389,7 @@ export function registerNode() {
       let leftRect = group?.find(ele => ele.get('name') === 'left-rect'),
         topRect = group?.find(child => child.get('name') === 'top-rect');
 
-      const metadata = JSON.parse((data as ObjectConfig)['x.object.metadata'] || '{}'),
+      const metadata = JSON.parse(nodeData['x.object.metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
@@ -407,19 +419,22 @@ export function registerNode() {
       searchIcon.attr({ fill: textColor });
       cfg.width = width;
 
-      const versionGroup: any = group.find(ele => ele.get('name') === 'version-group');
-      if (versionGroup) {
-        if ((data as any)['x_checkout']) {
-          versionGroup.show();
-          const children = versionGroup.getChildren(),
-            newX = width - 0.5;
-          children[0].attr({ x: newX });
-          children[1].attr({ x: newX });
-          children[2].attr({ x: newX });
-        } else {
-          versionGroup.hide();
-        }
-      }
+      /**
+       * 版本相关，暂不支持
+       */
+      // const versionGroup: any = group.find(ele => ele.get('name') === 'version-group');
+      // if (versionGroup) {
+      //   if (nodeData['x_checkout']) {
+      //     versionGroup.show();
+      //     const children = versionGroup.getChildren(),
+      //       newX = width - 0.5;
+      //     children[0].attr({ x: newX });
+      //     children[1].attr({ x: newX });
+      //     children[2].attr({ x: newX });
+      //   } else {
+      //     versionGroup.hide();
+      //   }
+      // }
 
       if (parent === rootId && !leftRect) {
         leftRect = group.addShape('rect', {
@@ -499,7 +514,7 @@ export function registerNode() {
           collapseText.attr({
             opacity: 1,
             symbol: function collapse(x: number, y: number, r: number) {
-              if ((data as any).collapsed === undefined || (data as any).collapsed) {
+              if (nodeData.collapsed === undefined || nodeData.collapsed) {
                 return [['M', x - r + 4.5, y], ['L', x - r + 2 * r - 4.5, y], ['M', x - r + r, y - r + 4.5], ['L', x, y + r - 4.5]]
               }
               return [['M', x - r + 4.5, y], ['L', x + r - 4.5, y]];
@@ -530,7 +545,7 @@ export function registerNode() {
               x: 15,
               y: NODE_HEIGHT,
               symbol: function collapse(x: number, y: number, r: number) {
-                if ((data as any).collapsed === undefined || (data as any).collapsed) {
+                if (nodeData.collapsed === undefined || nodeData.collapsed) {
                   return [['M', x - r + 4.5, y], ['L', x - r + 2 * r - 4.5, y], ['M', x - r + r, y - r + 4.5], ['L', x, y + r - 4.5]]
                 }
                 return [['M', x - r + 4.5, y], ['L', x + r - 4.5, y]];
@@ -646,6 +661,7 @@ export function registerNode() {
     'rect',
   );
 
+  // 实例管理中的分页按钮
   G6.registerNode('paginationBtn', {
     afterDraw(cfg: any, group: any, rst) {
       const iconTextClassName = 'icon-text';
@@ -701,6 +717,7 @@ export function registerNode() {
     }
   }, 'rect');
 
+  // 类型管理/模板管理中的画布对象类型节点
   G6.registerNode('circle-node', {
     afterDraw(cfg: any, group: any) {
       if (!group) return;

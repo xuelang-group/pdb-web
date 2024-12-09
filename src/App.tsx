@@ -1,8 +1,8 @@
 import { Layout, notification, Spin, Tabs } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import _, { set } from 'lodash';
+import _ from 'lodash';
 
 import * as Editor from '@/reducers/editor';
 import * as _Object from '@/reducers/object';
@@ -30,13 +30,12 @@ import { getSystemInfo } from '@/actions/system';
 
 import { PdbConfig } from '.';
 import './App.less';
-import List from './pages/list';
 import { getTypeList } from './actions/type';
 import { getRelation } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap, setTypeRelationMap } from '@/reducers/editor';
 import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicator';
-import { TypeConfig } from '@/reducers/type';
+import { setTypes, TypeConfig } from '@/reducers/type';
 
 import { getHashParameterByName } from '@/utils/common';
 import { getGraphInfo } from './actions/graph';
@@ -157,7 +156,7 @@ function App(props: PdbConfig) {
   const getCommonData = function (graphId: number) {
     getTypeList(graphId, (success: boolean, response: any) => {
       if (success) {
-        dispatch(Type.setTypes(response || []));
+        dispatch(setTypes(response || []));
       } else {
         notification.error({
           message: '获取对象类型列表失败',

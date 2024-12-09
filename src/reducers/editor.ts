@@ -11,7 +11,7 @@ export interface EdgeItemData extends EdgeConfig {
 }
 export interface NodeItemData extends NodeConfig {
   'id': string // 对象节点ID
-  'xid': string // 对象节点层级ID
+  'xid'?: string // 对象节点层级ID
   'comboId'?: string // 所属combo id
   'data': ObjectConfig // 原始数据
   'collapsed'?: boolean // 是否折叠

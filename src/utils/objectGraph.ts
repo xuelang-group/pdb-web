@@ -200,14 +200,13 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
   });
   const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
 
-  const lastIndex = findLastIndex(currentData.nodes || [], parent.xid);
+  const lastIndex = parent.xid ? findLastIndex(currentData.nodes || [], parent.xid) : -1;
   const newNodes = JSON.parse(JSON.stringify(currentData.nodes));
 
   for (let node of newNodes) {
-    if (node.uid === id) {
+    if (node.id === id) {
       Object.assign(node, {
         ...node,
-        collapsed: false,
         data: {
           ...node.data,
           collapsed: false
@@ -227,7 +226,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
   const newEdges = edges.concat(currentData.edges || []);
   const newCombos = combos.concat(currentData.combos?.map(({ id, parentId, collapsed }) => {
-    if (id === `${parent.id || parent.uid}-combo`) {
+    if (id === `${parent.id}-combo`) {
       return { id, parentId, collapsed: false }
     }
     return { id, parentId, collapsed }

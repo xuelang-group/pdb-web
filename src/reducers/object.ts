@@ -12,26 +12,19 @@ export interface Parent {
   props: any
 }
 
-interface LatestVersionConfig {
-  uid: string
-  'v_version': string
-}
+export const PAGINATION_TYPE = 'PAGINATION';
 
 // 父对象信息
 export interface ObjectParentInfo {
   'x.object.id': string // 父对象ID
   'x.object.version.id'?: string // 父对象版本ID
-  'x.object.index': number // 顺序号
-}
-
-interface ObjectBindInfo {
-  'source': string
-  'target': string
+  'x.object.index'?: number // 顺序号
 }
 
 export interface ObjectRelationInfo {
   'r.type.id': string // 关系类型ID
-  'r.object.binds': ObjectBindInfo // 关系绑定对象
+  'r.object.source.id': string // 源对象ID
+  'r.object.target.id': string // 目标对象ID
   'r.object.attrvalue': any // 关系属性键值对
 }
 
@@ -61,7 +54,7 @@ export interface ObjectConfig extends ObjectVersionConfig {
 }
 
 export interface CustomObjectConfig extends ObjectConfig {
-  'xid': string // 对象节点层级ID
+  'xid'?: string // 对象节点层级ID
   'collapsed'?: boolean // 是否折叠
   'totalPage'?: number // 分页数量
   'nextDisabled'?: boolean // 下一页是否灰化

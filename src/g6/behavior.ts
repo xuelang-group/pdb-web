@@ -1,7 +1,7 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
 import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
-import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, Parent, setObjectDetail, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, PAGINATION_TYPE, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
 import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
@@ -157,32 +157,29 @@ export const G6OperateFunctions = {
     if (!children || !children.nodes || children.nodes.length === 0) {
       store.dispatch(setGraphLoading(true));
       const limit = Number(PAGE_SIZE());
-      let params = { vid: model.uid };
+      let params = { 'x.object.id': model.id };
 
       if (limit > 0 && Number(modelChildLen) > limit) {
         Object.assign(params, { first: limit, offset: 0 });
       }
-      getChildren(params, (success: boolean, data: any) => {
+      const graphData = store.getState().object.graphData;
+      getChildren(graphData?.id, params, (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-          const _data = data.map((value: ObjectConfig, index: number) => {
+          const _data: CustomObjectConfig[] = data.map((value: ObjectConfig, index: number) => {
             const _xid = xid + '.' + index;
 
             // 获取对象关系列表数据
             const relations: any[] = [];
-            (value['x.object.version.relations'] || []).forEach((info: ObjectRelationInfo) => {
-              const typeId = info['r.type.id'],
-                { target } = info['r.object.binds'];
-              if (typeId.startsWith("Relation_")) {
-                relations.push({
-                  relation: typeId,
-                  target: {
-                    uid: target
-                  },
-                  attrValue: info['r.object.attrvalue']
-                });
-              }
+            (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
+              relations.push({
+                relation: relation['r.type.id'],
+                target: {
+                  uid: relation['r.object.target.id']
+                },
+                attrValue: relation['r.object.attrvalue']
+              });
             });
             Object.assign(relationLines, {
               [value['x.object.id']]: relations
@@ -202,10 +199,11 @@ export const G6OperateFunctions = {
           if (params.hasOwnProperty("offset")) {
             const totalPage = modelChildLen ? Math.ceil(modelChildLen / limit) : 1;
             _data.push({
-              uid: 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
-              id: 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
+              'x.type.id': PAGINATION_TYPE,
+              'x.object.name': '下一页',
+              'x.object.id': 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
+              'x.object.version.parents': { 'x.object.id': model.id },
               totalPage,
-              currentParent: { id: model.id }
             });
           }
           const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
@@ -566,13 +564,13 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number, curentGraphData?: any, objectData?: any) {
+  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number, curentGraphData?: any, objectData?: CustomObjectConfig[]) {
     return new Promise((resolve, reject) => {
       if (nextDisabled) {
         resolve(null);
         return;
       }
-      const params: any = { vid: parent };
+      const params = { 'x.object.id': parent };
 
       const limit = Number(PAGE_SIZE()),
         _offset = Number(offset);
@@ -580,7 +578,8 @@ export const G6OperateFunctions = {
         Object.assign(params, { first: limit, offset: _offset });
       }
       store.dispatch(setGraphLoading(true));
-      getChildren(params, (success: boolean, data: any) => {
+      const graphData = store.getState().object.graphData;
+      getChildren(graphData?.id, params, (success: boolean, data: any) => {
         if (success) {
           const parentNode = graph.findById(parent),
             parentModel = parentNode.get('model'),
@@ -592,74 +591,42 @@ export const G6OperateFunctions = {
           if (objectData) {
             const index = objectData.findIndex((val: any) => val.id === parent);
             if (index > -1) {
-              xid = objectData[index]['x_id'];
-              childLen = objectData[index]['x_children'] || 0;
+              xid = objectData[index]['xid'];
+              childLen = objectData[index]['x.object.version.childs'] || 0;
             }
           }
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-          let _data: any[] = [];
-          if (params.hasOwnProperty("offset") && params['offset'] > 0) {
+          let _data: CustomObjectConfig[] = [];
+          if (_.get(params, 'offset', 0) > 0) {
             _data.push({
-              uid: 'pagination-' + parent + `-${_offset - limit}-prev`,
-              id: 'pagination-' + parent + `-${_offset - limit}-prev`,
-              currentParent: { id }
+              'x.type.id': PAGINATION_TYPE,
+              'x.object.name': '上一页',
+              'x.object.id': 'pagination-' + parent + `-${_offset - limit}-prev`,
+              'x.object.version.parents': { 'x.object.id': id }
             });
           }
-          _data = _data.concat(data.map((value: any, index: number) => {
-            const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-              attrIndex = infoIndex === 0 ? 1 : 0;
-            const newValue = JSON.parse(JSON.stringify(value)),
-              parents = newValue['e_x_parent'],
-              currentParent = parents.filter((val: Parent) => val.dst?.toString() === parent)[0],
-              _xid = xid + '.' + index,
-              defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-              attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-              uid = newValue['vid'].toString();
+          _data = _data.concat(data.map((value: ObjectConfig, index: number) => {
+            const _xid = xid + '.' + index;
 
             // 获取对象关系列表数据
             const relations: any[] = [];
-            Object.keys(newValue).forEach((key: string) => {
-              if (key.startsWith("Relation_")) {
-                const relationKey = key.replace('_', '.');
-                if (isArray(newValue[key])) {
-                  newValue[key].forEach((target: any) => {
-                    relations.push({
-                      relation: relationKey,
-                      target: {
-                        uid: _.get(target, 'dst', '').toString()
-                      },
-                      attrValue: _.get(target, 'props', {})
-                    });
-                  });
-                } else {
-                  relations.push({
-                    relation: relationKey,
-                    target: {
-                      uid: _.get(newValue[key], 'dst', '').toString()
-                    },
-                    attrValue: _.get(newValue[key], 'props', {})
-                  });
-                }
-              }
+            (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
+              relations.push({
+                relation: relation['r.type.id'],
+                target: {
+                  uid: relation['r.object.target.id']
+                },
+                attrValue: relation['r.object.attrvalue']
+              });
             });
             Object.assign(relationLines, {
-              [uid]: relations
+              [value['x.object.id']]: relations
             });
 
             return {
-              ...defaultInfo,
-              'x_attr_value': { ...attrValue },
-              'e_x_parent': parents,
-              'x_children': _.get(newValue, 'x_children', 0),
-              currentParent: {
-                ...(_.get(currentParent, 'props', {})),
-                uid: currentParent.dst.toString(),
-                id
-              },
-              'x_id': _xid,
-              id: uid,
-              uid: uid
+              ...value,
+              'xid': _xid
             }
           }));
           store.dispatch(setToolbarConfig({
@@ -670,64 +637,65 @@ export const G6OperateFunctions = {
 
           let newData: any[] = [];
           const xidLen = xid.split(".").length + 1;
-          let concatIndex = -1, removeMap: any = {}, removeChildren: any[] = [], removeChildrenMap: any = {}, parentChildLen = childLen;
-          const allData = objectData || store.getState().object.data;
-          allData.forEach(function (obj: any, index: number) {
+          let concatIndex = -1, removeMap: any = {}, removeChildren: CustomObjectConfig[] = [], removeChildrenMap: any = {}, parentChildLen = childLen;
+          const allData: CustomObjectConfig[] = objectData || store.getState().object.data;
+          allData.forEach(function (obj: CustomObjectConfig, index: number) {
             const parentId = _.get(obj, "currentParent.id", "");
-            if (obj.id === parent) {
-              parentChildLen = obj['x_children'] || 0;
+            const objId = obj['x.object.id'];
+            if (objId === parent) {
+              parentChildLen = _.get(obj, 'x.object.version.childs', 0);
             }
-            if (obj['x_id'] === xid) {
+            if (obj['xid'] === xid) {
               newData.push({
                 ...obj,
                 collapsed
               });
-              // newData = newData.concat(_data);
               concatIndex = newData.length;
             }
-            if (obj['x_id'] && obj['x_id'].startsWith(xid) && obj['x_id'].split(".").length === xidLen) {
-              Object.assign(removeChildrenMap, { [obj.id]: obj });
+            if (obj['xid'] && obj['xid'].startsWith(xid) && obj['xid'].split(".").length === xidLen) {
+              Object.assign(removeChildrenMap, { [objId]: obj });
             }
-            if ((!obj['x_id'] && !obj.uid.startsWith(`pagination-${id}`) || obj['x_id'] && !obj['x_id'].startsWith(xid)) && !removeChildrenMap[parentId]) {
+            if ((!obj['xid'] && !objId.startsWith(`pagination-${id}`) || obj['xid'] && !obj['xid'].startsWith(xid)) && !removeChildrenMap[parentId]) {
               newData.push(obj);
             } else {
-              if (obj['x_id'] && obj['x_id'].startsWith(xid) && obj['x_id'].split(".").length > xidLen || removeChildrenMap[parentId]) {
+              if (obj['xid'] && obj['xid'].startsWith(xid) && obj['xid'].split(".").length > xidLen || removeChildrenMap[parentId]) {
                 removeChildren.push(obj);
-                Object.assign(removeChildrenMap, { [obj.id]: obj });
+                Object.assign(removeChildrenMap, { [objId]: obj });
               }
-              obj['x_id'] && Object.assign(removeMap, { [obj.id]: obj.collapsed });
+              obj['xid'] && Object.assign(removeMap, { [objId]: obj.collapsed });
             }
           });
 
-          let concatData = [];
-          _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item.id, true) }));
+          let concatData: CustomObjectConfig[] = [];
+          _data = _data.map(item => ({ ...item, collapsed: _.get(removeMap, item['x.object.id'], true) }));
 
           if (_offset >= 0 && limit > 0 && parentChildLen > limit) {
             const totalPage = parentChildLen ? Math.ceil(parentChildLen / limit) : 1;
             _data.push({
-              uid: 'pagination-' + parent + `-${_offset + limit}-next`,
-              id: 'pagination-' + parent + `-${_offset + limit}-next`,
+              'x.type.id': PAGINATION_TYPE,
+              'x.object.name': '下一页',
+              'x.object.id': 'pagination-' + parent + `-${_offset + limit}-next`,
+              'x.object.version.parents': { 'x.object.id': id },
               totalPage,
               nextDisabled: (_offset + data.length) >= parentChildLen,
-              currentParent: { id }
             });
           }
 
           if (removeChildren.length > 0) {
-            let newRemoveChildren: any[] = [];
-            _data.forEach(function (val) {
-              const nodeXid = val['x_id'];
+            let newRemoveChildren: CustomObjectConfig[] = [];
+            _data.forEach(function (val: CustomObjectConfig) {
+              const nodeXid = val['xid'];
               concatData.push(val);
               if (nodeXid) {
                 for (let i = 0; i < removeChildren.length; i++) {
-                  const item = removeChildren[i];
-                  const itemXid = item['x_id'];
+                  const item: CustomObjectConfig = removeChildren[i];
+                  const itemXid = item['xid'];
                   if (itemXid && itemXid.startsWith(nodeXid)) {
-                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item, 'currentParent.id') !== val.id) {
+                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item['x.object.version.parents'], 'x.object.id') !== val['x.object.id']) {
                       break;
                     }
                     concatData.push(item);
-                  } else if (item.id.startsWith("pagination-" + val.id)) {
+                  } else if (item['x.object.id'].startsWith("pagination-" + val['x.object.id'])) {
                     concatData.push(item);
                   } else {
                     newRemoveChildren.push(item);
@@ -1539,7 +1507,7 @@ export function registerBehavior() {
         dropItemModel = dropItem.get('model') as NodeItemData,
         dropItemXid = dropItemModel.xid;
 
-      if (dragItemId === dropItemId) return;
+      if (dragItemId === dropItemId || !dragItemXid || !dropItemXid) return;
 
       // 同树时，不允许父级投入其子级中
       if (dragItemXid.length < dropItemXid.length &&

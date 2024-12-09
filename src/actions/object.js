@@ -8,8 +8,8 @@ const api = {
   delete: `${objectApiPrefix}/delete`,
   update: `${objectApiPrefix}/update`,
   get: `${objectApiPrefix}/get`,
-
   children: `${objectApiPrefix}/children`,
+
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
   count: `${objectApiPrefix}/count`,
@@ -89,9 +89,8 @@ export const setObject = (graphId, objects, callback) => {
   });
 };
 
-// 获取对象
 /**
- * 
+ * 获取对象
  * @param {int} graphId 项目ID
  * @param {{'x.object.id': string}[]} ids 对象ID列表
  * @param {*} callback 
@@ -107,6 +106,25 @@ export const getObject = (graphId, ids, callback) => {
     callback && callback(false, err);
   });
 };
+
+/**
+ * 获取子对象
+ * @param {int} graphId 项目ID
+ * @param {{'x.object.id': string, relation?: boolean, offset?: number, first?: number}} params 
+ * @param {*} callback 
+ * @returns 
+ */
+export const getChildren = (graphId, params, callback) => {
+  return axios.post(api['children'], {
+    graphId,
+    relation: true, // 返回数据是否包含关系
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
 
 const commonParams = {
   graphId: 0
@@ -189,22 +207,6 @@ export const countObject = (typeName, callback) => {
     callback && callback(false, err);
   });
 };
-
-export const getChildren = (params, callback) => {
-  // mock
-  // const data = [
-  // ];
-  // callback && callback(true, data);
-  return axios.post(api['children'], {
-    ...commonParams,
-    ...params,
-    "relation": true
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
 
 // 复制对象
 export const copyObject = (params, callback) => {

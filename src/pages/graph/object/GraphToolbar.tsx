@@ -54,7 +54,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     location = useLocation(),
     routerParams = useParams();
   const [modal, contextHolder] = Modal.useModal();
-  const graphData = useSelector((state: StoreState) => state.object.graphData),
+  const graphInfo = useSelector((state: StoreState) => state.object.graphData),
     rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),   // sroot节点uid
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.id': xxxx},根据关系唯一键能够快速获取关系详细数据
@@ -388,63 +388,30 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (!rootId || !graph) return;
     dispatch(setGraphLoading(true));
-    getChildren({ vid: rootId }, (success: boolean, data: any) => {
+    getChildren(graphInfo?.id, { 'x.object.id': rootId }, (success: boolean, data: any) => {
       let newData = [];
       if (success) {
         const relationLines = {};
-        newData = data.map((value: any, index: number) => {
-          const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-            attrIndex = infoIndex === 0 ? 1 : 0;
-          const newValue = JSON.parse(JSON.stringify(value)),
-            parents = newValue['e_x_parent'],
-            currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-            defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-            attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-            uid = newValue['vid'].toString();
+        newData = data.map((value: ObjectConfig, index: number) => {
 
           // 获取对象关系列表数据
           const relations: any[] = [];
-          Object.keys(newValue).forEach((key: string) => {
-            if (key.startsWith("Relation_")) {
-              const relationKey = key.replace('_', '.');
-              if (_.isArray(newValue[key])) {
-                newValue[key].forEach((target: any) => {
-                  relations.push({
-                    relation: relationKey,
-                    target: {
-                      uid: _.get(target, 'dst', '').toString()
-                    },
-                    attrValue: _.get(target, 'props', {})
-                  });
-                });
-              } else {
-                relations.push({
-                  relation: relationKey,
-                  target: {
-                    uid: _.get(newValue[key], 'dst', '').toString()
-                  },
-                  attrValue: _.get(newValue[key], 'props', {})
-                });
-              }
-            }
+          (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
+            relations.push({
+              relation: relation['r.type.id'],
+              target: {
+                uid: relation['r.object.target.id']
+              },
+              attrValue: relation['r.object.attrvalue']
+            });
           });
           Object.assign(relationLines, {
-            [uid]: relations
+            [value['x.object.id']]: relations
           });
 
           return {
-            ...defaultInfo,
-            'x_attr_value': { ...attrValue },
-            'e_x_parent': parents,
-            'x_children': _.get(newValue, 'x_children', 0),
-            currentParent: {
-              ...(_.get(currentParent, 'props', {})),
-              uid: currentParent.dst.toString(),
-              id: rootId,
-            },
-            'x_id': rootId + '.' + index,
-            id: uid,
-            uid: uid
+            ...value,
+            'xid': rootId + '.' + index
           };
         });
         let graphData: any = {};
@@ -673,7 +640,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = _relationTypes.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addRelation(graphData?.id, chunk, (success: boolean, response: any) => {
+          addRelation(graphInfo?.id, chunk, (success: boolean, response: any) => {
             if (success) {
               newRelations = newRelations.concat(response);
             } else {
@@ -713,7 +680,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = _objectTypes.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addType(graphData?.id, chunk, (success: boolean, response: any) => {
+          addType(graphInfo?.id, chunk, (success: boolean, response: any) => {
             if (success) {
               newTypes = newTypes.concat(response);
             } else {
@@ -764,7 +731,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   }
 
   function removeTypes(objectTypes: {}, relationTypes: {}) {
-    deleteType(graphData?.id, typeList.map(val => val['x.type.id']), (success: boolean, response: any) => {
+    deleteType(graphInfo?.id, typeList.map(val => val['x.type.id']), (success: boolean, response: any) => {
       if (success) {
         dispatch(setTypes([]));
         createModelData(objectTypes, relationTypes, [], []);
@@ -917,7 +884,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     if (override && (relationList.length > 0 || typeList.length > 0)) {
       if (relationList.length > 0) {
-        deleteRelation(graphData?.id, relationList.map(val => val['r.type.id']), (success: any, response: any) => {
+        deleteRelation(graphInfo?.id, relationList.map(val => val['r.type.id']), (success: any, response: any) => {
           if (success) {
             dispatch(setRelations([]));
             if (typeList.length > 0) {
@@ -953,7 +920,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       const chunk = objects.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
         return new Promise((resolve: any, reject: any) => {
-          addObject(graphData?.id, chunk, (success: boolean, response: any) => {
+          addObject(graphInfo?.id, chunk, (success: boolean, response: any) => {
             if (!success) {
               isAllSuccess = false;
               error = response;
@@ -997,10 +964,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         } catch (err) { }
         const info = {
           'r.type.id': relationUid,
-          'r.object.binds': {
-            'source': sourceUid,
-            'target': targetUid
-          },
+          'r.object.source.id': sourceUid,
+          'r.object.target.id': targetUid,
           'r.object.attrvalue': relationAttrs
         };
         if (!objectRelationMap[sourceUid]) {
@@ -1049,9 +1014,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         'x.type.id': row[2],
         'x.object.id': uid,
         'x.object.name': row[1].toString(),
-        'x.object.version.parents': { 
-          'x.object.id': parentUid, 
-          'x.object.index': index * 1024 
+        'x.object.version.parents': {
+          'x.object.id': parentUid,
+          'x.object.index': index * 1024
         },
         'x.object.version.attrvalue': attrs
       };
@@ -1064,8 +1029,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       }
       objects.push(objectInfo);
     }
-    if (override && graphData?.id) {
-      clearGraphData(graphData?.id, (success: boolean, response: any) => {
+    if (override && graphInfo?.id) {
+      clearGraphData(graphInfo?.id, (success: boolean, response: any) => {
         if (success) {
           postObject(objects);
         } else {
