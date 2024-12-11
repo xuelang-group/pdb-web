@@ -63,7 +63,7 @@ export const getRoots = (graphId, callback) => {
 export const deleteObject = (graphId, params, callback) => {
   return axios.post(api['delete'], {
     graphId,
-    ...params
+    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

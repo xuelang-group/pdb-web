@@ -1,15 +1,15 @@
 import G6, { ModelConfig, IGroup, IG6GraphEvent, Item, UpdateType } from '@antv/g6';
-import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString, COLLAPSE_SHAPE_R } from '@/utils/objectGraph';
+import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString } from '@/utils/objectGraph';
 import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import _ from 'lodash';
 import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
-import { CustomObjectConfig, ObjectConfig } from '@/reducers/object';
+import { CustomObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60;
 export const iconImgWidth = 20;
-
+export const OBJECT_NODE_TYPE = 'pdbNode';
 export const nodeStateStyle: any = {
   default: {
     r: defaultCircleR,
@@ -57,7 +57,7 @@ export function registerNode() {
    * @param {object} node 节点方法
    */
   // 实例管理中的实例节点
-  G6.registerNode('pdbNode', {
+  G6.registerNode(OBJECT_NODE_TYPE, {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode['x.object.id'];
       const userId = store.getState().app.systemInfo.userId;

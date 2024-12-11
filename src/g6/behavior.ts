@@ -1,5 +1,5 @@
 import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
-import { addChildrenToGraphData, convertAllData, replaceChildrenToGraphData } from '../utils/objectGraph';
+import { addChildrenToGraphData, convertAllData, covertToGraphData, replaceChildrenToGraphData } from '../utils/objectGraph';
 import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
 import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, PAGINATION_TYPE, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import store from '@/store';
@@ -52,90 +52,61 @@ export const G6OperateFunctions = {
     const graphData = store.getState().object.graphData;
     deleteObject(graphData?.id, params, (success: boolean, response: any) => {
       if (success) {
-        getRemoveIds(comboId);
+        if (params[0].recurse) {
+          // 包含删除下级实例
+          getRemoveIds(comboId);
 
-        const deleteModel: any = graph.findById(nodeId).getModel(),
-          parentNodeId = deleteModel.parent;
+          const deleteModel: any = graph.findById(nodeId).getModel(),
+            parentNodeId = deleteModel.parent;
 
-        let newIndex = 0;
-        const _data = JSON.parse(JSON.stringify(data)).filter((val: CustomObjectConfig) => {
-          if (val['x.object.id'] === parentNodeId) {
-            val['x.object.version.childs'] = val['x.object.version.childs'] ? val['x.object.version.childs'] - 1 : 0;
-          }
-          const shouldRemove = !removeIds.hasOwnProperty(val['x.object.id']);
-          if ((val['x.object.version.parents'] || {})['x.object.id'] === parentNodeId && shouldRemove && val['xid']) {
-            const xid = val['xid'].split(".");
-            xid.pop();
-            xid.push(newIndex.toString());
-            val['xid'] = xid.join(".");
-            newIndex++;
-          }
-          return shouldRemove;
-        });
-        /**
-         * 暂不确定，联调时修改
-         */
-        // if (!_.isEmpty(response)) {
-        //   const rootNode = store.getState().editor.rootNode;
-        //   const rootId = rootNode['x.object.id'];
-        //   const children = graph.getComboChildren(`${rootId}-combo`);
-        //   let lastRootNodeIndex = children && children.nodes ? children.nodes.length : 0;
-        //   const shouldUpdateObject: any[] = [];
-        //   if (deleteModel.parent === rootId) {
-        //     if (lastRootNodeIndex > 0) {
-        //       lastRootNodeIndex -= 1;
-        //     }
-        //   }
-        //   response.map((item: ObjectConfig) => {
-        //     const newXid = rootId + '.' + lastRootNodeIndex;
-        //     const id = item.uid;
-        //     const newParent = {
-        //       "uid": rootId,
-        //       "x_index": (lastRootNodeIndex + 1) * 1024
-        //     };
-        //     const newObject: CustomObjectConfig = {
-        //       ...item,
-        //       'xid': newXid,
-        //     }
-        //     _data.push(newObject);
-        //     shouldUpdateObject.push({
-        //       "vid": id,
-        //       "e_x_parent": [{
-        //         "vid": newParent['uid'],
-        //         "x_index": newParent['x_index']
-        //       }]
-        //     });
-        //     lastRootNodeIndex++;
-        //   });
-        //   if (shouldUpdateObject.length > 0) {
-        //     setObject({ 'set': shouldUpdateObject }, (success: boolean, response: any) => { });
-        //   }
-        // }
-
-        let shouldUpdate = true;
-        const graphData = convertAllData(_data);
-        const parentCombo: any = graph.findById(parentNodeId + "-combo");
-        if (parentCombo) {
-          const comboLastNodes = parentCombo.getChildren().nodes || [],
-            comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
-          if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-            const { name, parent, nextDisabled } = comboLastNode.get('model');
-            const config = name.split('-'), limit = Number(PAGE_SIZE());
-            let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
-            if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
-              offset -= limit;
-              _nextDisabled = false;
+          let newIndex = 0;
+          const _data = JSON.parse(JSON.stringify(data)).filter((val: CustomObjectConfig) => {
+            if (val['x.object.id'] === parentNodeId) {
+              val['x.object.version.childs'] = val['x.object.version.childs'] ? val['x.object.version.childs'] - 1 : 0;
             }
-            G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset, graphData, _data);
-            shouldUpdate = false;
+            const shouldRemove = !removeIds.hasOwnProperty(val['x.object.id']);
+            if ((val['x.object.version.parents'] || {})['x.object.id'] === parentNodeId && shouldRemove && val['xid']) {
+              const xid = val['xid'].split(".");
+              xid.pop();
+              xid.push(newIndex.toString());
+              val['xid'] = xid.join(".");
+              newIndex++;
+            }
+            return shouldRemove;
+          });
+
+          let shouldUpdate = true;
+          const graphData = convertAllData(_data);
+          const parentCombo: any = graph.findById(parentNodeId + "-combo");
+          if (parentCombo) {
+            const comboLastNodes = parentCombo.getChildren().nodes || [],
+              comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
+            if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
+              const { name, parent, nextDisabled } = comboLastNode.get('model');
+              const config = name.split('-'), limit = Number(PAGE_SIZE());
+              let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
+              if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
+                offset -= limit;
+                _nextDisabled = false;
+              }
+              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset, graphData, _data);
+              shouldUpdate = false;
+            }
           }
-        }
-        store.dispatch(setCurrentEditModel(null));
-        store.dispatch(setGraphLoading(false));
-        if (shouldUpdate) {
-          store.dispatch(setObjects(_data));
-          graph.changeData(graphData);
-          graph.layout();
+          store.dispatch(setCurrentEditModel(null));
+          store.dispatch(setGraphLoading(false));
+          if (shouldUpdate) {
+            store.dispatch(setObjects(_data));
+            graph.changeData(graphData);
+            graph.layout();
+          }
+        } else {
+          /**
+           * 下级实例不删除
+           * 具体下级实例的父级如何变更，在后端
+           * 因此前端只能重新渲染画布
+           */
+          G6OperateFunctions.refreshGraphData(graph);
         }
       } else {
         notification.error({
@@ -734,22 +705,68 @@ export const G6OperateFunctions = {
         resolve(null);
       });
     });
+  },
+  refreshGraphData: function (graph: any) {
+    // 重新渲染画布数据
+    const graphData = store.getState().object.graphData,
+      rootNode = store.getState().editor.rootNode,
+      toolbarConfig = store.getState().editor.toolbarConfig,
+      currentGraphTab = store.getState().editor.currentGraphTab;
+    const rootId = rootNode['x.object.id'];
+    if (!graphData || !rootId || !graph) return;
+
+    getChildren(graphData?.id, { 'x.object.id': rootId }, (success: boolean, data: any) => {
+      let newData = [];
+      if (success) {
+        const relationLines = {};
+        newData = data.map((value: ObjectConfig, index: number) => {
+
+          // 获取对象关系列表数据
+          const relations: any[] = [];
+          (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
+            relations.push({
+              relation: relation['r.type.id'],
+              target: {
+                uid: relation['r.object.target.id']
+              },
+              attrValue: relation['r.object.attrvalue']
+            });
+          });
+          Object.assign(relationLines, {
+            [value['x.object.id']]: relations
+          });
+
+          return {
+            ...value,
+            'xid': rootId + '.' + index
+          };
+        });
+        let graphData: any = {};
+        if (newData) {
+          graphData = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'));
+        }
+        graph.data(JSON.parse(JSON.stringify(graphData)));
+        graph.render();
+        graph.zoom(1);
+        store.dispatch(setToolbarConfig({ config: { relationLines }, key: 'main' }));
+        store.dispatch(setObjects(newData));
+      } else {
+        notification.error({
+          message: '获取对象实例失败',
+          description: data.message || data.msg
+        });
+      }
+      store.dispatch(setGraphLoading(false));
+    });
   }
 };
 
 /**
  * 新增兄弟节点
- * @param sourceNode 被操作节点
- * @param graph 
- * @param defaultTypeName 默认类型数据
- * @param prev 是否在节点上方添加，否就在节点下方添加
  */
-export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, prev = false) {
+export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: TypeConfig, prev = false) {
 
-  const defaultTypeName = _.get(typeInfo, 'id', ''),
-    typeAttrValue = _.get(typeInfo, 'attrDefaultValue', {}),
-    typeMetadata = _.get(typeInfo, 'metadata', '{}'),
-    sourceNodeId = sourceNode.get('id');
+  const sourceNodeId = sourceNode.get('id');
   if (!sourceNodeId) return;
 
   const sourceNodeModel = sourceNode.get('model');

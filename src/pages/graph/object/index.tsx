@@ -23,6 +23,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
+import { OBJECT_NODE_TYPE } from '@/g6/node';
 
 interface EditorProps {
   theme: string
@@ -180,26 +181,20 @@ export default function Editor(props: EditorProps) {
           itemModel = evt.item.getModel();
         if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
 
-        if (itemType === "node" && (_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
+        if (itemType === "edge") {
           return `<ul class="pdb-graph-node-contextmenu">
-            <li title="一键展开">一键展开</li>
+            <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         }
-
-        return '';
-
-        // if (itemType === "edge") {
-        // return `<ul class="pdb-graph-node-contextmenu">
-        //     <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-        //   </ul>`;
-        // }
-        // return `<ul class="pdb-graph-node-contextmenu">
-        //   <li title="探索">探索</li>
-        //   <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-        //   <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
-        //   ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
-        //     '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ""}
-        // </ul>`;
+        return `<ul class="pdb-graph-node-contextmenu">
+          <li title="探索">探索</li>
+          <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
+          ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
+            '<li title="一键展开">一键展开</li>' : ''}
+        </ul>`;
       },
       handleMenuClick: (target: any, item) => {
         const itemModel = item.get("model");
@@ -313,7 +308,7 @@ export default function Editor(props: EditorProps) {
         }
       },
       defaultNode: {
-        type: 'pdbNode',
+        type: OBJECT_NODE_TYPE,
         style: {
           lineWidth: 2,
           stroke: '#94BFFF',
@@ -514,7 +509,7 @@ export default function Editor(props: EditorProps) {
   }
 
   let deleteConfirmModal: any = null;
-  function deleteConfirm(currentEditModel: any) {
+  function deleteConfirm(currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
     if (!currentEditModel) return;
     deleteConfirmModal = modal.confirm({
       className: 'pdb-confirm-modal',
@@ -571,6 +566,7 @@ export default function Editor(props: EditorProps) {
       const { keyCode, ctrlKey } = event;
       const { currentEditModel } = store.getState().editor;
 
+      if (!currentEditModel) return;
       switch (keyCode) {
         case 8:
         case 46:
@@ -676,8 +672,12 @@ export default function Editor(props: EditorProps) {
     });
   }
 
-  const renderRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData | TypeItemData) {
-    const name = (currentEditModel?.name || '') as string;
+  const renderRemoveModalContent = function (currentEditModel: NodeItemData | EdgeItemData) {
+    let name: string = '';
+    const itemType = currentEditModel.type;
+    if (itemType === OBJECT_NODE_TYPE) {
+      name = _.get(currentEditModel.data, 'x.object.name', '');
+    }
     return (
       <>
         <div className='pdb-confirm-info'>是否删除实例：{name}?</div>
@@ -692,7 +692,7 @@ export default function Editor(props: EditorProps) {
   }
 
   const handleModalOk = async function (currentEditModel: any, removeAll: boolean) {
-    if (currentEditModel.type === "pdbNode") {
+    if (currentEditModel.type === OBJECT_NODE_TYPE) {
       /**
        * 版本相关，暂不支持
        */
@@ -728,10 +728,10 @@ export default function Editor(props: EditorProps) {
       //     }
       //   }
       // }
-      G6OperateFunctions.removeNode(currentEditModel?.id, {
+      G6OperateFunctions.removeNode(currentEditModel?.id, [{
         'x.object.id': currentEditModel?.data['x.object.id'],
         'recurse': removeAll
-      }, graph, () => {
+      }], graph, () => {
         handleModalCancel();
       });
     } else if (_.get(currentEditModel, "source")) {
