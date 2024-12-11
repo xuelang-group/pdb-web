@@ -316,6 +316,9 @@ export default function Right(props: RightProps) {
     getObject(graphData?.id, [{ 'x.object.id': uid }], async (success: boolean, response: any) => {
       if (success && response) {
         const objectData = response[0] as ObjectConfig;
+        /**
+         * 版本相关，暂不支持
+         */
         // if (objectData['x_version'] && objectData['x_checkout']) {
         //   await (() => {
         //     return new Promise((resolve) => {
@@ -335,33 +338,8 @@ export default function Right(props: RightProps) {
         if (currentGraphTab === "main") {
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
           // 获取对象关系列表数据
-          const relations: any[] = [];
-          Object.keys(response).forEach((key: string) => {
-            if (key.startsWith("Relation_")) {
-              const relationKey = key.replace('_', '.');
-              if (isArray(response[key])) {
-                response[key].forEach((target: any) => {
-                  relations.push({
-                    relation: relationKey,
-                    target: {
-                      uid: _.get(target, 'dst', '').toString()
-                    },
-                    attrValue: _.get(target, 'props', {})
-                  });
-                });
-              } else {
-                relations.push({
-                  relation: relationKey,
-                  target: {
-                    uid: _.get(response[key], 'dst', '').toString()
-                  },
-                  attrValue: _.get(response[key], 'props', {})
-                });
-              }
-            }
-          });
           Object.assign(relationLines, {
-            [objectData['x.object.id']]: relations
+            [objectData['x.object.id']]: objectData['x.object.version.relations'] || []
           });
           dispatch(setToolbarConfig({
             key: currentGraphTab,
@@ -616,7 +594,7 @@ export default function Right(props: RightProps) {
       if (currentEditModel?.id) {
         const node = (window as any).PDB_GRAPH.findById(currentEditModel.id);
         if (!node || node.getModel().name === name) return;
-        let nameLabel = 'x_name';
+        let nameLabel = 'x.object.name';
         if (currentEditType !== 'object') nameLabel = currentEditType === 'type' ? 'x.type.name' : 'r.type.name';
         updateItemData({
           ...currentEditDefaultData,

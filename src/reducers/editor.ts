@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { EdgeConfig, NodeConfig } from '@antv/g6';
 import { TypeConfig } from './type';
-import { CustomObjectConfig, ObjectConfig } from './object';
+import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo } from './object';
 import { RelationConfig } from './relation';
 
 export interface EdgeItemData extends EdgeConfig {
@@ -22,15 +22,9 @@ export interface TypeItemData extends NodeConfig {
   'label': string
   'data': TypeConfig
 }
-export interface RelationTargetConfig {
-  uid: string
-  'x_name': string
-}
-export interface ObjectRelationConig {
-  target: RelationTargetConfig
-  relation: string
-  override?: boolean
-  attrValue?: any
+
+export interface ObjectRelationConig extends ObjectRelationInfo{
+  'r.object.target.name'?: string
 }
 
 export interface RelationsConfig {

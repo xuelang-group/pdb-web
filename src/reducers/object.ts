@@ -25,7 +25,7 @@ export interface ObjectRelationInfo {
   'r.type.id': string // 关系类型ID
   'r.object.source.id': string // 源对象ID
   'r.object.target.id': string // 目标对象ID
-  'r.object.attrvalue': any // 关系属性键值对
+  'r.object.attrvalue'?: any // 关系属性键值对
 }
 
 export interface ObjectVersionConfig {

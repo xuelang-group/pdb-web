@@ -7,7 +7,7 @@ import { AttrConfig } from './type';
 //   [key: string]: any
 // }
 
-interface BindConfig {
+export interface BindConfig {
   'source': string
   'target': string
   'override'?: boolean

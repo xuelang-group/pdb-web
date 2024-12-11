@@ -1,7 +1,7 @@
 import G6, { IG6GraphEvent } from '@antv/g6';
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Checkbox, Modal, notification, Spin, Tabs } from 'antd';
+import { Checkbox, Modal, notification, Spin } from 'antd';
 import { useResizeDetector } from 'react-resize-detector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import _ from 'lodash';
@@ -11,11 +11,11 @@ import type { StoreState } from '@/store';
 import store from '@/store';
 import { edgeLabelStyle } from '@/g6/edge';
 import { G6OperateFunctions, PAGE_SIZE } from '@/g6/behavior';
-import { checkOutObject, deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
-import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, PAGINATION_TYPE, Parent, setObjects } from '@/reducers/object';
+import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, PAGINATION_TYPE, setObjects } from '@/reducers/object';
 import {
-  NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
+  NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig
 } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
@@ -100,18 +100,8 @@ export default function Editor(props: EditorProps) {
             const relationLines = {};
             newData = (data || []).map((value: ObjectConfig, index: number) => {
               // 获取对象关系列表数据
-              const relations: any[] = [];
-              (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-                relations.push({
-                  relation: relation['r.type.id'],
-                  target: {
-                    uid: relation['r.object.target.id']
-                  },
-                  attrValue: relation['r.object.attrvalue']
-                });
-              });
               Object.assign(relationLines, {
-                [value['x.object.id']]: relations
+                [value['x.object.id']]: value['x.object.version.relations'] || []
               });
 
               return {
@@ -362,7 +352,7 @@ export default function Editor(props: EditorProps) {
     }
   }
 
-  async function fetchChildren(item: NodeItemData, curentGraphData: any, _objectData: any, shouldExpandCombo: any, relationLines: any) {
+  async function fetchChildren(item: NodeItemData, curentGraphData: any, _objectData: any, shouldExpandCombo: any, relationLines: RelationsConfig) {
     await (() => {
       return new Promise(async (resolve: any, reject: any) => {
         const children = graph.getComboChildren(`${item.id}-combo`);
@@ -382,18 +372,8 @@ export default function Editor(props: EditorProps) {
                 const _xid = item.data.xid + '.' + index;
 
                 // 获取对象关系列表数据
-                const relations: any[] = [];
-                (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-                  relations.push({
-                    relation: relation['r.type.id'],
-                    target: {
-                      uid: relation['r.object.target.id']
-                    },
-                    attrValue: relation['r.object.attrvalue']
-                  });
-                });
                 Object.assign(relationLines, {
-                  [value['x.object.id']]: relations
+                  [value['x.object.id']]: value['x.object.version.relations'] || []
                 });
 
                 return ({

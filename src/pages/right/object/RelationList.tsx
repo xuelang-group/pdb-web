@@ -9,6 +9,7 @@ import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/
 import { StoreState } from '@/store';
 import './index.less';
 import { AttrConfig } from '@/reducers/type';
+import { ObjectConfig } from '@/reducers/object';
 
 interface RelationListProps {
   source: NodeItemData
@@ -40,18 +41,17 @@ export default function RelationList(props: RelationListProps) {
     const usedTargetMap: any = {}, noLabelObject = {};
     setTableLoading(true);
     _.get(relationLines, props.source.id, []).forEach((item: ObjectRelationConig) => {
-      const { relation, target } = item;
-      const relationId = _.get(relationMap[relation], 'r.type.id', ''),
-        targetLabel = _.get(target, 'x_name', ''),
-        targetId = _.get(target, 'uid', '');
-      if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
-      if (!usedTargetMap[targetId] && targetLabel) {
-        _targetList.push({
-          value: targetId,
-          label: targetLabel
-        });
-        Object.assign(usedTargetMap, { [targetId]: targetLabel });
-      }
+      const relationId = item['r.type.id'], 
+        targetId = item['r.object.target.id'],
+        targetLabel = item['r.object.target.name'];
+        if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
+        if (!usedTargetMap[targetId] && targetLabel) {
+          _targetList.push({
+            value: targetId,
+            label: targetLabel
+          });
+          Object.assign(usedTargetMap, { [targetId]: targetLabel });
+        }
       _relations.push({
         relation: relationId,
         target: targetId
@@ -72,11 +72,10 @@ export default function RelationList(props: RelationListProps) {
     if (!_.isEmpty(noLabelObject)) {
       getObjects(Object.keys(noLabelObject), (success: boolean, response: any) => {
         if (success) {
-          response.forEach(function (item: { [x: string]: any; }) {
-            const infoIndex = _.get(item, 'tags.0.name') === 'v_node' ? 0 : 1;
+          response.forEach(function (item: ObjectConfig) {
             _targetList.push({
-              value: item['vid'].toString(),
-              label: _.get(item.tags[infoIndex], 'props.x_name', '')
+              value: item['x.object.id'],
+              label: item['x.object.name']
             });
           });
         }
@@ -180,9 +179,9 @@ export default function RelationList(props: RelationListProps) {
         }
 
         const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
-        const relationData = newRelationLines[index];
-        if (showRelationLine && relationData && relationData.relation && relationData.target) {
-          const edgeId = `${sourceUid}-${relationData.target.uid}-${relationData.relation}`;
+        const relationData: ObjectRelationConig = newRelationLines[index];
+        if (showRelationLine && relationData['r.type.id'] && relationData['r.object.target.id']) {
+          const edgeId = `${sourceUid}-${relationData['r.object.target.id']}-${relationData['r.type.id']}`;
           (window as any).PDB_GRAPH.removeItem(edgeId);
 
           const newXaxisMap = JSON.parse(JSON.stringify(xaxisMap)),
@@ -233,7 +232,11 @@ export default function RelationList(props: RelationListProps) {
     handleDeleteRelation(index, null, null, () => {
       form.setFieldValue(['relation', index, 'target'], '');
       const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, props.source.id, [])));
-      newRelationLines[index] = { relation: value, target: {} };
+      newRelationLines[index] = {
+        'r.type.id': value,
+        'r.object.target.id': '',
+        'r.object.source.id': props.source.id
+      };
       dispatch(setToolbarConfig({
         key: 'main',
         config: {
@@ -288,7 +291,7 @@ export default function RelationList(props: RelationListProps) {
     const prvRelationId = relations[index]['relation'],
       prvRelationTarget = relations[index]['target'];
     const sourceUid = props.source.id;
-    const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
+    const newRelationLines: ObjectRelationConig[] = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
 
     function createRelation() {
       const targetDetail = targetMap[uid];
@@ -315,7 +318,8 @@ export default function RelationList(props: RelationListProps) {
         'x_name': targetDetail['x_name']
       };
       Object.assign(newRelationLines[index], {
-        target: targetOption
+        'r.object.target.id': uid,
+        'r.object.target.name': targetDetail['x_name']
       });
 
       // 设置实例关系连线时，传递关系类型属性默认值
@@ -345,9 +349,9 @@ export default function RelationList(props: RelationListProps) {
           }
           setCurrentRelationMap(newRelationMap);
 
-          const relationData = newRelationLines[index];
-          if (showRelationLine && relationData && relationData.target && relationData.relation) {
-            const edgeId = `${sourceUid}-${relationData.target.uid}-${relationData.relation}`;
+          const relationData: ObjectRelationConig = newRelationLines[index];
+          if (showRelationLine && relationData['r.type.id'] && relationData['r.object.target.id']) {
+            const edgeId = `${sourceUid}-${relationData['r.object.target.id']}-${relationData['r.type.id']}`;
             (window as any).PDB_GRAPH.removeItem(edgeId);
 
             const newXaxisMap = JSON.parse(JSON.stringify(xaxisMap)),
@@ -361,12 +365,11 @@ export default function RelationList(props: RelationListProps) {
             }
           }
 
-          const newLineData = {
-            relation: form.getFieldValue(['relation', index, 'relation']),
-            target: {
-              uid,
-              'x_name': targetMap[uid]['x_name']
-            }
+          const newLineData: ObjectRelationConig = {
+            'r.type.id': form.getFieldValue(['relation', index, 'relation']),
+            'r.object.target.id': uid,
+            'r.object.source.id': sourceUid,
+            'r.object.target.name': targetMap[uid]['x_name']
           };
           if (newRelationLines[index]) {
             Object.assign(newRelationLines[index], { ...newLineData });
@@ -412,7 +415,7 @@ export default function RelationList(props: RelationListProps) {
             const relationLines = form.getFieldValue('relation');
             const currentBind = relationLines[index];
             if (currentBind && currentBind.relation && currentBind.target) {
-              if (relationLines.findIndex((val: any, i: number) => val.source === currentBind.relation && val.target === currentBind.target && index !== i) > -1) {
+              if (relationLines.findIndex((val: ObjectRelationConig, i: number) => val['r.object.source.id'] === currentBind.relation && val['r.object.target.id'] === currentBind.target && index !== i) > -1) {
                 throw new Error('');
               }
             }

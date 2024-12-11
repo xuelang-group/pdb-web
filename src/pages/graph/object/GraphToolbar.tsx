@@ -55,9 +55,9 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     routerParams = useParams();
   const [modal, contextHolder] = Modal.useModal();
   const graphInfo = useSelector((state: StoreState) => state.object.graphData),
-    rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),   // sroot节点uid
+    rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),   // root节点id
     allObjects = useSelector((state: StoreState) => state.object.data),  // 所有节点数据
-    relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表 {'r.type.id': xxxx},根据关系唯一键能够快速获取关系详细数据
+    relationMap = useSelector((state: StoreState) => state.editor.relationMap),  // 所有的关系列表，根据关系唯一键能够快速获取关系详细数据
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
@@ -66,12 +66,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     indicatorEditId = useSelector((state: StoreState) => state.indicator.editId), // 指标编辑id
     typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
     relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
-  const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
+  const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
     [pageSize, setPageSize] = useState<number | undefined>(2),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
-    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据 {'relation': {[r.type.id]: ...}, 'type': {[x.type.id]: ...}}
+    [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
     [operateDisabled, setOperateDisabled] = useState(false); // 重置按钮灰化
   const [filterForm] = Form.useForm();
@@ -199,16 +199,18 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     let addEdge = false;
-    Object.keys(relationLines).forEach((objectUid: string) => {
-      const relations = relationLines[objectUid];
-      relations && relations.forEach((item: ObjectRelationConig) => {
-        const { relation, target, attrValue } = item;
-        if (!relation || !target) return;
-        const edgeKey = `${objectUid}-${target.uid}`;
+    Object.keys(relationLines).forEach((objectId: string) => {
+      const relations = relationLines[objectId];
+      relations && relations.forEach((item: ObjectRelationInfo) => {
+        const relation = item['r.type.id'],
+          targetId = item['r.object.target.id'],
+          attrValue = item['r.object.attrvalue'] || {};
+        if (!relation || !targetId) return;
+        const edgeKey = `${objectId}-${targetId}`;
         const edgeId = `${edgeKey}-${relation}`;
         let edgeItem = graph.findById(edgeId);
-        const sourceItem = graph.findById(objectUid),
-          targetItem = graph.findById(target.uid);
+        const sourceItem = graph.findById(objectId),
+          targetItem = graph.findById(targetId);
         if (!sourceItem || !targetItem) return;
         const sourceIsVisible = sourceItem.isVisible(),
           targetIsVisible = targetItem.isVisible();
@@ -258,8 +260,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
           const edgeOption = {
             id: edgeId,
-            source: objectUid,
-            target: target.uid.toString(),
+            source: objectId,
+            target: targetId,
             relationName: relation,
             name: relationMap[relation]['r.type.name'],
             data: {
@@ -313,7 +315,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             labelCfg: getRelationLabelCfg(labelColor, _showRelationLabel, props.theme)
           };
 
-          if (objectUid === target.uid && edgeType !== "loop") {
+          if (objectId === targetId && edgeType !== "loop") {
             Object.assign(edgeOption.labelCfg.style, {
               x: sourceItemModel.x,
               y: sourceItemModel.y
@@ -400,18 +402,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         newData = data.map((value: ObjectConfig, index: number) => {
 
           // 获取对象关系列表数据
-          const relations: any[] = [];
-          (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-            relations.push({
-              relation: relation['r.type.id'],
-              target: {
-                uid: relation['r.object.target.id']
-              },
-              attrValue: relation['r.object.attrvalue']
-            });
-          });
           Object.assign(relationLines, {
-            [value['x.object.id']]: relations
+            [value['x.object.id']]: value['x.object.version.relations'] || []
           });
 
           return {

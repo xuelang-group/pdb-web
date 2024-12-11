@@ -104,7 +104,7 @@ export const G6OperateFunctions = {
         } else {
           /**
            * 下级实例不删除
-           * 具体下级实例的父级如何变更，在后端
+           * 具体下级实例的父级如何变更，处理逻辑放在后端@星辉，暂不确定 2024-12-11
            * 因此前端只能重新渲染画布
            */
           G6OperateFunctions.refreshGraphData(graph);
@@ -143,23 +143,13 @@ export const G6OperateFunctions = {
             const _xid = xid + '.' + index;
 
             // 获取对象关系列表数据
-            const relations: any[] = [];
-            (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-              relations.push({
-                relation: relation['r.type.id'],
-                target: {
-                  uid: relation['r.object.target.id']
-                },
-                attrValue: relation['r.object.attrvalue']
-              });
-            });
             Object.assign(relationLines, {
-              [value['x.object.id']]: relations
+              [value['x.object.id']]: value['x.object.version.relations'] || []
             });
 
             return {
               ...value,
-              'x_id': _xid
+              'xid': _xid
             }
           });
           store.dispatch(setToolbarConfig({
@@ -582,18 +572,8 @@ export const G6OperateFunctions = {
             const _xid = xid + '.' + index;
 
             // 获取对象关系列表数据
-            const relations: any[] = [];
-            (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-              relations.push({
-                relation: relation['r.type.id'],
-                target: {
-                  uid: relation['r.object.target.id']
-                },
-                attrValue: relation['r.object.attrvalue']
-              });
-            });
             Object.assign(relationLines, {
-              [value['x.object.id']]: relations
+              [value['x.object.id']]: value['x.object.version.relations'] || []
             });
 
             return {
@@ -725,18 +705,8 @@ export const G6OperateFunctions = {
         newData = data.map((value: ObjectConfig, index: number) => {
 
           // 获取对象关系列表数据
-          const relations: any[] = [];
-          (value['x.object.version.relations'] || []).forEach((relation: ObjectRelationInfo) => {
-            relations.push({
-              relation: relation['r.type.id'],
-              target: {
-                uid: relation['r.object.target.id']
-              },
-              attrValue: relation['r.object.attrvalue']
-            });
-          });
           Object.assign(relationLines, {
-            [value['x.object.id']]: relations
+            [value['x.object.id']]: value['x.object.version.relations'] || []
           });
 
           return {

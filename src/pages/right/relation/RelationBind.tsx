@@ -4,10 +4,16 @@ import { useSelector } from "react-redux";
 
 import './index.less';
 import { StoreState } from "@/store";
-import { ObjectRelationConig } from "@/reducers/editor";
 import _ from "lodash";
+import { BindConfig } from "@/reducers/relation";
 
-export default function RelationBind(props: any) {
+interface RelationBindProps {
+  data: BindConfig[]
+  update: Function
+  readOnly: boolean
+}
+
+export default function RelationBind(props: RelationBindProps) {
   const allTypes = useSelector((state: StoreState) => state.type.data);
   const options = allTypes.map(type => ({
     value: type['x.type.id'],
@@ -19,7 +25,7 @@ export default function RelationBind(props: any) {
     [columns, setColumns] = useState([]);
 
   useEffect(() => {
-    const newBinds = (props.data || []).filter((item: ObjectRelationConig) => !item.override)
+    const newBinds = (props.data || []).filter((item: BindConfig) => !item.override)
     form.setFieldValue('bind', newBinds);
     setBinds(newBinds);
   }, [props.data]);

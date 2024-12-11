@@ -2,7 +2,7 @@ import { nodeStateStyle } from '@/g6/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData } from '@antv/g6';
 import _, { isArray } from 'lodash';
-import { NodeItemData } from '../reducers/editor';
+import { NodeItemData, RelationsConfig } from '../reducers/editor';
 import { CustomObjectConfig } from '../reducers/object';
 import { defaultNodeColor, getTextColor } from './common';
 
@@ -367,7 +367,7 @@ export function convertResultData(
   edges: EdgeConfig[],
   combos: ComboConfig[],
   edgeIdMap: any,
-  relationLines: any,
+  relationLines: RelationsConfig,
   xid?: string
 ) {
   const rootId = store.getState().editor.rootNode['x.object.id'];
@@ -376,29 +376,16 @@ export function convertResultData(
     combos.push({ id: `${rootId}-combo` });
   }
 
-  data.forEach((item: any, index: number) => {
-    const infoIndex = _.get(item, 'tags.0.name') === 'v_node' ? 0 : 1,
-      attrIndex = infoIndex === 0 ? 1 : 0;
-    const uid = item['vid'].toString(),
-      _item = {
-        ...(_.get(item, `tags.${infoIndex}.props`, {})),
-        x_attr_value: { ...(_.get(item, `tags.${attrIndex}.props`, {})) },
-        uid,
-        e_x_children: _.get(item, 'e_x_children', []),
-        e_x_parent: _.get(item, 'e_x_parent', []),
-        target: _.get(item, 'target')
-      },
-      _xid = xid ? (xid + '.' + index) : (_item['x_id'] || uid),
-      name = _item['x_name'] || uid,
-      children = _item['e_x_children'] || [],
-      childLen = children.length || 0,
-      target = _item['target'],
-      id = uid,
-      metadata = JSON.parse(_item['x_metadata'] || '{}'),
+  data.forEach((item: CustomObjectConfig, index: number) => {
+    const id = item['x.object.id'],
+      childLen = item['x.object.version.childs'] || 0,
+      _xid = xid ? (xid + '.' + index) : (item['xid'] || id),
+      children = _.get(item, 'e_x_children', []),
+      metadata = JSON.parse(item['x.object.metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
-    if (uid === rootId) {
-      childLen > 0 && convertResultData(children, _item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+    if (id === rootId) {
+      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     } else {
       const comboId = `${id}-combo`;
       const currentParentId = _.get(currentParent, 'uid'),
@@ -407,24 +394,15 @@ export function convertResultData(
       const node: any = {
         id,
         xid: _xid,
-        uid,
-        parent: parentId,
         isQueryNode: true,
-        name,
         data: {
-          ..._item,
+          ...item,
           collapsed: false,
-          currentParent: {
-            ...currentParent,
-            id: rootId,
-          },
-          'x_id': xid,
-          id: uid
         },
         childLen,
         collapsed,
         icon: iconKey,
-        target, // true代表uid传入的目标节点，false代表父节点
+        target: _.get(item, 'target'), // true代表uid传入的目标节点，false代表父节点
         style: {
           ...nodeStateStyle.default,
           fill
@@ -453,8 +431,8 @@ export function convertResultData(
       const isPagination = id.startsWith("pagination-");
       if (isPagination) {
         Object.assign(node, paginationOption(id.split("-")[3] === "prev" ? "prev" : "next"));
-        if (_item.totalPage) {
-          Object.assign(node, { totalPage: _item.totalPage, nextDisabled: Boolean(_item.nextDisabled) });
+        if (item.totalPage) {
+          Object.assign(node, { totalPage: item.totalPage, nextDisabled: Boolean(item.nextDisabled) });
         }
       }
 
@@ -469,37 +447,14 @@ export function convertResultData(
         [id]: id
       });
 
-      // 获取对象关系列表数据
-      const relations: any[] = [];
-      Object.keys(item).forEach((key: string) => {
-        if (key.startsWith("Relation_")) {
-          const relationKey = key.replace('_', '.');
-          if (isArray(item[key])) {
-            item[key].forEach((target: any) => {
-              relations.push({
-                relation: relationKey,
-                target: {
-                  uid: _.get(target, 'dst', '').toString()
-                },
-                attrValue: _.get(target, 'props', {})
-              });
-            });
-          } else {
-            relations.push({
-              relation: relationKey,
-              target: {
-                uid: _.get(item[key], 'dst', '').toString()
-              },
-              attrValue: _.get(item[key], 'props', {})
-            });
-          }
-        }
-      });
-      Object.assign(relationLines, {
-        [uid]: relations
-      });
+      if (!isPagination) {
+        // 获取对象关系列表数据
+        Object.assign(relationLines, {
+          [id]: item['x.object.version.relations'] || []
+        });
+      }
 
-      childLen > 0 && convertResultData(children, _item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
+      childLen > 0 && convertResultData(children, item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     }
   });
 }
