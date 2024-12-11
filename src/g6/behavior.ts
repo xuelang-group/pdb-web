@@ -56,8 +56,8 @@ export const G6OperateFunctions = {
           // 包含删除下级实例
           getRemoveIds(comboId);
 
-          const deleteModel: any = graph.findById(nodeId).getModel(),
-            parentNodeId = deleteModel.parent;
+          const deleteModel = graph.findById(nodeId).getModel(),
+            parentNodeId = deleteModel && deleteModel.data ? _.get(_.get(deleteModel.data, 'x.object.version.parent', {}), 'x.object.id') : '';
 
           let newIndex = 0;
           const _data = JSON.parse(JSON.stringify(data)).filter((val: CustomObjectConfig) => {
@@ -65,7 +65,7 @@ export const G6OperateFunctions = {
               val['x.object.version.childs'] = val['x.object.version.childs'] ? val['x.object.version.childs'] - 1 : 0;
             }
             const shouldRemove = !removeIds.hasOwnProperty(val['x.object.id']);
-            if ((val['x.object.version.parents'] || {})['x.object.id'] === parentNodeId && shouldRemove && val['xid']) {
+            if ((val['x.object.version.parent'] || {})['x.object.id'] === parentNodeId && shouldRemove && val['xid']) {
               const xid = val['xid'].split(".");
               xid.pop();
               xid.push(newIndex.toString());
@@ -82,7 +82,8 @@ export const G6OperateFunctions = {
             const comboLastNodes = parentCombo.getChildren().nodes || [],
               comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-              const { name, parent, nextDisabled } = comboLastNode.get('model');
+              const { data, nextDisabled } = comboLastNode.get('model');
+              const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
               const config = name.split('-'), limit = Number(PAGE_SIZE());
               let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
               if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
@@ -173,7 +174,7 @@ export const G6OperateFunctions = {
               'x.type.id': PAGINATION_TYPE,
               'x.object.name': '下一页',
               'x.object.id': 'pagination-' + model.id + `-${Number(PAGE_SIZE())}-next`,
-              'x.object.version.parents': { 'x.object.id': model.id },
+              'x.object.version.parent': { 'x.object.id': model.id },
               totalPage,
             });
           }
@@ -228,7 +229,7 @@ export const G6OperateFunctions = {
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
       dragItemXid = dragItemModel.data.xid,
-      dragItemParent = dragItemModel.data['x.object.version.parents']['x.object.id'];
+      dragItemParent = dragItemModel.data['x.object.version.parent']['x.object.id'];
     const dropItemId = dropItem.get('id'),
       dropItemModel = dropItem.get('model'),
       dropItemXid = dropItemModel.data.xid;
@@ -256,7 +257,7 @@ export const G6OperateFunctions = {
     allData.forEach(function (value) {
       const xid = value['xid'],
         objId = value['x.object.id'],
-        parent: any = (value['x.object.version.parents'] || {})['x.object.id'];
+        parent: any = (value['x.object.version.parent'] || {})['x.object.id'];
       if (!parent) return;
       if (objId === dragItemId || xid && xid.startsWith(dragItemXid + '.') || parent && dragItemIdMap[parent]) {
         dragItems.push({ ...value });
@@ -337,7 +338,7 @@ export const G6OperateFunctions = {
 
       if (objId === dropItemId || xid && xid.startsWith(dropItemXid + '.') && (xid.split('.').length - 1) === dropItemXid.split('.').length) {
         dropItemLastChildrenIndex++;
-        dropItemLastChildrenXIndex = (value['x.object.version.parents'] || {})['x.object.index'];
+        dropItemLastChildrenXIndex = (value['x.object.version.parent'] || {})['x.object.index'];
       }
     });
 
@@ -352,7 +353,7 @@ export const G6OperateFunctions = {
           'x.object.index': newIndex
         }
         Object.assign(value, {
-          'x.object.version.parents': newParent
+          'x.object.version.parent': newParent
         });
 
         const { collapsed, xid, totalPage, nextDisabled, ...newObj } = JSON.parse(JSON.stringify(value));
@@ -392,7 +393,8 @@ export const G6OperateFunctions = {
         const comboLastNodes = prevParentCombo.getChildren().nodes || [],
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentId) && comboLastNode.get("id").endsWith("-next")) {
-          const { name, parent } = comboLastNode.get('model');
+          const { data } = comboLastNode.get('model');
+          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
           const config = name.split('-');
           let offset = Number(config[2]) - limit;
           if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
@@ -408,7 +410,8 @@ export const G6OperateFunctions = {
         const comboLastNodes = currentParentCombo.getChildren().nodes || [],
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode) {
-          const { name, parent } = comboLastNode.get('model');
+          const { data } = comboLastNode.get('model');
+          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
           let offset = 0;
           if (comboLastNode.get("id").startsWith("pagination-" + dropItemId) && comboLastNode.get("id").endsWith("-next")) {
             const config = name.split('-');
@@ -572,7 +575,7 @@ export const G6OperateFunctions = {
               'x.type.id': PAGINATION_TYPE,
               'x.object.name': '上一页',
               'x.object.id': 'pagination-' + parent + `-${_offset - limit}-prev`,
-              'x.object.version.parents': { 'x.object.id': id }
+              'x.object.version.parent': { 'x.object.id': id }
             });
           }
           _data = _data.concat(data.map((value: ObjectConfig, index: number) => {
@@ -644,7 +647,7 @@ export const G6OperateFunctions = {
               'x.type.id': PAGINATION_TYPE,
               'x.object.name': '下一页',
               'x.object.id': 'pagination-' + parent + `-${_offset + limit}-next`,
-              'x.object.version.parents': { 'x.object.id': id },
+              'x.object.version.parent': { 'x.object.id': id },
               totalPage,
               nextDisabled: (_offset + data.length) >= parentChildLen,
             });
@@ -660,7 +663,7 @@ export const G6OperateFunctions = {
                   const item: CustomObjectConfig = removeChildren[i];
                   const itemXid = item['xid'];
                   if (itemXid && itemXid.startsWith(nodeXid)) {
-                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item['x.object.version.parents'], 'x.object.id') !== val['x.object.id']) {
+                    if (itemXid.split(".").length === nodeXid.split(".").length + 1 && _.get(item['x.object.version.parent'], 'x.object.id') !== val['x.object.id']) {
                       break;
                     }
                     concatData.push(item);
@@ -788,14 +791,18 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
   const sourcePrevNodeItem = graph.find("node", function (item, index) {
     return _.get(item.getModel(), 'data.xid') === (parentNodeXid + '.' + (xIndex - 1));
   });
-  const sourceNodeXIndex = sourceNodeModel.data['x.object.version.parents']['x.object.index'];
-  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any)['x.object.version.parents']['x.object.index'] : sourceNodeXIndex - 1;
+  const sourceNodeXIndex = sourceNodeModel.data['x.object.version.parent']['x.object.index'];
+  const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any)['x.object.version.parent']['x.object.index'] : sourceNodeXIndex - 1;
   const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
   const newParent = {
-    "x.object.id": parentNodeModel.uid,
+    "x.object.id": parentNodeModel.id,
     "x.object.index": newParentIndex,
   };
 
+  const parentVersion = _.get(parentNodeModel.data, 'x.object.version.id');
+  if (parentVersion) {
+    Object.assign(newParent, { "x.object.version.id": parentVersion });
+  }
   /**
    * 版本相关，暂不支持
    */
@@ -825,13 +832,22 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
   //   if (!isCheckout) return;
   // }
   store.dispatch(setGraphLoading(true));
+  const typeAttrDefaultValue = {};
+  (typeInfo['x.type.version.attrs'] || []).forEach((attr: any) => {
+    if (attr.default !== undefined && attr.default !== '') {
+      Object.assign(typeAttrDefaultValue, {
+        [attr.name]: attr.default
+      });
+    }
+  });
 
   G6OperateFunctions.addNode({
-    "x.type.id": defaultTypeName,
-    "x.object.name": typeInfo.name,
-    "x.object.metadata": typeMetadata,
-    "x.object.version.parents": newParent,
-    "x.object.version.attrvalue": typeAttrValue
+    "x.type.id": typeInfo['x.type.id'],
+    "x.type.version.id": typeInfo['x.type.version.id'],
+    "x.object.name": typeInfo['x.type.name'],
+    "x.object.metadata": typeInfo['x.type.metadata'],
+    "x.object.version.parent": newParent,
+    "x.object.version.attrvalue": typeAttrDefaultValue
   }, (newData: ObjectConfig) => {
     const childLen = parentNodeModel.data['x.object.version.childs'] || 0;
     parentNode.update({
@@ -864,7 +880,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
       for (let i = 0; i < data.length; i++) {
         const obj = data[i],
           xid = obj['xid'],
-          parentId = (obj['x.object.version.parents'] || {})['x.object.id'];
+          parentId = (obj['x.object.version.parent'] || {})['x.object.id'];
         if (!parentId) return;
         if (!hasAdd) {
           if (prev) {
@@ -924,7 +940,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
         const comboLastNodes = parentCombo.getChildren().nodes || [],
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-          const { name, parent } = comboLastNode.get('model');
+          const { data } = comboLastNode.get('model');
+          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
           const config = name.split('-');
           G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2], graphData, _data);
           shouldUpdate = false;
@@ -956,7 +973,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
             const comboLastNodes = parentCombo.getChildren().nodes || [],
               comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
-              const { name, parent } = comboLastNode.get('model');
+              const { data } = comboLastNode.get('model');
+              const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
               const config = name.split('-');
               G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE()));
             } else {
@@ -993,7 +1011,7 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   let hasAdd = false;
   for (let i = data.length - 1; i >= 0; i--) {
     const obj = JSON.parse(JSON.stringify(data[i])) as CustomObjectConfig;
-    const parent = (obj['x.object.version.parents'] || {})['x.object.id'],
+    const parent = (obj['x.object.version.parent'] || {})['x.object.id'],
       xid = obj['xid'];
 
     if (obj['x.object.id'] === sourceNodeId) {
@@ -1015,13 +1033,11 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
   if (sourceNodeCombo) {
     const comboLastNodes = sourceNodeCombo.getChildren().nodes || [],
       comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
-    if (comboLastNode) {
-      let offset = 0;
-      const { name, parent } = comboLastNode.get('model');
-      if (comboLastNode.get("id").startsWith("pagination-" + sourceNodeId) && comboLastNode.get("id").endsWith("-next")) {
-        const config = name.split('-');
+    if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + sourceNodeId) && comboLastNode.get("id").endsWith("-next")) {
+      const { data } = comboLastNode.get('model');
+      const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+      const config = name.split('-'),
         offset = Number(config[2]) - limit;
-      }
       G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, _data);
       shouldUpdate = false;
     }
@@ -1053,11 +1069,8 @@ function addRootNode(objectData: ObjectConfig, customData: any, graph: Graph) {
     iconKey = _.get(metadata, 'icon', '');
   const node: NodeItemData = {
     id: objId,
-    parent: rootId,
-    name: name,
     data: { ...objectData, xid: customData['xid'] },
     comboId: rootId + '-combo',
-    childLen: Number(objectData['x.object.version.childs'] || 0),
     icon: iconKey,
     style: {
       ...nodeStateStyle.default,
@@ -1085,14 +1098,9 @@ function addRootNode(objectData: ObjectConfig, customData: any, graph: Graph) {
 }
 
 // 新增子节点
-async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }) {
+async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeInfo: TypeConfig) {
   const sourceNodeId = sourceNode.id;
   if (!sourceNodeId) return;
-
-  const typeId = _.get(typeData, 'id', ''),
-    defaultTypeName = _.get(typeData, 'name', ''),
-    typeAttrDefaultValue = _.get(typeData, 'attrs', {}),
-    typeMetadata = _.get(typeData, 'metadata', '{}')
 
   const sourceNodeXid = sourceNode.data.xid;
 
@@ -1104,6 +1112,11 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
     "x.object.id": sourceNodeId,
     "x.object.index": (childLen + 1) * 1024,
   };
+
+  const sourceVersionId = sourceNode.data['x.object.version.id'];
+  if (sourceVersionId) {
+    Object.assign(newParent, { "x.object.version.id": sourceVersionId });
+  }
 
   /**
    * 版本相关，暂不支持
@@ -1135,11 +1148,22 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   // }
 
   store.dispatch(setGraphLoading(true));
+
+  const typeAttrDefaultValue = {};
+  (typeInfo['x.type.version.attrs'] || []).forEach((attr: any) => {
+    if (attr.default !== undefined && attr.default !== '') {
+      Object.assign(typeAttrDefaultValue, {
+        [attr.name]: attr.default
+      });
+    }
+  });
+
   G6OperateFunctions.addNode({
-    "x.type.id": typeId,
-    "x.object.name": defaultTypeName,
-    "x.object.version.parents": newParent,
-    "x.object.metadata": typeMetadata,
+    "x.type.id": typeInfo['x.type.id'],
+    "x.type.version.id": typeInfo['x.type.version.id'],
+    "x.object.name": typeInfo['x.type.name'],
+    "x.object.version.parent": newParent,
+    "x.object.metadata": typeInfo['x.type.metadata'],
     "x.object.version.attrvalue": typeAttrDefaultValue
   }, (newData: ObjectConfig) => {
     const newObj: CustomObjectConfig = {
@@ -1169,7 +1193,7 @@ async function createChildNode(sourceNode: NodeItemData, graph: Graph, typeData:
   });
 }
 
-export function addChildNode(sourceNode: Item, graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }) {
+export function addChildNode(sourceNode: Item, graph: Graph, typeData: TypeConfig) {
   const model = sourceNode.get('model');
   if (!model) return;
   if (Number(_.get(model.data, 'x.object.version.childs', 0)) > 0 && (model.data.collapsed === undefined || model.data.collapsed)) {
@@ -1183,11 +1207,7 @@ export function addChildNode(sourceNode: Item, graph: Graph, typeData: { id: str
 }
 
 // 新增根节点
-export function createRootNode(graph: Graph, typeData: any = {}) {
-  const defaultName = _.get(typeData, 'name', ''),
-    typeId = _.get(typeData, 'id', ''),
-    typeAttrs = _.get(typeData, 'attrs', {}),
-    typeMetadata = _.get(typeData, 'metadata', '{}');
+export function createRootNode(graph: Graph, typeInfo: TypeConfig) {
   const rootNode = store.getState().editor.rootNode;
   const rootId = rootNode['x.object.id'];
   if (!rootId) return;
@@ -1206,13 +1226,30 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
     "x.object.id": rootId,
     "x.object.index": (childLen + 1) * 1024
   };
+
+  const rootVersionId = rootNode['x.object.version.id'];
+  if (rootVersionId) {
+    Object.assign(newParent, { "x.object.version.id": rootVersionId });
+  }
+
   store.dispatch(setGraphLoading(true));
+
+  const typeAttrDefaultValue = {};
+  (typeInfo['x.type.version.attrs'] || []).forEach((attr: any) => {
+    if (attr.default !== undefined && attr.default !== '') {
+      Object.assign(typeAttrDefaultValue, {
+        [attr.name]: attr.default
+      });
+    }
+  });
+
   G6OperateFunctions.addNode({
-    "x.type.id": typeId,
-    "x.object.name": defaultName,
-    "x.object.version.parents": newParent,
-    "x.object.metadata": typeMetadata,
-    "x.object.version.attrvalue": typeAttrs
+    "x.type.id": typeInfo['x.type.id'],
+    "x.type.version.id": typeInfo['x.type.version.id'],
+    "x.object.name": typeInfo['x.type.name'],
+    "x.object.version.parent": newParent,
+    "x.object.metadata": typeInfo['x.type.metadata'],
+    "x.object.version.attrvalue": typeAttrDefaultValue
   }, (newData: ObjectConfig) => {
     addRootNode(newData, { 'xid': newXid }, graph);
     store.dispatch(setGraphLoading(false));
@@ -1228,11 +1265,7 @@ export function createRootNode(graph: Graph, typeData: any = {}) {
   })
 }
 
-export function insertRootNode(graph: Graph, typeData: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, dropItem: any) {
-  const defaultName = _.get(typeData, 'name', ''),
-    typeId = _.get(typeData, 'id', ''),
-    typeAttrDefaultValue = _.get(typeData, 'attrs', {}),
-    typeMetadata = _.get(typeData, 'metadata', '{}');
+export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any) {
   const rootNode = store.getState().editor.rootNode;
   const rootId = rootNode['x.object.id'];
   const objectState = store.getState().object;
@@ -1246,14 +1279,19 @@ export function insertRootNode(graph: Graph, typeData: { id: string; name: strin
       "x.object.index": 0
     };
 
+  const rootVersionId = rootNode['x.object.version.id'];
+  if (rootVersionId) {
+    Object.assign(newParent, { "x.object.version.id": rootVersionId });
+  }
+
   const dropPrevItemXid = dropItemIndex > 1 ? (rootId + "." + (dropItemIndex - 1)) : "";
   let currentIndex = dropItemIndex, dropItemDataIndex = -1;
   const newObjData = JSON.parse(JSON.stringify(data));
   let newParentIndex: number;
-  const dropItemParentIndex = Number((dropItemModel.data['x.object.version.parents'] || {})['x.object.index']);
+  const dropItemParentIndex = Number((dropItemModel.data['x.object.version.parent'] || {})['x.object.index']);
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
     if (item['xid'] === dropPrevItemXid) {
-      const dropPrevItemXindex: number = Number((item['x.object.version.parents'] || {})['x.object.index']);
+      const dropPrevItemXindex: number = Number((item['x.object.version.parent'] || {})['x.object.index']);
       newParentIndex = dropPrevItemXindex + (dropItemParentIndex - dropPrevItemXindex) / 2;
       Object.assign(newParent, {
         "x.object.index": newParentIndex
@@ -1278,11 +1316,22 @@ export function insertRootNode(graph: Graph, typeData: { id: string; name: strin
   });
 
   store.dispatch(setGraphLoading(true));
+
+  const typeAttrDefaultValue = {};
+  (typeInfo['x.type.version.attrs'] || []).forEach((attr: any) => {
+    if (attr.default !== undefined && attr.default !== '') {
+      Object.assign(typeAttrDefaultValue, {
+        [attr.name]: attr.default
+      });
+    }
+  });
+
   G6OperateFunctions.addNode({
-    "x.object.name": defaultName,
-    "x.object.version.parents": newParent,
-    "x.type.id": typeId,
-    "x.object.metadata": typeMetadata,
+    "x.type.id": typeInfo['x.type.id'],
+    "x.type.version.id": typeInfo['x.type.version.id'],
+    "x.object.name": typeInfo['x.type.name'],
+    "x.object.version.parent": newParent,
+    "x.object.metadata": typeInfo['x.type.metadata'],
     "x.object.version.attrvalue": typeAttrDefaultValue
   }, (newData: ObjectConfig) => {
     const newObject: CustomObjectConfig = {
@@ -1418,7 +1467,7 @@ export function insertRootNode(graph: Graph, typeData: { id: string; name: strin
 }
 
 // 从类型拖拽创建实例
-export function dropCanvasAddNode(typeInfo: { id: string; name: string; attrDefaultValue: {}; metadata: string; }, dropItem: any, position: string, graph: Graph) {
+export function dropCanvasAddNode(typeInfo: TypeConfig, dropItem: any, position: string, graph: Graph) {
   if (position === 'top-rect') {
     addBrotherNode(dropItem, graph, typeInfo, true);
   } else if (position === 'node-rect') {
@@ -1529,7 +1578,7 @@ export function registerBehavior() {
       ) return;
 
       let newData: any[] = [];
-      const dropItemParentId = (dropItemModel.data['x.object.version.parents'] || {})['x.object.id'];
+      const dropItemParentId = (dropItemModel.data['x.object.version.parent'] || {})['x.object.id'];
       const dragItemData = JSON.parse(JSON.stringify(dragItemModel.data)) as ObjectConfig;
       const shouldUpdateObject: ObjectConfig[] = [];
 
@@ -1540,7 +1589,7 @@ export function registerBehavior() {
         let dragItemParentUid = rootId,
           dropItemParentUid = rootId, dropItemParentModel: any = rootInfo;
 
-        const dragitemParentId = (dragItemData['x.object.version.parents'] || {})['x.object.id'] || '';
+        const dragitemParentId = (dragItemData['x.object.version.parent'] || {})['x.object.id'] || '';
         if (dragitemParentId !== rootId) {
           dragItemParentUid = graph.findById(dragitemParentId).get('id');
         }
@@ -1562,7 +1611,7 @@ export function registerBehavior() {
           currentDragParentChildrenIndex = 0;
 
         data.forEach(function (value) {
-          if (value['xid'] && value['xid'] !== dragItemXid && value['xid'] !== dropItemXid && value['xid'].startsWith(dragItemXid + '.') || dragItemsIdMap[(value['x.object.version.parents'] || {})['x.object.id'] || '']) {
+          if (value['xid'] && value['xid'] !== dragItemXid && value['xid'] !== dropItemXid && value['xid'].startsWith(dragItemXid + '.') || dragItemsIdMap[(value['x.object.version.parent'] || {})['x.object.id'] || '']) {
             Object.assign(dragItemsIdMap, { [value['x.object.id']]: value })
             originDragItems.push(value);
           }
@@ -1585,7 +1634,7 @@ export function registerBehavior() {
             });
           }
           const _xid = value['xid'],
-            parentId = (value['x.object.version.parents'] || {})['x.object.id'] || '';
+            parentId = (value['x.object.version.parent'] || {})['x.object.id'] || '';
           if (parentId !== rootId && !graph.findById(parentId)) {
             newData.push(new_value);
             return;
@@ -1620,8 +1669,8 @@ export function registerBehavior() {
             const dropPrevNodeItem = graph.find("node", function (item, index) {
               return _.get(item.getModel(), 'data.xid') === dropPrevXid;
             });
-            const droNodeXIndex = (dropItemModel.data['x.object.version.parents'] || {})['x.object.index'] || 1024;
-            const dropPrevNodeXIndex = dropPrevNodeItem ? (((dropPrevNodeItem.getModel().data as ObjectConfig)['x.object.version.parents'] || {})['x.object.index'] || 1024) : droNodeXIndex - 1;
+            const droNodeXIndex = (dropItemModel.data['x.object.version.parent'] || {})['x.object.index'] || 1024;
+            const dropPrevNodeXIndex = dropPrevNodeItem ? (((dropPrevNodeItem.getModel().data as ObjectConfig)['x.object.version.parent'] || {})['x.object.index'] || 1024) : droNodeXIndex - 1;
             const newParent: ObjectParentInfo = {
               'x.object.id': parentUid,
               'x.object.index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2)
@@ -1630,7 +1679,7 @@ export function registerBehavior() {
             const obj: CustomObjectConfig = {
               ...dragItemData,
               'xid': newId,
-              'x.object.version.parents': newParent,
+              'x.object.version.parent': newParent,
               'x.object.updated': lastChangeTime
             };
             newData.push(obj);
@@ -1666,7 +1715,7 @@ export function registerBehavior() {
               });
             }
             currentDropParentChildrenIndex++;
-          } else if (parentId === (dragItemModel.data['x.object.version.parents'] || {})['x.object.id']) {
+          } else if (parentId === (dragItemModel.data['x.object.version.parent'] || {})['x.object.id']) {
             // drag对象的父级下所有children index 设置
             const dragItemIds = dragItemXid.split('.');
             dragItemIds[dragItemIds.length - 1] = currentDragParentChildrenIndex.toString();
@@ -1711,7 +1760,8 @@ export function registerBehavior() {
               const comboLastNodes = prevParentCombo.getChildren().nodes || [],
                 comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
               if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
-                const { name, parent } = comboLastNode.get('model');
+                const { data } = comboLastNode.get('model');
+                const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
                 const config = name.split('-');
                 let offset = Number(config[2]) - limit;
                 if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
@@ -1729,7 +1779,8 @@ export function registerBehavior() {
               const comboLastNodes = currentParentCombo.getChildren().nodes || [],
                 comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
               if (comboLastNode) {
-                const { name, parent } = comboLastNode.get('model');
+                const { data } = comboLastNode.get('model');
+                const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
                 let offset = 0;
                 if (comboLastNode.get("id").startsWith("pagination-" + dropItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
                   const config = name.split('-');
@@ -1778,7 +1829,7 @@ export function registerBehavior() {
             vid: dragItemId,
             src: dragItemParentUid,
             dest: dropItemParentUid,
-            newIndex: _.get(shouldUpdateObject[0], 'x.object.version.parents', { 'x.object.index': 1024 })['x.object.index']
+            newIndex: _.get(shouldUpdateObject[0], 'x.object.version.parent', { 'x.object.index': 1024 })['x.object.index']
           }, (success: boolean, response: any) => {
             if (!success) {
               notification.error({
@@ -1792,7 +1843,7 @@ export function registerBehavior() {
           });
         }
       } else if (type === 'node-rect') {
-        if ((dragItemData['x.object.version.parents'] || {})['x.object.id'] === dropItemId) {
+        if ((dragItemData['x.object.version.parent'] || {})['x.object.id'] === dropItemId) {
           message.warning(`当前${dropItemModel.data['x.object.name']}对象中存在${dragItemModel.data['x.object.name']}对象`);
           return;
         }
@@ -1810,30 +1861,15 @@ export function registerBehavior() {
     drop: function drop(event: IG6GraphEvent) {
       const { item, target, originalEvent } = event;
       const dropAddType: TypeConfig = JSON.parse((originalEvent as any).dataTransfer ? (originalEvent as any).dataTransfer.getData('object_drop_add') : '{}');
-      const dropAddTypeId = dropAddType['x.type.id'];
-      if (!dropAddTypeId) {
+      if (!dropAddType['x.type.id']) {
         this.dropItem = item;
         this.dropTarget = target;
         return;
       }
-      const dropAddTypeName = dropAddType['x.type.name'],
-        dropAddTypeMetadata = dropAddType['x.type.metadata'];
-      const dropAddTypeAttrs = {};
-      (dropAddType['x.type.version.attrs'] || []).forEach((attr: any) => {
-        if (attr.default !== undefined && attr.default !== '') {
-          Object.assign(dropAddTypeAttrs, {
-            [attr.name]: attr.default
-          });
-        }
-      })
+
       const graph = this.graph as Graph;
       const { cfg } = (target as IShapeBase);
-      dropCanvasAddNode({
-        id: dropAddTypeId,
-        name: dropAddTypeName,
-        attrDefaultValue: dropAddTypeAttrs,
-        metadata: dropAddTypeMetadata
-      }, item, cfg.name, graph);
+      dropCanvasAddNode(dropAddType, item, cfg.name, graph);
     },
   });
 
@@ -1857,13 +1893,11 @@ export function registerBehavior() {
       const model = node.get('model'),
         nodeType = model.type;
       if (nodeType === "paginationBtn") {
-        const { name, parent, nextDisabled } = node.get('model');
+        const { data, nextDisabled } = node.get('model');
+        const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
         if (nextDisabled) return;
-        const config = name.split('-'),
-          params = { uid: parent };
+        const config = name.split('-');
 
-        const limit = Number(PAGE_SIZE());
-        Object.assign(params, { first: limit, offset: config[2] });
         G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
         return;
       }

@@ -166,7 +166,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 
     nodes.push(node as NodeItemData);
 
-    if (item['x.object.version.parents'] && item['x.object.version.parents']['x.object.id'] !== rootId) {
+    if (item['x.object.version.parent'] && item['x.object.version.parent']['x.object.id'] !== rootId) {
       if (!isPagination) {
         const prevIsPagination = index > 0 && nodes[index - 1].id.startsWith("pagination-");
         edges.push({ source: index === 0 ? parentId : (prevIsPagination ? (index > 1 ? nodes[index - 2].id : parentId) : nodes[index - 1].id), target: id });
@@ -518,7 +518,7 @@ export function convertAllData(data: CustomObjectConfig[]) {
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
       iconKey = _.get(metadata, 'icon', '');
     const comboId = `${id}-combo`;
-    const parentId = (item['x.object.version.parents'] || {})['x.object.id'];
+    const parentId = (item['x.object.version.parent'] || {})['x.object.id'];
     const collapsed = Boolean(item.collapsed === undefined ? true : item.collapsed);
     const node: NodeItemData = {
       id,

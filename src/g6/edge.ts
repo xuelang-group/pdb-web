@@ -101,7 +101,7 @@ export function registerEdge() {
 
       // 折线
       let startPoinX = Number(startPoint?.x) + 15;
-      if (_.get(sourceData['x.object.version.parents'], 'x.object.id') === _.get(targetData['x.object.version.parents'], 'x.object.id')) {
+      if (_.get(sourceData['x.object.version.parent'], 'x.object.id') === _.get(targetData['x.object.version.parent'], 'x.object.id')) {
         startPoinX = Number(startPoint?.x) - 15;
       }
 

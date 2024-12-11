@@ -63,7 +63,7 @@ export function registerNode() {
       const userId = store.getState().app.systemInfo.userId;
       const { id } = cfg;
       const nodeData = cfg.data as CustomObjectConfig;
-      const parent = _.get(nodeData['x.object.version.parents'], 'x.object.id', rootId),
+      const parent = _.get(nodeData['x.object.version.parent'], 'x.object.id', rootId),
         name = nodeData['x.object.name'] || '',
         childLen = nodeData['x.object.version.childs'] || 0;
       const isRootNode = parent === rootId;
@@ -376,7 +376,7 @@ export function registerNode() {
       const rootId = store.getState().editor.rootNode['x.object.id'];
       const { id } = cfg;
       const nodeData = cfg.data as CustomObjectConfig;
-      const parent = _.get(nodeData['x.object.version.parents'], 'x.object.id', rootId),
+      const parent = _.get(nodeData['x.object.version.parent'], 'x.object.id', rootId),
         name = nodeData['x.object.name'] || '',
         childLen = nodeData['x.object.version.childs'] || 0;
       const group = item.getContainer();

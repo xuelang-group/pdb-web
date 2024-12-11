@@ -37,7 +37,7 @@ export interface ObjectVersionConfig {
   'x.object.version.created'?: number // 对象版本创建时间
   'x.object.version.updated'?: number // 对象版本修改时间
   'x.object.version.state'?: VersionState // 对象版本修改时间
-  'x.object.version.parents'?: ObjectParentInfo // 父对象信息
+  'x.object.version.parent'?: ObjectParentInfo // 父对象信息
   'x.object.version.relations'?: ObjectRelationInfo[] // 对象关系信息
   'x.object.version.childs'?: number // 子对象个数
 }

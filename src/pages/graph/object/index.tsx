@@ -288,8 +288,8 @@ export default function Editor(props: EditorProps) {
             enableDelegate: true,
             shouldBegin: function (event: IG6GraphEvent) {
               if (!event.item) return false;
-              const model = event.item.get('model');
-              return model.parent !== rootNode['x.object.id'];
+              const { data } = event.item.get('model');
+              return _.get(data['x.object.version.parent'], 'x.object.id', '') !== rootNode['x.object.id'];
             },
             shouldEnd: function (event: IG6GraphEvent) {
               return false;
@@ -409,7 +409,7 @@ export default function Editor(props: EditorProps) {
                   'x.type.id': PAGINATION_TYPE,
                   'x.object.name': '下一页',
                   'x.object.id': 'pagination-' + item.id + `-${Number(PAGE_SIZE())}-next`,
-                  'x.object.version.parents': { 'x.object.id': item.id },
+                  'x.object.version.parent': { 'x.object.id': item.id },
                   totalPage,
                 });
               }
@@ -696,7 +696,7 @@ export default function Editor(props: EditorProps) {
       /**
        * 版本相关，暂不支持
        */
-      // const parentId = currentEditModel.data['x.object.version.parents']['x.object.id'];
+      // const parentId = currentEditModel.data['x.object.version.parent']['x.object.id'];
       // if (parentId && parentId !== rootNode['x.object.id']) {
       //   const parentNode = graph.findById(parentId);
       //   if (parentNode) {

@@ -231,8 +231,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
           // 默认边类型
           let edgeType = 'tree-relation-line';
-          const sourceIsRoot = _.get(sourceItemData['x.object.version.parents'], 'x.object.id') === rootId,
-            targetIsRoot = _.get(targetItemData['x.object.version.parents'], 'x.object.id') === rootId,
+          const sourceIsRoot = _.get(sourceItemData['x.object.version.parent'], 'x.object.id') === rootId,
+            targetIsRoot = _.get(targetItemData['x.object.version.parent'], 'x.object.id') === rootId,
             sourceWidth = sourceItemModel.width,
             targetWidth = targetItemModel.width;
 
@@ -1019,7 +1019,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         'x.type.id': row[2],
         'x.object.id': uid,
         'x.object.name': row[1].toString(),
-        'x.object.version.parents': {
+        'x.object.version.parent': {
           'x.object.id': parentUid,
           'x.object.index': index * 1024
         },
