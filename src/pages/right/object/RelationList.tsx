@@ -3,13 +3,13 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { deleteObjectRelation, getRelationTarget, createObjectRelation, getObjects } from '@/actions/object';
+import { deleteObjectRelation, getRelationTarget, setObjectRelation, getObject } from '@/actions/object';
 import { lineXaxisMap, updateLineXaxisMap, updateXaxisMap, xaxisMap } from '@/g6/edge';
 import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/editor';
 import { StoreState } from '@/store';
 import './index.less';
 import { AttrConfig } from '@/reducers/type';
-import { ObjectConfig } from '@/reducers/object';
+import { ObjectConfig, ObjectRelationInfo } from '@/reducers/object';
 
 interface RelationListProps {
   source: NodeItemData
@@ -19,7 +19,8 @@ interface RelationListProps {
 export default function RelationList(props: RelationListProps) {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
-  const relationMap = useSelector((store: StoreState) => store.editor.relationMap),
+  const graphData = useSelector((state: any) => state.object.graphData),
+    relationMap = useSelector((store: StoreState) => store.editor.relationMap),
     typeRelationMap: any = useSelector((store: StoreState) => store.editor.typeRelationMap),
     { relationLines, showRelationLine } = useSelector((store: StoreState) => store.editor.toolbarConfig.main),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
@@ -27,13 +28,10 @@ export default function RelationList(props: RelationListProps) {
 
   const [relations, setRelations] = useState([]),
     [currentRelationMap, setCurrentRelationMap] = useState({} as any),
-    [relationConstrarintMap, setRelationConstrarintMap] = useState({} as any);
-
-  const [relationList, setRelationList] = useState([]); // 对象对应类型配置的关系
-  const [targetList, setTargetList] = useState([]);
-  const [targetMap, setTargetMap] = useState<{ [key: string]: ObjectConfig }>({})
-
-  const [tableLoading, setTableLoading] = useState(false);
+    [relationList, setRelationList] = useState([]), // 对象对应类型配置的关系
+    [targetList, setTargetList] = useState([]),
+    [targetMap, setTargetMap] = useState<{ [key: string]: ObjectConfig }>({}),
+    [tableLoading, setTableLoading] = useState(false);
 
   useEffect(() => {
     if (!props.source) return;
@@ -70,7 +68,7 @@ export default function RelationList(props: RelationListProps) {
     });
 
     if (!_.isEmpty(noLabelObject)) {
-      getObjects(Object.keys(noLabelObject), (success: boolean, response: any) => {
+      getObject(graphData?.id, Object.keys(noLabelObject).map(id => ({ 'x.object.id': id })), (success: boolean, response: any) => {
         if (success) {
           response.forEach(function (item: ObjectConfig) {
             _targetList.push({
@@ -152,7 +150,7 @@ export default function RelationList(props: RelationListProps) {
   }
 
   // 删除关系
-  const handleDeleteRelation = function (index: number, deleteId: any = null, deleteItem: any = null, callback?: any) {
+  const handleDeleteRelation = function (index: number, deleteId: string | null = null, deleteItem: any = null, callback?: any) {
     const _relations = JSON.parse(JSON.stringify(relations));
     if (!_relations[index].relation || !_relations[index].target) {
       if (callback) {
@@ -284,7 +282,7 @@ export default function RelationList(props: RelationListProps) {
   }
 
   // 修改对象关系
-  const handleChangeTarget = function (uid: string, option: any, index: number) {
+  const handleChangeTarget = function (targetId: string, index: number) {
     const relation = form.getFieldValue(['relation', index, 'relation']);
     const prvRelationId = relations[index]['relation'],
       prvRelationTarget = relations[index]['target'];
@@ -292,58 +290,34 @@ export default function RelationList(props: RelationListProps) {
     const newRelationLines: ObjectRelationConig[] = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
 
     function createRelation() {
-      const targetDetail: ObjectConfig = targetMap[uid];
-      if (relationConstrarintMap[relation]) {
-        const relationConstrarint = relationConstrarintMap[relation];
-        const tgtLabel = option.label,
-          tgtType = option.type;
-        const srcLabel = props.source.data['x.object.name'],
-          srcType = props.source.data['x.type.id'];
-        const maxTgt = relationConstrarint[srcType + '-' + tgtType] || Infinity;
-        let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x.type.id') === tgtType).length;
-        if (_.get(targetMap[prvRelationTarget], 'x.type.id') === tgtType) {
-          currentNum -= 1;
-        }
-        if (maxTgt <= currentNum) {
-          message.warning(`从 “${srcLabel}” 对象类型到 “${tgtLabel}” 对象类型的 “${relationMap[relation]['r.type.name']}” 关系达到上限，最高上限为${currentNum}`);
-          form.setFieldValue(['relation', index, 'target'], '');
-          return;
-        }
-      }
-
-      const targetOption = {
-        uid,
-        'x_name': targetDetail['x.object.name']
-      };
+      const targetDetail: ObjectConfig = targetMap[targetId];
       Object.assign(newRelationLines[index], {
-        'r.object.target.id': uid,
+        'r.object.target.id': targetId,
         'r.object.target.name': targetDetail['x.object.name']
       });
 
       // 设置实例关系连线时，传递关系类型属性默认值
+      const attrValue = {}
       _.get(relationMap[relation], 'r.type.attrs', []).forEach((attr: AttrConfig) => {
-        const defalutValue = _.get(attr, 'default');
-        if (defalutValue || defalutValue === 0) {
-          Object.assign(targetOption, {
-            [`${relation}|${attr.name}`]: defalutValue
-          });
-        }
+        const defalutValue = _.get(attr, 'default', null);
+        Object.assign(attrValue, {
+          [attr.name]: defalutValue
+        });
       });
 
-      createObjectRelation([{
-        vid: props.source.id,
-        [relation]: [{
-          'vid': targetOption['uid'],
-          'x_name': targetOption['x_name']
-        }]
+      setObjectRelation(graphData?.id, [{
+        'r.type.id': relation,
+        'r.object.source.id': props.source.id,
+        'r.object.target.id': targetId,
+        'r.object.attrvalue': attrValue
       }], (success: any, response: any) => {
         if (success) {
           setRelations(form.getFieldValue('relation'));
           const newRelationMap = JSON.parse(JSON.stringify(currentRelationMap));
           if (newRelationMap[relation]) {
-            Object.assign(newRelationMap[relation], { [uid]: uid });
+            Object.assign(newRelationMap[relation], { [targetId]: targetId });
           } else {
-            Object.assign(newRelationMap, { [relation]: { [uid]: uid } });
+            Object.assign(newRelationMap, { [relation]: { [targetId]: targetId } });
           }
           setCurrentRelationMap(newRelationMap);
 
@@ -365,9 +339,9 @@ export default function RelationList(props: RelationListProps) {
 
           const newLineData: ObjectRelationConig = {
             'r.type.id': form.getFieldValue(['relation', index, 'relation']),
-            'r.object.target.id': uid,
+            'r.object.target.id': targetId,
             'r.object.source.id': sourceUid,
-            'r.object.target.name': targetMap[uid]['x.object.name']
+            'r.object.target.name': targetMap[targetId]['x.object.name']
           };
           if (newRelationLines[index]) {
             Object.assign(newRelationLines[index], { ...newLineData });
@@ -441,7 +415,7 @@ export default function RelationList(props: RelationListProps) {
           }
           disabled={!form.getFieldValue(['relation', index, 'relation']) || !isEditing}
           onFocus={() => handleGetRelationTarget(index)}
-          onChange={(value, option) => handleChangeTarget(value, option, index)}>
+          onChange={(value) => handleChangeTarget(value, index)}>
         </Select>
       }
     </Form.Item>

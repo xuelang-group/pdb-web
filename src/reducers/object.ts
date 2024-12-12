@@ -24,7 +24,9 @@ export interface ObjectParentInfo {
 export interface ObjectRelationInfo {
   'r.type.id': string // 关系类型ID
   'r.object.source.id': string // 源对象ID
+  'r.object.source.version.id'?: string // 源对象版本ID
   'r.object.target.id': string // 目标对象ID
+  'r.object.target.version.id'?: string // 目标对象版本ID
   'r.object.attrvalue'?: any // 关系属性键值对
 }
 

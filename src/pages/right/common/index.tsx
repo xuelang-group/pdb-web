@@ -21,11 +21,11 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { fittingString, resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
-import { checkInObject, checkOutObject, createObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
+import { checkInObject, checkOutObject, setObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, setGraphData, setObjectDetail } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -435,26 +435,12 @@ export default function Right(props: RightProps) {
   }
 
   // 更新关系类型
-  const updateRelation = (relation: RelationConfig, callback?: Function) => {
+  const updateRelation = (relation: ObjectRelationInfo | RelationConfig, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const graph = (window as any).PDB_GRAPH;
     if (props.route === "object") {
-      const { source, target, relationName } = currentEditModel;
-      const modelAtts = {};
-
-      Object.keys(relation).forEach(function (key) {
-        if (!key.startsWith("r.type.")) {
-          Object.assign(modelAtts, { [key]: _.get(relation, key) });
-        }
-      });
-
-      createObjectRelation([{
-        'vid': source,
-        [relationName as string]: [{
-          'vid': target,
-          ...modelAtts
-        }]
-      }], (success: boolean, response: any) => {
+      /** 对象关系实例 ObjectRelationInfo */
+      setObjectRelation(graphData?.id, [relation], (success: boolean, response: any) => {
         if (success) {
           graph.updateItem(currentEditModel.id, { data: relation });
         } else {
@@ -466,6 +452,7 @@ export default function Right(props: RightProps) {
         callback && callback(success, response);
       });
     } else {
+      /** 关系类型 RelationConfig */
       const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
       const timestamp = new Date();
 
@@ -473,7 +460,7 @@ export default function Right(props: RightProps) {
       setRelation(graphData?.id, [relation], (success: boolean, response: any) => {
         if (success) {
           const id = relation['r.type.id'],
-            name = relation['r.type.name'];
+            name = (relation as RelationConfig)['r.type.name'];
 
           if (name !== _.get(currentEditModel.data, 'r.type.name')) {
             (window as any).PDB_GRAPH?.updateItem(item, {
@@ -666,42 +653,24 @@ export default function Right(props: RightProps) {
       }
 
       if (currentEditType === 'object') {
-        if (attr && attr.name && newValues[attr.name] === null) {
-          delete newValues[attr.name];
-          const newData = JSON.parse(JSON.stringify({
-            ...currentEditDefaultData,
-            'x.object.version.attrvalue': {
-              ...currentEditDefaultData['x.object.version.attrvalue'],
-              ...newValues,
-              [attr.name]: null
-            }
-          }));
-          delete newData['x_attr_value'][attr.name];
-          updateItemData(newData, undefined, 'attr');
-        } else {
-          updateItemData({
-            ...currentEditDefaultData,
-            'x_attr_value': {
-              ...currentEditDefaultData['x_attr_value'],
-              ...newValues
-            }
-          });
-        }
+        const newData = JSON.parse(JSON.stringify({
+          ...currentEditDefaultData,
+          'x.object.version.attrvalue': {
+            ...currentEditDefaultData['x.object.version.attrvalue'],
+            ...newValues
+          }
+        }));
+        updateItemData(newData);
       } else {
-        if (attr && attr.name && newValues[attr.name] === null) {
-          delete newValues[attr.name];
-          const newData = JSON.parse(JSON.stringify({
-            ...currentEditDefaultData,
+        const newData = JSON.parse(JSON.stringify({
+          ...currentEditDefaultData,
+          'r.object.attrvalue': {
+            ...currentEditDefaultData['r.object.attrvalue'],
             ...newValues
-          }));
-          delete newData[attr.name];
-          updateItemData(newData);
-        } else {
-          updateItemData({
-            ...currentEditDefaultData,
-            ...newValues
-          });
-        }
+          }
+        }));
+        delete newData[attr.name];
+        updateItemData(newData);
       }
     }).catch(err => {
       console.log(err)

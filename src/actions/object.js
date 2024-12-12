@@ -10,21 +10,19 @@ const api = {
   get: `${objectApiPrefix}/get`,
   children: `${objectApiPrefix}/children`,
 
+  /** 接口暂未支持 */
   copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
-  count: `${objectApiPrefix}/count`,
   checkout: `${objectApiPrefix}/checkout`,
   checkin: `${objectApiPrefix}/checkin`,
   discard: `${objectApiPrefix}/checkout/discard`,
-  search: apiPrefix + '/search',
   rearrange: `${objectApiPrefix}/children/rearrange`,
-  list: `${objectApiPrefix}/list`
 };
 
 /**
- * 添加对象
+ * 创建对象类型（支持批量）
  * @param {int} graphId 项目ID
- * @param {ObjectConfig} params 对象信息
+ * @param {ObjectConfig[]} params 对象信息
  * @param {*} callback 
  * @returns 
  */
@@ -54,9 +52,9 @@ export const getRoots = (graphId, callback) => {
 }
 
 /**
- * 删除对象
+ * 删除对象（支持批量）
  * @param {int} graphId 项目ID
- * @param {{'x.object.id': string, 'recurse'?: boolean}} params {'x.object.id': 对象ID, 'recurse'?: 包含删除下级实例}
+ * @param {{'x.object.id': string, 'recurse'?: boolean}[]} params {'x.object.id': 对象ID, 'recurse'?: 包含删除下级实例}
  * @param {*} callback 
  * @returns 
  */
@@ -72,7 +70,7 @@ export const deleteObject = (graphId, params, callback) => {
 };
 
 /**
- * 修改对象
+ * 修改对象 (支持批量)
  * @param {int} graphId 项目ID
  * @param {ObjectConfig[]} objects 对象数组
  * @param {*} callback 
@@ -90,7 +88,7 @@ export const setObject = (graphId, objects, callback) => {
 };
 
 /**
- * 获取对象
+ * 获取对象 (支持批量)
  * @param {int} graphId 项目ID
  * @param {{'x.object.id': string}[]} ids 对象ID列表
  * @param {*} callback 
@@ -170,29 +168,6 @@ export const discardObject = (vid, callback) => {
   });
 };
 
-export const getObjects = (vid, callback) => {
-  return axios.post(api['list'], {
-    ...commonParams,
-    vid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
-// 搜索
-export const searchObjects = (params, callback) => {
-  return axios.post(api['search'], {
-    ...commonParams,
-    ...params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
 // 复制对象
 export const copyObject = (params, callback) => {
   return axios.post(api['copy'], {
@@ -236,40 +211,37 @@ export const rearrangeChildren = (params, callback) => {
 const objectRelationApiPrefix = `${objectApiPrefix}/relation`
 
 const objectRelationApi = {
-  get: `${objectRelationApiPrefix}/get`,
   add: `${objectRelationApiPrefix}/add`,
+
+  get: `${objectRelationApiPrefix}/get`,
   update: `${objectRelationApiPrefix}/update`,
   delete: `${objectRelationApiPrefix}/delete`,
   support: `${objectRelationApiPrefix}/support`,
   auto: `${objectRelationApiPrefix}/auto`
 }
 
+/**
+ * 添加或修改对象关系
+ * @param {int} graphId 项目ID 
+ * @param {ObjectRelationInfo[]} params 对象关系数组
+ * @param {*} callback 
+ * @returns 
+ */
+export const setObjectRelation = (graphId, params, callback) => {
+  return axios.post(objectRelationApi['add'], {
+    graphId,
+    set: params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 export const getObjectRelation = (uid, callback) => {
   return axios.post(objectRelationApi['get'], {
     ...commonParams,
     uid
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
-export const createObjectRelation = (params, callback) => {
-  return axios.post(objectRelationApi['add'], {
-    ...commonParams,
-    set: params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
-export const setObjectRelation = (params, callback) => {
-  return axios.post(objectRelationApi['update'], {
-    ...commonParams,
-    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
