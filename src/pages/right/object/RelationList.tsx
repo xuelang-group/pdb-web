@@ -26,7 +26,7 @@ export default function RelationList(props: RelationListProps) {
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     isEditing = useSelector((state: StoreState) => state.editor.isEditing);
 
-  const [relations, setRelations] = useState([]),
+  const [relations, setRelations] = useState<{ 'relation': string, 'target': string, 'source'?: string }[]>([]),
     [currentRelationMap, setCurrentRelationMap] = useState({} as any),
     [relationList, setRelationList] = useState([]), // 对象对应类型配置的关系
     [targetList, setTargetList] = useState([]),
@@ -150,7 +150,7 @@ export default function RelationList(props: RelationListProps) {
   }
 
   // 删除关系
-  const handleDeleteRelation = function (index: number, deleteId: string | null = null, deleteItem: any = null, callback?: any) {
+  const handleDeleteRelation = function (index: number, deleteRelationId: string | null = null, deleteRelationTargetId: string | null = null, callback?: any) {
     const _relations = JSON.parse(JSON.stringify(relations));
     if (!_relations[index].relation || !_relations[index].target) {
       if (callback) {
@@ -161,14 +161,13 @@ export default function RelationList(props: RelationListProps) {
       setRelations(_relations);
       return;
     }
-    const sourceUid = props.source.id;
-    const relationId = deleteId || _relations[index].relationId || _relations[index].relation;
-    const deleteItemConfig = deleteItem || { uid: _relations[index].target };
-    deleteObjectRelation([{
-      vid: sourceUid,
-      [relationId]: [{
-        vid: deleteItemConfig.uid
-      }]
+    const sourceId = props.source.id;
+    const relationId = deleteRelationId || _relations[index].relation;
+    const relationTargetId = deleteRelationTargetId || _relations[index].target;
+    deleteObjectRelation(graphData?.id, [{
+      'r.type.id': relationId,
+      'r.object.source.id': sourceId,
+      'r.object.target.id': relationTargetId
     }], (success: boolean, response: any) => {
       if (success) {
         const deletTarget = form.getFieldValue(['relation', index, 'target']);
@@ -176,10 +175,10 @@ export default function RelationList(props: RelationListProps) {
           delete currentRelationMap[relationId][deletTarget];
         }
 
-        const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
+        const newRelationLines = JSON.parse(JSON.stringify(_.get(relationLines, sourceId, [])));
         const relationData: ObjectRelationConig = newRelationLines[index];
         if (showRelationLine && relationData['r.type.id'] && relationData['r.object.target.id']) {
-          const edgeId = `${sourceUid}-${relationData['r.object.target.id']}-${relationData['r.type.id']}`;
+          const edgeId = `${sourceId}-${relationData['r.object.target.id']}-${relationData['r.type.id']}`;
           (window as any).PDB_GRAPH.removeItem(edgeId);
 
           const newXaxisMap = JSON.parse(JSON.stringify(xaxisMap)),
@@ -202,7 +201,7 @@ export default function RelationList(props: RelationListProps) {
         form.setFieldValue('relation', _relations);
 
         const newRelationMap = JSON.parse(JSON.stringify(relationMap));
-        delete newRelationMap[relationId][deleteItemConfig.uid];
+        delete newRelationMap[relationId][relationTargetId];
         setCurrentRelationMap(newRelationMap);
 
         newRelationLines.splice(index, 1);
@@ -211,7 +210,7 @@ export default function RelationList(props: RelationListProps) {
           config: {
             relationLines: {
               ...relationLines,
-              [sourceUid]: newRelationLines
+              [sourceId]: newRelationLines
             }
           }
         }));
@@ -368,7 +367,7 @@ export default function RelationList(props: RelationListProps) {
 
     if (relations[index] && relations[index]['relation'] && relations[index]['target']) {
 
-      handleDeleteRelation(index, prvRelationId, { uid: prvRelationTarget }, () => {
+      handleDeleteRelation(index, prvRelationId, prvRelationTarget, () => {
         createRelation();
       });
     } else {

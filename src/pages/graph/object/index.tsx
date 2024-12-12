@@ -718,12 +718,9 @@ export default function Editor(props: EditorProps) {
       }], graph, () => {
         handleModalCancel();
       });
-    } else if (_.get(currentEditModel, "source")) {
-      const { id, relationName, source, target } = currentEditModel;
-      deleteObjectRelation([{
-        vid: source,
-        [relationName]: [{ vid: target }]
-      }], (success: boolean, response: any) => {
+    } else if (_.get(currentEditModel.data, "r.object.source.id")) {
+      const { id } = currentEditModel;
+      deleteObjectRelation(graphInfo?.id, [currentEditModel.data], (success: boolean, response: any) => {
         if (success) {
           graph.removeItem(id);
         } else {

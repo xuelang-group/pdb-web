@@ -212,10 +212,10 @@ const objectRelationApiPrefix = `${objectApiPrefix}/relation`
 
 const objectRelationApi = {
   add: `${objectRelationApiPrefix}/add`,
+  delete: `${objectRelationApiPrefix}/delete`,
 
   get: `${objectRelationApiPrefix}/get`,
   update: `${objectRelationApiPrefix}/update`,
-  delete: `${objectRelationApiPrefix}/delete`,
   support: `${objectRelationApiPrefix}/support`,
   auto: `${objectRelationApiPrefix}/auto`
 }
@@ -238,10 +238,17 @@ export const setObjectRelation = (graphId, params, callback) => {
   });
 }
 
-export const getObjectRelation = (uid, callback) => {
-  return axios.post(objectRelationApi['get'], {
-    ...commonParams,
-    uid
+/**
+ * 删除对象关系
+ * @param {int} graphId 项目ID 
+ * @param {ObjectRelationInfo[]} params 对象关系数组
+ * @param {*} callback 
+ * @returns 
+ */
+export const deleteObjectRelation = (graphId, params, callback) => {
+  return axios.post(objectRelationApi['delete'], {
+    graphId,
+    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
@@ -249,10 +256,10 @@ export const getObjectRelation = (uid, callback) => {
   });
 }
 
-export const deleteObjectRelation = (params, callback) => {
-  return axios.post(objectRelationApi['delete'], {
+export const getObjectRelation = (uid, callback) => {
+  return axios.post(objectRelationApi['get'], {
     ...commonParams,
-    delete: params
+    uid
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
