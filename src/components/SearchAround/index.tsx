@@ -357,7 +357,7 @@ export default function SearchAround() {
   }
   const renderTabChildren = function (item: any, tabIndex: number) {
     const { start, options, results } = item;
-    let sourceType = start[0]['x_type_name'];
+    let sourceType = start[0]['x.type.id'];
     if (options.length > 0) {
       sourceType = _.get(options[options.length - 1], 'object');
     }
@@ -374,7 +374,7 @@ export default function SearchAround() {
               const { start, options } = searchAroundOptions[tabIndex] as any;
               const typeMap: any = {};
               types.forEach(type => Object.assign(typeMap, { [type["x.type.id"]]: type }));
-              const typeId = start[0]["x_type_name"];
+              const typeId = start[0]["x.type.id"];
               _data[0].push({
                 value: typeId,
                 label: _.get(typeMap[typeId], "x.type.name", ""),
@@ -441,7 +441,7 @@ export default function SearchAround() {
             </span>
           </div>
           {options.map((opt: any, index: number) => {
-            let objectType = start[0]['x_type_name'];
+            let objectType = start[0]['x.type.id'];
             if (index > 0) objectType = options[index - 1]['object'];
             const relations = !objectType ? [] :
               Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))

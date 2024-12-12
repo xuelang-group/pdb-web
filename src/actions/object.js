@@ -193,21 +193,6 @@ export const searchObjects = (params, callback) => {
   });
 };
 
-// 更新对象
-export const countObject = (typeName, callback) => {
-  // mock
-  // callback && callback(true);
-
-  return axios.post(api['count'], {
-    ...commonParams,
-    'x_type_name': typeName
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-};
-
 // 复制对象
 export const copyObject = (params, callback) => {
   return axios.post(api['copy'], {

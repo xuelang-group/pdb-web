@@ -31,7 +31,7 @@ export default function RelationList(props: RelationListProps) {
 
   const [relationList, setRelationList] = useState([]); // 对象对应类型配置的关系
   const [targetList, setTargetList] = useState([]);
-  const [targetMap, setTargetMap] = useState({} as any)
+  const [targetMap, setTargetMap] = useState<{ [key: string]: ObjectConfig }>({})
 
   const [tableLoading, setTableLoading] = useState(false);
 
@@ -41,17 +41,17 @@ export default function RelationList(props: RelationListProps) {
     const usedTargetMap: any = {}, noLabelObject = {};
     setTableLoading(true);
     _.get(relationLines, props.source.id, []).forEach((item: ObjectRelationConig) => {
-      const relationId = item['r.type.id'], 
+      const relationId = item['r.type.id'],
         targetId = item['r.object.target.id'],
         targetLabel = item['r.object.target.name'];
-        if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
-        if (!usedTargetMap[targetId] && targetLabel) {
-          _targetList.push({
-            value: targetId,
-            label: targetLabel
-          });
-          Object.assign(usedTargetMap, { [targetId]: targetLabel });
-        }
+      if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
+      if (!usedTargetMap[targetId] && targetLabel) {
+        _targetList.push({
+          value: targetId,
+          label: targetLabel
+        });
+        Object.assign(usedTargetMap, { [targetId]: targetLabel });
+      }
       _relations.push({
         relation: relationId,
         target: targetId
@@ -102,7 +102,7 @@ export default function RelationList(props: RelationListProps) {
   }, [props.source, relationLines]);
 
   useEffect(() => {
-    currentEditModel && updateRelationList(_.get(currentEditModel.data, 'x_type_name'));
+    currentEditModel && updateRelationList(_.get(currentEditModel.data, 'x.type.id'));
   }, [currentEditModel?.id]);
 
   function updateRelationList(typeId: any) {
@@ -259,16 +259,14 @@ export default function RelationList(props: RelationListProps) {
       'x.relation.name': relation
     }, (success: any, response: any) => {
       if (success) {
-        const _targetList: any = [], newTargetMap = { ...targetMap };
-        response.forEach((item: any) => {
-          const infoIndex = _.get(item, 'tags', []).findIndex((val: any) => val.name === 'v_node');
-          const value = item['vid'].toString(),
-            defaultInfo = _.get(item.tags[infoIndex], 'props', {}),
-            label = _.get(defaultInfo, 'x_name', '');
+        const _targetList: any = [], newTargetMap: { [key: string]: ObjectConfig } = { ...targetMap };
+        response.forEach((item: ObjectConfig) => {
+          const value = item['x.object.id'],
+            label = item['x.object.name'];
           _targetList.push({
             value,
             label,
-            type: _.get(defaultInfo, 'x_type_name', ''),
+            type: item['x.type.id'],
             disabled: Boolean(currentRelationMap[relation] && currentRelationMap[relation][value])
           });
           Object.assign(newTargetMap, { [value]: { ...item } });
@@ -294,7 +292,7 @@ export default function RelationList(props: RelationListProps) {
     const newRelationLines: ObjectRelationConig[] = JSON.parse(JSON.stringify(_.get(relationLines, sourceUid, [])));
 
     function createRelation() {
-      const targetDetail = targetMap[uid];
+      const targetDetail: ObjectConfig = targetMap[uid];
       if (relationConstrarintMap[relation]) {
         const relationConstrarint = relationConstrarintMap[relation];
         const tgtLabel = option.label,
@@ -302,8 +300,8 @@ export default function RelationList(props: RelationListProps) {
         const srcLabel = props.source.data['x.object.name'],
           srcType = props.source.data['x.type.id'];
         const maxTgt = relationConstrarint[srcType + '-' + tgtType] || Infinity;
-        let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x_type_name') === tgtType).length;
-        if (_.get(targetMap[prvRelationTarget], 'x_type_name') === tgtType) {
+        let currentNum = Object.keys(currentRelationMap[relation] || {}).filter(val => _.get(targetMap[val], 'x.type.id') === tgtType).length;
+        if (_.get(targetMap[prvRelationTarget], 'x.type.id') === tgtType) {
           currentNum -= 1;
         }
         if (maxTgt <= currentNum) {
@@ -315,11 +313,11 @@ export default function RelationList(props: RelationListProps) {
 
       const targetOption = {
         uid,
-        'x_name': targetDetail['x_name']
+        'x_name': targetDetail['x.object.name']
       };
       Object.assign(newRelationLines[index], {
         'r.object.target.id': uid,
-        'r.object.target.name': targetDetail['x_name']
+        'r.object.target.name': targetDetail['x.object.name']
       });
 
       // 设置实例关系连线时，传递关系类型属性默认值
@@ -369,7 +367,7 @@ export default function RelationList(props: RelationListProps) {
             'r.type.id': form.getFieldValue(['relation', index, 'relation']),
             'r.object.target.id': uid,
             'r.object.source.id': sourceUid,
-            'r.object.target.name': targetMap[uid]['x_name']
+            'r.object.target.name': targetMap[uid]['x.object.name']
           };
           if (newRelationLines[index]) {
             Object.assign(newRelationLines[index], { ...newLineData });

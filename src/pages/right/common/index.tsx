@@ -120,8 +120,8 @@ export default function Right(props: RightProps) {
     // 获取属性列表
     if (currentEditType === 'object') {
       prevLabel = 'x.object.';
-      if (_currentEditDefaultData['x_type_name']) {
-        _attrs = await getObjectTypeInfo(_currentEditDefaultData['x_type_name']);
+      if (_currentEditDefaultData['x.type.id']) {
+        _attrs = await getObjectTypeInfo(_currentEditDefaultData['x.type.id']);
       }
       uid = _currentEditDefaultData[prevLabel + 'id'];
       getObjectInfo(uid, _attrs);
@@ -496,7 +496,7 @@ export default function Right(props: RightProps) {
   }
 
   // 更新对象
-  const updateObject = (object: CustomObjectConfig, key?: string, deleteConfig?: any, callback?: Function) => {
+  const updateObject = (object: CustomObjectConfig, key?: string, callback?: Function) => {
     if (!(window as any).PDB_GRAPH || !currentEditModel?.id) return;
     const item = (window as any).PDB_GRAPH.findById(currentEditModel?.id);
     const timestamp = new Date();

@@ -272,20 +272,24 @@ export default function Editor(props: EditorProps) {
             enableOptimize: true,
           }, // 画布缩放
           'collapse-expand',
-          {
-            type: 'drag-node',
-            updateEdge: false,
-            enableDelegate: true,
-            shouldBegin: function (event: IG6GraphEvent) {
-              if (!event.item) return false;
-              const { data } = event.item.get('model');
-              return _.get(data['x.object.version.parent'], 'x.object.id', '') !== rootNode['x.object.id'];
-            },
-            shouldEnd: function (event: IG6GraphEvent) {
-              return false;
-            }
-          },
-          'drag-enter',
+          /**
+           * 画布节点拖拽，暂不支持
+           * 实例move接口暂未提供
+           */
+          // {
+          //   type: 'drag-node',
+          //   updateEdge: false,
+          //   enableDelegate: true,
+          //   shouldBegin: function (event: IG6GraphEvent) {
+          //     if (!event.item) return false;
+          //     const { data } = event.item.get('model');
+          //     return _.get(data['x.object.version.parent'], 'x.object.id', '') !== rootNode['x.object.id'];
+          //   },
+          //   shouldEnd: function (event: IG6GraphEvent) {
+          //     return false;
+          //   }
+          // },
+          // 'drag-enter',
           'graph-select',
           'activate-relations-object'// 高亮相邻关系及节点
         ]

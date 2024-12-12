@@ -488,7 +488,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       graph.findAll('node', function (node: Item) {
         const nodeModel = node.get('model'),
           nodeModelData = _.get(nodeModel, 'data'),
-          isDisabled = (_.isEmpty(filterMap.type) || !_.get(filterMap.type, nodeModelData['x_type_name'] || '')) && filters.length > 0;
+          isDisabled = (_.isEmpty(filterMap.type) || !_.get(filterMap.type, nodeModelData['x.type.id'] || '')) && filters.length > 0;
         graph.updateItem(node, { isDisabled });
         if (!isDisabled && !_.isEmpty(filterMap.type)) shouldSelectedNodes.push(node);
         node.setState('selected', !isDisabled && !_.isEmpty(filterMap.type));
