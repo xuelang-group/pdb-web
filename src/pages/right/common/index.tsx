@@ -99,7 +99,7 @@ export default function Right(props: RightProps) {
       const { name, id, updated, created, description } = graphData as ObjectGraphDataState;
       infoForm.setFieldsValue({
         name,
-        uid: id,
+        id,
         lastChange: moment(updated).format("YYYY-MM-DD HH:mm:ss"),
         created: moment(created).format("YYYY-MM-DD HH:mm:ss"),
         description
@@ -113,7 +113,7 @@ export default function Right(props: RightProps) {
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
     let prevLabel = '';
-    let uid = '';
+    let id = '';
     let _currentEditDefaultData = JSON.parse(JSON.stringify(currentEditDefaultData));
     let _attrs: any = [];
 
@@ -123,8 +123,8 @@ export default function Right(props: RightProps) {
       if (_currentEditDefaultData['x.type.id']) {
         _attrs = await getObjectTypeInfo(_currentEditDefaultData['x.type.id']);
       }
-      uid = _currentEditDefaultData[prevLabel + 'id'];
-      getObjectInfo(uid, _attrs);
+      id = _currentEditDefaultData[prevLabel + 'id'];
+      getObjectInfo(id, _attrs);
     } else {
       let attrKey = "";
       if (currentEditType === 'type') {
@@ -152,7 +152,7 @@ export default function Right(props: RightProps) {
         }
       });
       setAttrs(_attrs);
-      uid = _currentEditDefaultData[prevLabel + 'id'];
+      id = _currentEditDefaultData[prevLabel + 'id'];
     }
 
     setCurrentEditDefaultData(_currentEditDefaultData);
@@ -182,7 +182,7 @@ export default function Right(props: RightProps) {
     }
     const formValues = {
       name: _currentEditDefaultData[prevLabel + 'name'],
-      uid,
+      id,
       lastChange: _lastChange ? moment(_lastChange).format("YYYY-MM-DD HH:mm:ss") : '',
       created: _created ? moment(_created).format("YYYY-MM-DD HH:mm:ss") : ''
     };
@@ -224,7 +224,7 @@ export default function Right(props: RightProps) {
           const { name, id, updated, created } = _graphData;
           infoForm.setFieldsValue({
             name,
-            uid: id,
+            id,
             lastChange: moment(updated).format("YYYY-MM-DD HH:mm:ss"),
             created: moment(created).format("YYYY-MM-DD HH:mm:ss")
           });
@@ -311,10 +311,10 @@ export default function Right(props: RightProps) {
     }
   }
 
-  const getObjectInfo = function (uid: string, attrs: any) {
+  const getObjectInfo = function (id: string, attrs: any) {
     setAttrLoading(true);
-    getObject(graphData?.id, [{ 'x.object.id': uid }], async (success: boolean, response: any) => {
-      if (success && response) {
+    getObject(graphData?.id, [{ 'x.object.id': id }], async (success: boolean, response: any) => {
+      if (success && response && response.length > 0) {
         const objectData = response[0] as ObjectConfig;
         /**
          * 版本相关，暂不支持
@@ -322,7 +322,7 @@ export default function Right(props: RightProps) {
         // if (objectData['x_version'] && objectData['x_checkout']) {
         //   await (() => {
         //     return new Promise((resolve) => {
-        //       getCheckoutVersion(uid, (success: boolean, response: any) => {
+        //       getCheckoutVersion(id, (success: boolean, response: any) => {
         //         if (success) {
         //           const _attrs = _.get(response, 'e_v_attrs.tags.0.props', {});
         //           Object.assign(objectData['x_attr_value'], _attrs);
@@ -499,7 +499,8 @@ export default function Right(props: RightProps) {
           data: object,
           name: name
         })
-        const nodeId = currentEditDefaultData.uid, nodeItem = graph.findById(nodeId);
+        const nodeId = currentEditDefaultData['x.object.id'],
+          nodeItem = graph.findById(nodeId);
         if (key === 'name' && nodeItem) {
           const nodeWidth = nodeItem.getModel().width;
           const edges = graph?.findAll('edge', (edge: any) => edge.getModel().source === nodeId || edge.getModel().target === nodeId);
@@ -1022,7 +1023,7 @@ export default function Right(props: RightProps) {
   }
 
   const appName = Form.useWatch('name', infoForm),
-    appId = Form.useWatch('uid', infoForm);
+    appId = Form.useWatch('id', infoForm);
 
   const renderPanelForm = function () {
     if (!currentEditModel) {
@@ -1052,7 +1053,7 @@ export default function Right(props: RightProps) {
               </div>
             </Form.Item>
             <Form.Item label='ID'>
-              <Form.Item name='uid' label='' style={{ opacity: 0 }}>
+              <Form.Item name='id' label='' style={{ opacity: 0 }}>
                 <Input ref={idRef} readOnly />
               </Form.Item>
               <div className='copy-item'>
@@ -1103,7 +1104,7 @@ export default function Right(props: RightProps) {
 
                   if (_types && _types.findIndex((_type: any, index: number) =>
                     _type[currentEditType === 'type' ? "x.type.name" : "r.type.name"] === value &&
-                    _type[currentEditType === 'type' ? "x.type.id" : "r.type.id"] !== currentEditModel.uid
+                    _type[currentEditType === 'type' ? "x.type.id" : "r.type.id"] !== currentEditModel.id
                   ) > -1) {
                     throw new Error('该名称已被使用');
                   }
@@ -1123,7 +1124,7 @@ export default function Right(props: RightProps) {
           {showMore &&
             <>
               <div className='info-id'>
-                <Form.Item name='uid' label='ID' >
+                <Form.Item name='id' label='ID' >
                   <Input ref={idRef} bordered={false} readOnly />
                 </Form.Item>
                 <i className='spicon icon-fuzhi' onClick={() => copyId(idRef)}></i>
@@ -1173,9 +1174,9 @@ export default function Right(props: RightProps) {
   //     okText: "确定",
   //     cancelText: "取消",
   //     onOk: function () {
-  //       checkOutObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //       checkOutObject(currentEditModel?.id, (success: boolean, response: any) => {
   //         if (success) {
-  //           getCheckoutVersion(currentEditModel?.uid, (success: boolean, response: any) => {
+  //           getCheckoutVersion(currentEditModel?.id, (success: boolean, response: any) => {
   //             dispatch(setIsEditing(true));
   //             setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': true });
   //             const graph = (window as any).PDB_GRAPH;
@@ -1207,7 +1208,7 @@ export default function Right(props: RightProps) {
   //     okText: "确定",
   //     cancelText: "取消",
   //     onOk: function () {
-  //       checkInObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //       checkInObject(currentEditModel?.id, (success: boolean, response: any) => {
   //         if (success) {
   //           dispatch(setIsEditing(false));
   //           setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });
@@ -1233,7 +1234,7 @@ export default function Right(props: RightProps) {
   // }
 
   // const handleDiscard = function () {
-  //   discardObject(currentEditModel?.uid, (success: boolean, response: any) => {
+  //   discardObject(currentEditModel?.id, (success: boolean, response: any) => {
   //     if (success) {
   //       dispatch(setIsEditing(false));
   //       setCurrentEditDefaultData({ ...currentEditDefaultData, 'x_checkout': false });

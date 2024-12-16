@@ -213,11 +213,8 @@ const objectRelationApiPrefix = `${objectApiPrefix}/relation`
 const objectRelationApi = {
   add: `${objectRelationApiPrefix}/add`,
   delete: `${objectRelationApiPrefix}/delete`,
-
   get: `${objectRelationApiPrefix}/get`,
-  update: `${objectRelationApiPrefix}/update`,
-  support: `${objectRelationApiPrefix}/support`,
-  auto: `${objectRelationApiPrefix}/auto`
+  target: `${objectRelationApiPrefix}/target`,
 }
 
 /**
@@ -256,10 +253,17 @@ export const deleteObjectRelation = (graphId, params, callback) => {
   });
 }
 
-export const getObjectRelation = (uid, callback) => {
+/**
+ * 获取对象关系
+ * @param {int} graphId 项目ID 
+ * @param {string} id 关系类型ID 
+ * @param {*} callback 
+ * @returns 
+ */
+export const getObjectRelation = (graphId, id, callback) => {
   return axios.post(objectRelationApi['get'], {
-    ...commonParams,
-    uid
+    graphId,
+    'r.type.id': id
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
@@ -267,21 +271,17 @@ export const getObjectRelation = (uid, callback) => {
   });
 }
 
-export const getRelationTarget = (params, callback) => {
-  return axios.post('/pdb/api/v1/graph/relation/target', {
-    ...commonParams,
+/**
+ * 获取关系目标对象
+ * @param {int} graphId 项目ID 
+ * @param {*} params 
+ * @param {*} callback 
+ * @returns 
+ */
+export const getRelationTarget = (graphId, params, callback) => {
+  return axios.post(objectRelationApi['target'], {
+    graphId,
     ...params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
-export const createAutoRelation = (params, callback) => {
-  return axios.post(objectRelationApi['auto'], {
-    ...commonParams,
-    set: params
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

@@ -251,7 +251,7 @@ export default function RelationList(props: RelationListProps) {
   const handleGetRelationTarget = function (index: number) {
     setTableLoading(true);
     const relation = form.getFieldValue(['relation', index, 'relation']);
-    getRelationTarget({
+    getRelationTarget(graphData?.id, {
       'x.type.id': props.source.data['x.type.id'],
       'x.relation.name': relation
     }, (success: any, response: any) => {

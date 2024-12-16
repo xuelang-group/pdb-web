@@ -1,25 +1,21 @@
-import PdbPanel from "@/components/Panel";
 import { Button, Form, InputRef, Select, message, Modal } from 'antd';
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import React, { useState, useRef, useEffect } from "react";
-import { StoreState } from '@/store';
+import { DeleteOutlined, PlusOutlined, CheckCircleFilled } from '@ant-design/icons';
+import { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import SaveModal from "./SaveModal";
-import { setIndicatorLoading } from '@/reducers/editor';
-import { getMetrics } from "@/actions/indicator";
-import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setModalVisible } from "@/reducers/indicator";
-import { addMetric, updateMetric } from "@/actions/indicator";
-import { CheckCircleFilled } from '@ant-design/icons';
-import { createAutoRelation } from "@/actions/object";
-import Loading from "@/assets/images/loading-apng.png";
-import "./index.less";
-import { RelationConfig } from "@/reducers/relation";
-import { clearQuery } from "@/reducers/query";
-import { uuid } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
-import { initialParams, setQueryParams } from "@/reducers/query";
-import { getImgHref } from "@/actions/minioOperate";
 import { compact } from "lodash";
+
+import { clearQuery } from "@/reducers/query";
+import { setIndicatorLoading } from '@/reducers/editor';
+import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setModalVisible } from "@/reducers/indicator";
+import { getMetrics } from "@/actions/indicator";
+import { getImgHref } from "@/actions/minioOperate";
+import { addMetric, updateMetric } from "@/actions/indicator";
+import Loading from "@/assets/images/loading-apng.png";
+import PdbPanel from "@/components/Panel";
+import { StoreState } from '@/store';
+import SaveModal from "./SaveModal";
+import "./index.less";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -97,43 +93,14 @@ export default function Right(props: any) {
       addMetric(postObj, (success: boolean, res: any) => {
         if (success) {
           dispatch(setIndicatorLoading(true));
-          updateList(() => { })
-
-          // 新建指标后，如果存在临时关系，临时关系自动创建成真实关系
-          createPDBRelation();
+          updateList(() => { });
+          updateSaveModal();
         } else {
           message.error('保存指标失败：' + res.message || res.msg);
           savingModal && savingModal.destroy();
         }
       })
     }
-  }
-
-  const createPDBRelation = function () {
-    // 暂不真实建立关系
-    // const { pql } = query;
-    // const autoRelation: RelationConfig[] = [];
-    // pql && pql.length > 0 && pql[0].forEach(function ({ type, id, name, binds }) {
-    //   if (type === "relation" && !id) {
-    //     autoRelation.push({
-    //       "r.type.id": 'Relation_' + uuid(),
-    //       "r.type.name": name,
-    //       "r.type.binds": binds
-    //     });
-    //   }
-    // });
-    // if (autoRelation.length > 0) {
-    //   createAutoRelation(autoRelation, function (success: boolean, res: any) {
-    //     if (success) {
-    //       updateSaveModal();
-    //     } else {
-    //       message.error('创建临时关系失败：' + res.message || res.msg);
-    //       saveModal && saveModal.destroy();
-    //     }
-    //   });
-    // } else {
-    updateSaveModal();
-    // }
   }
 
   const updateSaveModal = function () {
