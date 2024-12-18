@@ -1,5 +1,6 @@
 import { getVersionList } from '@/actions/object';
 import { ObjectConfig } from '@/reducers/object';
+import { RELATION_ID_PREFIX } from '@/reducers/relation';
 import { formatTimestamp } from '@/utils/common';
 import { Modal, notification, Table, Tabs } from 'antd';
 import _ from 'lodash';
@@ -71,7 +72,7 @@ export default function VersionList(props: RelationListProps) {
     const attrs = JSON.parse(JSON.stringify(record["v_attrs"]));
     const attrData: any[] = [], relationData: any[] = [], childrenList: any[] = record["v_children"];
     Object.keys(attrs).forEach(key => {
-      if (key.startsWith("Relation_")) {
+      if (key.startsWith(RELATION_ID_PREFIX)) {
         attrs[key].forEach(function ({ uid }: { uid: string }) {
           relationData.push({
             relation: key,

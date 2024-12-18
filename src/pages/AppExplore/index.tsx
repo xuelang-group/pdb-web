@@ -1212,7 +1212,7 @@ export default function AppExplore() {
       </Tooltip> */}
       {/* <ExportApi
         clickCopy={() => searchTags.map((tags, index) => tags.map((tag: any) => {
-          const tagType = tag.startsWith("Type_") ? "type" : "relation";
+          const tagType = tag.startsWith(TYPE_ID_PREFIX) ? "type" : "relation";
           const attrs = JSON.parse(JSON.stringify(_.get(searchTagMap[index][tag]["data"], (tagType === "type" ? "x.type.version.attrs" : "r.type.attrs"), [])));
           return {
             value: tag,

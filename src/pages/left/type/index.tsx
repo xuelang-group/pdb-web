@@ -6,8 +6,8 @@ import _ from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig } from '@/reducers/type';
-import { getDefaultRelationConfig, setRelations } from '@/reducers/relation';
+import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TYPE_ID_PREFIX } from '@/reducers/type';
+import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
@@ -632,7 +632,7 @@ export default function Left() {
       setModalLoading(true);
       if (type === 'type') {
         const newType = {
-          'x.type.id': 'Type_' + uuid(),
+          'x.type.id': TYPE_ID_PREFIX + uuid(),
           'x.type.version.attrs': [],
           'x.type.version.prototype': item['x.type.version.prototype'] || {},
           'x.type.name': name,
@@ -664,7 +664,7 @@ export default function Left() {
         createType(newType);
       } else {
         const newRelation = {
-          'r.type.id': 'Relation_' + uuid(),
+          'r.type.id': RELATION_ID_PREFIX + uuid(),
           'r.type.name': name,
           'r.type.binds': item['r.type.binds'] || [],
           'r.type.attrs': item['r.type.attrs'] || []

@@ -8,16 +8,16 @@ import * as XLSX from 'xlsx';
 
 import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
 import store, { StoreState } from "@/store";
-import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, Parent, setObjects } from "@/reducers/object";
-import { addObject, getChildren } from "@/actions/object";
+import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, OBJECT_ID_PREFIX, Parent, setObjects } from "@/reducers/object";
+import { addObject, getChildren, setObject, setObjectRelation } from "@/actions/object";
 import { clearGraphData } from "@/actions/graph";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
 import { addRelation, deleteRelation } from "@/actions/relation";
-import { RelationConfig, setRelations } from "@/reducers/relation";
+import { RelationConfig, RELATION_ID_PREFIX, setRelations } from "@/reducers/relation";
 import { addType, deleteType, resetSchema } from "@/actions/type";
-import { setTypes, TypeConfig } from "@/reducers/type";
+import { setTypes, TypeConfig, TYPE_ID_PREFIX } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
 
@@ -788,7 +788,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (row[0] !== undefined) {
         const _label = row[0].toString();
         if (row[1] === undefined || row[1] === '对象类型') {
-          const _uuid = 'Type_' + uuid();
+          const _uuid = TYPE_ID_PREFIX + uuid();
           Object.assign(objectTypeMap, { [_label]: _uuid });
           Object.assign(objectTypes, {
             [_label]: {
@@ -803,7 +803,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           colorIndex++;
           if (colorIndex === colors.length) colorIndex = 0;
         } else {
-          const _uuid = 'Relation_' + uuid();
+          const _uuid = RELATION_ID_PREFIX + uuid();
           Object.assign(relationTypes, {
             [_label]: {
               'r.type.id': _uuid,
@@ -906,13 +906,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }
   }
 
-  function numToHex(num: string | number) {
-    return '0x' + Number(num).toString(16);
-  }
-
   async function postObject(objects: any[]) {
     const chunkSize = 8000, totalChunks = Math.ceil(objects.length / chunkSize);
-    let isAllSuccess = true, error: any = {};
+    let isAllSuccess = true,
+      error: any = {};
     for (let i = 0; i < totalChunks; i++) {
       const chunk = objects.slice(i * chunkSize, (i + 1) * chunkSize);
       await (() => {
@@ -944,36 +941,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   function uploadObjects(data: any[], relationData: any[], override: boolean) {
     if (!rootId) return;
     const HEADERS = 1; // 标题行数
-    const objectRelationMap: any = {};
-    if (relationData.length > 0) {
-      for (let R = HEADERS; R < relationData.length; ++R) {
-        const row = relationData[R];
-        if (row[0] === undefined || row[0] === null || row[1] === undefined || row[1] === null || row[2] === undefined || row[2] === null) continue;
-        const sourceUid = numToHex(row[0]),
-          targetUid = numToHex(row[1]),
-          relationUid = row[2].replace(".", "_"),
-          relationAttrs = {};
-        try {
-          const attrValues = JSON.parse(row[3]);
-          Object.keys(attrValues).forEach(function (key) {
-            Object.assign(relationAttrs, { [`${relationUid}|${key}`]: attrValues[key] });
-          });
-        } catch (err) { }
-        const info = {
-          'r.type.id': relationUid,
-          'r.object.source.id': sourceUid,
-          'r.object.target.id': targetUid,
-          'r.object.attrvalue': relationAttrs
-        };
-        if (!objectRelationMap[sourceUid]) {
-          Object.assign(objectRelationMap, { [sourceUid]: { [relationUid]: [info] } });
-        } else if (!objectRelationMap[sourceUid][relationUid]) {
-          Object.assign(objectRelationMap[sourceUid], { [relationUid]: [info] });
-        } else {
-          objectRelationMap[sourceUid][relationUid].push(info);
-        }
-      }
-    }
     const graph = (window as any).PDB_GRAPH;
     let nextRootNodeIndex = 1;
     if (graph && !override) {
@@ -983,49 +950,106 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         nextRootNodeIndex = Math.floor(lastRootNode.getModel().data.currentParent['x_index'] / 1024) + 1;
       }
     }
-    const objects: ObjectConfig[] = [],
-      parentIndexMap: any = {};
+    let objects: any[] = [];
+    const parentIndexMap: any = {},
+      idMap: any = {};
 
     for (let R = HEADERS; R < data.length; ++R) {
       const row = data[R];
       if (row[0] === undefined || row[0] === null || row[1] === undefined || row[1] === null || row[2] === undefined || row[2] === null) continue;
-      const uid = numToHex(row[0]),
-        parentUid: any = row[4] ? numToHex(row[4]) : rootId,
+      const uid = row[0].toString(),
+        parentId = (row[4] || rootId).toString(),
         attrs = {};
       try {
         Object.assign(attrs, JSON.parse(row[3]));
       } catch (err) { }
       let index;
-      if (!parentIndexMap[parentUid]) {
-        if (parentUid === rootId) {
+      if (!parentIndexMap[parentId]) {
+        if (parentId === rootId) {
           index = nextRootNodeIndex;
         } else {
           index = 1;
         }
-        Object.assign(parentIndexMap, { [parentUid]: index + 1 });
+        Object.assign(parentIndexMap, { [parentId]: index + 1 });
       } else {
-        index = parentIndexMap[parentUid];
-        Object.assign(parentIndexMap, { [parentUid]: index + 1 });
+        index = parentIndexMap[parentId];
+        Object.assign(parentIndexMap, { [parentId]: index + 1 });
       }
       const objectInfo = {
         'x.type.id': row[2],
-        'x.object.id': uid,
         'x.object.name': row[1].toString(),
         'x.object.version.parent': {
-          'x.object.id': parentUid,
+          'x.object.id': parentId,
           'x.object.index': index * 1024
         },
         'x.object.version.attrvalue': attrs
       };
-      if (objectRelationMap[uid]) {
-        let relations: ObjectRelationInfo[] = [];
-        Object.values(objectRelationMap[uid]).forEach((values: any) => {
-          relations = relations.concat(values);
-        })
-        Object.assign(objectInfo, { 'x.object.version.relations': relations });
+
+      if (uid.startsWith(OBJECT_ID_PREFIX)) {
+        Object.assign(objectInfo, { 'x.object.id': uid });
+      } else {
+        const objectId = OBJECT_ID_PREFIX + uuid();
+        Object.assign(objectInfo, { 'x.object.id': objectId });
+        Object.assign(idMap, { [uid]: objectId });
       }
       objects.push(objectInfo);
     }
+
+    const objectRelationMap: any = {};
+    if (relationData.length > 0) {
+      for (let R = HEADERS; R < relationData.length; ++R) {
+        const row = relationData[R];
+        if (row[0] === undefined || row[0] === null || row[1] === undefined || row[1] === null || row[2] === undefined || row[2] === null) continue;
+        const sourceUid = row[0].toString(),
+          targetUid = row[1].toString(),
+          relationId = row[2],
+          relationAttrs = {};
+        const sourceId = idMap[sourceUid] || sourceUid,
+          targetId = idMap[targetUid] || targetUid;
+        try {
+          const attrValues = JSON.parse(row[3]);
+          Object.keys(attrValues).forEach(function (key) {
+            Object.assign(relationAttrs, { [`${relationId}|${key}`]: attrValues[key] });
+          });
+        } catch (err) { }
+        const info = {
+          'r.type.id': relationId,
+          'r.object.source.id': sourceId,
+          'r.object.target.id': targetId,
+          'r.object.attrvalue': relationAttrs
+        };
+        if (!objectRelationMap[sourceId]) {
+          Object.assign(objectRelationMap, { [sourceId]: { [relationId]: [info] } });
+        } else if (!objectRelationMap[sourceId][relationId]) {
+          Object.assign(objectRelationMap[sourceId], { [relationId]: [info] });
+        } else {
+          objectRelationMap[sourceId][relationId].push(info);
+        }
+      }
+    }
+
+    objects = objects.map(function (val) {
+      const newVal = { ...val };
+      const id = newVal['x.object.id'], parentId = newVal['x.object.version.parent']['x.object.id'];
+      if (objectRelationMap[id]) {
+        let relations: ObjectRelationInfo[] = [];
+        Object.values(objectRelationMap[id]).forEach((values: any) => {
+          relations = relations.concat(values);
+        })
+        Object.assign(newVal, { 'x.object.version.relations': relations });
+      }
+      if (parentId !== rootId && idMap[parentId]) {
+        return {
+          ...newVal,
+          'x.object.version.parent': {
+            ...newVal['x.object.version.parent'],
+            'x.object.id': idMap[parentId]
+          }
+        };
+      }
+      return newVal;
+    });
+
     if (override && graphInfo?.id) {
       clearGraphData(graphInfo?.id, (success: boolean, response: any) => {
         if (success) {
