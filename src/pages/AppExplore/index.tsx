@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
-import { AttrConfig, TypeConfig } from "@/reducers/type";
+import { AttrConfig, TypeConfig, TYPE_ID_PREFIX } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { getQueryResult, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
@@ -28,6 +28,8 @@ export const typeLabelMap: any = {
   type: "对象类型",
   relation: "关系类型"
 }
+
+const EMPORARY_RELATION_KEY = "__TEMPORARY_RELATION__";
 
 export default function AppExplore() {
   const dispatch = useDispatch();
@@ -89,7 +91,7 @@ export default function AppExplore() {
     pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
       let typeId = id;
       if (type !== "object" && id.startsWith("~Relation_")) typeId = id.slice(1);
-      const _id = (typeId ? (typeId + "-") : ("__TEMPORARY_RELATION__")) + index;
+      const _id = (typeId ? (typeId + "-") : (EMPORARY_RELATION_KEY)) + index;
       _tags.push(_id);
 
       const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
@@ -273,10 +275,10 @@ export default function AppExplore() {
     if (newValLen > 0) {
       if (
         newValue[newValLen - 1] === "__ENTER__" ||
-        newValue[newValLen - 1] === "__TEMPORARY_RELATION__"
+        newValue[newValLen - 1] === EMPORARY_RELATION_KEY
       ) return;
 
-      if (newValue[newValLen - 1].startsWith("__TEMPORARY_RELATION__")) {
+      if (newValue[newValLen - 1].startsWith(EMPORARY_RELATION_KEY)) {
         let removeTag = "";
         setSearchTags((prevTags: any) => {
           const newTags = JSON.parse(JSON.stringify(prevTags));
@@ -296,12 +298,12 @@ export default function AppExplore() {
 
     let _tags: string[] = [];
     // for (let i = 0; i < newValLen; i++) {
-    //   if (i === 0 && newValue[0].split(".")[0] !== "Type") break;      // 首个tag必须为对象类型
+    //   if (i === 0 && !newValue[0].startsWith(TYPE_ID_PREFIX)) break;      // 首个tag必须为对象类型
     //   _tags.push(newValue[i]);
     //   // “当前tag为对象类型且下一个tag也为对象类型，当前tag为关系类型且下一个tag也为关系类型”这两种情况数据不符合条件。
     //   //必须对象类型-关系类型或 关系类型-对象类型
-    //   if (i < newValLen - 1 && (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"
-    //     || newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type")) {
+    //   if (i < newValLen - 1 && (newValue[i].startsWith(TYPE_ID_PREFIX) && newValue[i + 1].startsWith(TYPE_ID_PREFIX)
+    //     || !newValue[i].startsWith(TYPE_ID_PREFIX) && !newValue[i + 1].startsWith(TYPE_ID_PREFIX))) {
     //     break;
     //   }
     // }
@@ -311,23 +313,23 @@ export default function AppExplore() {
       for (let i = 0; i < newValLen; i++) {
         // 当前两个tag都为对象类型，且不满足“位置在最后两个或者在倒数第三个和倒数第二个且倒数第一个为关系类型”时，不满足当前条件
         // 当前两个tag都不为对象类型，满足当前条件
-        if ((i < newValLen - 1 && (newValue[i].split(".")[0] !== "Type" && newValue[i + 1].split(".")[0] !== "Type" ||
-          (newValue[i].split(".")[0] === "Type" && newValue[i + 1].split(".")[0] === "Type"))) ||
+        if ((i < newValLen - 1 && (!newValue[i].startsWith(TYPE_ID_PREFIX) && !newValue[i + 1].startsWith(TYPE_ID_PREFIX) ||
+          (newValue[i].startsWith(TYPE_ID_PREFIX) && newValue[i + 1].startsWith(TYPE_ID_PREFIX)))) ||
           // 当前tag为对象类型且prevSearchTagType为对象类型，但前一个对象tag被删除，当前前一个tag不为对象类型
-          (newValue[i].split(".")[0] === "Type" && searchTagMap[index][newValue[i]].prevSearchTagType === "type" && (i === 0 || newValue[i - 1].split(".")[0] !== "Type"))) {
+          (newValue[i].startsWith(TYPE_ID_PREFIX) && searchTagMap[index][newValue[i]].prevSearchTagType === "type" && (i === 0 || !newValue[i - 1].startsWith(TYPE_ID_PREFIX)))) {
           return;
         }
       }
     }
 
     // 首个tag必须为对象类型
-    if (newValLen > 0 && newValue[0].split(".")[0] === "Type") {
+    if (newValLen > 0 && newValue[0].startsWith(TYPE_ID_PREFIX)) {
       _tags = JSON.parse(JSON.stringify(newValue));
     } else {
       return;
     }
 
-    if (newValLen > 1 && _tags[newValLen - 1].split(".")[0] === "Type" && _tags[newValLen - 2].split(".")[0] === "Type") {
+    if (newValLen > 1 && _tags[newValLen - 1].startsWith(TYPE_ID_PREFIX) && _tags[newValLen - 2].startsWith(TYPE_ID_PREFIX)) {
       // 判断最后两个类型是否为对象类型，如果是，则更新最后一个类型的prevSearchTagType
       setSearchTagMap((prevMap: any) => {
         const newMap = JSON.parse(JSON.stringify(prevMap));
@@ -341,8 +343,8 @@ export default function AppExplore() {
         return newMap;
       });
       setDropdownOpen(true);
-    } else if (newValLen > 2 && _tags[newValLen - 1].split(".")[0] !== "Type" &&
-      _tags[newValLen - 2].split(".")[0] === "Type" && _tags[newValLen - 3].split(".")[0] === "Type"
+    } else if (newValLen > 2 && !_tags[newValLen - 1].startsWith(TYPE_ID_PREFIX) &&
+      _tags[newValLen - 2].startsWith(TYPE_ID_PREFIX) && _tags[newValLen - 3].startsWith(TYPE_ID_PREFIX)
     ) {
       // 最后一个tag为关系时，判断前两个类型是否为对象类型，如果是，则将其关系插入两个对象类型中
       const lastRelation = _tags.pop();
@@ -405,7 +407,7 @@ export default function AppExplore() {
             sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
             targetTypeMap: any = {};
 
-          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent" && !relationName.startsWith("__TEMPORARY_RELATION__")) {
+          if (sourceType && relationName !== "~e_x_parent" && relationName !== "e_x_parent" && !relationName.startsWith(EMPORARY_RELATION_KEY)) {
             relationMap[relationName]['r.type.binds'].forEach(bind => {
               if (!relationsIsReverse && bind.source === sourceType) {
                 Object.assign(targetTypeMap, { [bind.target]: bind.target });
@@ -555,7 +557,7 @@ export default function AppExplore() {
       type: "divider",
       disabled: true
     }, {
-      value: "__TEMPORARY_RELATION__"
+      value: EMPORARY_RELATION_KEY
     }]);
 
     Object.assign(optionMap, {
@@ -577,9 +579,9 @@ export default function AppExplore() {
     //   setCurrentFocusIndex(searchTags.length);
     //   return;
     // }
-    if (value === "__TEMPORARY_RELATION__") {
+    if (value === EMPORARY_RELATION_KEY) {
       setDropdownOpen(false);
-      setFilterPanelOpenKey("__TEMPORARY_RELATION__");
+      setFilterPanelOpenKey(EMPORARY_RELATION_KEY);
       return;
     }
     setSearchTagMap((prevMap: any) => {
@@ -622,7 +624,7 @@ export default function AppExplore() {
         if (prevTags[index][i] === value) break;
         tags.push(prevTags[index][i]);
       }
-      if (tags.length > 0 && tags[tags.length - 1].startsWith("__TEMPORARY_RELATION__")) tags.pop();
+      if (tags.length > 0 && tags[tags.length - 1].startsWith(EMPORARY_RELATION_KEY)) tags.pop();
       newTags[index] = tags;
       return newTags;
     });
@@ -726,13 +728,13 @@ export default function AppExplore() {
             });
 
             if (type === "relation") {
-              if (detail.key !== "e_x_parent" && detail.key !== "~e_x_parent" && !detail.key.startsWith("__TEMPORARY_RELATION__")) {
+              if (detail.key !== "e_x_parent" && detail.key !== "~e_x_parent" && !detail.key.startsWith(EMPORARY_RELATION_KEY)) {
                 relationNames.push(detail.key.replace('.', '_'));
               }
               Object.assign(option, {
                 bindType: _.get(detail, "bindType", "innerjoin")
               });
-              if (detail.value.startsWith("__TEMPORARY_RELATION__")) {
+              if (detail.value.startsWith(EMPORARY_RELATION_KEY)) {
                 Object.assign(option, {
                   id: "",
                   binds: _.get(detail, "binds", [])
@@ -810,8 +812,8 @@ export default function AppExplore() {
       const currentSearchTags = JSON.parse(JSON.stringify(prevTags[index])),
         currentSearchTagLen = currentSearchTags.length;
       const newSearchTags = JSON.parse(JSON.stringify(prevTags));
-      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].split(".")[0] === "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] === "Type"
-        || currentSearchTags[currentSearchTagLen - 2].split(".")[0] !== "Type" && currentSearchTags[currentSearchTagLen - 1].split(".")[0] !== "Type")) {
+      if (currentSearchTagLen > 1 && (currentSearchTags[currentSearchTagLen - 2].startsWith(TYPE_ID_PREFIX) && currentSearchTags[currentSearchTagLen - 1].startsWith(TYPE_ID_PREFIX)
+        || !currentSearchTags[currentSearchTagLen - 2].startsWith(TYPE_ID_PREFIX) && !currentSearchTags[currentSearchTagLen - 1].startsWith(TYPE_ID_PREFIX))) {
         currentSearchTags.pop();
         newSearchTags[index] = currentSearchTags;
       }
@@ -887,7 +889,7 @@ export default function AppExplore() {
       );
     }
 
-    if (option.value === "__TEMPORARY_RELATION__") {
+    if (option.value === EMPORARY_RELATION_KEY) {
       return (
         <span className="pdb-explore-dropdown-add">
           <i className="spicon icon-add"></i>
@@ -926,7 +928,7 @@ export default function AppExplore() {
   // 保存临时关系
   const handleSaveTemporayRelation = function (index: number, values: any, currTargetTag: any, prevTargetTag: any) {
     const tags = searchTags[index], tagsLen = tags.length;
-    const newRelationId = values.key || "__TEMPORARY_RELATION__" + tagsLen;
+    const newRelationId = values.key || EMPORARY_RELATION_KEY + tagsLen;
     /**
      * 临时关系保存的搜索框数据的两种情况
      * 1. 对象类型 - 临时关系：prevTargetTag为空，需要存目标对象数据和临时关系数据
@@ -960,13 +962,13 @@ export default function AppExplore() {
         Object.assign(newTagMap[index], { [currTargetTag.value]: { ...currTargetTag, csv } });
       }
 
-      if (filterPanelOpenKey === "__TEMPORARY_RELATION__") {
+      if (filterPanelOpenKey === EMPORARY_RELATION_KEY) {
         const lastTagId = tags[tagsLen - 1];
         Object.assign(newTagMap[index][lastTagId], { prevSearchTagType: 'relation' });
       }
       return newTagMap;
     });
-    if (filterPanelOpenKey === "__TEMPORARY_RELATION__") {
+    if (filterPanelOpenKey === EMPORARY_RELATION_KEY) {
       setSearchTags((prevTags: any) => {
         const newTags = JSON.parse(JSON.stringify(prevTags));
         if (_.isEmpty(prevTargetTag)) {
@@ -1005,7 +1007,7 @@ export default function AppExplore() {
       event.stopPropagation();
     };
 
-    if (value === "__TEMPORARY_RELATION__") {
+    if (value === EMPORARY_RELATION_KEY) {
       label = "关联";
       color = "gold";
       icon = "iconfont icon-zhengxiangguanxi";
@@ -1017,7 +1019,7 @@ export default function AppExplore() {
     }
     const tagItem = (
       <Tag
-        className={"pdb-explore-tag" + ((prevTagType === tagType || key.startsWith("__TEMPORARY_RELATION__")) ? ' pdb-explore-tag-dashed' : '')}
+        className={"pdb-explore-tag" + ((prevTagType === tagType || key.startsWith(EMPORARY_RELATION_KEY)) ? ' pdb-explore-tag-dashed' : '')}
         color={color}
         icon={<i className={icon} style={{ fontSize: '1.2rem', marginRight: 3 }}></i>}
         onMouseDown={onPreventMouseDown}
@@ -1064,7 +1066,7 @@ export default function AppExplore() {
             <Popover
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
                 !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey)) ||
-                (searchTags[index] && searchTags[index].length > 0 && filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__"))
+                (searchTags[index] && searchTags[index].length > 0 && filterPanelOpenKey.startsWith(EMPORARY_RELATION_KEY))
               ) && !filterPanelOpenKey.startsWith("~e_x_parent-") && !filterPanelOpenKey.startsWith("e_x_parent-")
               }
               rootClassName="pdb-explore-setting-popover"
@@ -1073,7 +1075,7 @@ export default function AppExplore() {
                 const readOnly = Boolean(indicatorCheckId);
                 const tags = searchTags[index], tagsLen = tags.length;
 
-                if (filterPanelOpenKey && filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__")) {
+                if (filterPanelOpenKey && filterPanelOpenKey.startsWith(EMPORARY_RELATION_KEY)) {
                   let sourceTag = {}, targetTag = {};
                   const initialValue = _.get(searchTagMap[index], filterPanelOpenKey, {});
 
@@ -1148,7 +1150,7 @@ export default function AppExplore() {
               <Select
                 ref={r => { searchRefArr.current[index] = r; }}
                 className="pdb-explore-search"
-                value={filterPanelOpenKey === "__TEMPORARY_RELATION__" ? [...searchTags[index], "__TEMPORARY_RELATION__"] : searchTags[index]}
+                value={filterPanelOpenKey === EMPORARY_RELATION_KEY ? [...searchTags[index], EMPORARY_RELATION_KEY] : searchTags[index]}
                 searchValue={currentFocusIndex === index ? currentSearchValue : ""}
                 placeholder={index > 0 ? "" : "输入类型搜索（Ctrl + S）"}
                 mode="multiple"

@@ -83,8 +83,8 @@ export const G6OperateFunctions = {
               comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
               const { data, nextDisabled } = comboLastNode.get('model');
-              const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-              const config = name.split('-'), limit = Number(PAGE_SIZE());
+              const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+              const config = id.split('-'), limit = Number(PAGE_SIZE());
               let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
               if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
                 offset -= limit;
@@ -384,8 +384,8 @@ export const G6OperateFunctions = {
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentId) && comboLastNode.get("id").endsWith("-next")) {
           const { data } = comboLastNode.get('model');
-          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-          const config = name.split('-');
+          const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+          const config = id.split('-');
           let offset = Number(config[2]) - limit;
           if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
             offset -= limit;
@@ -401,10 +401,10 @@ export const G6OperateFunctions = {
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode) {
           const { data } = comboLastNode.get('model');
-          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+          const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
           let offset = 0;
           if (comboLastNode.get("id").startsWith("pagination-" + dropItemId) && comboLastNode.get("id").endsWith("-next")) {
-            const config = name.split('-');
+            const config = id.split('-');
             offset = Number(config[2]) - limit;
           }
           G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
@@ -911,8 +911,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
           comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
         if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
           const { data } = comboLastNode.get('model');
-          const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-          const config = name.split('-');
+          const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+          const config = id.split('-');
           G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2], graphData, _data);
           shouldUpdate = false;
         }
@@ -944,8 +944,8 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
               comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
             if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next")) {
               const { data } = comboLastNode.get('model');
-              const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-              const config = name.split('-');
+              const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+              const config = id.split('-');
               G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE()));
             } else {
               G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
@@ -1005,8 +1005,8 @@ function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, g
       comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
     if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + sourceNodeId) && comboLastNode.get("id").endsWith("-next")) {
       const { data } = comboLastNode.get('model');
-      const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-      const config = name.split('-'),
+      const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+      const config = id.split('-'),
         offset = Number(config[2]) - limit;
       G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, _data);
       shouldUpdate = false;
@@ -1033,7 +1033,6 @@ function addRootNode(objectData: ObjectConfig, customData: any, graph: Graph) {
   const { nodes, edges, combos } = curentGraphData;
 
   const objId = objectData['x.object.id'],
-    name = objectData['x.object.name'],
     metadata = JSON.parse(objectData['x.object.metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
     iconKey = _.get(metadata, 'icon', '');
@@ -1731,8 +1730,8 @@ export function registerBehavior() {
                 comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
               if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + dragItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
                 const { data } = comboLastNode.get('model');
-                const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-                const config = name.split('-');
+                const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+                const config = id.split('-');
                 let offset = Number(config[2]) - limit;
                 if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
                   offset -= limit;
@@ -1750,10 +1749,10 @@ export function registerBehavior() {
                 comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
               if (comboLastNode) {
                 const { data } = comboLastNode.get('model');
-                const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+                const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
                 let offset = 0;
                 if (comboLastNode.get("id").startsWith("pagination-" + dropItemParentUid) && comboLastNode.get("id").endsWith("-next")) {
-                  const config = name.split('-');
+                  const config = id.split('-');
                   offset = Number(config[2]) - limit;
                 }
                 G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
@@ -1864,9 +1863,9 @@ export function registerBehavior() {
         nodeType = model.type;
       if (nodeType === "paginationBtn") {
         const { data, nextDisabled } = node.get('model');
-        const name = _.get(data, 'x.object.name', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
+        const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
         if (nextDisabled) return;
-        const config = name.split('-');
+        const config = id.split('-');
 
         G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
         return;

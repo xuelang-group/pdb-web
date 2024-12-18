@@ -70,7 +70,7 @@ export default function NewRelation(props: ExploreFilterProps) {
       const binds = [_.get(values,"r.type.binds", {})];
       saveConfig({
         ...initialValue,
-        label: values['r.type.label'],
+        label: values['r.type.name'],
         data: values,
         bindType: joinType,
         binds
@@ -162,15 +162,15 @@ export default function NewRelation(props: ExploreFilterProps) {
                 <Select
                   options={types}
                   fieldNames={{
-                    label: "x.type.label",
-                    value: "x.type.name"
+                    label: "x.type.name",
+                    value: "x.type.id"
                   }}
                   disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
-                      label: option['x.type.label'],
-                      value: option['x.type.name'] + `-${tagsLen + 1}`,
-                      key: option['x.type.name'],
+                      label: option['x.type.name'],
+                      value: option['x.type.id'] + `-${tagsLen + 1}`,
+                      key: option['x.type.id'],
                       type: 'type',
                       data: option,
                       prevSearchTagType: "relation"
@@ -182,7 +182,7 @@ export default function NewRelation(props: ExploreFilterProps) {
             <div className="pdb-explore-group-item-select">
               <Form.Item
                 noStyle
-                shouldUpdate={(prevValues, curValues) => _.get(prevValues, "r.type.binds")["target"] !== _.get(curValues, "r.type.binds")["target"]}
+                shouldUpdate={(prevValues, curValues) => _.get(prevValues, "r.type.binds", {})["target"] !== _.get(curValues, "r.type.binds", {})["target"]}
               >
                 {({ getFieldValue, setFieldValue }) => {
                   return (
@@ -204,7 +204,7 @@ export default function NewRelation(props: ExploreFilterProps) {
             </div>
             <div className="pdb-explore-group-item-input">
               <Form.Item
-                name="r.type.label"
+                name="r.type.name"
                 label="关系名称："
                 rules={[
                   { required: true, message: "关系名称不能为空" },
