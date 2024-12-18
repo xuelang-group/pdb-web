@@ -5,8 +5,8 @@ import fonts from '@/assets/iconfont/pdb/iconfont.json';
 export const myDirId = 2;
 
 const map = '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-export function uuid(): string {
-  let ranStr = ''
+export function uuid(prefix = ''): string {
+  let ranStr = prefix;
   for (let i = 0; i < 19; i++) {
     ranStr += map[Math.floor(Math.random() * (48 + 9))]
   }

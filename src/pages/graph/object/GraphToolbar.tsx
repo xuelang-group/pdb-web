@@ -788,7 +788,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (row[0] !== undefined) {
         const _label = row[0].toString();
         if (row[1] === undefined || row[1] === '对象类型') {
-          const _uuid = TYPE_ID_PREFIX + uuid();
+          const _uuid = uuid(TYPE_ID_PREFIX);
           Object.assign(objectTypeMap, { [_label]: _uuid });
           Object.assign(objectTypes, {
             [_label]: {
@@ -803,7 +803,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           colorIndex++;
           if (colorIndex === colors.length) colorIndex = 0;
         } else {
-          const _uuid = RELATION_ID_PREFIX + uuid();
+          const _uuid = uuid(RELATION_ID_PREFIX);
           Object.assign(relationTypes, {
             [_label]: {
               'r.type.id': _uuid,
@@ -988,7 +988,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (uid.startsWith(OBJECT_ID_PREFIX)) {
         Object.assign(objectInfo, { 'x.object.id': uid });
       } else {
-        const objectId = OBJECT_ID_PREFIX + uuid();
+        const objectId = uuid(OBJECT_ID_PREFIX);
         Object.assign(objectInfo, { 'x.object.id': objectId });
         Object.assign(idMap, { [uid]: objectId });
       }
