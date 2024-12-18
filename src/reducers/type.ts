@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export const TYPE_ID_PREFIX = "Type_"; // 对象类型ID前缀
+
 type AttrType = 'string' | 'int' | 'float' | 'datetime' | 'bool';
 type DatetimeFormat = 'YYYY-MM-DD' | 'YYYY-MM-DD hh' | 'YYYY-MM-DD hh:mm' | 'YYYY-MM-DD hh:mm:ss';
 /**

@@ -99,6 +99,11 @@ export function registerEdge() {
         sourceData = cfg.sourceNode?.get('model').data as CustomObjectConfig;
       const lineWidth = cfg.isComboEdge ? 0 : 1;
 
+      if (!sourceData || !targetData) return group.addShape('path', {
+        attrs: {},
+        name: 'path-shape',
+      });
+
       // 折线
       let startPoinX = Number(startPoint?.x) + 15;
       if (_.get(sourceData['x.object.version.parent'], 'x.object.id') === _.get(targetData['x.object.version.parent'], 'x.object.id')) {

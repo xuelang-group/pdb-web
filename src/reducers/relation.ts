@@ -7,6 +7,7 @@ import { AttrConfig } from './type';
 //   [key: string]: any
 // }
 
+export const RELATION_ID_PREFIX = "Relation_"; // 关系类型ID前缀
 export interface BindConfig {
   'source': string
   'target': string

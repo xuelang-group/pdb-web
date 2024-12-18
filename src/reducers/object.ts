@@ -13,6 +13,7 @@ export interface Parent {
 }
 
 export const PAGINATION_TYPE = 'PAGINATION';
+export const OBJECT_ID_PREFIX = 'Object_'; // 实例ID前缀
 
 // 父对象信息
 export interface ObjectParentInfo {

@@ -5,7 +5,7 @@ import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo,
 import store from '@/store';
 import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
-import _, { isArray } from 'lodash';
+import _ from 'lodash';
 import { nodeStateStyle } from './node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 import { TypeConfig } from '@/reducers/type';
@@ -1357,7 +1357,7 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
     //             // 获取对象关系列表数据
     //             const relations: any[] = [];
     //             Object.keys(newValue).forEach((key: string) => {
-    //               if (key.startsWith("Relation_")) {
+    //               if (key.startsWith(RELATION_ID_PREFIX)) {
     //                 const relationKey = key.replace('_', '.');
     //                 if (_.isArray(newValue[key])) {
     //                   newValue[key].forEach((target: any) => {

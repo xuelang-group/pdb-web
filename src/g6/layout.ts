@@ -47,7 +47,7 @@ export function registerLayout() {
         currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
       const rootId = store.getState().editor.rootNode['x.object.id'];
       self.nodes.forEach((item: any, index: number) => {
-        const parent = _.get(item.data['x.object.version.parent'], 'x.object.id', '');
+        const parent = _.get(item.data['x.object.version.parent'], 'x.object.id') || rootId;
         if (parent !== rootId) {
           const itemParentX = nodeXMap.get(parent);
           if (!itemParentX) {
