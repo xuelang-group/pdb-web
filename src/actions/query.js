@@ -1,14 +1,26 @@
 import axios from '../utils/axios';
+import { apiPrefix } from './graph';
 
-const apiPrefix = '/pdb/api/v1/object/search';
-export const api = {
-  'results': apiPrefix + '/results',
-  'pql': apiPrefix + '/pql',
-  'vertex': apiPrefix + '/vertex'
+const queryApiPrefix = `/pdb/api/v1/object/search`;
+
+export const queryApi = {
+  'results': queryApiPrefix + '/results',
+  'pql': queryApiPrefix + '/pql',
+  'vertex': queryApiPrefix + '/vertex'
 };
 
-export const runPql = function (params, callback) {
-  return axios.post(api['pql'], params).then(({ data }) => {
+/**
+ * 根据搜索语言搜索对象ID
+ * @param {int} graphId 项目ID
+ * @param {*} pql 搜索条件 
+ * @param {*} callback 
+ * @returns 
+ */
+export const runPql = function (graphId, pql, callback) {
+  return axios.post(queryApi['pql'], {
+    graphId, 
+    pql
+  }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
@@ -16,7 +28,7 @@ export const runPql = function (params, callback) {
 }
 
 export const runVertex = function (params, callback) {
-  return axios.post(api['vertex'], params).then(({ data }) => {
+  return axios.post(queryApi['vertex'], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
@@ -25,7 +37,7 @@ export const runVertex = function (params, callback) {
 
 // 根据搜索结果返回结果及父节点组成的树
 export const getQueryResult = function (params, callback) {
-  return axios.post(api['results'], params).then(({ data }) => {
+  return axios.post(queryApi['results'], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

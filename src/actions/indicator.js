@@ -1,4 +1,5 @@
 import axios from '../utils/axios';
+import { queryApi } from './query';
 
 const apiPrefix = '/indicator';
 const api = {
@@ -12,18 +13,18 @@ const api = {
 // 获取模板列表
 export const getCsv = (query, callback) => {
   return axios.post(api['csv'], {
-    "api": "/pdb/api/v1/object/search/pql",
+    "api": queryApi['pql'],
     "params": query
-  }).then(({data}) => {
+  }).then(({ data }) => {
     // console.log(data)
-    callback && callback(data.success, data.success ? data.data: data);
+    callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
   });
 };
 
 // 执行计算
-export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
+export const getFuncResult = ({ dimention, func, groupBy, query }, callback) => {
   return axios.post(api['calc'], {
     "metric_params": {
       dimention,
@@ -31,10 +32,10 @@ export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
       group_by: groupBy
     },
     "pql_params": {
-      "api": "/pdb/api/v1/object/search/pql",
+      "api": queryApi['pql'],
       "params": query
     }
-  }).then(({data}) => {
+  }).then(({ data }) => {
     // console.log(data)
     // callback && callback(data.success, data.success ? data.data: data);
     callback && callback(true, data);

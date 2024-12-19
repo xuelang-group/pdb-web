@@ -10,7 +10,7 @@ import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import PdbPanel from "../Panel";
 import "./index.less";
-import { api, runVertex } from "@/actions/query";
+import { queryApi, runVertex } from "@/actions/query";
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { convertResultData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
@@ -403,7 +403,7 @@ export default function SearchAround() {
             getParams={(csv: any) => {
               const vertex = getVertexParams(tabIndex);
               const graphId = routerParams.id;
-              return { api: api.vertex, params: { vertex, graphId, csv } }
+              return { api: queryApi.vertex, params: { vertex, graphId, csv } }
             }}
           />
           {/* <Tooltip title="复制接口">
@@ -415,7 +415,7 @@ export default function SearchAround() {
               textarea.style.opacity = "0";
               const vertex = getVertexParams(tabIndex);
               const graphId = routerParams.id;
-              textarea.value = JSON.stringify({ api: api.vertex, params: { graphId, vertex, tree: true } });
+              textarea.value = JSON.stringify({ api: queryApi.vertex, params: { graphId, vertex, tree: true } });
               document.body.appendChild(textarea);
               textarea.select();
               document.execCommand('copy');

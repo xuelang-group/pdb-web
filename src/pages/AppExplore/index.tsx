@@ -17,7 +17,7 @@ import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 
 import './index.less';
-import { ConditionState, initialParams, setQueryParams } from "@/reducers/query";
+import { ConditionState, initialParams, PqlState, setQueryParams } from "@/reducers/query";
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
@@ -88,7 +88,7 @@ export default function AppExplore() {
         Object.assign(typeCsvMap, { [_id]: [val] });
       }
     });
-    pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
+    pql[0].forEach(function ({ id, name, type, conditions, ...other }: any, index) {
       let typeId = id;
       if (type !== "object" && id.startsWith("~Relation_")) typeId = id.slice(1);
       const _id = (typeId ? (typeId + "-") : (EMPORARY_RELATION_KEY)) + index;
@@ -96,7 +96,7 @@ export default function AppExplore() {
 
       const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
       let conditionLabel = "";
-      if (!_.isEmpty(conditionRaw) && id) {
+      if (!_.isEmpty(conditions) && id) {
         const attrMap: any = {};
         const attrKey = type === "object" ? 'x.type.version.attrs' : 'r.type.attrs';
         _.get(typeMap[typeId], attrKey, []).forEach((val: any) => {
@@ -147,7 +147,6 @@ export default function AppExplore() {
           label: name,
           config: {
             conditions,
-            key: conditionRaw,
             options: conditionOptions,
             label: conditionLabel
           }
@@ -699,18 +698,20 @@ export default function AppExplore() {
   }
 
   const getPQL = function (_searchTagMap = searchTagMap, _searchTags = searchTags) {
-    const pql: any = [], relationNames: string[] = [];
+    const pql: PqlState[][] = [], relationNames: string[] = [];
     let csv: any = [];
     _searchTags.forEach((item, index) => {
       if (!_.isEmpty(item)) {
-        let pqlItem: any[] = [], csvItem: any[] = [], csvDisplayMap: any = {};
+        let pqlItem: PqlState[] = [], csvItem: any[] = [], csvDisplayMap: any = {};
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
           let name = _.get(detail, 'label', '');
           if (detail.isReverse) {
             name = name.slice(1);
           }
-          let option = {
+          let option: PqlState = {
+            id: "",
+            type: "",
             name
           };
           if (detail.key === "e_x_parent" || detail.key === "~e_x_parent") {
@@ -722,7 +723,6 @@ export default function AppExplore() {
             const type = detail.type === "type" ? "object" : detail.type;
             Object.assign(option, {
               type,
-              conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
@@ -781,7 +781,7 @@ export default function AppExplore() {
         header: csv
       }
     }));
-    runPql({ graphId, pql }, (success: boolean, response: any) => {
+    runPql(graphId, pql, (success: boolean, response: any) => {
       if (success) {
         getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
           if (success) {
