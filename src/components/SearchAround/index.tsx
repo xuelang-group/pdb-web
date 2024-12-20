@@ -1,18 +1,17 @@
-import { Button, Dropdown, Empty, Form, Input, notification, Select, Tabs, Tag, Tooltip } from "antd";
+import { Button, Dropdown, Empty, Input, notification, Select, Tabs, Tag } from "antd";
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
-import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setSearchAround, setToolbarConfig } from "@/reducers/editor";
-import { ObjectConfig } from "@/reducers/object";
+import { setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setSearchAround, setToolbarConfig } from "@/reducers/editor";
+import { CustomObjectConfig, ObjectConfig, setObjects } from "@/reducers/object";
 import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import PdbPanel from "../Panel";
 import "./index.less";
 import { queryApi, runVertex } from "@/actions/query";
-import { ComboConfig, EdgeConfig } from "@antv/g6";
-import { convertResultData } from "@/utils/objectGraph";
+import { covertToGraphData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 import ExportApi from "../ExportApi";
@@ -24,7 +23,9 @@ export default function SearchAround() {
     dispatch = useDispatch(),
     routerParams = useParams();
 
-  const relationMap = useSelector((state: StoreState) => state.editor.relationMap),
+  const rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),
+    toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
+    relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
@@ -171,20 +172,34 @@ export default function SearchAround() {
     }
   }
 
-  const updateGraphData = function (data: any) {
+  const updateGraphData = function (data: ObjectConfig[]) {
     const graph = (window as any).PDB_GRAPH;
+
     if (!data || !graph) return;
-    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    const relationLines = {};
+    const _data: CustomObjectConfig[] = data.map((value: ObjectConfig, index: number) => {
+      const _xid = rootId + '.' + index;
+
+      // 获取对象关系列表数据
+      Object.assign(relationLines, {
+        [value['x.object.id']]: value['x.object.version.relations'] || []
+      });
+
+      return {
+        ...value,
+        'xid': _xid
+      }
+    });
+    const graphData = covertToGraphData(_data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'), true);
+    dispatch(setObjects(_data));
     dispatch(setCurrentGraphTab("vertex"));
     dispatch(setToolbarConfig({
       key: "vertex",
       config: { relationLines, showRelationLine: true, showRelationLabel: true }
     }));
-    graph.data({ nodes, edges, combos });
+    graph.data(graphData);
     graph.render();
     graph.zoom(1);
-    graph.layout();
   }
 
   const getVertexParams = function (index: number, _searchAroundOptions = searchAroundOptions) {

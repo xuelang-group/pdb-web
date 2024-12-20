@@ -946,8 +946,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     if (graph && !override) {
       const rootCombo = graph.findById(rootId + "-combo");
       if (rootCombo && rootCombo.getChildren().nodes.length > 0) {
-        const lastRootNode = rootCombo.getChildren().nodes.slice(-1)[0];
-        nextRootNodeIndex = Math.floor(lastRootNode.getModel().data.currentParent['x_index'] / 1024) + 1;
+        const lastRootNode = rootCombo.getChildren().nodes.slice(-1)[0],
+          lastRootNodeData = lastRootNode.getModel().data || {},
+          lastRootNodeIndex = _.get(lastRootNodeData['x.object.version.parent'], 'x.object.index', 0)
+        nextRootNodeIndex = Math.floor(lastRootNodeIndex / 1024) + 1;
       }
     }
     let objects: any[] = [];

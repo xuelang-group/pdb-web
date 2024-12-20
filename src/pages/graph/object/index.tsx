@@ -176,31 +176,38 @@ export default function Editor(props: EditorProps) {
             <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         }
+        // return `<ul class="pdb-graph-node-contextmenu">
+        //   <li title="探索">探索</li>
+        //   <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+        //   <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+        //   ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+        //     '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
+        //   ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
+        //     '<li title="一键展开">一键展开</li>' : ''}
+        // </ul>`;
         return `<ul class="pdb-graph-node-contextmenu">
-          <li title="探索">探索</li>
           <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
-          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
-            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
           ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
-            '<li title="一键展开">一键展开</li>' : ''}
+            '<li title="一键展开">一键展开</li>' : ''
+          }
         </ul>`;
       },
       handleMenuClick: (target: any, item) => {
         const itemModel = item.get("model");
         switch (target?.title) {
-          case "探索":
-            const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
-            _searchAround.show = true;
-            _searchAround.options.push({ start: [itemModel.data], options: [] });
-            dispatch(setSearchAround(_searchAround));
-            break;
-          case "复制":
-            graphCopyItem = JSON.parse(JSON.stringify(itemModel));
-            break;
-          case "粘贴":
-            onPaste(itemModel);
-            break;
+          /** 最新接口没有支持 */
+          // case "探索":
+          //   const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
+          //   _searchAround.show = true;
+          //   _searchAround.options.push({ start: [itemModel.data], options: [] });
+          //   dispatch(setSearchAround(_searchAround));
+          //   break;
+          // case "复制":
+          //   graphCopyItem = JSON.parse(JSON.stringify(itemModel));
+          //   break;
+          // case "粘贴":
+          //   onPaste(itemModel);
+          //   break;
           case "删除":
             deleteConfirm(itemModel);
             break;

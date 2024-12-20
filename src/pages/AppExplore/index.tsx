@@ -1,4 +1,3 @@
-import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tag, Tooltip } from "antd";
 import _ from "lodash";
@@ -9,10 +8,10 @@ import { useNavigate } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig, TYPE_ID_PREFIX } from "@/reducers/type";
-import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
+import { setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
 import { getQueryResultChildren, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
-import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
+import { covertToGraphData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 

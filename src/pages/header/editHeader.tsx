@@ -9,7 +9,6 @@ import { setCurrentEditModel } from "@/reducers/editor";
 import './index.less';
 
 interface HeaderProps {
-  route: string
   headerEXtraWidth?: number
 }
 

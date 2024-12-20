@@ -605,7 +605,7 @@ export const G6OperateFunctions = {
           let concatIndex = -1, removeMap: any = {}, removeChildren: CustomObjectConfig[] = [], removeChildrenMap: any = {}, parentChildLen = childLen;
           const allData: CustomObjectConfig[] = objectData || store.getState().object.data;
           allData.forEach(function (obj: CustomObjectConfig) {
-            const parentId = _.get(obj, "currentParent.id", "");
+            const parentId = _.get(obj['x.object.version.parent'], "x.object.id", "");
             const objId = obj['x.object.id'];
             if (objId === parent) {
               parentChildLen = _.get(obj, 'x.object.version.childs', 0);
@@ -1356,105 +1356,62 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
      * rearrangeChildren接口没有，暂不支持
      */
     // } else {
-    //   const parentUid = newParent['x.object.id'];
+    // const parentId = newParent['x.object.id'];
+    // const graphId = store.getState().object.graphData.id;
 
-    //   rearrangeChildren({ uid: parentUid }, (success: boolean, response: any) => {
-    //     if (success) {
-    //       getChildren({ vid: parentUid }, (success: boolean, data: any) => {
-    //         if (success) {
+    // rearrangeChildren({ uid: parentId }, (success: boolean, response: any) => {
+    //   if (success) {
+    //     getChildren(graphId, { 'x.object.id': parentId }, (success: boolean, data: any) => {
+    //       if (success) {
 
-    //           const { toolbarConfig, currentGraphTab } = store.getState().editor;
-    //           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-    //           let _data: any[] = [];
+    //         const { toolbarConfig, currentGraphTab } = store.getState().editor;
+    //         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+    //         let _data: any[] = [];
 
-    //           _data = _data.concat(data.map((value: any, index: number) => {
-    //             const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
-    //               attrIndex = infoIndex === 0 ? 1 : 0;
-    //             const newValue = JSON.parse(JSON.stringify(value)),
-    //               parents = newValue['e_x_parent'],
-    //               currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
-    //               defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
-    //               attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
-    //               uid = newValue['vid'].toString();
-
-    //             // 获取对象关系列表数据
-    //             const relations: any[] = [];
-    //             Object.keys(newValue).forEach((key: string) => {
-    //               if (key.startsWith(RELATION_ID_PREFIX)) {
-    //                 const relationKey = key.replace('_', '.');
-    //                 if (_.isArray(newValue[key])) {
-    //                   newValue[key].forEach((target: any) => {
-    //                     relations.push({
-    //                       relation: relationKey,
-    //                       target: {
-    //                         uid: _.get(target, 'dst', '').toString()
-    //                       },
-    //                       attrValue: _.get(target, 'props', {})
-    //                     });
-    //                   });
-    //                 } else {
-    //                   relations.push({
-    //                     relation: relationKey,
-    //                     target: {
-    //                       uid: _.get(newValue[key], 'dst', '').toString()
-    //                     },
-    //                     attrValue: _.get(newValue[key], 'props', {})
-    //                   });
-    //                 }
-    //               }
-    //             });
-    //             Object.assign(relationLines, {
-    //               [uid]: relations
-    //             });
-
-    //             return {
-    //               ...defaultInfo,
-    //               'x_attr_value': { ...attrValue },
-    //               'e_x_parent': parents,
-    //               'x_children': _.get(newValue, 'x_children', 0),
-    //               currentParent: {
-    //                 ...(_.get(currentParent, 'props', {})),
-    //                 uid: currentParent.dst.toString(),
-    //                 id: rootId,
-    //               },
-    //               'x_id': rootId + '.' + index,
-    //               id: uid,
-    //               uid: uid
-    //             };
-    //           }));
-
-    //           store.dispatch(setToolbarConfig({
-    //             key: 'main',
-    //             config: { relationLines }
-    //           }));
-    //           const curentGraphData: any = graph.save();
-
-    //           const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentUid, xid: parentUid }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
-    //           let newData: any[] = _data;
-
-    //           store.getState().object.data.forEach(function (obj: any) {
-    //             if (!obj['x_id'] || obj['x_id'].split(".").length > 2) {
-    //               newData.push(obj);
-    //             }
+    //         _data = _data.concat(data.map((value: any, index: number) => {
+    //           // 获取对象关系列表数据
+    //           Object.assign(relationLines, {
+    //             [value['x.object.id']]: value['x.object.version.relations'] || []
     //           });
-    //           store.dispatch(setObjects(newData));
-    //           graph.changeData({
-    //             nodes,
-    //             edges,
-    //             combos
-    //           }, false);
-    //         } else {
-    //           notification.error({
-    //             message: '获取子实例失败：',
-    //             description: data.message || data.msg
-    //           });
-    //         }
-    //         store.dispatch(setGraphLoading(false));
-    //       });
-    //     } else {
-    //       updateGraphData();
-    //     }
-    //   });
+
+    //           return {
+    //             ...value,
+    //             'xid': rootId + '.' + index,
+    //           };
+    //         }));
+
+    //         store.dispatch(setToolbarConfig({
+    //           key: 'main',
+    //           config: { relationLines }
+    //         }));
+    //         const curentGraphData: any = graph.save();
+
+    //         const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentId, xid: parentId }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+    //         let newData: any[] = _data;
+
+    //         store.getState().object.data.forEach(function (obj: any) {
+    //           if (!obj['xid'] || obj['xid'].split(".").length > 2) {
+    //             newData.push(obj);
+    //           }
+    //         });
+    //         store.dispatch(setObjects(newData));
+    //         graph.changeData({
+    //           nodes,
+    //           edges,
+    //           combos
+    //         }, false);
+    //       } else {
+    //         notification.error({
+    //           message: '获取子实例失败：',
+    //           description: data.message || data.msg
+    //         });
+    //       }
+    //       store.dispatch(setGraphLoading(false));
+    //     });
+    //   } else {
+    //     updateGraphData();
+    //   }
+    // });
     // }
   });
 }

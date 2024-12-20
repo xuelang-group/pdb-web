@@ -865,7 +865,7 @@ export default function Right(props: RightProps) {
     if (frontType && _.get(typeMap[currentEditType], frontType)) {
       addonBefore = typeMap[currentEditType][frontType];
     }
-    if (!location.pathname.endsWith("/edit") && !location.pathname.endsWith("/template")) {
+    if (props.route === 'object' && !location.pathname.endsWith("/template")) {
       return renderEditorInput(type, _default, addonBefore, attr, index, frontType);
     }
     return renderReadOnlyInput(type, _default, addonBefore, attr, frontType);
@@ -929,8 +929,8 @@ export default function Right(props: RightProps) {
                         index={index}
                         attr={attr}
                         isActive={currentEditParam && currentEditParam.name === attr.name}
-                        canOperate={location.pathname.endsWith("/edit")}
-                        canDrag={currentEditType === 'type'}
+                        canOperate={props.route === 'type'}
+                        canDrag={props.route === 'type' && currentEditType === 'type'}
                         moveParam={moveParam}
                         deleteParam={deleteTypeConfig}
                         editParam={editTypeConfig}
@@ -1261,7 +1261,7 @@ export default function Right(props: RightProps) {
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
       <div className='pdb-panel-container'>
-        {searchAround.show && !(location.pathname.endsWith("/template") || location.pathname.endsWith("/edit")) && <SearchAround />}
+        {searchAround.show && !(location.pathname.endsWith("/template") || props.route === 'type') && <SearchAround />}
         {currentEditParam &&
           <ParamEditor
             params={currentEditParam}
