@@ -6,9 +6,10 @@ import store from '@/store';
 import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
 import { message, notification } from 'antd';
 import _ from 'lodash';
-import { nodeStateStyle } from './node';
+import { nodeStateStyle, PAGINATION_NODE_TYPE } from './node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 import { TypeConfig } from '@/reducers/type';
+import { getQueryResultChildren } from '@/actions/query';
 
 export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
@@ -135,7 +136,7 @@ export const G6OperateFunctions = {
         Object.assign(params, { first: limit, offset: 0 });
       }
       const graphData = store.getState().object.graphData;
-      getChildren(graphData?.id, params, (success: boolean, data: any) => {
+      const __callback = (success: boolean, data: any) => {
         if (success) {
           const { toolbarConfig, currentGraphTab } = store.getState().editor;
           const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
@@ -168,7 +169,7 @@ export const G6OperateFunctions = {
               totalPage,
             });
           }
-          const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+          const { nodes, edges, combos } = addChildrenToGraphData(model, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}), Boolean(model.isQueryNode));
           let newData: any[] = [];
           store.getState().object.data.forEach(function (obj: CustomObjectConfig) {
             if (obj['xid'] === xid) {
@@ -201,7 +202,17 @@ export const G6OperateFunctions = {
           });
         }
         store.dispatch(setGraphLoading(false));
-      });
+      };
+      if (model.isQueryNode) {
+        // 搜索状态下的节点展开
+        const pqlResultParams = store.getState().query.pqlResultParams;
+        getQueryResultChildren(graphData?.id, {
+          ...params,
+          ...pqlResultParams
+        }, __callback);
+      } else {
+        getChildren(graphData?.id, params, __callback);
+      }
     } else {
       store.dispatch(setObjectDetail({ id: model.id, options: { collapsed } }));
       graph.expandCombo(comboId);
@@ -526,7 +537,7 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, { parent, nextDisabled }: { parent: string, nextDisabled: boolean }, offset: number, curentGraphData?: any, objectData?: CustomObjectConfig[]) {
+  changePagination: function (graph: Graph, { parent, nextDisabled, isQueryNode }: { parent: string, nextDisabled: boolean, isQueryNode?: boolean }, offset: number, curentGraphData?: any, objectData?: CustomObjectConfig[]) {
     return new Promise((resolve, reject) => {
       if (nextDisabled) {
         resolve(null);
@@ -541,7 +552,8 @@ export const G6OperateFunctions = {
       }
       store.dispatch(setGraphLoading(true));
       const graphData = store.getState().object.graphData;
-      getChildren(graphData?.id, params, (success: boolean, data: any) => {
+
+      const __callback = (success: boolean, data: any) => {
         if (success) {
           const parentNode = graph.findById(parent),
             parentModel = parentNode.get('model'),
@@ -582,7 +594,7 @@ export const G6OperateFunctions = {
             }
           }));
           store.dispatch(setToolbarConfig({
-            key: 'main',
+            key: currentGraphTab,
             config: { relationLines }
           }));
           graph.expandCombo(comboId);
@@ -591,7 +603,7 @@ export const G6OperateFunctions = {
           const xidLen = xid.split(".").length + 1;
           let concatIndex = -1, removeMap: any = {}, removeChildren: CustomObjectConfig[] = [], removeChildrenMap: any = {}, parentChildLen = childLen;
           const allData: CustomObjectConfig[] = objectData || store.getState().object.data;
-          allData.forEach(function (obj: CustomObjectConfig, index: number) {
+          allData.forEach(function (obj: CustomObjectConfig) {
             const parentId = _.get(obj, "currentParent.id", "");
             const objId = obj['x.object.id'];
             if (objId === parent) {
@@ -661,7 +673,13 @@ export const G6OperateFunctions = {
             concatData = _data;
           }
 
-          const { nodes, edges, combos } = replaceChildrenToGraphData({ id, xid }, _data, curentGraphData || graph.save(), _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+          const { nodes, edges, combos } = replaceChildrenToGraphData(
+            { id, xid },
+            _data,
+            curentGraphData || graph.save(),
+            _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}),
+            isQueryNode
+          );
 
           if (concatIndex > -1) {
             newData.splice(concatIndex, 0, ...concatData);
@@ -672,12 +690,6 @@ export const G6OperateFunctions = {
             edges,
             combos
           }, false);
-          // node.update({
-          //   data: {
-          //     ...parentModel.data,
-          //     collapsed
-          //   }
-          // });
         } else {
           notification.error({
             message: '获取子实例失败：',
@@ -686,7 +698,18 @@ export const G6OperateFunctions = {
         }
         store.dispatch(setGraphLoading(false));
         resolve(null);
-      });
+      };
+
+      if (isQueryNode) {
+        // 搜索状态下的节点翻页
+        const pqlResultParams = store.getState().query.pqlResultParams;
+        getQueryResultChildren(graphData?.id, {
+          ...params,
+          ...pqlResultParams
+        }, __callback);
+      } else {
+        getChildren(graphData?.id, params, __callback);
+      }
     });
   },
   refreshGraphData: function (graph: any) {
@@ -1861,15 +1884,17 @@ export function registerBehavior() {
       if (!node) return;
       const model = node.get('model'),
         nodeType = model.type;
-      if (nodeType === "paginationBtn") {
-        const { data, nextDisabled } = node.get('model');
+      if (nodeType === PAGINATION_NODE_TYPE) {
+        // 当前点击的节点为翻页按钮
+        const { data, nextDisabled, isQueryNode } = node.get('model');
         const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
         if (nextDisabled) return;
         const config = id.split('-');
 
-        G6OperateFunctions.changePagination(graph, { parent, nextDisabled }, config[2]);
+        G6OperateFunctions.changePagination(graph, { parent, nextDisabled, isQueryNode }, config[2]);
         return;
       }
+
       (window as any).PDB_GRAPH = graph;
 
       if (event.originalEvent) {

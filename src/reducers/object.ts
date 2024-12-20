@@ -61,6 +61,7 @@ export interface CustomObjectConfig extends ObjectConfig {
   'collapsed'?: boolean // 是否折叠
   'totalPage'?: number // 分页数量
   'nextDisabled'?: boolean // 下一页是否灰化
+  'target'?: boolean // 搜索结果返回的子对象里才有该字段，用于区分当前返回节点是否符合搜索条件，如果为true，则是不符合搜索条件只是作为父节点灰化展示
 }
 
 interface GraphDataState {

@@ -23,7 +23,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
-import { OBJECT_NODE_TYPE } from '@/g6/node';
+import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
 
 interface EditorProps {
   theme: string
@@ -151,11 +151,11 @@ export default function Editor(props: EditorProps) {
       // 允许出现 tooltip 的 item 类型
       itemTypes: ['edge', 'node'],
       // 是否允许 tooltip 出现
-      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === 'paginationBtn',
+      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === PAGINATION_NODE_TYPE,
       // 自定义 tooltip 内容
       getContent: (e: any) => {
         const { relationName, id, type, name } = e.item.getModel();
-        if (type === 'paginationBtn') {
+        if (type === PAGINATION_NODE_TYPE) {
           return id.endsWith("-next") ? "下一页" : "上一页";
         }
         if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
@@ -169,7 +169,7 @@ export default function Editor(props: EditorProps) {
       getContent(evt: any) {
         const itemType = evt.item.get("type"),
           itemModel = evt.item.getModel();
-        if (itemModel.type === "step-line" || itemModel.type === "paginationBtn") return "";
+        if (itemModel.type === "step-line" || itemModel.type === PAGINATION_NODE_TYPE) return "";
 
         if (itemType === "edge") {
           return `<ul class="pdb-graph-node-contextmenu">

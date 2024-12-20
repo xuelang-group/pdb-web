@@ -7,9 +7,11 @@ import { getImagePath } from '@/actions/minioOperate';
 import { PAGE_SIZE } from './behavior';
 import { CustomObjectConfig } from '@/reducers/object';
 
-export const defaultCircleR = 60;
-export const iconImgWidth = 20;
-export const OBJECT_NODE_TYPE = 'pdbNode';
+export const defaultCircleR = 60; // 对象类型圆节点默认半径
+export const iconImgWidth = 20; // 类型节点icon的宽度
+export const OBJECT_NODE_TYPE = 'pdbNode'; // 实例节点类型
+export const PAGINATION_NODE_TYPE = 'paginationBtn'; // 翻页节点类型
+
 export const nodeStateStyle: any = {
   default: {
     r: defaultCircleR,
@@ -73,7 +75,7 @@ export function registerNode() {
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
         textColor = getTextColor(nodeColor),
         iconColor = iconColorMap[textColor];
-      if ((cfg.isQueryNode && !cfg.target) || cfg.isDisabled) {
+      if ((cfg.isQueryNode && nodeData.target) || cfg.isDisabled) {
         nodeColor = disabledNodeColor.fill;
         nodeBorderColor = disabledNodeColor.border;
         textColor = '#DCDEE1';
@@ -396,7 +398,7 @@ export function registerNode() {
         textColor = getTextColor(nodeColor),
         iconColor = iconColorMap[textColor];
 
-      if ((cfg.isQueryNode && !cfg.target) || cfg.isDisabled) { // 搜索返回的节点，但不是目标节点，灰化显示
+      if ((cfg.isQueryNode && nodeData.target) || cfg.isDisabled) { // 搜索返回的节点，但不是目标节点，灰化显示
         nodeColor = disabledNodeColor.fill;
         nodeBorderColor = disabledNodeColor.border;
         textColor = '#DCDEE1';
@@ -662,7 +664,7 @@ export function registerNode() {
   );
 
   // 实例管理中的分页按钮
-  G6.registerNode('paginationBtn', {
+  G6.registerNode(PAGINATION_NODE_TYPE, {
     afterDraw(cfg: any, group: any, rst) {
       const iconTextClassName = 'icon-text';
       const iconAttrs = { ...cfg.icon };

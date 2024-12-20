@@ -2,10 +2,14 @@ import { queryApi } from '@/actions/query';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface CsvHeaderState {
-
+  'index': number
+  'typeId': string
+  'attrId': string
+  'attrName'?: string
+  'attrType'?: string
 }
 export interface CsvState {
-  header: CsvHeaderState[]
+  'header': CsvHeaderState[]
 }
 
 export interface ConditionState {
@@ -33,30 +37,43 @@ export interface PqlState {
 }
 
 export interface ParamsState {
-  graphId: string
-  pql: PqlState[][]
-  csv: CsvState
+  'graphId': number | null
+  'pql': PqlState[][]
+  'csv': CsvState
+}
+
+
+export interface PqlResultParamsState {
+  'children': string[]
+  'relations': string[]
 }
 
 export interface QueryState {
-  params: ParamsState
+  'api': string
+  'params': ParamsState
+  'pqlResultParams': PqlResultParamsState
 }
 
 export const initialParams = {
-  graphId: '',
-  pql: [[]],
-  csv: {
-    header: []
+  'graphId': null,
+  'pql': [[]],
+  'csv': {
+    'header': []
   }
 };
 
-// 对象列表
+const initialState: QueryState = {
+  'api': queryApi['pql'],
+  'params': initialParams,
+  'pqlResultParams': {
+    'children': [],
+    'relations': []
+  } // 根据搜索结果获取子对象需要的数据
+}
+
 export const querySlice = createSlice({
   name: 'query',
-  initialState: {
-    api: queryApi['pql'],
-    params: initialParams
-  },
+  initialState,
   reducers: {
     setApi: (state, action: PayloadAction<string>) => {
       state.api = action.payload;
@@ -64,11 +81,18 @@ export const querySlice = createSlice({
     setQueryParams: (state, action: PayloadAction<ParamsState>) => {
       state.params = JSON.parse(JSON.stringify(action.payload));
     },
+    setPqlResultParams: (state, action: PayloadAction<PqlResultParamsState>) => {
+      state.pqlResultParams = JSON.parse(JSON.stringify(action.payload));
+    },
     clearQuery: (state) => {
       state.params = JSON.parse(JSON.stringify(initialParams));
+      state.pqlResultParams = {
+        children: [],
+        relations: []
+      };
     }
   }
 });
 
-export const { setQueryParams, setApi, clearQuery } = querySlice.actions;
+export const { setQueryParams, setApi, clearQuery, setPqlResultParams } = querySlice.actions;
 export default querySlice.reducer;

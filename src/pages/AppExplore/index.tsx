@@ -1,27 +1,28 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
-import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { isEmpty } from "lodash";
+import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tag, Tooltip } from "antd";
+import _ from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig, TYPE_ID_PREFIX } from "@/reducers/type";
 import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { getQueryResult, runPql } from "@/actions/query";
+import { getQueryResultChildren, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
-import { convertResultData } from "@/utils/objectGraph";
+import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 
 import './index.less';
-import { ConditionState, initialParams, PqlState, setQueryParams } from "@/reducers/query";
+import { ConditionState, initialParams, PqlResultParamsState, PqlState, setPqlResultParams, setQueryParams } from "@/reducers/query";
 import { functionSymbolMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import dayjs from "dayjs";
 import moment from "moment";
 import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
+import { CustomObjectConfig, ObjectConfig, setObjects } from "@/reducers/object";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -33,13 +34,15 @@ const EMPORARY_RELATION_KEY = "__TEMPORARY_RELATION__";
 
 export default function AppExplore() {
   const dispatch = useDispatch();
-  const routerParams = useParams();
   const navigator = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
 
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
 
-  const types = useSelector((state: StoreState) => state.type.data),
+  const graphData = useSelector((state: StoreState) => state.object.graphData),
+    rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),
+    toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
+    types = useSelector((state: StoreState) => state.type.data),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeMap = useSelector((state: StoreState) => state.editor.typeMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
@@ -88,7 +91,7 @@ export default function AppExplore() {
         Object.assign(typeCsvMap, { [_id]: [val] });
       }
     });
-    pql[0].forEach(function ({ id, name, type, conditions, ...other }: any, index) {
+    pql[0].forEach(function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
       let typeId = id;
       if (type !== "object" && id.startsWith("~Relation_")) typeId = id.slice(1);
       const _id = (typeId ? (typeId + "-") : (EMPORARY_RELATION_KEY)) + index;
@@ -96,7 +99,7 @@ export default function AppExplore() {
 
       const conditionOptions: { attr: { value: string; label: any; data: any; }; condition: { value: any; label: any; }; isNot: boolean | undefined; keyword: any; operator: string | undefined; }[] = [];
       let conditionLabel = "";
-      if (!_.isEmpty(conditions) && id) {
+      if (!_.isEmpty(conditionRaw) && id) {
         const attrMap: any = {};
         const attrKey = type === "object" ? 'x.type.version.attrs' : 'r.type.attrs';
         _.get(typeMap[typeId], attrKey, []).forEach((val: any) => {
@@ -147,6 +150,7 @@ export default function AppExplore() {
           label: name,
           config: {
             conditions,
+            key: conditionRaw,
             options: conditionOptions,
             label: conditionLabel
           }
@@ -178,11 +182,11 @@ export default function AppExplore() {
 
   useEffect(() => {
     // 反向解析
-    if ((indicatorCheckId || indicatorEditId) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
+    if ((indicatorCheckId || indicatorEditId) && queryParams.graphId && !_.isEmpty(typeMap)) {
       reverseParsing();
     }
 
-    if (isEmpty(queryParams.graphId) && searchTags && !isEmpty(searchTags)) {
+    if (queryParams.graphId == null && searchTags && !_.isEmpty(searchTags)) {
       setSearchTags([[]]);
       setSearchTagMap([{}]);
       setCurrentFocusIndex(0);
@@ -681,18 +685,33 @@ export default function AppExplore() {
     }
   }
 
-  const updateGraphData = function (data: any) {
+  const updateGraphData = function (data: ObjectConfig[], queryResultParams: PqlResultParamsState) {
     const graph = (window as any).PDB_GRAPH;
 
     if (!data || !graph) return;
-    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    const relationLines = {};
+    const _data: CustomObjectConfig[] = data.map((value: ObjectConfig, index: number) => {
+      const _xid = rootId + '.' + index;
+
+      // 获取对象关系列表数据
+      Object.assign(relationLines, {
+        [value['x.object.id']]: value['x.object.version.relations'] || []
+      });
+
+      return {
+        ...value,
+        'xid': _xid
+      }
+    });
+    const graphData = covertToGraphData(_data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'), true);
+    dispatch(setObjects(_data));
     dispatch(setCurrentGraphTab("explore"));
+    dispatch(setPqlResultParams(queryResultParams));
     dispatch(setToolbarConfig({
       key: "explore",
       config: { relationLines, showRelationLine: true, showRelationLabel: true }
     }));
-    graph.data({ nodes, edges, combos });
+    graph.data(graphData);
     graph.render();
     graph.zoom(1);
   }
@@ -723,6 +742,7 @@ export default function AppExplore() {
             const type = detail.type === "type" ? "object" : detail.type;
             Object.assign(option, {
               type,
+              conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
               id: (detail.isReverse ? "~" : "") + detail.key
             });
@@ -773,7 +793,7 @@ export default function AppExplore() {
     setSearchLoading(true);
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
-    const graphId = routerParams.id || '';
+    const graphId = graphData?.id;
     updateQuery && dispatch(setQueryParams({
       graphId,
       pql,
@@ -783,13 +803,20 @@ export default function AppExplore() {
     }));
     runPql(graphId, pql, (success: boolean, response: any) => {
       if (success) {
-        getQueryResult({ vid: response, relationNames, graphId, depth: 5 }, (success: boolean, response: any) => {
+        getQueryResultChildren(graphId, {
+          'x.object.id': rootId,
+          'children': response,
+          'relations': relationNames
+        }, (success: boolean, _response: any) => {
           if (success) {
-            updateGraphData(response);
+            updateGraphData(_response, {
+              'children': response,
+              'relations': relationNames
+            });
           } else {
             notification.error({
               message: '搜索失败',
-              description: response.message || response.msg
+              description: _response.message || _response.msg
             });
           }
           setSearchLoading(false);
@@ -1225,7 +1252,7 @@ export default function AppExplore() {
         }))}
         getParams={(csv: any) => {
           const { pql } = getPQL();
-          const graphId = routerParams.id;
+          const graphId = graphData?.id || '';
           return { api: api.pql, params: { pql, graphId, csv } }
         }}
       /> */}

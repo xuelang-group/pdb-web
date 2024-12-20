@@ -2,6 +2,7 @@ import G6, { Util } from '@antv/g6';
 import _ from 'lodash';
 import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, NODE_HEIGHT_SEP, paginationOption } from '../utils/objectGraph';
 import store from '@/store';
+import { PAGINATION_NODE_TYPE } from './node';
 
 export function registerLayout() {
 
@@ -62,7 +63,7 @@ export function registerLayout() {
           item.y = currentY + nodeHeightSep + prevNodeHeight;
           currenNodeWidth = item.width;
           const prevNode = index > 0 ? self.nodes[index - 1] : null;
-          if (item.type === "paginationBtn") {
+          if (item.type === PAGINATION_NODE_TYPE) {
             item.x += paginationOption().size[0] / 2;
             prevNodeHeight = 10;
 
@@ -72,7 +73,7 @@ export function registerLayout() {
           } else {
             prevNodeHeight = self.nodeHeight;
 
-            if (prevNode && prevNode.type === "paginationBtn" && prevNode.id.endsWith("-prev")) {
+            if (prevNode && prevNode.type === PAGINATION_NODE_TYPE && prevNode.id.endsWith("-prev")) {
               item.y -= 20;
             }
           }

@@ -1,9 +1,9 @@
-import { nodeStateStyle } from '@/g6/node';
+import { nodeStateStyle, PAGINATION_NODE_TYPE } from '@/g6/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData } from '@antv/g6';
 import _, { isArray } from 'lodash';
 import { NodeItemData, RelationsConfig } from '../reducers/editor';
-import { CustomObjectConfig } from '../reducers/object';
+import { CustomObjectConfig, ObjectConfig } from '../reducers/object';
 import { defaultNodeColor, getTextColor } from './common';
 
 export const GLOBAL_FONT_SIZE = 12;
@@ -25,7 +25,7 @@ const paginationIconMap: any = {
   prev: String.fromCodePoint(60181)
 }
 export const paginationOption = (icon: string = "") => ({
-  type: "paginationBtn",
+  type: PAGINATION_NODE_TYPE,
   icon: {
     show: true,
     fontFamily: 'iconfont',
@@ -108,7 +108,7 @@ function findLastIndex(nodes: any[], xid: string) {
 }
 
 // 转换为画布数据
-export function covertToGraphData(data: CustomObjectConfig[], parentId: string, filterMap: any) {
+export function covertToGraphData(data: CustomObjectConfig[], parentId: string, filterMap: any, isQueryNode = false) {
   const edges: EdgeConfig[] = [];
   const combos: ComboConfig[] = [];
   const nodes: NodeItemData[] = [];
@@ -128,6 +128,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
     const comboId = `${id}-combo`;
     const node = {
       id,
+      isQueryNode,
       data: { ...item, xid },
       icon: iconKey,
       isDisabled: !_.isEmpty(filterMap) && !_.get(filterMap, item['x.type.id'] || ''),
@@ -184,7 +185,7 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
 }
 
 // 添加子节点
-export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
+export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectConfig[], currentData: GraphData, filterMap: any, isQueryNode = false) {
   const id = parent.id;
 
   const sortData = data.sort((a, b) => {
@@ -198,7 +199,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
     return 1;
   });
-  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
+  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap, isQueryNode);
 
   const lastIndex = parent.data.xid ? findLastIndex(currentData.nodes || [], parent.data.xid) : -1;
   const newNodes = JSON.parse(JSON.stringify(currentData.nodes));
@@ -241,7 +242,7 @@ export function addChildrenToGraphData(parent: NodeItemData, data: CustomObjectC
 
 
 // 添加子节点
-export function replaceChildrenToGraphData(parent: { id: string, xid: string }, data: CustomObjectConfig[], currentData: GraphData, filterMap: any) {
+export function replaceChildrenToGraphData(parent: { id: string, xid: string }, data: CustomObjectConfig[], currentData: GraphData, filterMap: any, isQueryNode = false) {
   const id = parent.id;
   const rootId = store.getState().editor.rootNode['x.object.id'];
 
@@ -262,7 +263,7 @@ export function replaceChildrenToGraphData(parent: { id: string, xid: string }, 
 
     return 1;
   });
-  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap);
+  const { nodes, combos, edges } = covertToGraphData(sortData, id, filterMap, isQueryNode);
 
   const currentNodes: any = currentData.nodes,
     removeIds: any = {};
