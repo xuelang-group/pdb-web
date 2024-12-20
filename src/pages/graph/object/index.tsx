@@ -39,11 +39,9 @@ export default function Editor(props: EditorProps) {
     navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
   const graphInfo = useSelector((state: StoreState) => state.object.graphData),
-    objectData = useSelector((state: StoreState) => state.object.data),
     currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     graphDataMap = useSelector((state: StoreState) => state.editor.graphDataMap),
-    rootNode = useSelector((state: StoreState) => state.editor.rootNode),
     graphLoading = useSelector((state: StoreState) => state.editor.graphLoading),
     currentGraphTab = useSelector((state: StoreState) => state.editor.currentGraphTab),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
@@ -368,6 +366,9 @@ export default function Editor(props: EditorProps) {
       return new Promise(async (resolve: any, reject: any) => {
         const children = graph.getComboChildren(`${item.id}-combo`);
         if (!children || !children.nodes || children.nodes.length === 0) {
+          const { toolbarConfig, currentGraphTab } = store.getState().editor;
+          const graphInfo = store.getState().object.graphData;
+
           const limit = Number(_.get(toolbarConfig[currentGraphTab], 'pageSize', 0));
           const itemChildLen = _.get(item.data, 'x.object.version.childs', 0);
           let params = { 'x.object.id': item.id };
@@ -377,8 +378,6 @@ export default function Editor(props: EditorProps) {
           }
           getChildren(graphInfo?.id, params, async (success: boolean, data: any) => {
             if (success) {
-              const { toolbarConfig, currentGraphTab } = store.getState().editor;
-
               const _data: CustomObjectConfig[] = data.map((value: ObjectConfig, index: number) => {
                 const _xid = item.data.xid + '.' + index;
 
@@ -457,7 +456,6 @@ export default function Editor(props: EditorProps) {
 
           shouldExpandCombo.push(`${item.id}-combo`);
 
-
           for (const obj of _objectData) {
             if (obj['xid'].startsWith(item.xid)) {
               Object.assign(obj, { collapsed: false });
@@ -472,7 +470,9 @@ export default function Editor(props: EditorProps) {
 
   async function expandAll(item: any) {
     const graphData = JSON.parse(JSON.stringify(graph.save())),
-      _objectData = JSON.parse(JSON.stringify(objectData));
+      _objectData = JSON.parse(JSON.stringify(store.getState().object.data));
+    const { toolbarConfig, currentGraphTab } = store.getState().editor;
+    
     store.dispatch(setGraphLoading(true));
     const model = item.get("model");
     const shouldExpandCombo: any = [];
