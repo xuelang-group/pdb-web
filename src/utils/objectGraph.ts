@@ -1,10 +1,12 @@
 import { nodeStateStyle, PAGINATION_NODE_TYPE } from '@/g6/node';
 import store from '@/store';
 import G6, { ComboConfig, EdgeConfig, GraphData } from '@antv/g6';
-import _, { isArray } from 'lodash';
+import _ from 'lodash';
 import { NodeItemData, RelationsConfig } from '../reducers/editor';
-import { CustomObjectConfig, ObjectConfig } from '../reducers/object';
+import { CustomObjectConfig } from '../reducers/object';
 import { defaultNodeColor, getTextColor } from './common';
+
+export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
 export const GLOBAL_FONT_SIZE = 12;
 export const ROOT_NODE_WIDTH = 320, // 主节点宽度

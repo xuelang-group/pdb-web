@@ -1,7 +1,7 @@
 import { registerLayout } from './layout';
+import { registerBehavior } from './behavior';
 import { registerNode } from './node';
 import { registerEdge } from './edge';
-import { registerBehavior } from './behavior';
 
 export function initG6() {
   registerLayout();

@@ -1,10 +1,9 @@
 import G6, { ModelConfig, IGroup, IG6GraphEvent, Item, UpdateType } from '@antv/g6';
-import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString } from '@/utils/objectGraph';
+import { ROOT_NODE_WIDTH, NODE_WIDTH, NODE_HEIGHT, GLOBAL_FONT_SIZE, fittingString, PAGE_SIZE } from '@/utils/objectGraph';
 import store from '@/store';
 import { checkImgExists, defaultNodeColor, disabledNodeColor, getBorderColor, getIcon, getTextColor, iconColorMap } from '@/utils/common';
 import _ from 'lodash';
 import { getImagePath } from '@/actions/minioOperate';
-import { PAGE_SIZE } from './behavior';
 import { CustomObjectConfig } from '@/reducers/object';
 
 export const defaultCircleR = 60; // 对象类型圆节点默认半径

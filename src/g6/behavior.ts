@@ -1,18 +1,18 @@
-import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, ModelConfig, G6Event, INode } from '@antv/g6';
-import { addChildrenToGraphData, convertAllData, covertToGraphData, replaceChildrenToGraphData } from '../utils/objectGraph';
-import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
-import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, ObjectRelationInfo, PAGINATION_TYPE, Parent, setObjectDetail, setObjects } from '@/reducers/object';
-import store from '@/store';
-import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import G6, { IG6GraphEvent, IShapeBase, Item, Graph, ITEM_TYPE, G6Event, INode } from '@antv/g6';
 import { message, notification } from 'antd';
 import _ from 'lodash';
-import { nodeStateStyle, PAGINATION_NODE_TYPE } from './node';
-import { defaultNodeColor, getTextColor } from '@/utils/common';
-import { TypeConfig } from '@/reducers/type';
-import { getQueryResultChildren } from '@/actions/query';
-import { SAME_ROOT_TREE_NODE_RELATION_LINE, TREE_NODE_RELATION_LINE } from './edge';
 
-export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
+import { addChildrenToGraphData, convertAllData, covertToGraphData, replaceChildrenToGraphData, PAGE_SIZE } from '@/utils/objectGraph';
+import { defaultNodeColor, getTextColor } from '@/utils/common';
+import { NodeItemData, setToolbarConfig, setCurrentEditModel, setMultiEditModel, setGraphLoading } from '@/reducers/editor';
+import { CustomObjectConfig, ObjectConfig, ObjectParentInfo, PAGINATION_TYPE, setObjectDetail, setObjects } from '@/reducers/object';
+import { TypeConfig } from '@/reducers/type';
+import { addObject, copyObject, deleteObject, getChildren, moveObject, rearrangeChildren, setObject } from '@/actions/object';
+import { getQueryResultChildren } from '@/actions/query';
+import store from '@/store';
+
+import { nodeStateStyle, PAGINATION_NODE_TYPE } from './node';
+import { SAME_ROOT_TREE_NODE_RELATION_LINE, TREE_NODE_RELATION_LINE } from './edge';
 
 export const G6OperateFunctions = {
   addNode: function (newObject: any, callback: any) {

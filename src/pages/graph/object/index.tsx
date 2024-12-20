@@ -10,20 +10,20 @@ import { addChildrenToGraphData, covertToGraphData, NODE_HEIGHT } from '@/utils/
 import type { StoreState } from '@/store';
 import store from '@/store';
 import { edgeLabelStyle, TREE_NODE_STEP_LINE } from '@/g6/edge';
-import { G6OperateFunctions, PAGE_SIZE } from '@/g6/behavior';
-import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
-import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, PAGINATION_TYPE, setObjects } from '@/reducers/object';
+import { G6OperateFunctions } from '@/g6/behavior';
+import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
+import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig
 } from '@/reducers/editor';
+import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
-import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
 
 interface EditorProps {
   theme: string
@@ -361,7 +361,7 @@ export default function Editor(props: EditorProps) {
       return new Promise(async (resolve: any, reject: any) => {
         const children = graph.getComboChildren(`${item.id}-combo`);
         if (!children || !children.nodes || children.nodes.length === 0) {
-          const limit = Number(PAGE_SIZE());
+          const limit = Number(_.get(toolbarConfig[currentGraphTab], 'pageSize', 0));
           const itemChildLen = _.get(item.data, 'x.object.version.childs', 0);
           let params = { 'x.object.id': item.id };
 
@@ -392,7 +392,7 @@ export default function Editor(props: EditorProps) {
                 _data.push({
                   'x.type.id': PAGINATION_TYPE,
                   'x.object.name': '下一页',
-                  'x.object.id': 'pagination-' + item.id + `-${Number(PAGE_SIZE())}-next`,
+                  'x.object.id': 'pagination-' + item.id + `-${Number(_.get(toolbarConfig[currentGraphTab], 'pageSize', 0))}-next`,
                   'x.object.version.parent': { 'x.object.id': item.id },
                   totalPage,
                 });
