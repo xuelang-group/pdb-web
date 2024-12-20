@@ -1,4 +1,4 @@
-import { Button, Form, message, notification, Select, Table } from 'antd';
+import { Button, Form, notification, Select, Table } from 'antd';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -9,10 +9,10 @@ import { NodeItemData, ObjectRelationConig, setToolbarConfig } from '@/reducers/
 import { StoreState } from '@/store';
 import './index.less';
 import { AttrConfig } from '@/reducers/type';
-import { ObjectConfig, ObjectRelationInfo } from '@/reducers/object';
+import { ObjectConfig } from '@/reducers/object';
 
 interface RelationListProps {
-  source: NodeItemData
+  source: NodeItemData // 选中节点数据
   loading?: boolean
 }
 

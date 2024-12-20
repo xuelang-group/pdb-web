@@ -42,7 +42,6 @@ export function registerLayout() {
       const rootNodeLeft = self.rootNodeLeftSep,
         nodeLeft = self.nodeLeftSep,
         nodeHeightSep = self.nodeHeightSep,
-        nodeWidth = self.nodeWidth,
         nodeXMap = self.nodeXMap;
       let currentY = 0, prevMaxX = 0, rootIndex: any = -1, firstRoot: any = null,
         currenNodeWidth = ROOT_NODE_WIDTH, prevRootMaxX = 0, prevMaxNodeWidth = 0, prevNodeHeight = self.nodeHeight;
@@ -79,16 +78,15 @@ export function registerLayout() {
           }
           currentY = item.y;
         } else {
-          // 顶层主节点
+          // 顶层根节点
           if (rootIndex > -1) {
             currentY = firstRoot.y;
-            const currentWidth = prevMaxX + (ROOT_NODE_WIDTH + rootNodeLeft);
-            const width = prevMaxX > prevRootMaxX ? ROOT_NODE_WIDTH : currenNodeWidth;
             item.x = ((prevMaxX + prevMaxNodeWidth) > (prevRootMaxX + ROOT_NODE_WIDTH) ? (prevMaxX + prevMaxNodeWidth) : (prevRootMaxX + ROOT_NODE_WIDTH)) + rootNodeLeft;
             item.y = currentY;
             prevRootMaxX = item.x;
             rootIndex++;
           } else {
+            // 第一个根节点
             currentY = item.y;
             firstRoot = item;
             rootIndex = 0;

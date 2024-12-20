@@ -9,7 +9,7 @@ import _ from 'lodash';
 import { addChildrenToGraphData, covertToGraphData, NODE_HEIGHT } from '@/utils/objectGraph';
 import type { StoreState } from '@/store';
 import store from '@/store';
-import { edgeLabelStyle } from '@/g6/edge';
+import { edgeLabelStyle, TREE_NODE_STEP_LINE } from '@/g6/edge';
 import { G6OperateFunctions, PAGE_SIZE } from '@/g6/behavior';
 import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { CustomObjectConfig, ObjectConfig, ObjectRelationInfo, PAGINATION_TYPE, setObjects } from '@/reducers/object';
@@ -151,14 +151,14 @@ export default function Editor(props: EditorProps) {
       // 允许出现 tooltip 的 item 类型
       itemTypes: ['edge', 'node'],
       // 是否允许 tooltip 出现
-      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line' || e.item.get('currentShape') === PAGINATION_NODE_TYPE,
+      shouldBegin: (e: any) => e.item.get('type') === 'edge' && e.item.get('currentShape') !== TREE_NODE_STEP_LINE || e.item.get('currentShape') === PAGINATION_NODE_TYPE,
       // 自定义 tooltip 内容
       getContent: (e: any) => {
         const { relationName, id, type, name } = e.item.getModel();
         if (type === PAGINATION_NODE_TYPE) {
           return id.endsWith("-next") ? "下一页" : "上一页";
         }
-        if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== 'step-line') {
+        if (e.item.get('type') === 'edge' && e.item.get('currentShape') !== TREE_NODE_STEP_LINE) {
           return _.get(relationMap, `${relationName}`, { 'r.type.name': '' })['r.type.name'] || name || id;
         }
         return "";
@@ -169,7 +169,7 @@ export default function Editor(props: EditorProps) {
       getContent(evt: any) {
         const itemType = evt.item.get("type"),
           itemModel = evt.item.getModel();
-        if (itemModel.type === "step-line" || itemModel.type === PAGINATION_NODE_TYPE) return "";
+        if (itemModel.type === TREE_NODE_STEP_LINE || itemModel.type === PAGINATION_NODE_TYPE) return "";
 
         if (itemType === "edge") {
           return `<ul class="pdb-graph-node-contextmenu">
@@ -320,7 +320,7 @@ export default function Editor(props: EditorProps) {
         type: 'pbdLayout',
       },
       defaultEdge: {
-        type: 'step-line',
+        type: TREE_NODE_STEP_LINE,
         labelCfg: {
           style: edgeLabelStyle(props.theme).default,
         },

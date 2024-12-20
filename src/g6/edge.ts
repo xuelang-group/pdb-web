@@ -4,6 +4,9 @@ import _ from 'lodash';
 import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../utils/objectGraph';
 import { defaultCircleR } from './node';
 
+
+export const TREE_NODE_STEP_LINE = 'step-line';
+
 export const defaultEdgeStyle = {
   stroke: '#F77234',
   lineWidth: 2,
@@ -90,7 +93,9 @@ export function registerEdge() {
    * @param {string} type 连线类型，外部引用指定必须，不要与已有布局类型重名
    * @param {object} node 连线方法
    */
-  G6.registerEdge('step-line', {
+
+  // 画布树状结构节点间的层级连线
+  G6.registerEdge(TREE_NODE_STEP_LINE, {
     draw(cfg: EdgeConfig, group) {
       const startPoint = cfg.sourceNode?.getBBox(),
         endPoint = cfg.targetNode?.getBBox();
@@ -99,22 +104,19 @@ export function registerEdge() {
         sourceData = cfg.sourceNode?.get('model').data as CustomObjectConfig;
       const lineWidth = cfg.isComboEdge ? 0 : 1;
 
-      if (!sourceData || !targetData) return group.addShape('path', {
-        attrs: {},
-        name: 'path-shape',
-      });
-
       // 折线
-      let startPoinX = Number(startPoint?.x) + 15;
-      if (_.get(sourceData['x.object.version.parent'], 'x.object.id') === _.get(targetData['x.object.version.parent'], 'x.object.id')) {
-        startPoinX = Number(startPoint?.x) - 15;
-      }
+      let startPoinX = Number(startPoint?.x) + 15,
+        startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 - 3;
+      if (sourceData && targetData) {
+        if (_.get(sourceData['x.object.version.parent'], 'x.object.id') === _.get(targetData['x.object.version.parent'], 'x.object.id')) {
+          startPoinX = Number(startPoint?.x) - 15;
+        }
 
-      let startPointY = Number(startPoint?.y) + NODE_HEIGHT / 2 - 3;
-      if (targetData['xid'] && targetData['xid'] === (sourceData['xid'] + '.0')) {
-        startPointY = Number(startPoint?.y) + NODE_HEIGHT + COLLAPSE_SHAPE_R;
-      } else if (sourceData['xid'] && sourceData['xid'].split(".").length === 2) {
-        startPointY = Number(startPoint?.y) + NODE_HEIGHT;
+        if (targetData['xid'] && targetData['xid'] === (sourceData['xid'] + '.0')) {
+          startPointY = Number(startPoint?.y) + NODE_HEIGHT + COLLAPSE_SHAPE_R;
+        } else if (sourceData['xid'] && sourceData['xid'].split(".").length === 2) {
+          startPointY = Number(startPoint?.y) + NODE_HEIGHT;
+        }
       }
       const shape: any = group.addShape('path', {
         attrs: {

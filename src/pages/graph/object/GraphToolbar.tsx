@@ -1,5 +1,5 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal } from "antd";
-import { labelThemeStyle } from "@/g6/edge";
+import { labelThemeStyle, TREE_NODE_STEP_LINE } from "@/g6/edge";
 import G6, { Item } from "@antv/g6";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -340,7 +340,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     graph.findAll('edge', function (edge: Item) {
-      if (edge.isVisible() && edge.get('model').type !== 'step-line') {
+      if (edge.isVisible() && edge.get('model').type !== TREE_NODE_STEP_LINE) {
         edge.hide();
         return true;
       }
@@ -367,7 +367,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     if (!graph) return;
     graph.findAll('edge', function (edge: Item) {
       const edgeModel = edge.get('model');
-      if (edgeModel.type !== 'step-line') {
+      if (edgeModel.type !== TREE_NODE_STEP_LINE) {
         let labelColor = labelThemeStyle[props.theme].fill;
         if (!_.isEmpty(filterMap.relation) && !_.get(filterMap.relation, edgeModel.relationName)) {
           labelColor = '#DCDEE1';
@@ -460,7 +460,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       if (!graph) return;
       graph.findAll('edge', function (edge: Item) {
         const edgeModel = edge.get('model');
-        if (edgeModel.type === 'step-line') return;
+        if (edgeModel.type === TREE_NODE_STEP_LINE) return;
         let lineColor = '#EAECEF', labelColor = '#DCDEE1';// 灰化
         if (!_.isEmpty(filterMap.relation) && _.get(filterMap.relation, edgeModel.relationName) || filters.length === 0) {
           // 高亮
