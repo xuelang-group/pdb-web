@@ -4,8 +4,14 @@ import _ from 'lodash';
 import { COLLAPSE_SHAPE_R, LINE_SYTLE, NODE_HEIGHT, ROOT_NODE_WIDTH } from '../utils/objectGraph';
 import { defaultCircleR } from './node';
 
+// 实例画布
+export const TREE_NODE_STEP_LINE = 'step-line'; // 画布树状结构节点间的层级连线类型
+export const TREE_NODE_RELATION_LINE = 'tree-relation-line'; // 不同根节点树下节点间的关系连线类型
+export const SAME_ROOT_TREE_NODE_RELATION_LINE = 'same-root-tree-relation-line'; // 相同根节点棵树下节点间的关系连线类型
+export const ROOT_NODE_RELATION_LINE = 'root-node-relation-line'; // 根节点间的关系连线类型
 
-export const TREE_NODE_STEP_LINE = 'step-line';
+// 模板画布
+export const TEMPLATE_RELATION_LINE = ''; // 关系类型连线
 
 export const defaultEdgeStyle = {
   stroke: '#F77234',
@@ -94,7 +100,7 @@ export function registerEdge() {
    * @param {object} node 连线方法
    */
 
-  // 画布树状结构节点间的层级连线
+  // 实例画布 - 树状结构节点间的层级连线
   G6.registerEdge(TREE_NODE_STEP_LINE, {
     draw(cfg: EdgeConfig, group) {
       const startPoint = cfg.sourceNode?.getBBox(),
@@ -134,129 +140,8 @@ export function registerEdge() {
     }
   });
 
-  // 直线
-  G6.registerEdge('straight-line', {
-    draw(cfg: EdgeConfig, group) {
-      const startPoint = cfg.startPoint,
-        endPoint = cfg.endPoint;
-      const { stroke } = LINE_SYTLE['default'];
-      const lineWidth = cfg.isComboEdge ? 0 : 1;
-      const shape = group.addShape('path', {
-        attrs: {
-          stroke,
-          lineWidth,
-          path: [
-            ['M', startPoint?.x, startPoint?.y],
-            ['L', endPoint?.x, endPoint?.y],
-          ],
-        },
-        name: 'path-shape',
-      });
-      return shape;
-    }
-  });
-
-
-  // 同树 - 左侧三折线
-  G6.registerEdge('left-three-line', {
-    draw(cfg: EdgeConfig, group) {
-      const startPoint = cfg.startPoint,
-        endPoint = cfg.endPoint;
-      const { stroke } = LINE_SYTLE['default'];
-      const lineWidth = cfg.isComboEdge ? 0 : 1;
-      // 折线
-      let startPoinX = Number(startPoint?.x),
-        endPointX = Number(endPoint?.x);
-
-      const shape = group.addShape('path', {
-        attrs: {
-          stroke,
-          lineWidth,
-          path: [
-            ['M', startPoinX, startPoint?.y],
-            ['L', startPoinX - 25, startPoint?.y],
-            ['L', endPointX - 25, endPoint?.y],
-            ['L', endPoint?.x, endPoint?.y],
-          ],
-        },
-        name: 'path-shape',
-      });
-      return shape;
-    }
-  });
-
-  function getPoint(cfg: any) {
-    const { id, sourceIsRoot, targetIsRoot, targetWidth, sourceWidth, source, target, startPoint, endPoint } = cfg;
-    const offset = 16;
-    if (source === target) {
-      let newStartX = startPoint.x + 15,
-        newEndX = endPoint.x + sourceWidth - 15,
-        newStartY = startPoint.y - 23,
-        newEndY = endPoint.y - 23;
-      const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX, true);
-      return [
-        { x: newStartX, y: newStartY },
-        { x: newStartX, y: middleY },
-        { x: newEndX, y: middleY },
-        { x: newEndX, y: newEndY }
-      ];
-    }
-    if (sourceIsRoot && targetIsRoot) {
-      if (startPoint.x < endPoint.x) {
-        let newStartX = startPoint.x - sourceWidth + 15,
-          newEndX = endPoint.x + 15,
-          newStartY = startPoint.y - 23,
-          newEndY = endPoint.y - 23;
-        const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX);
-        return [
-          { x: newStartX, y: newStartY },
-          { x: newStartX, y: middleY },
-          { x: newEndX, y: middleY },
-          { x: newEndX, y: newEndY }
-        ];
-      }
-      let newStartX = startPoint.x + 15,
-        newEndX = endPoint.x - targetWidth + 15,
-        newStartY = startPoint.y - 23,
-        newEndY = endPoint.y - 23;
-      const middleY = changeLineY(newStartY - offset, id, newStartX, newEndX);
-      return [
-        { x: newStartX, y: newStartY },
-        { x: newStartX, y: middleY },
-        { x: newEndX, y: middleY },
-        { x: newEndX, y: newEndY }
-      ];
-    }
-    if (startPoint.y < endPoint.y) {
-      const newStartX = startPoint.x + sourceWidth,
-        newEndX = endPoint.x + targetWidth;
-      const offsetStartX = newStartX + offset,
-        offsetEndX = newEndX + offset;
-
-      let middleX = newStartX < newEndX ? offsetEndX : offsetStartX;
-      middleX = changeLineX(middleX, id, startPoint.y, endPoint.y - 5);
-      return [
-        { x: newStartX, y: startPoint.y },
-        { x: middleX, y: startPoint.y },
-        { x: middleX, y: endPoint.y - 5 },
-        { x: newEndX, y: endPoint.y - 5 }
-      ];
-    } else {
-      const offsetStartX = startPoint.x - offset,
-        offsetEndX = endPoint.x - offset;
-      let middleX = startPoint.x < endPoint.x ? offsetStartX : offsetEndX;
-
-      middleX = changeLineX(middleX, id, startPoint.y, endPoint.y + 5);
-      return [
-        startPoint,
-        { x: middleX, y: startPoint.y },
-        { x: middleX, y: endPoint.y + 5 },
-        { x: endPoint.x, y: endPoint.y + 5 }
-      ];
-    }
-  }
-
-  G6.registerEdge('tree-relation-line', {
+  // 实例画布 - 不同根节点树下节点间的关系连线
+  G6.registerEdge(TREE_NODE_RELATION_LINE, {
     getPath(points: any) {
       const startPoint = points[0], endPoint = points[1];
       //曲线的起点终点
@@ -306,8 +191,8 @@ export function registerEdge() {
     }
   }, 'single-line');
 
-  // 同棵树间连线或根节点间连线，边类型为自定义“same-tree-relation-line”
-  G6.registerEdge('same-tree-relation-line', {
+  // 实例画布 - 相同根节点树下节点间的关系连线
+  G6.registerEdge(SAME_ROOT_TREE_NODE_RELATION_LINE, {
     curveOffset: 20,
     clockwise: 1,
     getPath(points: any) {
@@ -361,7 +246,8 @@ export function registerEdge() {
     },
   }, 'single-line');
 
-  G6.registerEdge('all-root-relation-line', {
+  // 实例画布 - 根节点间的关系连线
+  G6.registerEdge(ROOT_NODE_RELATION_LINE, {
     curveOffset: 20,
     clockwise: 1,
     getPath(points: any) {
@@ -424,7 +310,8 @@ export function registerEdge() {
 
   const _matrixUtil = require("@antv/matrix-util");
   const PI = Math.PI, transform = _matrixUtil.ext.transform, CLS_LABEL_SUFFIX = '-label';
-  G6.registerEdge('connect-line', {
+  // 模板画布 - 关系类型连线
+  G6.registerEdge(TEMPLATE_RELATION_LINE, {
     labelAutoRotate: true,
     curvePosition: 0.5,
     curveOffset: -20,
@@ -623,20 +510,6 @@ function _distance(p1: PolyPoint, p2: PolyPoint) {
   return Math.sqrt(vx * vx + vy * vy);
 };
 
-// 检查线条重叠
-function checkLineCollision(line1: any, line2: any) {
-  // 检查线段1的两个端点是否都在线段2的一侧
-  const s1 = ((line2.y2 - line2.y1) * (line1.x1 - line2.x1) - (line2.x2 - line2.x1) * (line1.y1 - line2.y1));
-  const s2 = ((line2.y2 - line2.y1) * (line1.x2 - line2.x1) - (line2.x2 - line2.x1) * (line1.y2 - line2.y1));
-
-  // 检查线段2的两个端点是否都在线段1的一侧
-  const s3 = ((line1.y2 - line1.y1) * (line2.x1 - line1.x1) - (line1.x2 - line1.x1) * (line2.y1 - line1.y1));
-  const s4 = ((line1.y2 - line1.y1) * (line2.x2 - line1.x1) - (line1.x2 - line1.x1) * (line2.y2 - line1.y1));
-
-  // 如果两条线段的端点都在对方的一侧，它们重叠
-  return (s1 * s2 <= 0) && (s3 * s4 <= 0);
-}
-
 export let xaxisMap: any = {};
 export let lineXaxisMap: any = {};
 
@@ -646,86 +519,6 @@ export function updateXaxisMap(value: any) {
 
 export function updateLineXaxisMap(value: any) {
   lineXaxisMap = { ...value };
-}
-
-function changeLineX(sameX: number, id: string, startPointY: any, endPointY: any) {
-  let currentSameX = sameX;
-  if (xaxisMap[currentSameX]) {
-    for (let i = 0; i < Object.keys(xaxisMap[sameX]).length; i++) {
-      let _id = Object.keys(xaxisMap[sameX])[i];
-      if (_id !== id) {
-        const isLineCollision = checkLineCollision(
-          { x1: sameX, y1: startPointY, x2: sameX, y2: endPointY },
-          { x1: sameX, y1: xaxisMap[sameX][_id][0], x2: sameX, y2: xaxisMap[sameX][_id][1] },
-        );
-        if (isLineCollision) {
-          currentSameX = changeLineX(sameX + 12, id, startPointY, endPointY);
-          break;
-        }
-      }
-    }
-    if (xaxisMap[currentSameX]) {
-      Object.assign(xaxisMap[currentSameX], {
-        [id]: [startPointY, endPointY]
-      });
-    } else {
-      Object.assign(xaxisMap, {
-        [currentSameX]: {
-          [id]: [startPointY, endPointY]
-        }
-      });
-    }
-  } else {
-    Object.assign(xaxisMap, {
-      [currentSameX]: {
-        [id]: [startPointY, endPointY]
-      }
-    });
-  }
-  Object.assign(lineXaxisMap, {
-    [id]: currentSameX
-  });
-  return currentSameX;
-}
-
-export let yaxisMap: any = {};
-function changeLineY(sameY: number, id: string, startPointX: any, endPointX: any, isSelfEdge = false) {
-  let currentSameY = sameY;
-  if (yaxisMap[currentSameY]) {
-    for (let i = 0; i < Object.keys(yaxisMap[sameY]).length; i++) {
-      let _id = Object.keys(yaxisMap[sameY])[i];
-      if (_id !== id) {
-        const isLineCollision = checkLineCollision(
-          { y1: sameY, x1: startPointX, y2: sameY, x2: endPointX },
-          { y1: sameY, x1: yaxisMap[sameY][_id][0], y2: sameY, x2: yaxisMap[sameY][_id][1] },
-        );
-        if (isLineCollision) {
-          currentSameY = changeLineY(sameY - 12, id, startPointX, endPointX);
-          break;
-        }
-      }
-    }
-    if (!isSelfEdge) {
-      if (yaxisMap[currentSameY]) {
-        Object.assign(yaxisMap[currentSameY], {
-          [id]: [startPointX, endPointX]
-        });
-      } else {
-        Object.assign(yaxisMap, {
-          [currentSameY]: {
-            [id]: [startPointX, endPointX]
-          }
-        });
-      }
-    }
-  } else if (!isSelfEdge) {
-    Object.assign(yaxisMap, {
-      [currentSameY]: {
-        [id]: [startPointX, endPointX]
-      }
-    });
-  }
-  return currentSameY;
 }
 
 export const isBending = (p0: PolyPoint, p1: PolyPoint, p2: PolyPoint): boolean =>

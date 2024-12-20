@@ -1,5 +1,5 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal } from "antd";
-import { labelThemeStyle, TREE_NODE_STEP_LINE } from "@/g6/edge";
+import { labelThemeStyle, ROOT_NODE_RELATION_LINE, SAME_ROOT_TREE_NODE_RELATION_LINE, TREE_NODE_RELATION_LINE, TREE_NODE_STEP_LINE } from "@/g6/edge";
 import G6, { Item } from "@antv/g6";
 import _ from "lodash";
 import { useEffect, useState } from "react";
@@ -232,7 +232,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           }
 
           // 默认边类型
-          let edgeType = 'tree-relation-line';
+          let edgeType = TREE_NODE_RELATION_LINE;
           const sourceIsRoot = _.get(sourceItemData['x.object.version.parent'], 'x.object.id') === rootId,
             targetIsRoot = _.get(targetItemData['x.object.version.parent'], 'x.object.id') === rootId,
             sourceWidth = sourceItemModel.width,
@@ -245,12 +245,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
           if (targetItemModel.id === sourceItemModel.id) {
             edgeType = "loop";
           } else if (targetItemXid.split('.')[1] === sourceItemXid.split('.')[1]) {
-            edgeType = 'same-tree-relation-line';
+            edgeType = SAME_ROOT_TREE_NODE_RELATION_LINE;
             if (sourceItemModel.y > targetItemModel.y) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }
           } else if (sourceIsRoot && targetIsRoot) {
-            edgeType = "all-root-relation-line";
+            edgeType = ROOT_NODE_RELATION_LINE;
             if (targetItemXid.split('.')[1] < sourceItemXid.split('.')[1]) {
               lineColor = 'l(0) 0:#FFAD72 1:rgba(255,173,114,0.2)';
             }

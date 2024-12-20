@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 import type { StoreState } from '@/store';
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
-import { edgeLabelStyle, edgeStyle } from '@/g6/edge';
+import { edgeLabelStyle, edgeStyle, TEMPLATE_RELATION_LINE } from '@/g6/edge';
 
 import './index.less';
 import { RelationConfig } from '@/reducers/relation';
@@ -111,7 +111,7 @@ export default function Editor(props: EditorProps) {
         }
       },
       defaultEdge: {
-        type: 'connect-line',
+        type: TEMPLATE_RELATION_LINE,
         style: edgeStyle.default,
         labelCfg: {
           autoRotate: true,
@@ -137,7 +137,7 @@ export default function Editor(props: EditorProps) {
     graph.getEdges().forEach((edge: Edge, i: number) => {
       const { source, target } = edge.getModel();
       graph.updateItem(edge, {
-        type: source === target ? 'loop' : 'connect-line',
+        type: source === target ? 'loop' : TEMPLATE_RELATION_LINE,
         curveOffset: edges[i].curveOffset,
         curvePosition: edges[i].curvePosition,
       });

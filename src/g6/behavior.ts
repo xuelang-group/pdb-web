@@ -10,6 +10,7 @@ import { nodeStateStyle, PAGINATION_NODE_TYPE } from './node';
 import { defaultNodeColor, getTextColor } from '@/utils/common';
 import { TypeConfig } from '@/reducers/type';
 import { getQueryResultChildren } from '@/actions/query';
+import { SAME_ROOT_TREE_NODE_RELATION_LINE, TREE_NODE_RELATION_LINE } from './edge';
 
 export const PAGE_SIZE = () => store.getState().editor.toolbarConfig["main"]["pageSize"] || 0;
 
@@ -2093,7 +2094,7 @@ export function registerBehavior() {
           const edge = edges[i];
           const edgeId = edge.getID();
           const edgeType = edge.getModel().type;
-          if ((edgeType === "tree-relation-line" || edgeType === "same-tree-relation-line") && activeItems[edgeId]) {
+          if ((edgeType === TREE_NODE_RELATION_LINE || edgeType === SAME_ROOT_TREE_NODE_RELATION_LINE) && activeItems[edgeId]) {
             graph.setItemState(edge, activeState, false);
             delete activeItems[edgeId];
           }
@@ -2131,7 +2132,7 @@ export function registerBehavior() {
           for (let i = 0; i < rEdgeLegnth; i++) {
             const edge = rEdges[i];
             const edgeType = edge.getModel().type;
-            if (edgeType === "tree-relation-line" || edgeType === "same-tree-relation-line") {
+            if (edgeType === TREE_NODE_RELATION_LINE || edgeType === SAME_ROOT_TREE_NODE_RELATION_LINE) {
               const edgeId = edge.getID();
               let otherEnd: INode;
               if (edge.getSource() === item) {
