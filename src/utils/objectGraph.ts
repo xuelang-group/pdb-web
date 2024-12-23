@@ -120,14 +120,18 @@ export function covertToGraphData(data: CustomObjectConfig[], parentId: string, 
   for (const item of data) {
     const uid = item['uid'],
       xid = item['x_id'] || uid,
-      name = item['x_name'] || uid,
       childLen = item['x_children'] || 0,
       currentParent = item['currentParent'],
       id = uid,
       collapsed = item.collapsed === undefined ? true : item.collapsed,
       metadata = JSON.parse(item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
-      iconKey = _.get(metadata, 'icon', '');
+      iconKey = _.get(metadata, 'icon', ''),
+      nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+    let name = item['x_name'] || uid;
+    if (nodeLabelKey !== 'x_name') {
+      name = _.get(_.get(item, 'x_attr_value', {}), nodeLabelKey.slice(5), name);
+    }
     const comboId = `${id}-combo`;
     const node = {
       id,
@@ -396,14 +400,18 @@ export function convertResultData(
         target: _.get(item, 'target')
       },
       _xid = xid ? (xid + '.' + index) : (_item['x_id'] || uid),
-      name = _item['x_name'] || uid,
       children = _item['e_x_children'] || [],
       childLen = children.length || 0,
       target = _item['target'],
       id = uid,
       metadata = JSON.parse(_item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
-      iconKey = _.get(metadata, 'icon', '');
+      iconKey = _.get(metadata, 'icon', ''),
+      nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+    let name = item['x_name'] || uid;
+    if (nodeLabelKey !== 'x_name') {
+      name = _.get(_.get(item, 'x_attr_value', {}), nodeLabelKey.slice(5), name);
+    }
     if (uid === rootId) {
       childLen > 0 && convertResultData(children, _item, nodes, edges, combos, edgeIdMap, relationLines, _xid);
     } else {
@@ -521,13 +529,17 @@ export function convertAllData(data: CustomObjectConfig[]) {
   for (const item of data) {
     const uid = item['uid'],
       xid = item['x_id'] || uid,
-      name = item['x_name'] || uid,
       childLen = item['x_children'] || 0,
       currentParent = item['currentParent'],
       id = item.id || uid,
       metadata = JSON.parse(item['x_metadata'] || '{}'),
       fill = _.get(metadata, 'color', defaultNodeColor.fill),
-      iconKey = _.get(metadata, 'icon', '');
+      iconKey = _.get(metadata, 'icon', ''),
+      nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+    let name = item['x_name'] || uid;
+    if (nodeLabelKey !== 'x_name') {
+      name = _.get(_.get(item, 'x_attr_value', {}), nodeLabelKey.slice(5), name);
+    }
     const comboId = `${id}-combo`;
     const parentId = currentParent.id;
     const collapsed = Boolean(item.collapsed === undefined ? true : item.collapsed);

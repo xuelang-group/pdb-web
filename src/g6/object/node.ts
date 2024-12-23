@@ -59,20 +59,14 @@ export function registerNode() {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode?.uid;
       const userId = store.getState().app.systemInfo.userId;
-      const { parent, id, data, childLen } = cfg;
+      const { parent, id, data, childLen, name } = cfg;
       const isRootNode = parent === rootId;
       const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
-        iconName: any = _.get(cfg, 'icon', ''),
-        nodeDisplayNameKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+        iconName: any = _.get(cfg, 'icon', '');
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
         textColor = getTextColor(nodeColor),
         iconColor = iconColorMap[textColor];
-
-      let nodeDisplayName = _.get(data, 'x_name', '');
-      if (nodeDisplayNameKey !== 'x_name') {
-        nodeDisplayName = _.get(_.get(data, 'x_attr_value', {}), nodeDisplayNameKey.slice(4), nodeDisplayName);
-      }
 
       if ((cfg.isQueryNode && !cfg.target) || cfg.isDisabled) {
         nodeColor = disabledNodeColor.fill;
@@ -82,7 +76,7 @@ export function registerNode() {
       }
       let iconX = 0,
         textX = 0;
-      const { text } = fittingString(nodeDisplayName as string, isRootNode ? ROOT_NODE_WIDTH - 140 : NODE_WIDTH - 20, GLOBAL_FONT_SIZE);
+      const { text } = fittingString(name as string, isRootNode ? ROOT_NODE_WIDTH - 140 : NODE_WIDTH - 20, GLOBAL_FONT_SIZE);
 
       // 节点名称
       const textShape = group.addShape('text', {
@@ -371,7 +365,7 @@ export function registerNode() {
       }
     },
     update: function (cfg: ModelConfig, item: Item) {
-      const { data, id, parent, childLen } = cfg;
+      const { data, id, parent, childLen, name } = cfg;
       const group = item.getContainer();
       const rootId = store.getState().editor.rootNode?.uid;
       const userId = store.getState().app.systemInfo.userId;
@@ -384,13 +378,7 @@ export function registerNode() {
         topRect = group?.find(child => child.get('name') === 'top-rect');
 
       const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
-        iconName: any = _.get(cfg, 'icon', ''),
-        nodeDisplayNameKey = _.get(metadata, 'nodeLabelKey', 'x_name');
-
-      let nodeDisplayName = _.get(data, 'x_name', '');
-      if (nodeDisplayNameKey !== 'x_name') {
-        nodeDisplayName = _.get(_.get(data, 'x_attr_value', {}), nodeDisplayNameKey.slice(4), nodeDisplayName);
-      }
+        iconName: any = _.get(cfg, 'icon', '');
 
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
@@ -405,7 +393,7 @@ export function registerNode() {
       }
 
       const isRootNode = parent === rootId;
-      const { text } = fittingString(nodeDisplayName as string, (isRootNode ? (ROOT_NODE_WIDTH - 140) : (NODE_WIDTH - 20)), GLOBAL_FONT_SIZE);
+      const { text } = fittingString(name as string, (isRootNode ? (ROOT_NODE_WIDTH - 140) : (NODE_WIDTH - 20)), GLOBAL_FONT_SIZE);
       nodeText.attr({ text });
 
       const textWidth = nodeText.getBBox().width;

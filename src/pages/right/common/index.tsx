@@ -98,7 +98,7 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
     if (props.route === 'object') {
-      const { name, id, gmt_modified, gmt_create, description, data } = graphData as ObjectGraphDataState
+      const { name, id, gmt_modified, gmt_create, description } = graphData as ObjectGraphDataState;
       infoForm.setFieldsValue({
         name,
         uid: id,
@@ -579,14 +579,19 @@ export default function Right(props: RightProps) {
 
     setObject(params, (success: boolean, response: any) => {
       if (success) {
-        const name = object['x_name'];
-        const icon = _.get(JSON.parse(object['x_metadata'] || '{}'), 'icon', '');
+        let name = object['x_name'];
+        const metadata = JSON.parse(object['x_metadata'] || '{}'),
+          icon = _.get(metadata, 'icon', ''),
+          nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+        if (nodeLabelKey !== 'x_name') {
+          name = x_attr_value[nodeLabelKey.slice(5)] || name;
+        }
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
           icon: icon,
           data: object,
           name: name
-        })
+        });
         const nodeId = currentEditDefaultData.uid, nodeItem = graph.findById(nodeId);
         if (key === 'name' && nodeItem) {
           const nodeWidth = nodeItem.getModel().width;

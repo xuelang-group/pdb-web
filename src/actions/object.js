@@ -92,6 +92,17 @@ export const setObject = (params, callback) => {
   });
 };
 
+export const setTypeObjectMetadata = (params, callback) => {
+  return axios.post(api['update'] + "/metadata", {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 // 获取对象
 export const getObject = (vid, callback) => {
   return axios.post(api['get'], {
