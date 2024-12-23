@@ -89,6 +89,11 @@ export default function UpdateDisplayNameModal(props: ModalProps) {
     props.close();
   }
 
+  const layout = {
+    labelCol: { span: 6 },
+    wrapperCol: { span: 17 },
+  };
+
   return (
     <Modal
       title="实例节点文字展示"
@@ -96,11 +101,11 @@ export default function UpdateDisplayNameModal(props: ModalProps) {
       onOk={handleOk}
       onCancel={handleClose}
     >
-      <Form form={form}>
+      <Form {...layout} form={form}>
         <Form.Item name="labelKey" label="展示为">
           <Select options={selectOptions}></Select>
         </Form.Item>
-        <Form.Item name="apply" label="应用于">
+        <Form.Item name="apply" label="应用于" style={{ marginBottom: 0 }}>
           <Radio.Group>
             <Radio value="single">此实例</Radio>
             <Radio value="all">
