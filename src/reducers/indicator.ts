@@ -81,6 +81,8 @@ const initialState: IndicatorState = {
   nowCheckVersion: null,
 }
 
+let groupByNameDict: Record = {}
+
 const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
   const cols: string[] = data[0];  // CSV的第一行：表头
   const types: string[] = data[1]; // CSV的第二行：数据类型
@@ -135,11 +137,19 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   if (!isEmpty(groupByResult)) {
     forEach(groupByResult, item => {
       // 计算结果中的分组
-      const keys = Object.keys(item).filter(key => key !== dimension);
-      const record: Record = {
-        ...item,
-        merge: keys.length
+      const record: Record = {        
+        [`${dimension}`]: item.value,
+        merge: item.group_by.length
       }
+      // const keys = Object.keys(item).filter(key => key !== dimension);
+      const keys: string[] = [];
+      forEach(item.group_by, gb => {
+        Object.keys(gb).forEach(key => {
+          const dimens = groupByNameDict[key];
+          keys.push(dimens);
+          record[`${dimens}`] = gb[key];
+        })
+      })
       const index = findLastIndex(records, (row: any) => {
         const count = filter(keys, (gb) => row[gb] == record[gb])
         return count.length === keys.length
@@ -226,7 +236,9 @@ export const indicatorSlice = createSlice({
       }))
     },
     setFuncResult: (state, action: PayloadAction<any>) => {
-      const { result } = action.payload;
+      const { result, group_by_name_dict } = action.payload;
+      // const { name, name_cn } = action.payload.dimension;
+      groupByNameDict = group_by_name_dict;
       // 使用解构赋值
       const [first, ...group_by_result] = result;
       state.groupByResult = group_by_result;
@@ -273,7 +285,11 @@ export const indicatorSlice = createSlice({
       state.funcOptions = updateFuncOptions(columns, dimension);
     },
     setFunc: (state, action: PayloadAction<any>) => {
+      console.log('setFunc: ', action.payload)
       state.func = action.payload;
+      if (!action.payload) {
+        state.result = [];
+      }
     },
     setCheckId: (state, action: PayloadAction<any>) => {
       state.checkId = action.payload;

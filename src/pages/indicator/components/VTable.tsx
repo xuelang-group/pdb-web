@@ -305,7 +305,7 @@ export default function VTable(props: {width: number, height: number}) {
   
   const showFoot = !isEmpty(result)
   return (
-    <div className='pdb-vtable' style={{ position: 'relative', paddingBottom: showFoot ? 48 : 0 }}>
+    <div className='pdb-vtable' style={{ position: 'relative', height: height }}>
       {
         isEmpty(columns) && (
           <div className="pdb-vtable-empty">
@@ -344,7 +344,7 @@ export default function VTable(props: {width: number, height: number}) {
             <span>合计 | </span> 
             {
               result.map(item => (
-                <span key={item.index}>{func} : {item[dimension]}</span>
+                <span key={item.index}>{func} : {item.value}</span>
               ))
             }
           </Space>

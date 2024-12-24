@@ -127,7 +127,7 @@ export default function Indicator(props: any) {
             </div>
           )
         }
-        <VTable width={width - PADDING * 2} height={height - PADDING - 40} />
+        <VTable width={width - PADDING * 2} height={height - PADDING} />
       </Spin>
       <UseHistoryModal visible={modalVisible} onCancel={() => setModalVisible(false)} onSuccess={onBack} />
     </div>
