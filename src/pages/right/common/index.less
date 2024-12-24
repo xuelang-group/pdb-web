@@ -15,9 +15,10 @@
     padding: 0;
     overflow: auto;
 
-    .CodeMirror  {
+    .CodeMirror {
       border: 1px solid var(--border-color1);
     }
+
     .pdb-info,
     .pdb-app-info {
       padding: 1.6rem 1.6rem .4rem;
@@ -31,87 +32,6 @@
 
       .pdb-ant-col.pdb-ant-form-item-control {
         min-height: unset;
-      }
-
-      .info-name {
-        position: relative;
-
-        &-hidden {
-          visibility: hidden;
-          padding: 0;
-          line-height: 2.4rem;
-          font-size: 1.6rem;
-          font-weight: 600;
-          min-height: 2.4rem;
-          overflow-wrap: anywhere;
-        }
-
-        .pdb-ant-form-item-has-error+.info-name-hidden {
-          margin-bottom: 1.5rem;
-        }
-
-        .pdb-ant-form-item {
-          line-height: 2.4rem !important;
-        }
-
-        .pdb-ant-input {
-          line-height: 2.4rem;
-          resize: none;
-          min-height: 2.6rem;
-          font-weight: bold;
-          font-size: 1.6rem;
-          color: var(--text-color1);
-          padding: .4rem .2rem;
-
-          &:not(.pdb-ant-input-status-error) {
-
-            cursor: pointer;
-            border: none;
-            text-overflow: ellipsis;
-
-            &:hover {
-              background-color: var(--fill-color1);
-            }
-
-            &:focus {
-              border: 1px solid var(--primary-color);
-              background-color: unset;
-            }
-          }
-
-          &.pdb-ant-input {
-            background-color: transparent !important;
-          }
-
-          &.pdb-ant-input-disabled {
-            color: var(--text-color1) !important;
-            cursor: unset;
-          }
-        }
-
-        .pdb-ant-input[disabled] {
-          background-color: transparent;
-        }
-
-        .pdb-ant-form-item {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          top: 0;
-          left: 0;
-
-          .pdb-ant-form-item-label>label.pdb-ant-form-item-required:not(.pdb-ant-form-item-required-mark-optional)::before {
-            display: none !important;
-          }
-
-          .pdb-ant-row,
-          .pdb-ant-col.pdb-ant-form-item-control,
-          .pdb-ant-form-item-control-input,
-          .pdb-ant-form-item-control-input-content,
-          .pdb-ant-input {
-            height: 100%;
-          }
-        }
       }
 
       .info-id,
@@ -194,33 +114,201 @@
       }
     }
 
-    .pdb-info .info-name .pdb-ant-input:enabled {
-      &:hover {
-        background-color: var(--fill-color2) !important;
+    .pdb-info .info-name {
+      position: relative;
+
+      &-label {
+        visibility: visible;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+
+        span {
+          font-size: 1.6rem;
+          font-weight: bold;
+          line-height: 24px;
+          color: var(--text-color1);
+          overflow-wrap: break-word;
+          cursor: pointer;
+
+          &:hover {
+            background-color: var(--fill-color1);
+          }
+        }
+
+        .iconfont {
+          margin-left: 8px;
+          color: var(--primary-color);
+          cursor: pointer;
+          font-size: 1.6rem;
+        }
       }
 
-      &:not(.pdb-ant-input-status-error):focus {
-        padding: 0 .4rem;
-        background-color: var(--input-bg) !important;
+      .pdb-ant-form-item {
+        line-height: 2.4rem !important;
+        visibility: hidden;
+      }
+
+      &-editing {
+        .info-name-label {
+          visibility: hidden;
+        }
+
+        .pdb-ant-form-item {
+          visibility: visible;
+        }
+      }
+
+      .pdb-ant-input {
+        line-height: 2.4rem;
+        resize: none;
+        min-height: 2.6rem;
+        font-weight: bold;
+        font-size: 1.6rem;
+        color: var(--text-color1);
+        padding: .4rem .2rem;
+
+        &:not(.pdb-ant-input-status-error) {
+
+          cursor: pointer;
+          border: none;
+          text-overflow: ellipsis;
+
+          &:hover {
+            background-color: var(--fill-color1);
+          }
+
+          &:focus {
+            border: 1px solid var(--primary-color);
+            background-color: unset;
+          }
+        }
+
+        &.pdb-ant-input {
+          background-color: transparent !important;
+        }
+
+        &.pdb-ant-input-disabled {
+          color: var(--text-color1) !important;
+          cursor: unset;
+        }
+      }
+
+      .pdb-ant-input[disabled] {
+        background-color: transparent;
+      }
+
+      .pdb-ant-form-item {
+        .pdb-ant-form-item-label>label.pdb-ant-form-item-required:not(.pdb-ant-form-item-required-mark-optional)::before {
+          display: none !important;
+        }
+
+        .pdb-ant-row,
+        .pdb-ant-col.pdb-ant-form-item-control,
+        .pdb-ant-form-item-control-input,
+        .pdb-ant-form-item-control-input-content,
+        .pdb-ant-input {
+          height: 100%;
+        }
+      }
+
+
+      .pdb-ant-input:enabled {
+        &:hover {
+          background-color: var(--fill-color2) !important;
+        }
+
+        &:not(.pdb-ant-input-status-error):focus {
+          padding: 0 .4rem;
+          background-color: var(--input-bg) !important;
+        }
       }
     }
 
     .pdb-app-info {
-      .info-name {
-        textarea.pdb-ant-input:not(.pdb-ant-input-status-error) {
-          border: 1px solid var(--border-color1);
-          font-weight: normal;
-          line-height: 2.2rem;
-          padding: 0.4rem 1.2rem;
-          font-size: 1.4rem;
+      .app-info-name {
+        position: relative;
+
+        textarea.pdb-ant-input {
+          line-height: 2.4rem;
+          resize: none;
+          min-height: 2.6rem;
+          font-weight: bold;
+          font-size: 1.6rem;
+          color: var(--text-color1);
+          padding: .4rem .2rem;
+
+          &:not(.pdb-ant-input-status-error) {
+            cursor: pointer;
+            text-overflow: ellipsis;
+            border: 1px solid var(--border-color1);
+            font-weight: normal;
+            line-height: 2.2rem;
+            padding: 0.4rem 1.2rem;
+            font-size: 1.4rem;
+
+            &:hover {
+              background-color: var(--fill-color1);
+            }
+
+            &:focus {
+              border: 1px solid var(--primary-color);
+              background-color: unset;
+            }
+          }
+
+          &.pdb-ant-input {
+            background-color: transparent !important;
+          }
+
+          &.pdb-ant-input-disabled {
+            color: var(--text-color1) !important;
+            cursor: unset;
+          }
         }
 
         &-hidden {
+          visibility: hidden;
           padding: .5rem 1.2rem;
           min-height: 3.2rem;
           line-height: 2.2rem;
           font-size: 1.4rem;
           font-weight: normal;
+          overflow-wrap: anywhere;
+        }
+
+        .pdb-ant-form-item-has-error+.app-info-name-hidden {
+          margin-bottom: 1.5rem;
+        }
+
+        .pdb-ant-form-item {
+          line-height: 2.4rem !important;
+        }
+
+        .pdb-ant-input[disabled] {
+          background-color: transparent;
+        }
+
+        .pdb-ant-form-item {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+
+          .pdb-ant-form-item-label>label.pdb-ant-form-item-required:not(.pdb-ant-form-item-required-mark-optional)::before {
+            display: none !important;
+          }
+
+          .pdb-ant-row,
+          .pdb-ant-col.pdb-ant-form-item-control,
+          .pdb-ant-form-item-control-input,
+          .pdb-ant-form-item-control-input-content,
+          .pdb-ant-input {
+            height: 100%;
+          }
         }
       }
 

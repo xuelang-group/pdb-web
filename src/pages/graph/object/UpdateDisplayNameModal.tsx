@@ -106,12 +106,10 @@ export default function UpdateDisplayNameModal(props: ModalProps) {
           handleClose();
         });
       } else {
-        const typeId = updateItemData["x_type_name"] || "",
-          metadata = JSON.parse(_.get(typeMap[typeId], "x.type.metadata", "{}"));
-        Object.assign(metadata, { "nodeLabelKey": labelKey });
+        const typeId = updateItemData["x_type_name"] || "";
         setTypeObjectMetadata({
           "x_type_name": typeId,
-          "x_metadata": JSON.stringify(metadata)
+          "x_metadata": JSON.stringify({ "nodeLabelKey": labelKey })
         }, (success: boolean, response: any) => {
           if (success) {
             const graph = (window as any).PDB_GRAPH;
@@ -139,6 +137,8 @@ export default function UpdateDisplayNameModal(props: ModalProps) {
               if (labelKey !== "x_name") {
                 name = _.get(_.get(currentEditModelData, 'x_attr_value', {}), labelKey.slice(5), name);
               }
+              const metadata = JSON.parse(currentEditModelData["x_metadata"] || "{}");
+              Object.assign(metadata, { "nodeLabelKey": labelKey });
               dispatch(setCurrentEditModel({
                 ...currentEditModel,
                 name,
