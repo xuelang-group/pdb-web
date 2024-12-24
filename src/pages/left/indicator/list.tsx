@@ -96,31 +96,35 @@ export default function List(props: any) {
     if (_needCheckId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needCheckId)
       if (tempObj) {
+        const dimensionStr = tempObj.metric_params.dimension.name_cn
+        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         dispatch(setCheckId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
-        dispatch(setDimension(tempObj.metric_params.dimension));
+        dispatch(setDimension(dimensionStr));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
         setTimeout(() => {
           dispatch(setFunc(tempObj.metric_params.func));
-          dispatch(setGroupBy(tempObj.metric_params.group_by));
+          dispatch(setGroupBy(groupByArr));
         }, 500)
       }
     } else if (_needEditId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
       if(tempObj) {
+        const dimensionStr = tempObj.metric_params.dimension.name_cn
+        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
           dispatch(setEditId(tempObj.id));
           dispatch(setNeedEditId(null));
           dispatch(setQueryParams(tempObj.pql_params.params));
-          dispatch(setDimension(tempObj.metric_params.dimension));
+          dispatch(setDimension(dimensionStr));
           dispatch(setApi(tempObj.pql_params.api));
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
           setTimeout(() => {
             dispatch(setFunc(tempObj.metric_params.func));
-            dispatch(setGroupBy(tempObj.metric_params.group_by));
+            dispatch(setGroupBy(groupByArr));
           }, 500)
         })
       }
@@ -166,20 +170,28 @@ export default function List(props: any) {
       setCheckData(item)
     }
     if (menu.key === 'check2') {
+      const dimensionStr = item.metric_params.dimension.name_cn
+      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
       dispatch(setCheckId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setDimension(item.metric_params.dimension));
-      dispatch(setFunc(item.metric_params.func));
-      dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
+      setTimeout(() => {
+        dispatch(setDimension(dimensionStr));
+        dispatch(setFunc(item.metric_params.func));
+        dispatch(setGroupBy(groupByArr));
+      }, 500)
     }
     if (menu.key === 'edit') {
+      const dimensionStr = item.metric_params.dimension.name_cn
+      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
       dispatch(setEditId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setDimension(item.metric_params.dimension));
-      dispatch(setFunc(item.metric_params.func));
-      dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
+      setTimeout(() => {
+        dispatch(setDimension(dimensionStr));
+        dispatch(setFunc(item.metric_params.func));
+        dispatch(setGroupBy(groupByArr));
+      }, 500)
     }
     if (menu.key ==='version') {
       setVersionVisible(true)

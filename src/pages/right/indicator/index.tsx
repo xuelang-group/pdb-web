@@ -60,6 +60,7 @@ export default function Right(props: any) {
       name: values.name,
       unit: values.unit || '',
       desc: values.desc || '',
+      version: values.version,
       metric_params: {
         dimension: getDimensionObj(dimension),
         func: func,
