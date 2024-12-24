@@ -392,6 +392,7 @@ export function registerNode() {
 
       const metadata = JSON.parse(nodeData['x.object.metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
+
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
         textColor = getTextColor(nodeColor),

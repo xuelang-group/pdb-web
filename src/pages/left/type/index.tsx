@@ -721,11 +721,13 @@ export default function Left() {
                 }
               }
             }
-          ]}>
+          ]}
+            style={type === 'type' && modalType !== 'copy' ? {} : { marginBottom: 0 }}
+          >
             <Input />
           </Form.Item>
           {type === 'type' && modalType !== 'copy' &&
-            <Form.Item name="prototype" label="继承自">
+            <Form.Item name="prototype" label="继承自" style={{ marginBottom: 0 }}>
               <Select disabled={modalType === 'inherit'}>
                 {prototypeList.map((item: any) => (
                   <Select.Option value={item['x.type.id']}>

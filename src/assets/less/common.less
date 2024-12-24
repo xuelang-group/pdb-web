@@ -630,6 +630,7 @@
           background-color: var(--disabled-bg);
           color: var(--disabled-color);
           border-color: var(--disabled-border);
+
           * {
             color: var(--disabled-color);
           }
@@ -677,7 +678,7 @@
   .pdb-ant-form-item {
     color: var(--text-color1);
 
-    &-label>label {
+    .pdb-ant-form-item-label>label {
       color: var(--text-color3);
       font-weight: 400;
     }
@@ -974,14 +975,15 @@
 
   .pdb-ant-modal {
     color: var(--text-color2);
+  }
 
+  .pdb-ant-modal .pdb-ant-modal {
     &-header {
-      border-bottom-color: var(--border-color2);
       background-color: var(--modal-bg);
       // height: 5.6rem;
       display: flex;
       align-items: center;
-      padding: 0 2.4rem;
+      padding: 1.6rem 2.4rem;
       border-bottom: 1px solid var(--border-color2);
       margin: 0;
     }
@@ -1045,12 +1047,13 @@
       &-focused {
         border-right: 1px solid var(--primary-hover);
 
-        &+.pdb-ant-input-group-addon > .pdb-ant-btn:hover {
+        &+.pdb-ant-input-group-addon>.pdb-ant-btn:hover {
           border-left: none;
         }
       }
 
-      &:hover, &:focus {
+      &:hover,
+      &:focus {
         border-right: 1px solid var(--primary-hover);
         z-index: 1 !important;
       }
@@ -1060,7 +1063,7 @@
       inset-inline-start: 0;
     }
 
-    .pdb-ant-input-group-addon > .pdb-ant-btn-primary {
+    .pdb-ant-input-group-addon>.pdb-ant-btn-primary {
       background-color: var(--input-bg);
       border: 1px solid var(--border-color1);
       border-left: none;
@@ -1075,65 +1078,7 @@
   }
 }
 
-.pdb-ant-modal {
-  color: var(--text-color2);
-
-  .pdb-ant-btn {
-    border-radius: 2px;
-  }
-
-  &-header {
-    border-bottom-color: var(--border-color2);
-    background-color: var(--modal-bg);
-    // height: 5.6rem;
-    display: flex;
-    align-items: center;
-    padding: 0 2.4rem;
-    border-bottom: 1px solid var(--border-color2);
-    margin: 0;
-  }
-
-  &-body {
-    padding: 2.4rem;
-  }
-
-  &-footer {
-    background-color: var(--modal-bg);
-    margin: 0;
-    padding: 1.2rem 2.4rem;
-    border-top: 1px solid var(--border-color2);
-  }
-
-  &-content {
-    background-color: var(--modal-bg);
-    box-shadow: var(--modal-shadow);
-    padding: 0;
-  }
-
-  &-title {
-    color: var(--text-color1);
-  }
-
-  &-close {
-    color: var(--icon-color2);
-
-    &:hover {
-      color: var(--icon-color3);
-    }
-  }
-
-  &-confirm {
-    &-title {
-      color: var(--text-color1);
-    }
-
-    &-content {
-      color: var(--text-color2);
-    }
-  }
-}
-
-.pdb-ant-modal-confirm {
+.pdb-ant-modal.pdb-ant-modal-confirm {
   .pdb-ant-modal-content {
     border-radius: .4rem;
     background-color: var(--modal-bg);
