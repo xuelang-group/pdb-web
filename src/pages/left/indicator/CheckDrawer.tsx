@@ -11,7 +11,7 @@ export default function SaveModal(props: any) {
     if (props.data) {
       infoForm.setFieldsValue({
         name: props.data.name,
-        name_en: props.data.name_en,
+        name_cn: props.data.name_cn,
         unit: props.data.unit,
         desc: props.data.desc,
       })
@@ -29,7 +29,7 @@ export default function SaveModal(props: any) {
       const postObj = {
         id: props.data?.id,
         name: values.name,
-        name_en: values.name_en,
+        name_cn: values.name_cn,
         unit: values.unit,
         desc: values.desc,
         metric_params: props.data?.metric_params,
@@ -68,20 +68,21 @@ export default function SaveModal(props: any) {
         {
           isEdit ? (
             <>
-              <Form.Item label="中文名称" name='name'><Input placeholder="请输入中文名称" /></Form.Item>
-              <Form.Item label="英文名称" name='name_en'><Input placeholder="请输入英文名称" /></Form.Item>
+              <Form.Item label="中文名称" name='name_cn'><Input placeholder="请输入中文名称" /></Form.Item>
+              <Form.Item label="英文名称" name='name'><Input placeholder="请输入英文名称" /></Form.Item>
               <Form.Item label="单位" name='unit'><Input placeholder="请输入单位" /></Form.Item>
               <Form.Item label="描述" name='desc'><Input.TextArea placeholder="请输入指标描述" rows={3} /></Form.Item>
             </>
           ) : (
             <>
-              <Form.Item label="中文名称" name='name' initialValue={props.data?.name}>{props.data?.name || "--"}</Form.Item>
-              <Form.Item label="英文名称" name='name_en' initialValue={props.data?.name_en}>{props.data?.name_en || "--"}</Form.Item>
+              <Form.Item label="中文名称" name='name_cn' initialValue={props.data?.name_cn}>{props.data?.name_cn || "--"}</Form.Item>
+              <Form.Item label="英文名称" name='name' initialValue={props.data?.name}>{props.data?.name || "--"}</Form.Item>
               <Form.Item label="单位" name='unit' initialValue={props.data?.unit}>{props.data?.unit || "--"}</Form.Item>
               <Form.Item label="描述" name='desc' initialValue={props.data?.desc}>{props.data?.desc || "--"}</Form.Item>
             </>
           )
         }
+        <Form.Item label="版本号">{props.data?.version || "--"}</Form.Item>
         <Form.Item label="创建人">--</Form.Item>
         <Form.Item label="所属业务过程">{props.data?.buzProcess || "--"}</Form.Item>
         <Form.Item label="相关业务过程">--</Form.Item>

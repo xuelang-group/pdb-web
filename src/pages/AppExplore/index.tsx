@@ -49,7 +49,7 @@ export default function AppExplore() {
     queryParams = useSelector((state: StoreState) => state.query.params),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   const dimentionIitial = useSelector((state: StoreState) => state.indicator.dimentionInitial),
-    dimention = useSelector((state: StoreState) => state.indicator.dimention),
+    dimension = useSelector((state: StoreState) => state.indicator.dimension),
     func = useSelector((state: StoreState) => state.indicator.func),
     groupBy = useSelector((state: StoreState) => state.indicator.groupBy),
     indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
@@ -1047,7 +1047,7 @@ export default function AppExplore() {
   }
 
   const handleClearSearch = function (event: any = null) {
-    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
       setSaveConfirmModal("clear");
       navigator(`/${systemInfo.graphId}/indicator`);
     } else {
@@ -1203,7 +1203,7 @@ export default function AppExplore() {
           style={{ display: !searchLoading && !indicatorCheckId ? "block" : "none" }}
           onClick={event => {
             event.stopPropagation();
-            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
               setSaveConfirmModal("search");
               navigator(`/${systemInfo.graphId}/indicator`);
             } else {

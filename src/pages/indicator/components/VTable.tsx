@@ -4,7 +4,7 @@ import { message, Space, Empty, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
-import { isEmpty, compact } from "lodash"
+import { isEmpty, compact, isString } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { setLoading, setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
@@ -22,7 +22,7 @@ export default function VTable(props: {width: number, height: number}) {
   const query = useSelector((state: StoreState) => state.query.params);
   const records = useSelector((state: StoreState) => state.indicator.records);
   const columns = useSelector((state: StoreState) => state.indicator.columns);
-  const dimention = useSelector((state: StoreState) => state.indicator.dimention);
+  const dimension = useSelector((state: StoreState) => state.indicator.dimension);
   const groupBy = useSelector((state: StoreState) => state.indicator.groupBy);
   const mergeCell = useSelector((state: StoreState) => state.indicator.mergeCell);
   const func = useSelector((state: StoreState) => state.indicator.func);
@@ -138,7 +138,7 @@ export default function VTable(props: {width: number, height: number}) {
               const text = new CustomLayout.Text({
                 x: width - colWidth + 14,
                 y: height / 2 + 1,
-                text: func + ": " + item[`${dimention}`],
+                text: func + ": " + item[`${dimension}`],
                 fontSize: 13,
                 fontWeight: 600,
                 fontFamily: 'PingFang SC',
@@ -179,7 +179,7 @@ export default function VTable(props: {width: number, height: number}) {
     //     alignItems: 'center',
     //     justifyContent: 'flex-end',
     //   });
-    //   // const count = record.children.map((item: any) => item[dimention]).reduce((prev: any, curr: any) => prev + curr)
+    //   // const count = record.children.map((item: any) => item[dimension]).reduce((prev: any, curr: any) => prev + curr)
     //   const info = new CustomLayout.Text({
     //     text: `小计 | avgs`,
     //     fontSize: 14,
@@ -265,14 +265,43 @@ export default function VTable(props: {width: number, height: number}) {
   }, [columns])
 
   useEffect(() => {
-    func && getFuncResult({dimention, func, groupBy: compact(groupBy), query}, function(success: boolean, response: any) {
+    func && getFuncResult({dimension: getDimensionObj(dimension), func, groupBy: getGroupByObj(compact(groupBy)), query}, function(success: boolean, response: any) {
       if (success) {
         dispatch(setFuncResult(response));
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
     })
-  }, [func, dimention, groupBy])
+  }, [func, dimension, groupBy])
+
+  const getDimensionObj = (dimension: string) => {
+    const header = query.csv.header
+    const dimensionObj = header.find((item: any) => item.attrName === dimension)
+    if(dimensionObj) {
+      const { attrId, attrName } = dimensionObj
+      return {
+        name: attrId,
+        name_cn: attrName,
+      }
+    } else {
+      return dimension
+    }
+  }
+
+  const getGroupByObj = (groupBy: string[]) => {
+    if(isString(groupBy[0])) {
+      const header = query.csv.header
+      const groupByObj = groupBy.map((item: any) => {
+        const groupByItem = header.find((headerItem: any) => headerItem.attrName === item) || {attrId: '', attrName: ''}
+        return {
+          name: groupByItem.attrId,
+          name_cn: groupByItem.attrName,
+        }
+      })
+      return groupByObj
+    }
+    return groupBy
+  }
   
   const showFoot = !isEmpty(result)
   return (
@@ -315,7 +344,7 @@ export default function VTable(props: {width: number, height: number}) {
             <span>合计 | </span> 
             {
               result.map(item => (
-                <span key={item.index}>{func} : {item[dimention]}</span>
+                <span key={item.index}>{func} : {item[dimension]}</span>
               ))
             }
           </Space>
