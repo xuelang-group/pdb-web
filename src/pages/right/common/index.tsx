@@ -41,6 +41,7 @@ import './index.less';
 import SearchAround from '@/components/SearchAround';
 import store from '@/store';
 import VersionList from '../object/VersionList';
+import UpdateDisplayNameModal from '@/pages/graph/object/UpdateDisplayNameModal';
 
 const { Option } = Select;
 const CodeEditor = ({ value = '', onChange, handleChange }: any, other2: any) => (
@@ -85,7 +86,9 @@ export default function Right(props: RightProps) {
     [attrLoading, setAttrLoading] = useState(false),
     [panelTitle, setPanelTitle] = useState(''),
     [hasVersion, setHasVersion] = useState(false),
-    [checkoutVersion, setCheckoutVersion] = useState({});
+    [checkoutVersion, setCheckoutVersion] = useState({}),
+    [updateItem, setUpdateItem] = useState<any>(null),
+    [nameIsEditing, setNameEditing] = useState(false);
 
   const [infoForm] = Form.useForm(),
     [attrForm] = Form.useForm();
@@ -98,7 +101,7 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     if (currentEditModel || !graphData || JSON.stringify(graphData) === '{}') return;
     if (props.route === 'object') {
-      const { name, id, gmt_modified, gmt_create, description, data } = graphData as ObjectGraphDataState
+      const { name, id, gmt_modified, gmt_create, description } = graphData as ObjectGraphDataState;
       infoForm.setFieldsValue({
         name,
         uid: id,
@@ -112,6 +115,14 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     resizeGraph();
   }, [currentEditParam]);
+
+  useEffect(() => {
+    if (nameIsEditing) {
+      setTimeout(() => {
+        inputRef && inputRef.current?.focus();
+      }, 50);
+    }
+  }, [nameIsEditing]);
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
     let prevLabel = 'x_';
@@ -579,14 +590,19 @@ export default function Right(props: RightProps) {
 
     setObject(params, (success: boolean, response: any) => {
       if (success) {
-        const name = object['x_name'];
-        const icon = _.get(JSON.parse(object['x_metadata'] || '{}'), 'icon', '');
+        let name = object['x_name'];
+        const metadata = JSON.parse(object['x_metadata'] || '{}'),
+          icon = _.get(metadata, 'icon', ''),
+          nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+        if (nodeLabelKey !== 'x_name') {
+          name = x_attr_value[nodeLabelKey.slice(5)] || name;
+        }
         const graph = (window as any).PDB_GRAPH;
         graph?.updateItem(item, {
           icon: icon,
           data: object,
           name: name
-        })
+        });
         const nodeId = currentEditDefaultData.uid, nodeItem = graph.findById(nodeId);
         if (key === 'name' && nodeItem) {
           const nodeWidth = nodeItem.getModel().width;
@@ -684,6 +700,7 @@ export default function Right(props: RightProps) {
 
   // 更改显示名称
   const changeName = () => {
+    setNameEditing(false);
     if (!(window as any).PDB_GRAPH) return;
 
     infoForm.validateFields().then(value => {
@@ -1216,8 +1233,8 @@ export default function Right(props: RightProps) {
               label={`${props.route === 'object' ? '项目' : '模板'}名称`}
               rules={[{ required: true, message: '' }]}
             >
-              <div className='info-name'>
-                <div className='info-name-hidden'>{appName}</div>
+              <div className='app-info-name'>
+                <div className='app-info-name-hidden'>{appName}</div>
                 <Form.Item name='name' label={''} rules={[{ required: true, message: '' }]}>
                   <Input.TextArea
                     ref={inputRef}
@@ -1267,7 +1284,20 @@ export default function Right(props: RightProps) {
         autoComplete='off'
       >
         <div className='pdb-info'>
-          <div className='info-name'>
+          <div className={'info-name' + (nameIsEditing ? ' info-name-editing' : '')}>
+            <div className='info-name-label'>
+              <span onClick={() => {
+                if (!(currentEditType !== 'object' && location.pathname.endsWith("/template") || currentEditType === 'relation')) {
+                  setNameEditing(true);
+                }
+              }}>{appName}</span>
+              {!(currentEditType !== 'object' && location.pathname.endsWith("/template") || currentEditType === 'relation') &&
+                <i
+                  className='iconfont icon-xiugaijiedianshilizhanshiwenzi'
+                  onClick={() => { setUpdateItem(currentEditModel); }}
+                ></i>
+              }
+            </div>
             <Form.Item name='name' label='' rules={[
               { required: true, message: '名称不能为空' },
               {
@@ -1292,10 +1322,10 @@ export default function Right(props: RightProps) {
                 placeholder={'点击编辑名称'}
                 onBlur={changeName}
                 onPressEnter={changeName}
-                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
+                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || currentEditType === 'relation'}
+                autoSize
               />
             </Form.Item>
-            <div className='info-name-hidden'>{appName}</div>
           </div>
           {showMore &&
             <>
@@ -1489,6 +1519,12 @@ export default function Right(props: RightProps) {
             }
           </PdbPanel>
         }
+        <UpdateDisplayNameModal
+          updateItem={updateItem}
+          close={() => {
+            setUpdateItem(null);
+          }}
+        />
       </div>
       {contextHolder}
     </div>

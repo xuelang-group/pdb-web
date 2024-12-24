@@ -706,23 +706,28 @@ export default function Left(props: any) {
         onCancel={handleModalCancel}
       >
         <Form {...layout} form={modalForm}>
-          <Form.Item name="name" label="类型名称" rules={[
-            { required: true, message: '类型名称不能为空' },
-            {
-              validator: async (_, value) => {
-                const _types = JSON.parse(JSON.stringify(prototypeList));
-                if (value.length > 50) {
-                  throw new Error('类型名称最多支持50个字符');
-                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
-                  throw new Error('该名称已被使用');
+          <Form.Item
+            name="name"
+            label="类型名称"
+            rules={[
+              { required: true, message: '类型名称不能为空' },
+              {
+                validator: async (_, value) => {
+                  const _types = JSON.parse(JSON.stringify(prototypeList));
+                  if (value.length > 50) {
+                    throw new Error('类型名称最多支持50个字符');
+                  } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.label" : "r.type.label"] === value) > -1) {
+                    throw new Error('该名称已被使用');
+                  }
                 }
               }
-            }
-          ]}>
+            ]}
+            style={type === 'type' && modalType !== 'copy' ? {} : { marginBottom: 0 }}
+          >
             <Input />
           </Form.Item>
           {type === 'type' && modalType !== 'copy' &&
-            <Form.Item name="prototype" label="继承自">
+            <Form.Item name="prototype" label="继承自" style={{ marginBottom: 0 }}>
               <Select disabled={modalType === 'inherit'}>
                 {prototypeList.map((item: any) => (
                   <Select.Option value={item['x.type.name']}>

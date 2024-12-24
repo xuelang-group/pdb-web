@@ -1210,10 +1210,14 @@ function addRootNode(newObj: CustomObjectConfig, graph: Graph) {
   const { nodes, edges, combos } = curentGraphData;
 
   const { uid, id, } = newObj;
-  const name = newObj['x_name'],
-    metadata = JSON.parse(newObj['x_metadata'] || '{}'),
+  let name = newObj['x_name'];
+  const metadata = JSON.parse(newObj['x_metadata'] || '{}'),
     fill = _.get(metadata, 'color', defaultNodeColor.fill),
-    iconKey = _.get(metadata, 'icon', '');
+    iconKey = _.get(metadata, 'icon', ''),
+    nodeLabelKey = _.get(metadata, 'nodeLabelKey', 'x_name');
+  if (nodeLabelKey !== 'x_name') {
+    name = _.get(_.get(newObj, 'x_attr_value', {}), nodeLabelKey.slice(5), name);
+  }
   const node = {
     uid,
     id,

@@ -58,7 +58,7 @@ export function registerNode() {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const rootId = store.getState().editor.rootNode?.uid;
       const userId = store.getState().app.systemInfo.userId;
-      const { parent, name, id, data, childLen } = cfg;
+      const { parent, id, data, childLen, name } = cfg;
       const isRootNode = parent === rootId;
       const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
@@ -66,6 +66,7 @@ export function registerNode() {
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
         textColor = getTextColor(nodeColor),
         iconColor = iconColorMap[textColor];
+
       if ((cfg.isQueryNode && !cfg.target) || cfg.isDisabled) {
         nodeColor = disabledNodeColor.fill;
         nodeBorderColor = disabledNodeColor.border;
@@ -363,7 +364,7 @@ export function registerNode() {
       }
     },
     update: function (cfg: ModelConfig, item: Item) {
-      const { name, data, id, parent, childLen } = cfg;
+      const { data, id, parent, childLen, name } = cfg;
       const group = item.getContainer();
       const rootId = store.getState().editor.rootNode?.uid;
       const userId = store.getState().app.systemInfo.userId;
@@ -377,6 +378,7 @@ export function registerNode() {
 
       const metadata = JSON.parse((data as any)['x_metadata'] || '{}'),
         iconName: any = _.get(cfg, 'icon', '');
+
       let nodeColor = _.get(metadata, 'color', defaultNodeColor.fill),
         nodeBorderColor = getBorderColor(_.get(metadata, 'borderColor'), nodeColor),
         textColor = getTextColor(nodeColor),

@@ -25,6 +25,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 import './index.less';
 import GraphToolbar from './GraphToolbar';
 import { setCommonParams } from '@/utils/common';
+import UpdateDisplayNameModal from './UpdateDisplayNameModal';
 
 interface EditorProps {
   theme: string
@@ -52,7 +53,8 @@ export default function Editor(props: EditorProps) {
     queryParams = useSelector((state: StoreState) => state.query.params),
     pageLoading = useSelector((state: StoreState) => state.app.pageLoading),
     templateScreenShootTimestamp = useSelector((state: StoreState) => state.editor.templateScreenShootTimestamp);
-  const [graphData, setGraphData] = useState({});
+  const [graphData, setGraphData] = useState({}),
+    [updateItem, setUpdateItem] = useState<any>(null);
 
   let prevWidth: number | undefined = 0, prevHeight: number | undefined = 0;
   const onResize = useCallback((width: number | undefined, height: number | undefined) => {
@@ -224,11 +226,14 @@ export default function Editor(props: EditorProps) {
 
         if (itemType === "node" && (_.get(itemModel, 'childLen', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false) {
           return `<ul class="pdb-graph-node-contextmenu">
+            <li title="修改展示文字">修改展示文字</li>
             <li title="一键展开">一键展开</li>
           </ul>`;
         }
 
-        return '';
+        return `<ul class="pdb-graph-node-contextmenu">
+          <li title="修改展示文字">修改展示文字</li>
+        </ul>`;
 
         // if (itemType === "edge") {
         // return `<ul class="pdb-graph-node-contextmenu">
@@ -263,6 +268,11 @@ export default function Editor(props: EditorProps) {
             break;
           case "一键展开":
             expandAll(item);
+            break;
+          case "修改展示文字":
+            setUpdateItem(itemModel);
+            break;
+          default:
             break;
         }
       },
@@ -523,7 +533,6 @@ export default function Editor(props: EditorProps) {
             resolve();
           });
         } else {
-          
           for (const node of curentGraphData.nodes) {
             if (node.uid === item.uid) {
               Object.assign(node, { collapsed: false, data: { ...node.data, collapsed: false } });
@@ -536,7 +545,7 @@ export default function Editor(props: EditorProps) {
               break;
             }
           }
-          
+
           for (const node of children.nodes) {
             const model = node.get('model');
 
@@ -546,7 +555,6 @@ export default function Editor(props: EditorProps) {
           }
 
           shouldExpandCombo.push(`${item.uid}-combo`);
-
 
           for (const obj of _objectData) {
             if (obj['x_id'].startsWith(item.xid)) {
@@ -572,12 +580,12 @@ export default function Editor(props: EditorProps) {
       key: currentGraphTab,
       config: { relationLines }
     }));
-    shouldExpandCombo.forEach(function(comboId: string) {
+    shouldExpandCombo.forEach(function (comboId: string) {
       graph.expandCombo(comboId);
     });
     graph.changeData(graphData);
     graph.layout();
-    
+
     item.update({
       data: {
         ...model.data,
@@ -607,7 +615,6 @@ export default function Editor(props: EditorProps) {
       onCancel: handleModalCancel
     });
   }
-
 
   function onPaste(currentEditModel: any) {
     if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
@@ -870,6 +877,12 @@ export default function Editor(props: EditorProps) {
         </Spin>
       </div>
       <TemplateGraph theme={props.theme} />
+      <UpdateDisplayNameModal
+        updateItem={updateItem}
+        close={() => {
+          setUpdateItem(null);
+        }}
+      />
       {contextHolder}
     </div>
   );
