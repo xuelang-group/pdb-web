@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getBuzProcess } from "@/actions/adapter";
 import { useEffect, useState } from "react";
 
+const versionRegex = /^\d+\.\d+\.\d+(-[0-9]+(\.[0-9]+)*)?(\+[0-9]+)?$/;
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([{ label: 'test', value: 'test' }])
@@ -76,7 +77,13 @@ export default function SaveModal(props: any) {
           <Form.Item
             label="版本号"
             name={'version'}
-            rules={[{ required: true, message: '请输入版本号' }]}
+            rules={[
+              { required: true, message: '请输入版本号' },
+              { 
+                pattern: /^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$/, 
+                message: '版本号格式不正确，应该是 X.X.X 的格式，且不允许有前导零',
+              },
+            ]}
             tooltip="1.格式X.X.X，仅允许使用数字和.作为分隔符，不支持字母、特殊字符等。
               2.不允许前导l零，如00.01.02是无效的，应改为0.1.2。"
           >
