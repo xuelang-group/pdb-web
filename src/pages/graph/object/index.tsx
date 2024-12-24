@@ -393,7 +393,7 @@ export default function Editor(props: EditorProps) {
           clockwise: false
         },
       },
-      plugins: [tooltip]
+      plugins: [tooltip, contextMenu]
     });
     let graphData: any = {};
     if (data) {
