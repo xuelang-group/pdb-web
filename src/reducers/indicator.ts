@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach } from 'lodash';
+import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 
 const funcOptionsObj = {
@@ -22,7 +22,7 @@ interface MergeCell {
 
 
 interface MetricParams {
-  dimention: string;        // 指标度量
+  dimension: string;        // 指标度量
   func: string;             // 统计算法
   groupBy: string[];        // Group By
 }
@@ -38,7 +38,7 @@ interface IndicatorState {
   columns: Col[];           // 表头数据
   disabledField: string[];  // 禁用列的field
   dimentionInitial: string; // 指标度量(数据初始化时的默认度量)
-  dimention: string;        // 指标度量
+  dimension: string;        // 指标度量
   func: string;             // 统计算法
   groupByResult: Record[];  // 分组的计算结果
   result: Record[];         // 总计的计算结果
@@ -47,7 +47,10 @@ interface IndicatorState {
   funcOptions: string[]; // 统计算法选项
   list: any[];
   modalVisible: boolean;
-  currentBuzProcess: String;
+  updateModalVisible: boolean;
+  currentBuzProcess: any;
+  checkVersionList: any[] | null;
+  nowCheckVersion: any | null;
 }
 
 // 使用该类型定义初始 state
@@ -63,7 +66,7 @@ const initialState: IndicatorState = {
   columns: [],
   disabledField: [],
   dimentionInitial: '',
-  dimention: '',
+  dimension: '',
   func: '',
   groupByResult: [],
   result: [],
@@ -72,23 +75,27 @@ const initialState: IndicatorState = {
   mergeCell: { col: [], row: [] },
   list: [],
   modalVisible: false,
-  currentBuzProcess: '',
+  updateModalVisible: false,
+  currentBuzProcess: {},
+  checkVersionList: null,
+  nowCheckVersion: null,
 }
+
+let groupByNameDict: Record = {}
 
 const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
   const cols: string[] = data[0];  // CSV的第一行：表头
   const types: string[] = data[1]; // CSV的第二行：数据类型
   const rows = data.slice(2);
 
-  const { dimention, groupBy } = metricParams;
-
+  const { dimension, groupBy } = metricParams;
   /** 表头数据 */
   const columns: Col[] = map(cols, (field, i) => {
     const col: Col = {
       field,
       type: types[i],
       disabled: disabledField.includes(field),
-      checked: dimention === field,
+      checked: dimension === field,
     };
     if (!isEmpty(groupBy)) {
       // 分组合并单元格
@@ -100,8 +107,8 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
     return col;
   });
   // 指标度量在倒数第一列
-  if (dimention) {
-    const col = remove(columns, (item) => item.field === dimention);
+  if (dimension) {
+    const col = remove(columns, (item) => item.field === dimension);
     if (!isEmpty(col)) {
       columns.push(col[0])
     }
@@ -130,11 +137,19 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   if (!isEmpty(groupByResult)) {
     forEach(groupByResult, item => {
       // 计算结果中的分组
-      const keys = Object.keys(item).filter(key => key !== dimention);
-      const record: Record = {
-        ...item,
-        merge: keys.length
+      const record: Record = {        
+        [`${dimension}`]: item.value,
+        merge: item.group_by.length
       }
+      // const keys = Object.keys(item).filter(key => key !== dimension);
+      const keys: string[] = [];
+      forEach(item.group_by, gb => {
+        Object.keys(gb).forEach(key => {
+          const dimens = groupByNameDict[key];
+          keys.push(dimens);
+          record[`${dimens}`] = gb[key];
+        })
+      })
       const index = findLastIndex(records, (row: any) => {
         const count = filter(keys, (gb) => row[gb] == record[gb])
         return count.length === keys.length
@@ -151,8 +166,8 @@ const updateData = (data: any[], metricParams: MetricParams, groupByResult: Reco
   return { columns, records, mergeCell }
 }
 
-const updateFuncOptions = (columns: any[], dimention: string) => {
-  const colObj = columns.find(item => item.field === dimention)
+const updateFuncOptions = (columns: any[], dimension: string) => {
+  const colObj = columns.find(item => item.field === dimension)
   let funcOptions: string[] = [];
   if (colObj && colObj.type in funcOptionsObj) {
     funcOptions = funcOptionsObj[colObj.type as keyof typeof funcOptionsObj];
@@ -177,7 +192,7 @@ export const indicatorSlice = createSlice({
       state.columns = [];
       state.disabledField = [];
       state.dimentionInitial = '';
-      state.dimention = '';
+      state.dimension = '';
       state.func = '';
       state.groupByResult = [];
       state.result = [];
@@ -190,17 +205,17 @@ export const indicatorSlice = createSlice({
         // 数据初始化，默认将整数或浮点数类型作为度量列，若无则最后一列做为度量列
         const index = findLastIndex(state.csv[1], (type: string) => ['int', 'float', 'number'].includes(type));
         const endIndex = state.csv[0].length - 1;
-        const dimention = index > -1 ? state.csv[0][index] : state.csv[0][endIndex];
-        state.dimentionInitial = dimention;
-        state.dimention = dimention;
+        const dimension = index > -1 ? state.csv[0][index] : state.csv[0][endIndex];
+        state.dimentionInitial = dimension;
+        state.dimension = dimension;
         
         const { func, groupBy, groupByResult, disabledField } = state;
-        const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
+        const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
 
         state.mergeCell = mergeCell;
         state.records = records;
         state.columns = columns;
-        state.funcOptions = updateFuncOptions(columns, dimention);
+        state.funcOptions = updateFuncOptions(columns, dimension);
       }
     },
     updateDisabledField: (state, action: PayloadAction<any>) => {
@@ -221,18 +236,21 @@ export const indicatorSlice = createSlice({
       }))
     },
     setFuncResult: (state, action: PayloadAction<any>) => {
-      const { group_by_result, result } = action.payload;
-
+      const { result, group_by_name_dict } = action.payload;
+      // const { name, name_cn } = action.payload.dimension;
+      groupByNameDict = group_by_name_dict;
+      // 使用解构赋值
+      const [first, ...group_by_result] = result;
       state.groupByResult = group_by_result;
-      state.result = result;
+      state.result = [first];
 
-      const { func, groupBy, groupByResult, disabledField, dimention } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, disabledField);
 
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
-      state.funcOptions = updateFuncOptions(columns, dimention);
+      state.funcOptions = updateFuncOptions(columns, dimension);
     },
     setMetrics: (state, action: PayloadAction<any>) => {
       state.list = action.payload;
@@ -242,32 +260,36 @@ export const indicatorSlice = createSlice({
       
       if (isEmpty(state.csv)) return
 
-      const { func, groupBy, groupByResult, disabledField, dimention } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimention, func, groupBy}, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
     
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
-      state.funcOptions = updateFuncOptions(columns, dimention);
+      state.funcOptions = updateFuncOptions(columns, dimension);
     },
-    setDimention: (state, action: PayloadAction<any>) => {
-      state.dimention = action.payload;
+    setDimension: (state, action: PayloadAction<any>) => {
+      state.dimension = action.payload;
       state.func = '';
       state.groupByResult = [];
       state.result = [];
       
       if (isEmpty(state.csv)) return
 
-      const { func, groupBy, groupByResult, disabledField, dimention } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimention, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, disabledField);
       
       state.mergeCell = mergeCell;
       state.records = records;
       state.columns = columns;
-      state.funcOptions = updateFuncOptions(columns, dimention);
+      state.funcOptions = updateFuncOptions(columns, dimension);
     },
     setFunc: (state, action: PayloadAction<any>) => {
+      console.log('setFunc: ', action.payload)
       state.func = action.payload;
+      if (!action.payload) {
+        state.result = [];
+      }
     },
     setCheckId: (state, action: PayloadAction<any>) => {
       state.checkId = action.payload;
@@ -279,6 +301,9 @@ export const indicatorSlice = createSlice({
     },
     setModalVisible: (state, action: PayloadAction<any>) => {
       state.modalVisible = action.payload;
+    },
+    setUpdateModalVisible: (state, action: PayloadAction<any>) => {
+      state.updateModalVisible = action.payload;
     },
     exit: (state) => {
       state.editId = null;
@@ -296,9 +321,18 @@ export const indicatorSlice = createSlice({
     setCurrentBuzProcess: (state, action: PayloadAction<any>) => {
       state.currentBuzProcess = action.payload;
     },
+    setcheckVersionList: (state, action: PayloadAction<any>) => {
+      state.checkVersionList = action.payload;
+    },
+    setNowCheckVersion: (state, action: PayloadAction<any>) => {
+      state.nowCheckVersion = action.payload;
+    },
   }
 })
 
-export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimention, setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, exit } = indicatorSlice.actions
+export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
+  setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
+  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, exit 
+} = indicatorSlice.actions
 
 export default indicatorSlice.reducer

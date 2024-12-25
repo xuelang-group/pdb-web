@@ -24,6 +24,7 @@ import moment from "moment";
 import { Parent } from "@/reducers/object";
 import { setGroupBy, setFunc, setModalVisible } from "@/reducers/indicator";
 import { useLocation } from "react-router";
+import { getAdapterTypeHistory, getAdapterTypeList } from "@/actions/adapter";
 
 export const typeLabelMap: any = {
   object: "对象实例",
@@ -52,9 +53,10 @@ export default function AppExplore() {
     queryParams = useSelector((state: StoreState) => state.query.params),
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   const dimentionIitial = useSelector((state: StoreState) => state.indicator.dimentionInitial),
-    dimention = useSelector((state: StoreState) => state.indicator.dimention),
+    dimension = useSelector((state: StoreState) => state.indicator.dimension),
     func = useSelector((state: StoreState) => state.indicator.func),
     groupBy = useSelector((state: StoreState) => state.indicator.groupBy),
+    requestId = useSelector((state: StoreState) => state.indicator.requestId),
     indicatorCheckId = useSelector((state: StoreState) => state.indicator.checkId), // 指标查看id
     indicatorEditId = useSelector((state: StoreState) => state.indicator.editId); // 指标编辑id
   const [exploreExpand, setExploreExpand] = useState(false),
@@ -69,7 +71,8 @@ export default function AppExplore() {
     [currentSearchValue, setSearchValue] = useState<string>(''),
     [searchTabs, setSearchTabs] = useState('all'), // 下拉框里显示的tab有哪些
     [currentSelectDropdownTab, setSelectDropdownTab] = useState('type'),
-    [saveConfirmModal, setSaveConfirmModal] = useState("");
+    [saveConfirmModal, setSaveConfirmModal] = useState(""),
+    [typeList, setTypeList] = useState<TypeConfig[]>([]);
 
   useEffect(() => {
     document.addEventListener('keydown', onFocusSearch);
@@ -78,6 +81,41 @@ export default function AppExplore() {
       document.removeEventListener('keydown', onFocusSearch);
     }
   }, []);
+
+  /**
+   * 原先逻辑：对象类型列表同类型管理的对象类型数据 getTypeList接口获取来的
+   * 更改逻辑：当访问地址中存在requestId时，需要根据requestId来获取对象类型列表。
+   *  先通过getAdapterTypeList接口获取数据，若返回的数据为空时，再调用getAdapterTypeHistory接口。（墨尘提出，商飞）
+   */
+  useEffect(() => {
+    if (requestId) {
+      getAdapterTypeList({ requestId }, (success: boolean, response: any) => {
+        if (success) {
+          const typeList = _.get(response, "data", []);
+          if (typeList.length > 0) {
+            setTypeList(typeList);
+          } else {
+            getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
+              if (success) {
+                setTypeList(_.get(response, "data", []));
+              }
+            });
+          }
+        }
+      });
+    } else {
+      setTypeList(types);
+    }
+  }, [requestId]);
+
+  /**
+   * 兼容不存在requestId的情况
+   */
+  useEffect(() => {
+    if (!requestId) {
+      setTypeList(types);
+    }
+  }, [types]);
 
   function reverseParsing() {
     const { pql, csv } = queryParams;
@@ -396,7 +434,7 @@ export default function AppExplore() {
       prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
       prevSearchTagType = _.get(prevSearchTag, 'type', "");
     }
-    const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+    const searchTypes = value ? typeList.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : typeList;
     const optionMap = {};
     let typeOptions: any[] = [], relationOptions: any[] = [];
     // const enterOption = {
@@ -439,7 +477,7 @@ export default function AppExplore() {
       } else if (_.isEmpty(prevSearchTagType) || prevSearchTagType === 'type') {
         // 当前tag为第一个或者前一个tag为对象类型，当前下拉框包含对象类型列表和关系类型列表typeOptions + relationOptions
         // typeOptions为全量对象类型列表
-        const searchTypes = value ? types.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : types;
+        const searchTypes = value ? typeList.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : typeList;
         typeOptions = searchTypes.map(val => ({
           label: val['x.type.label'],
           value: val['x.type.name'] + `-${currentTagLen}`,
@@ -853,7 +891,7 @@ export default function AppExplore() {
         header: csv
       }
     }));
-    
+
     if (location.pathname.indexOf("/indicator") > -1) return;
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
@@ -1127,7 +1165,7 @@ export default function AppExplore() {
   }
 
   const handleClearSearch = function (event: any = null) {
-    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+    if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
       setSaveConfirmModal("clear");
       navigator(`/${systemInfo.graphId}/indicator`);
     } else {
@@ -1283,7 +1321,7 @@ export default function AppExplore() {
           style={{ display: !searchLoading && !indicatorCheckId ? "block" : "none" }}
           onClick={event => {
             event.stopPropagation();
-            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimention !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
+            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
               setSaveConfirmModal("search");
               navigator(`/${systemInfo.graphId}/indicator`);
             } else {

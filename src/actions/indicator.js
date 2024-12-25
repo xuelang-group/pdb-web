@@ -7,6 +7,9 @@ const api = {
   getMetrics: apiPrefix + '/metrics',        // 获取metrics列表
   addMetric: apiPrefix + '/add_metric',        // 新增metric
   updateMetric: apiPrefix + '/update_metric',        // 编辑metric
+  metricHistory: apiPrefix + '/metric_history',    // 获取metrics历史列表
+  getMetricDetail: apiPrefix + '/metric',    // 获取metric详情
+  rollbackMetric: apiPrefix + '/rollback_metric',   // 回滚某个metric
 };
 
 // 获取模板列表
@@ -23,10 +26,10 @@ export const getCsv = (query, callback) => {
 };
 
 // 执行计算
-export const getFuncResult = ({dimention, func, groupBy, query}, callback) => {
+export const getFuncResult = ({dimension, func, groupBy, query}, callback) => {
   return axios.post(api['calc'], {
     "metric_params": {
-      dimention,
+      dimension,
       func,
       group_by: groupBy
     },
@@ -64,6 +67,33 @@ export const addMetric = (params, callback) => {
 // 编辑metric
 export const updateMetric = (params, callback) => {
   return axios.post(`${api['updateMetric']}`, params).then(({ data }) => {
+    callback && callback(true, data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+// 获取metrics历史列表
+export const metricHistory = (params, callback) => {
+  return axios.get(`${api['metricHistory']}`, params).then(({ data }) => {
+    callback && callback(true, data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+// 获取metric详情
+export const getMetricDetail = (params, callback) => {
+  return axios.get(`${api['getMetricDetail']}`, params).then(({ data }) => {
+    callback && callback(true, data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+// 回滚某个metric
+export const rollbackMetric = (params, callback) => {
+  return axios.post(`${api['rollbackMetric']}`, params).then(({ data }) => {
     callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);
