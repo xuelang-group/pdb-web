@@ -96,11 +96,20 @@ export default function AppExplore() {
             setTypeList(typeList);
           } else {
             getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
-              if (success) {
-                setTypeList(_.get(response, "data", []));
+              setTypeList(_.get(response, "data", []));
+              if (!success) {
+                notification.error({
+                  message: '获取对象类型列表失败',
+                  description: response.message || response.msg
+                });
               }
             });
           }
+        } else {
+          notification.error({
+            message: '获取对象类型列表失败',
+            description: response.message || response.msg
+          });
         }
       });
     } else {
