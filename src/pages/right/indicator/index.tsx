@@ -88,7 +88,7 @@ export default function Right(props: any) {
       })
     } else {
       postObj.requestId = requestId
-      postObj.buzProcess = values.buzProcess || ''
+      postObj.buzProcess = values.buzProcess || undefined
       dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({

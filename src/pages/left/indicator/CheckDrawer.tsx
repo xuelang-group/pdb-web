@@ -1,11 +1,14 @@
 import { Drawer, Form, Input, Button, message } from "antd";
 import { useEffect, useState } from "react";
+import { StoreState } from '@/store';
+import { useSelector } from 'react-redux';
 import { updateMetric } from "@/actions/indicator";
 import './index.less';
 
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm();
   const [isEdit, setIsEdit] = useState(false);
+  const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
 
   useEffect(() => {
     if (props.data) {
@@ -84,7 +87,7 @@ export default function SaveModal(props: any) {
         }
         <Form.Item label="版本号">{props.data?.version || "--"}</Form.Item>
         <Form.Item label="创建人">--</Form.Item>
-        <Form.Item label="所属业务过程">{props.data?.buzProcess || "--"}</Form.Item>
+        <Form.Item label="所属业务过程">{currentBuzProcess?.name || "--"}</Form.Item>
         <Form.Item label="相关业务过程">--</Form.Item>
         <Form.Item label="创建时间">--</Form.Item>
         <Form.Item label="更新时间">--</Form.Item>

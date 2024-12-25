@@ -57,7 +57,6 @@ export default function Indicator(props: any) {
   
     const onCheck = (version: any) => {
       const versionObj = (checkVersionList || []).find((item) => item.version === version)
-      console.log(versionObj)
       if(versionObj) {
         const { id } = versionObj
         getMetricDetail({id}, (success: boolean, res: any) => {
@@ -127,7 +126,7 @@ export default function Indicator(props: any) {
             </div>
           )
         }
-        <VTable width={width - PADDING * 2} height={height - PADDING} />
+        <VTable width={width - PADDING * 2} height={(checkVersionList && checkVersionList.length > 0) ? height - PADDING - 40 : height - PADDING} />
       </Spin>
       <UseHistoryModal visible={modalVisible} onCancel={() => setModalVisible(false)} onSuccess={onBack} />
     </div>

@@ -9,7 +9,7 @@ const api = {
 
 //指标过程域列表
 export const getBuzProcess = (params, callback) => {
-  return axios.get(api['buzProcess'], params).then(({ data }) => {
+  return axios.post(api['buzProcess'], params).then(({ data }) => {
     callback && callback(data.success, data);
   }, (err) => {
     callback && callback(false, err);

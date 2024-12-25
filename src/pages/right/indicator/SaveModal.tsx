@@ -3,38 +3,60 @@ import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { getBuzProcess } from "@/actions/adapter";
 import { useEffect, useState } from "react";
+import { isArray } from "lodash";
 
 const versionRegex = /^\d+\.\d+\.\d+(-[0-9]+(\.[0-9]+)*)?(\+[0-9]+)?$/;
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([{ label: 'test', value: 'test' }])
+  const [buzProcessArr, setBuzProcessArr] = useState([])
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
+  const query = useSelector((state: StoreState) => state.query.params);
 
   useEffect(() => {
-    if(requestId) {
-      getBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
+    if(requestId && query.pql?.length) {
+      console.log('requestId', requestId, 'query', query)
+      const strArr: string[] = []
+      query.pql.forEach((item: any) => {
+        if(isArray(item)) {
+          item.forEach((subItem: any) => {
+            if(subItem.id) {
+              strArr.push(subItem.id)
+            }
+          })
+        }
+      })
+      console.log({ requestId: requestId, xTypeNames: strArr })
+      getBuzProcess({ requestId: requestId, xTypeNames: strArr }, (success:boolean, res: any) => {
         if (success) {
-          setProcessOptions((res.data || []).map((item: string) => ({ label: item, value: item })))
+          setBuzProcessArr(res.data || [])
+          setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
         }
       })
     }
-  }, [requestId])
+  }, [requestId, query])
 
   useEffect(() => {
     if (editId) {
       const { name, name_cn, unit, desc } = allIndicators.find((item: any) => item.id === editId) || {}
       infoForm.setFieldsValue({ name, name_cn, unit, desc })
       if(currentBuzProcess) {
-        infoForm.setFieldValue('buzProcess', currentBuzProcess)
+        infoForm.setFieldValue('buzProcess', currentBuzProcess.id)
       }
     }
   }, [editId])
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
+      if(values.buzProcess) {
+        const buzProcess = buzProcessArr.find((item: any) => item.id === values.buzProcess)
+        if(buzProcess) {
+          values.buzProcess = buzProcess
+        }
+      }
       props.onOk(values)
     }).catch(err => { })
   }
@@ -89,7 +111,7 @@ export default function SaveModal(props: any) {
           >
             <Input addonBefore="V" placeholder="仅允许数字以.为分隔符，例:1.0.0" />
           </Form.Item>
-          <Form.Item label="所属业务过程" name={'buzProcess'} rules={[{ required: true, message: '请选择所属业务过程' }]}>
+          <Form.Item label="所属业务过程" name={'buzProcess'}>
             <Select placeholder="请选择所属业务过程" options={processOptions} disabled={!!editId}/>
           </Form.Item>
           <Form.Item label="相关业务过程">

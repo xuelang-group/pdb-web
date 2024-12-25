@@ -48,7 +48,7 @@ interface IndicatorState {
   list: any[];
   modalVisible: boolean;
   updateModalVisible: boolean;
-  currentBuzProcess: String;
+  currentBuzProcess: any;
   checkVersionList: any[] | null;
   nowCheckVersion: any | null;
 }
@@ -76,7 +76,7 @@ const initialState: IndicatorState = {
   list: [],
   modalVisible: false,
   updateModalVisible: false,
-  currentBuzProcess: '',
+  currentBuzProcess: {},
   checkVersionList: null,
   nowCheckVersion: null,
 }

@@ -65,6 +65,10 @@ module.exports = {
         pathRewrite: {
           '^/indicator': ''
         }
+      },
+      '/adapter': {
+        target: "http://120.195.198.50:21881",
+        changeOrigin: true,
       }
     },
   }
