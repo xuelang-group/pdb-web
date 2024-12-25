@@ -253,7 +253,7 @@ export default function RelationList(props: RelationListProps) {
     const relation = form.getFieldValue(['relation', index, 'relation']);
     getRelationTarget(graphData?.id, {
       'x.type.id': props.source.data['x.type.id'],
-      'x.relation.name': relation
+      'r.type.id': relation
     }, (success: any, response: any) => {
       if (success) {
         const _targetList: any = [], newTargetMap: { [key: string]: ObjectConfig } = { ...targetMap };
