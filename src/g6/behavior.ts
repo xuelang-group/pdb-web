@@ -1910,6 +1910,12 @@ export function registerBehavior() {
       graph.findAllByState('node', 'selected').forEach((item: any) => {
         graph.setItemState(item, 'selected', false);
       });
+      graph.findAllByState('node', 'highlight').forEach((item: any) => {
+        graph.setItemState(item, 'highlight', false);
+      });
+      graph.findAllByState('edge', 'highlight').forEach((item: any) => {
+        graph.setItemState(item, 'highlight', false);
+      });
       G6OperateFunctions.selectItem(edge, 'edge', 'selected', graph);
     },
     nodeUnselected: function (event: IG6GraphEvent) {
