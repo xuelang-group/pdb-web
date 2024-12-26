@@ -30,6 +30,7 @@ interface IndicatorState {
   requestId: string | null; // requestId，从门户跳转过来时带上的，后续请求会用到
   needCheckId: string | null; // 从门户跳转过来时带上需要查看的指标id，需要在拿到指标列表后查看该id的指标
   needEditId: string | null; // 从门户跳转过来时带上需要编辑的指标id，需要在拿到指标列表后编辑该id的指标
+  needVersionId: string | null; // 从门户跳转过来时带上需要查看历史版本的指标id，需要在拿到指标列表后查看该id的历史版本
   checkId: string | null;   // 当前正在查看的指标id
   editId: string | null;    // 当前正在编辑的指标id
   loading: boolean;         // csv数据获取loading
@@ -58,6 +59,7 @@ const initialState: IndicatorState = {
   requestId: null ,  // 暂时写死，默认值1001
   needCheckId: null,
   needEditId: null,
+  needVersionId: null,
   checkId: null,
   editId: null,
   loading: false,
@@ -318,6 +320,9 @@ export const indicatorSlice = createSlice({
     setNeedEditId: (state, action: PayloadAction<any>) => {
       state.needEditId = action.payload;
     },
+    setNeedVersionId: (state, action: PayloadAction<any>) => {
+      state.needVersionId = action.payload;
+    },
     setCurrentBuzProcess: (state, action: PayloadAction<any>) => {
       state.currentBuzProcess = action.payload;
     },
@@ -332,7 +337,7 @@ export const indicatorSlice = createSlice({
 
 export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
   setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
-  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, exit 
+  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, exit 
 } = indicatorSlice.actions
 
 export default indicatorSlice.reducer
