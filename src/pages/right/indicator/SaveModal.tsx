@@ -5,7 +5,6 @@ import { getBuzProcess } from "@/actions/adapter";
 import { useEffect, useState } from "react";
 import { isArray } from "lodash";
 
-const versionRegex = /^\d+\.\d+\.\d+(-[0-9]+(\.[0-9]+)*)?(\+[0-9]+)?$/;
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([{ label: 'test', value: 'test' }])
@@ -18,7 +17,6 @@ export default function SaveModal(props: any) {
 
   useEffect(() => {
     if(requestId && query.pql?.length) {
-      console.log('requestId', requestId, 'query', query)
       const strArr: string[] = []
       query.pql.forEach((item: any) => {
         if(isArray(item)) {
@@ -29,7 +27,6 @@ export default function SaveModal(props: any) {
           })
         }
       })
-      console.log({ requestId: requestId, xTypeNames: strArr })
       getBuzProcess({ requestId: requestId, xTypeNames: strArr }, (success:boolean, res: any) => {
         if (success) {
           setBuzProcessArr(res.data || [])

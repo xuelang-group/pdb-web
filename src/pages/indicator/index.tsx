@@ -61,13 +61,17 @@ export default function Indicator(props: any) {
         const { id } = versionObj
         getMetricDetail({id}, (success: boolean, res: any) => {
           if (success) {
+            const dimensionStr = res.metric_params.dimension.name_cn
+            const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
             dispatch(setCheckId(res.id));
             dispatch(setQueryParams(res.pql_params.params));
-            dispatch(setDimension(res.metric_params.dimension));
-            dispatch(setFunc(res.metric_params.func));
-            dispatch(setGroupBy(res.metric_params.group_by));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNowCheckVersion(version))
+            setTimeout(() => {
+              dispatch(setDimension(dimensionStr));
+              dispatch(setFunc(res.metric_params.func));
+              dispatch(setGroupBy(groupByArr));
+            }, 500)
           }
         })
       }
