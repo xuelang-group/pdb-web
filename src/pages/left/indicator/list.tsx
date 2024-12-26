@@ -65,7 +65,7 @@ export default function List(props: any) {
         dispatch(setMetrics(response || []));
         getPdbIdList({ requestId: requestId }, (success: boolean, res: any) => {
           if (success) {
-            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.id))
+            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.ori_id))
             dispatch(setMetrics(tempArr || []));
           } else {
             dispatch(setMetrics(response || []));
