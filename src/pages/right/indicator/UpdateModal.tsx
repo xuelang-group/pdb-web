@@ -2,6 +2,7 @@ import { Modal, Form, Input, Select, Spin } from "antd";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
+import { getMetricDetail } from "@/actions/indicator";
 
 export default function UpdateModal(props: any) {
   const [infoForm] = Form.useForm()
@@ -18,12 +19,15 @@ export default function UpdateModal(props: any) {
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
-      const metric = allIndicators.find((item: any) => item.id === editId)
-      const newValues = {
-       ...metric,
-        version: values.version
-      }
-      props.onOk(newValues)
+      getMetricDetail({id: editId}, (success: boolean, res: any) => {
+        if (success) {
+          const newValues = {
+           ...res,
+            version: values.version
+          }
+          props.onOk(newValues)
+        }
+      })
     }).catch(err => { })
   }
 
