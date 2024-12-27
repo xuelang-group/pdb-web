@@ -7,7 +7,7 @@ import { isArray } from "lodash";
 
 export default function SaveModal(props: any) {
   const [infoForm] = Form.useForm()
-  const [processOptions, setProcessOptions] = useState([{ label: 'test', value: 'test' }])
+  const [processOptions, setProcessOptions] = useState([])
   const [buzProcessArr, setBuzProcessArr] = useState([])
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
