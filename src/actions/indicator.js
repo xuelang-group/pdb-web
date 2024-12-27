@@ -10,6 +10,7 @@ const api = {
   metricHistory: apiPrefix + '/metric_history',    // 获取metrics历史列表
   getMetricDetail: apiPrefix + '/metric',    // 获取metric详情
   rollbackMetric: apiPrefix + '/rollback_metric',   // 回滚某个metric
+  checkVersion: apiPrefix + '/check_version',   // 检查版本
 };
 
 // 获取模板列表
@@ -98,5 +99,15 @@ export const rollbackMetric = (params, callback) => {
   }, (err) => {
     callback && callback(false, err);
   });
+};
+
+// 校验版本号是否合规
+export const checkVersion = (params) => {
+  return axios.post(`${api['checkVersion']}`, params)
+};
+
+// 获取metric详情
+export const getMetricDetail2 = (params) => {
+  return axios.get(`${api['getMetricDetail']}`, params)
 };
 
