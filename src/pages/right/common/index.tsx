@@ -8,20 +8,19 @@ import moment from 'moment';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import _, { isArray } from 'lodash';
+import _ from 'lodash';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
 import { js as beautify } from 'js-beautify';
 
 import type { StoreState } from '@/store';
-import ParamEditor from './ParamEditor';
 import { defaultNodeColor, typeMap } from '@/utils/common';
-import { fittingString, resizeGraph } from '@/utils/objectGraph';
+import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
-import { checkInObject, checkOutObject, setObjectRelation, discardObject, getCheckoutVersion, getObject, setObject } from '@/actions/object';
+import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
@@ -31,6 +30,7 @@ import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
 import MultiModelParamEditor from './MultiModelParamEditor';
+import ParamEditor from './ParamEditor';
 import { ParamItem } from './ParamItem';
 import RelationBind from '../relation/RelationBind';
 import RelationList from '../object/RelationList';
@@ -70,7 +70,8 @@ export default function Right(props: RightProps) {
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
     relations = useSelector((state: StoreState) => state.relation.data),
-    isEditing = useSelector((state: StoreState) => state.editor.isEditing);
+    isEditing = useSelector((state: StoreState) => state.editor.isEditing),
+    typesMap = useSelector((state: StoreState) => state.editor.typeMap);
 
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
@@ -189,12 +190,23 @@ export default function Right(props: RightProps) {
 
     if (currentEditType === 'object') {
       Object.assign(formValues, {
-        typeName: _currentEditDefaultData['x.type.id'] || ''
+        typeName: _.get(typesMap[_currentEditDefaultData['x.type.id'] || ''], 'x.type.name', _currentEditDefaultData['x.type.id'])
       });
     } else if (currentEditType === 'relation') {
+      const { source, target } = currentEditModel;
+      const graph = (window as any).PDB_GRAPH;
+      let sourceName = source, targetName = target;
+      const sourceItem = graph.findById(source),
+        targetItem = graph.findById(target);
+      if (sourceItem) {
+        sourceName = _.get(sourceItem.getModel().data, 'x.object.name');
+      }
+      if (targetItem) {
+        targetName = _.get(targetItem.getModel().data, 'x.object.name');
+      }
       Object.assign(formValues, {
-        source: currentEditModel.source,
-        target: currentEditModel.target
+        source: sourceName,
+        target: targetName
       });
     }
     infoForm.setFieldsValue(formValues);
