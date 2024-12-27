@@ -34,7 +34,7 @@ import { getTypeList } from './actions/type';
 import { getRelation } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap, setTypeRelationMap } from '@/reducers/editor';
-import { setRequestId, setNeedEditId, setNeedCheckId } from '@/reducers/indicator';
+import { setRequestId, setNeedEditId, setNeedCheckId, setNeedVersionId } from '@/reducers/indicator';
 import { setTypes, TypeConfig } from '@/reducers/type';
 
 import { getHashParameterByName } from '@/utils/common';
@@ -101,7 +101,8 @@ function App(props: PdbConfig) {
       const requestId = getHashParameterByName('requestId'); // 获取requestId
       const needCheckId = getHashParameterByName('checkId'); // 获取需要查看的id
       const needEditId = getHashParameterByName('editId'); // 获取需要编辑的id
-      if (requestId) {
+      const needVersionId = getHashParameterByName('versionId'); // 获取需要编辑的id
+      if(requestId) {
         dispatch(setRequestId(requestId))
       }
       if (needCheckId) {
@@ -109,6 +110,9 @@ function App(props: PdbConfig) {
       }
       if (needEditId) {
         dispatch(setNeedEditId(needEditId))
+      }
+      if(needVersionId) {
+        dispatch(setNeedVersionId(needVersionId))
       }
     }
     getRequestId()

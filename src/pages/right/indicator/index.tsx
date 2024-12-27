@@ -6,11 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { compact } from "lodash";
 
 import { clearQuery } from "@/reducers/query";
-import { setIndicatorLoading } from '@/reducers/editor';
-import { setGroupBy, setDimention, setFunc, exit, setEditId, setMetrics, setModalVisible } from "@/reducers/indicator";
-import { getMetrics } from "@/actions/indicator";
 import { getImgHref } from "@/actions/minioOperate";
-import { addMetric, updateMetric } from "@/actions/indicator";
+import UpdateModal from "./UpdateModal";
+import { setIndicatorLoading } from '@/reducers/editor';
+import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible } from "@/reducers/indicator";
+import { getMetrics, addMetric, updateMetric } from "@/actions/indicator";
 import Loading from "@/assets/images/loading-apng.png";
 import PdbPanel from "@/components/Panel";
 import { StoreState } from '@/store';
@@ -24,11 +24,12 @@ export default function Right(props: any) {
   const [modal, contextHolder] = Modal.useModal();
   const columnsOptions = useSelector((state: StoreState) => state.indicator.columns);
   const funcOptions = useSelector((state: StoreState) => state.indicator.funcOptions);
-  const dimention = useSelector((state: StoreState) => state.indicator.dimention);
+  const dimension = useSelector((state: StoreState) => state.indicator.dimension);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
+  const updateModalVisible = useSelector((state: StoreState) => state.indicator.updateModalVisible);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : ['']));
@@ -50,14 +51,15 @@ export default function Right(props: any) {
   let savingModal: any = null;
   const onSave = (values: any) => {
     const postObj: any = {
+      name_cn: values.name_cn,
       name: values.name,
-      name_en: values.name_en,
       unit: values.unit || '',
       desc: values.desc || '',
+      version: values.version,
       metric_params: {
-        dimention: dimention,
+        dimension: getDimensionObj(dimension),
         func: func,
-        group_by: compact(groupBy),
+        group_by: getGroupByObj(compact(groupBy)),
       },
       pql_params: {
         api: api,
@@ -81,7 +83,7 @@ export default function Right(props: any) {
       })
     } else {
       postObj.requestId = requestId
-      postObj.buzProcess = values.buzProcess || ''
+      postObj.buzProcess = values.buzProcess || undefined
       dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({
@@ -101,6 +103,97 @@ export default function Right(props: any) {
         }
       })
     }
+  }
+
+  const getDimensionObj = (dimension: string) => {
+    const header = query.csv.header
+    const dimensionObj = header.find((item: any) => item.attrName === dimension) || {attrId: '', attrName: ''}
+    return {
+      name: dimensionObj.attrId,
+      name_cn: dimensionObj.attrName,
+    }
+  }
+
+  const getGroupByObj = (groupBy: string[]) => {
+    const header = query.csv.header
+    const groupByObj = groupBy.map((item: any) => {
+      const groupByItem = header.find((headerItem: any) => headerItem.attrName === item) || {attrId: '', attrName: ''}
+      return {
+        name: groupByItem.attrId,
+        name_cn: groupByItem.attrName,
+      }
+    })
+    return groupByObj
+  }
+
+  const onAddVersion = (values: any) => {
+    const postObj: any = {
+      name_cn: values.name_cn,
+      name: values.name,
+      unit: values.unit || '',
+      desc: values.desc || '',
+      ori_id: values.ori_id,
+      version: values.version,
+      metric_params: {
+        dimension: getDimensionObj(dimension),
+        func: func,
+        group_by: getGroupByObj(compact(groupBy)),
+      },
+      pql_params: {
+        api: api,
+        params: query,
+      },
+    }
+    dispatch(setModalVisible(false));
+    setModalLoading(false);
+    savingModal = modal.confirm({
+      className: "pdb-indicator-save-loading",
+      width: 164,
+      icon: (<img src={getImgHref(Loading)} />),
+      title: "指标版本保存中..."
+    });
+    addMetric(postObj, (success: boolean, res: any) => {
+      if (success) {
+        dispatch(setUpdateModalVisible(false))
+        dispatch(setIndicatorLoading(true));
+        updateList(() => { })
+
+        // 新建指标后，如果存在临时关系，临时关系自动创建成真实关系
+        createPDBRelation();
+      } else {
+        message.error('保存指标失败：' + res.message || res.msg);
+        savingModal && savingModal.destroy();
+      }
+    })
+  }
+
+  const createPDBRelation = function () {
+    // 暂不真实建立关系
+    // const { pql } = query;
+    // const autoRelation: RelationConfig[] = [];
+    // pql && pql.length > 0 && pql[0].forEach(function ({ type, id, name, binds }) {
+    //   if (type === "relation" && !id) {
+    //     autoRelation.push({
+    //       "r.type.name": 'Relation.' + uuid(),
+    //       "r.type.label": name,
+    //       "r.type.constraints": {
+    //         "r.binds": binds
+    //       }
+    //     });
+    //   }
+    // });
+    // if (autoRelation.length > 0) {
+    //   createAutoRelation(autoRelation, function (success: boolean, res: any) {
+    //     if (success) {
+    //       updateSaveModal();
+    //     } else {
+    //       message.error('创建临时关系失败：' + res.message || res.msg);
+    //       saveModal && saveModal.destroy();
+    //     }
+    //   });
+    // } else {
+    updateSaveModal();
+    // }
   }
 
   const updateSaveModal = function () {
@@ -161,8 +254,8 @@ export default function Right(props: any) {
                 <Select
                   placeholder='请选择指标度量'
                   options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field }))}
-                  onChange={(value) => { dispatch(setDimention(value)) }}
-                  value={dimention}
+                  onChange={(value) => { dispatch(setDimension(value)) }}
+                  value={dimension}
                   disabled={!!checkId}
                 />
               </Form.Item>
@@ -289,7 +382,7 @@ export default function Right(props: any) {
               <Button
                 type="primary"
                 onClick={() => {
-                  dispatch(setModalVisible(true))
+                  dispatch(setUpdateModalVisible(true))
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
               >
@@ -322,6 +415,7 @@ export default function Right(props: any) {
         }
       </PdbPanel>
       <SaveModal visible={modalVisible} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
+      <UpdateModal visible={updateModalVisible} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
       {contextHolder}
     </div>
   )

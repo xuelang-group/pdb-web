@@ -3,13 +3,14 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Input, InputRef, Spin, message, Dropdown, Tag, Empty } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
-import { getMetrics } from "@/actions/indicator";
+import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator";
 import { useParams, useNavigate } from 'react-router-dom';
 import _, { set } from 'lodash';
-import { setMetrics, setCheckId, setEditId, setGroupBy, setDimention,
+import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
   setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
+import VersionRecord from './VersionRecord'
 import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
@@ -23,12 +24,15 @@ export default function List(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const needCheckId = useSelector((state: StoreState) => state.indicator.needCheckId);
   const needEditId = useSelector((state: StoreState) => state.indicator.needEditId);
+  const needVersionId = useSelector((state: StoreState) => state.indicator.needVersionId);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const [showCheckDrawer, setShowCheckDrawer] = useState(false);
   const [checkData, setCheckData] = useState(null);
   const searchRef = useRef<InputRef>(null);
   const routerParams = useParams()
   const dispatch = useDispatch();
+  const [versionVisible, setVersionVisible] = useState(false);
+  const [versionId, setVersionId] = useState(null);
 
   const { Search } = Input;
 
@@ -52,8 +56,8 @@ export default function List(props: any) {
 
 
   useEffect(() => {
-    checkNeed(needCheckId, needEditId, allIndicators)
-  }, [needCheckId, needEditId, allIndicators])
+    checkNeed(needCheckId, needEditId, needVersionId,allIndicators)
+  }, [needCheckId, needEditId, allIndicators, needVersionId])
 
   const updateList = () => {
     dispatch(setIndicatorLoading(true));
@@ -62,7 +66,7 @@ export default function List(props: any) {
         dispatch(setMetrics(response || []));
         getPdbIdList({ requestId: requestId }, (success: boolean, res: any) => {
           if (success) {
-            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.id))
+            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.ori_id))
             dispatch(setMetrics(tempArr || []));
           } else {
             dispatch(setMetrics(response || []));
@@ -88,37 +92,94 @@ export default function List(props: any) {
     })
   }
 
-  const checkNeed = (_needCheckId: string | null, _needEditId: string | null, arr: any[]) => {
+  const checkNeed = (_needCheckId: string | null, _needEditId: string | null, _needVersionId: string | null, arr: any[]) => {
     // 如果URL中有checkId，则自动跳转到对应的指标
     if (_needCheckId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needCheckId)
       if (tempObj) {
+        const dimensionStr = tempObj.metric_params.dimension.name_cn
+        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         dispatch(setCheckId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
-        dispatch(setDimention(tempObj.metric_params.dimention));
+        dispatch(setDimension(dimensionStr));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
         setTimeout(() => {
           dispatch(setFunc(tempObj.metric_params.func));
-          dispatch(setGroupBy(tempObj.metric_params.group_by));
+          dispatch(setGroupBy(groupByArr));
         }, 500)
+      } else {
+        getMetricDetail({id: _needCheckId}, (success: boolean, res: any) => {
+          if (success) {
+            const dimensionStr = res.metric_params.dimension.name_cn
+            const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
+            dispatch(setCheckId(res.id));
+            dispatch(setQueryParams(res.pql_params.params));
+            dispatch(setApi(res.pql_params.api));
+            dispatch(setNeedCheckId(null));
+            setTimeout(() => {
+              dispatch(setDimension(dimensionStr));
+              dispatch(setFunc(res.metric_params.func));
+              dispatch(setGroupBy(groupByArr));
+            }, 500)
+            metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
+              if (success) {
+                dispatch(setcheckVersionList(resH))
+                dispatch(setNowCheckVersion(res.version))
+              }
+            })
+          }
+        })
       }
     } else if (_needEditId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
       if(tempObj) {
+        const dimensionStr = tempObj.metric_params.dimension.name_cn
+        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
           dispatch(setEditId(tempObj.id));
           dispatch(setNeedEditId(null));
           dispatch(setQueryParams(tempObj.pql_params.params));
-          dispatch(setDimention(tempObj.metric_params.dimention));
           dispatch(setApi(tempObj.pql_params.api));
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
           setTimeout(() => {
+            dispatch(setDimension(dimensionStr));
             dispatch(setFunc(tempObj.metric_params.func));
-            dispatch(setGroupBy(tempObj.metric_params.group_by));
+            dispatch(setGroupBy(groupByArr));
           }, 500)
+        })
+      } else {
+        getMetricDetail({id: _needEditId}, (success: boolean, res: any) => {
+          if (success) {
+            const dimensionStr = res.metric_params.dimension.name_cn
+            const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
+            dispatch(setEditId(res.id));
+            dispatch(setQueryParams(res.pql_params.params));
+            dispatch(setApi(res.pql_params.api));
+            dispatch(setNeedCheckId(null));
+            setTimeout(() => {
+              dispatch(setDimension(dimensionStr));
+              dispatch(setFunc(res.metric_params.func));
+              dispatch(setGroupBy(groupByArr));
+            }, 500)
+            metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
+              if (success) {
+                dispatch(setcheckVersionList(resH))
+                dispatch(setNowCheckVersion(res.version))
+              }
+            })
+          }
+        })
+      }
+    } else if (_needVersionId) {
+      const tempObj = arr.find((item: any) => (item.id).toString() === _needVersionId)
+      if(tempObj) {
+      }else {
+        getMetricDetail({id: _needVersionId}, (success: boolean, res: any) => {
+          setVersionId(res.ori_id)
+          setVersionVisible(true)
         })
       }
     }
@@ -163,20 +224,32 @@ export default function List(props: any) {
       setCheckData(item)
     }
     if (menu.key === 'check2') {
+      const dimensionStr = item.metric_params.dimension.name_cn
+      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
       dispatch(setCheckId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setDimention(item.metric_params.dimention));
-      dispatch(setFunc(item.metric_params.func));
-      dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
+      setTimeout(() => {
+        dispatch(setDimension(dimensionStr));
+        dispatch(setFunc(item.metric_params.func));
+        dispatch(setGroupBy(groupByArr));
+      }, 500)
     }
     if (menu.key === 'edit') {
+      const dimensionStr = item.metric_params.dimension.name_cn
+      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
       dispatch(setEditId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setDimention(item.metric_params.dimention));
-      dispatch(setFunc(item.metric_params.func));
-      dispatch(setGroupBy(item.metric_params.group_by));
       dispatch(setApi(item.pql_params.api));
+      setTimeout(() => {
+        dispatch(setDimension(dimensionStr));
+        dispatch(setFunc(item.metric_params.func));
+        dispatch(setGroupBy(groupByArr));
+      }, 500)
+    }
+    if (menu.key ==='version') {
+      setVersionVisible(true)
+      setVersionId(item.ori_id)
     }
   }
 
@@ -226,6 +299,11 @@ export default function List(props: any) {
                     key: 'edit',
                   })
                 }
+                menus.push({ type: 'divider' })
+                menus.push({
+                  label: '版本记录',
+                  key: 'version',
+                })
                 return (
                   <Dropdown
                     overlayClassName='pdb-dropdown-menu'
@@ -268,6 +346,7 @@ export default function List(props: any) {
     <div className='pdb-type-list'>
       {renderIndicatorTree('indicator')}
       <ChechDrawer isOpen={showCheckDrawer} onClose={() => setShowCheckDrawer(false)} data={checkData} />
+      <VersionRecord visible={versionVisible} onClose={() => {setVersionVisible(false); setVersionId(null)}} versionId={versionId}/>
     </div>
   )
 }
