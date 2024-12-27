@@ -56,7 +56,9 @@ export default function List(props: any) {
 
 
   useEffect(() => {
-    checkNeed(needCheckId, needEditId, needVersionId,allIndicators)
+    if(allIndicators?.length) {
+      checkNeed(needCheckId, needEditId, needVersionId, allIndicators)
+    }
   }, [needCheckId, needEditId, allIndicators, needVersionId])
 
   const updateList = () => {
@@ -107,6 +109,8 @@ export default function List(props: any) {
         setTimeout(() => {
           dispatch(setFunc(tempObj.metric_params.func));
           dispatch(setGroupBy(groupByArr));
+          dispatch(setcheckVersionList(null))
+          dispatch(setNowCheckVersion(null))
         }, 500)
       } else {
         getMetricDetail({id: _needCheckId}, (success: boolean, res: any) => {
@@ -148,6 +152,8 @@ export default function List(props: any) {
             dispatch(setDimension(dimensionStr));
             dispatch(setFunc(tempObj.metric_params.func));
             dispatch(setGroupBy(groupByArr));
+            dispatch(setcheckVersionList(null))
+            dispatch(setNowCheckVersion(null))
           }, 500)
         })
       } else {
@@ -158,7 +164,7 @@ export default function List(props: any) {
             dispatch(setEditId(res.id));
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
-            dispatch(setNeedCheckId(null));
+            dispatch(setNeedEditId(null));
             setTimeout(() => {
               dispatch(setDimension(dimensionStr));
               dispatch(setFunc(res.metric_params.func));
