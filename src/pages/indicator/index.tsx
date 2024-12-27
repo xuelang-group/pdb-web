@@ -78,10 +78,31 @@ export default function Indicator(props: any) {
     }
 
   const onBack = () => {
-    dispatch(setcheckVersionList(null))
-    dispatch(setNowCheckVersion(null))
-    dispatch(exit())
-    dispatch(clearQuery())
+    const versionObj = (checkVersionList || [])[0]
+    if(versionObj) {
+      const { id } = versionObj
+      getMetricDetail({id}, (success: boolean, res: any) => {
+        if (success) {
+          const dimensionStr = res.metric_params.dimension.name_cn
+          const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
+          dispatch(setCheckId(res.id));
+          dispatch(setQueryParams(res.pql_params.params));
+          dispatch(setApi(res.pql_params.api));
+          dispatch(setcheckVersionList(null))
+          dispatch(setNowCheckVersion(null))
+          setTimeout(() => {
+            dispatch(setDimension(dimensionStr));
+            dispatch(setFunc(res.metric_params.func));
+            dispatch(setGroupBy(groupByArr));
+          }, 500)
+        }
+      })
+    } else {
+      dispatch(setcheckVersionList(null))
+      dispatch(setNowCheckVersion(null))
+      dispatch(exit())
+      dispatch(clearQuery())
+    }
   }
 
   return (

@@ -1,7 +1,7 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { isEmpty } from "lodash";
+import _, { isEmpty, compact } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -90,7 +90,7 @@ export default function AppExplore() {
         if (success) {
           const typeList = _.get(response, "data", []);
           if (typeList.length > 0) {
-            setTypeList(typeList);
+            setTypeList(compact(typeList));
           } else {
             getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
               setTypeList(_.get(response, "data", []));
