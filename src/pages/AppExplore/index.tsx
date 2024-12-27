@@ -4,7 +4,7 @@ import _, { compact } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig, TYPE_ID_PREFIX } from "@/reducers/type";
@@ -35,6 +35,7 @@ const EMPORARY_RELATION_KEY = "__TEMPORARY_RELATION__";
 export default function AppExplore() {
   const dispatch = useDispatch();
   const navigator = useNavigate();
+  const location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
 
   let searchRefArr: any = useRef<{ [key: number]: HTMLElement }>({});
