@@ -194,15 +194,28 @@ export default function Right(props: RightProps) {
       });
     } else if (currentEditType === 'relation') {
       const { source, target } = currentEditModel;
-      const graph = (window as any).PDB_GRAPH;
       let sourceName = source, targetName = target;
-      const sourceItem = graph.findById(source),
-        targetItem = graph.findById(target);
-      if (sourceItem) {
-        sourceName = _.get(sourceItem.getModel().data, 'x.object.name');
-      }
-      if (targetItem) {
-        targetName = _.get(targetItem.getModel().data, 'x.object.name');
+
+      if (location.pathname.endsWith('template')) {
+        const graph = (window as any).PDB_TEMPLATE_GRAPH;
+        const sourceItem = graph.findById(source),
+          targetItem = graph.findById(target);
+        if (sourceItem) {
+          sourceName = _.get(sourceItem.getModel().data, 'x.type.name');
+        }
+        if (targetItem) {
+          targetName = _.get(targetItem.getModel().data, 'x.type.name');
+        }
+      } else {
+        const graph = (window as any).PDB_GRAPH;
+        const sourceItem = graph.findById(source),
+          targetItem = graph.findById(target);
+        if (sourceItem) {
+          sourceName = _.get(sourceItem.getModel().data, 'x.object.name');
+        }
+        if (targetItem) {
+          targetName = _.get(targetItem.getModel().data, 'x.object.name');
+        }
       }
       Object.assign(formValues, {
         source: sourceName,
