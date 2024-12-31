@@ -15,7 +15,7 @@ import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
 import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig
+  TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig
 } from '@/reducers/editor';
 import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
@@ -177,14 +177,14 @@ export default function Editor(props: EditorProps) {
         // return `<ul class="pdb-graph-node-contextmenu">
         //   <li title="探索">探索</li>
         //   <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-        //   <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
-        //   ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
-        //     '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
         //   ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
         //     '<li title="一键展开">一键展开</li>' : ''}
         // </ul>`;
         return `<ul class="pdb-graph-node-contextmenu">
           <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+          ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
+            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
           ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
             '<li title="一键展开">一键展开</li>' : ''
           }
@@ -200,12 +200,12 @@ export default function Editor(props: EditorProps) {
           //   _searchAround.options.push({ start: [itemModel.data], options: [] });
           //   dispatch(setSearchAround(_searchAround));
           //   break;
-          // case "复制":
-          //   graphCopyItem = JSON.parse(JSON.stringify(itemModel));
-          //   break;
-          // case "粘贴":
-          //   onPaste(itemModel);
-          //   break;
+          case "复制":
+            graphCopyItem = JSON.parse(JSON.stringify(itemModel));
+            break;
+          case "粘贴":
+            onPaste(itemModel);
+            break;
           case "删除":
             deleteConfirm(itemModel);
             break;
@@ -472,7 +472,7 @@ export default function Editor(props: EditorProps) {
     const graphData = JSON.parse(JSON.stringify(graph.save())),
       _objectData = JSON.parse(JSON.stringify(store.getState().object.data));
     const { toolbarConfig, currentGraphTab } = store.getState().editor;
-    
+
     store.dispatch(setGraphLoading(true));
     const model = item.get("model");
     const shouldExpandCombo: any = [];
@@ -518,15 +518,45 @@ export default function Editor(props: EditorProps) {
     });
   }
 
-
-  function onPaste(currentEditModel: any) {
+  const hanldePaste = function (currentEditModel: NodeItemData, recurse: boolean = true) {
     if (currentEditModel && (currentEditModel.data.collapsed === undefined || currentEditModel.data.collapsed)) {
       const item = graph.findById(currentEditModel.id);
       G6OperateFunctions.expandNode(item, graph, () => {
-        G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+        G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel, recurse);
       });
     } else {
-      G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel);
+      G6OperateFunctions.pasteNode(graphCopyItem, graph, currentEditModel, recurse);
+    }
+  }
+
+  function onPaste(currentEditModel: NodeItemData) {
+    const childLen = _.get(graphCopyItem.data, 'x.object.version.childs', 0);
+    if (childLen > 0) {
+      const name = _.get(graphCopyItem.data, 'x.object.name', '');
+      const pasteConfirmModal = modal.confirm({
+        className: 'pdb-confirm-modal',
+        title: `粘贴实例"${name}"`,
+        icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
+        getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
+        content: (
+          <div className='pdb-confirm-info-checkbox'>
+            <Checkbox defaultChecked onChange={event => {
+              pasteConfirmModal && pasteConfirmModal.update({
+                onOk: () => hanldePaste(currentEditModel, event.target.checked)
+              });
+            }} />
+            <span>同时粘贴该实例的所有下级实例</span>
+          </div>
+        ),
+        okText: "确定",
+        cancelText: "取消",
+        onOk: () => hanldePaste(currentEditModel),
+        onCancel: () => {
+          pasteConfirmModal && pasteConfirmModal.destroy();
+        }
+      });
+    } else {
+      hanldePaste(currentEditModel);
     }
   }
 
@@ -572,19 +602,19 @@ export default function Editor(props: EditorProps) {
         //   // 回车键，创建兄弟节点
         //   addBrotherNode(selectedNode, graph);
         //   break;
-        // case 67:
-        //   // ctrl + c
-        //   if (!currentEditModel) return;
-        //   if (ctrlKey) {
-        //     graphCopyItem = JSON.parse(JSON.stringify(currentEditModel));
-        //   }
-        //   break;
-        // case 86:
-        //   // ctrl + v
-        //   if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
-        //     onPaste(currentEditModel);
-        //   }
-        //   break;
+        case 67:
+          // ctrl + c
+          if (!currentEditModel) return;
+          if (ctrlKey) {
+            graphCopyItem = JSON.parse(JSON.stringify(currentEditModel));
+          }
+          break;
+        case 86:
+          // ctrl + v
+          if (ctrlKey && currentEditModel && graphCopyItem && graphCopyItem.id !== currentEditModel.id) {
+            onPaste(currentEditModel as NodeItemData);
+          }
+          break;
         default:
           break;
       }

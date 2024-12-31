@@ -124,6 +124,24 @@ export const getChildren = (graphId, params, callback) => {
   });
 }
 
+/**
+ * 复制对象
+ * @param {int} graphId 项目ID
+ * @param {{'x.object.id': string, 'x.object.version.parent': ObjectParentInfo, recurse?: boolean}} params { 'x.object.id': 对象ID, 'x.object.version.parent': 父对象信息, recurse: 是否同时复制该实例的所有下级实例，默认true }
+ * @param {*} callback 
+ * @returns 
+ */
+export const copyObject = (graphId, params, callback) => {
+  return axios.post(api['copy'], {
+    graphId,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 const commonParams = {
   graphId: 0
 };
@@ -167,18 +185,6 @@ export const discardObject = (vid, callback) => {
     callback && callback(false, err);
   });
 };
-
-// 复制对象
-export const copyObject = (params, callback) => {
-  return axios.post(api['copy'], {
-    ...commonParams,
-    ...params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
 
 // 移动对象
 export const moveObject = (params, callback) => {

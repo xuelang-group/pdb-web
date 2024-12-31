@@ -87,12 +87,11 @@ export const G6OperateFunctions = {
               const { data, nextDisabled } = comboLastNode.get('model');
               const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
               const config = id.split('-'), limit = Number(PAGE_SIZE());
-              let offset = Number(config[2]) - limit, _nextDisabled = nextDisabled;
+              let offset = Number(config[2]) - limit;
               if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
                 offset -= limit;
-                _nextDisabled = false;
               }
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: _nextDisabled }, offset, graphData, _data);
+              G6OperateFunctions.changePagination(graph, { parent }, offset, graphData, _data);
               shouldUpdate = false;
             }
           }
@@ -402,7 +401,7 @@ export const G6OperateFunctions = {
           if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
             offset -= limit;
           }
-          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+          G6OperateFunctions.changePagination(graph, { parent }, offset, graphData, newData);
           shouldUpdate = false;
         }
       }
@@ -419,7 +418,7 @@ export const G6OperateFunctions = {
             const config = id.split('-');
             offset = Number(config[2]) - limit;
           }
-          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+          G6OperateFunctions.changePagination(graph, { parent }, offset, graphData, newData);
           shouldUpdate = false;
         }
       }
@@ -489,35 +488,24 @@ export const G6OperateFunctions = {
     });
     store.dispatch(setCurrentEditModel(null));
   },
-  pasteNode: function (copyItem: NodeItemData, graph: Graph, pasteItem: any) {
+  pasteNode: function (copyItem: NodeItemData, graph: Graph, pasteItem: any, recurse: boolean) {
+    const graphData = store.getState().object.graphData;
     const rootNode = store.getState().editor.rootNode;
     const rootId = rootNode['x.object.id'];
 
-    const parentUid = pasteItem ? pasteItem.id : rootId;
+    const parentId = pasteItem ? pasteItem.id : rootId;
     const parentXid = pasteItem ? pasteItem.data.xid : rootId;
+    const childLen = pasteItem ? _.get(pasteItem.data, 'x.object.version.childs', 0) : graph.getComboChildren(`${rootId}-combo`).nodes.length;
+    const newXid = parentXid + '.' + childLen;
 
-    const children = graph.getComboChildren(parentUid + '-combo');
-    let childLen = children && children.nodes ? children.nodes.length : 0;
-    if (childLen > 0 && children.nodes[0].getID().startsWith("pagination-")) {
-      childLen -= 1;
-    }
-    if (childLen > 0 && children.nodes[childLen - 1].getID().startsWith("pagination-")) {
-      childLen -= 1;
-    }
-    const newXid = parentXid + '.' + childLen,
-      newParent = {
-        uid: parentUid,
-        'x_index': (childLen + 1) * 1024,
-        'x_children': childLen + 1
-      };
     store.dispatch(setGraphLoading(true));
-    copyObject({
-      'vid': copyItem.uid,
-      'e_x_parent': [{
-        'vid': newParent['uid'],
-        'x_index': newParent['x_index']
-      }],
-      recurse: true
+    copyObject(graphData?.id, {
+      'x.object.id': copyItem.id,
+      'x.object.version.parent': {
+        'x.object.id': parentId,
+        'x.object.index': (childLen + 1) * 1024
+      },
+      recurse
     }, (success: boolean, response: any) => {
       if (success) {
         const customData = {
@@ -525,7 +513,14 @@ export const G6OperateFunctions = {
           collapsed: true
         }
         if (pasteItem) {
-          addNodeChildren({ ...response, ...customData }, pasteItem, graph);
+          addNodeChildren({ ...response, ...customData }, {
+            ...pasteItem,
+            data: {
+              ...pasteItem.data,
+              "x.object.version.childs": childLen + 1,
+              "collapsed": false
+            }
+          }, graph);
         } else {
           addRootNode(response, customData, graph);
         }
@@ -538,12 +533,8 @@ export const G6OperateFunctions = {
       store.dispatch(setGraphLoading(false));
     });
   },
-  changePagination: function (graph: Graph, { parent, nextDisabled, isQueryNode }: { parent: string, nextDisabled: boolean, isQueryNode?: boolean }, offset: number, curentGraphData?: any, objectData?: CustomObjectConfig[]) {
+  changePagination: function (graph: Graph, { parent, isQueryNode }: { parent: string, isQueryNode?: boolean }, offset: number, curentGraphData?: any, objectData?: CustomObjectConfig[]) {
     return new Promise((resolve, reject) => {
-      if (nextDisabled) {
-        resolve(null);
-        return;
-      }
       const params = { 'x.object.id': parent };
 
       const limit = Number(PAGE_SIZE()),
@@ -937,7 +928,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
           const { data } = comboLastNode.get('model');
           const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
           const config = id.split('-');
-          G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, config[2], graphData, _data);
+          G6OperateFunctions.changePagination(graph, { parent }, config[2], graphData, _data);
           shouldUpdate = false;
         }
       }
@@ -970,12 +961,12 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
               const { data } = comboLastNode.get('model');
               const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
               const config = id.split('-');
-              G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, Number(config[2]) - Number(PAGE_SIZE()));
+              G6OperateFunctions.changePagination(graph, { parent }, Number(config[2]) - Number(PAGE_SIZE()));
             } else {
-              G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
+              G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid }, 0);
             }
           } else {
-            G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid, nextDisabled: false }, 0);
+            G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid }, 0);
           }
         } else {
           updateGraphData();
@@ -986,62 +977,74 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
 }
 
 // 在节点尾部增加子节点
-function addNodeChildren(newObj: CustomObjectConfig, sourceNode: NodeItemData, graph: Graph) {
-  const childLen = sourceNode.data['x.object.version.childs'];
+function addNodeChildren(newObj: CustomObjectConfig, parentNode: NodeItemData, graph: Graph) {
+  const childLen = parentNode.data['x.object.version.childs'];
   if (childLen === undefined) return;
-  const sourceNodeId = sourceNode.id;
-  if (!sourceNodeId) return;
+  const parentNodeId = parentNode.id;
+  if (!parentNodeId) return;
 
-  const sourceNodeXid = sourceNode.data.xid;
-
-  let prevBrotherXid: any = null;
-  if (childLen > 0) {
-    prevBrotherXid = sourceNodeXid + '.' + (childLen - 1);
-  }
   const objectState = store.getState().object;
   const { data } = objectState;
-  const _data = [];
-
-  let hasAdd = false;
-  for (let i = data.length - 1; i >= 0; i--) {
-    const obj = JSON.parse(JSON.stringify(data[i])) as CustomObjectConfig;
-    const parent = (obj['x.object.version.parent'] || {})['x.object.id'],
-      xid = obj['xid'];
-
-    if (obj['x.object.id'] === sourceNodeId) {
-      Object.assign(obj, { 'x.object.version.childs': childLen });
+  const parentNodeCombo: any = graph.findById(parentNodeId + "-combo"), limit = Number(PAGE_SIZE());
+  if (parentNodeCombo) {
+    const comboNodes = parentNodeCombo.getChildren().nodes || [];
+    let comboNodesLen = comboNodes.length;
+    const comboFirstNode = comboNodesLen > 0 ? comboNodes[0] : null,
+      comboLastNode = comboNodesLen > 0 ? comboNodes[comboNodesLen - 1] : null;
+    if (comboNodesLen > 0 && comboFirstNode.get("id").startsWith("pagination-")) {
+      comboNodesLen = comboNodesLen - 1;
     }
+    if (comboLastNode && (
+      comboLastNode.get("id").startsWith("pagination-" + parentNodeId) && comboLastNode.get("id").endsWith("-next") ||
+      (limit && comboNodesLen === limit)
+    )) {
+      let offset = Math.floor(Number(childLen) / limit) * limit;
+      if (Number(childLen) % limit === 0) {
+        offset = (Number(childLen) / limit - 1) * limit;
+      }
+      const _data = JSON.parse(JSON.stringify(data));
+      for (let obj of _data) {
+        if (obj['x.object.id'] === parentNodeId) {
+          Object.assign(obj, { 'x.object.version.childs': childLen });
+          break;
+        }
+      }
+      G6OperateFunctions.changePagination(graph, { parent: parentNodeId }, offset, graph.save(), _data);
+    } else {
+      const parentNodeXid = parentNode.data.xid;
+      let prevBrotherXid: any = null;
+      if (childLen > 0) {
+        prevBrotherXid = parentNodeXid + '.' + (childLen - 1);
+      }
 
-    if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === sourceNodeId || obj['xid'] === sourceNodeXid)) {
-      _data.unshift(newObj);
-      hasAdd = true;
-    }
-    _data.unshift(obj);
-  }
+      const _data = [];
+      let hasAdd = false;
+      for (let i = data.length - 1; i >= 0; i--) {
+        const obj = JSON.parse(JSON.stringify(data[i])) as CustomObjectConfig;
+        const objId = obj['x.object.id'],
+          parent = (obj['x.object.version.parent'] || {})['x.object.id'],
+          xid = obj['xid'];
 
-  const { toolbarConfig, currentGraphTab } = store.getState().editor;
-  const graphData = addChildrenToGraphData(sourceNode, [newObj], graph.save(), _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+        if (objId === parentNodeId) {
+          Object.assign(obj, { 'x.object.version.childs': childLen });
+        }
 
-  let shouldUpdate = true;
-  const sourceNodeCombo: any = graph.findById(sourceNodeId + "-combo"), limit = Number(PAGE_SIZE());
-  if (sourceNodeCombo) {
-    const comboLastNodes = sourceNodeCombo.getChildren().nodes || [],
-      comboLastNode = comboLastNodes.length > 0 ? comboLastNodes[comboLastNodes.length - 1] : null;
-    if (comboLastNode && comboLastNode.get("id").startsWith("pagination-" + sourceNodeId) && comboLastNode.get("id").endsWith("-next")) {
-      const { data } = comboLastNode.get('model');
-      const id = _.get(data, 'x.object.id', ''), parent = _.get(data['x.object.version.parent'], 'x.object.id', '');
-      const config = id.split('-'),
-        offset = Number(config[2]) - limit;
-      G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, _data);
-      shouldUpdate = false;
+        if (!hasAdd && xid && ((prevBrotherXid && xid.startsWith(prevBrotherXid + '.')) || parent === parentNodeId || obj['xid'] === parentNodeXid)) {
+          _data.unshift(newObj);
+          hasAdd = true;
+        }
+        _data.unshift(obj);
+      }
+
+      graph.updateItem(parentNodeId, { data: parentNode.data });
+      const { toolbarConfig, currentGraphTab } = store.getState().editor;
+      const graphData = addChildrenToGraphData(parentNode, [newObj], graph.save(), _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+      graph.changeData(graphData);
+      graph.layout();
+      store.dispatch(setObjects(_data));
     }
   }
   store.dispatch(setGraphLoading(false));
-  if (shouldUpdate) {
-    graph.changeData(graphData);
-    graph.layout();
-    store.dispatch(setObjects(_data));
-  }
 }
 
 // 增加根节点
@@ -1717,7 +1720,7 @@ export function registerBehavior() {
                 if (comboLastNodes.length <= 3 && comboLastNodes[0].get("id").endsWith("-prev")) {
                   offset -= limit;
                 }
-                await G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+                await G6OperateFunctions.changePagination(graph, { parent }, offset, graphData, newData);
                 graphData = graph.save();
                 newData = store.getState().object.data;
                 shouldUpdate = false;
@@ -1736,7 +1739,7 @@ export function registerBehavior() {
                   const config = id.split('-');
                   offset = Number(config[2]) - limit;
                 }
-                G6OperateFunctions.changePagination(graph, { parent, nextDisabled: false }, offset, graphData, newData);
+                G6OperateFunctions.changePagination(graph, { parent }, offset, graphData, newData);
                 shouldUpdate = false;
               }
             }
@@ -1849,7 +1852,7 @@ export function registerBehavior() {
         if (nextDisabled) return;
         const config = id.split('-');
 
-        G6OperateFunctions.changePagination(graph, { parent, nextDisabled, isQueryNode }, config[2]);
+        G6OperateFunctions.changePagination(graph, { parent, isQueryNode }, config[2]);
         return;
       }
 
