@@ -9,9 +9,9 @@ const api = {
   update: `${objectApiPrefix}/update`,
   get: `${objectApiPrefix}/get`,
   children: `${objectApiPrefix}/children`,
+  copy: `${objectApiPrefix}/copy`,
 
   /** 接口暂未支持 */
-  copy: `${objectApiPrefix}/copy`,
   move: `${objectApiPrefix}/move`,
   checkout: `${objectApiPrefix}/checkout`,
   checkin: `${objectApiPrefix}/checkin`,
@@ -142,6 +142,24 @@ export const copyObject = (graphId, params, callback) => {
   });
 }
 
+/**
+ * 移动对象
+ * @param {int} graphId 项目ID
+ * @param {{'x.object.id': string, 'x.object.version.parent': ObjectParentInfo, recurse?: boolean}} params { 'x.object.id': 对象ID, 'x.object.version.parent': 父对象信息, recurse: 是否同时复制该实例的所有下级实例，默认true }
+ * @param {*} callback 
+ * @returns 
+ */
+export const moveObject = (graphId, params, callback) => {
+  return axios.post(api['move'], {
+    graphId,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 const commonParams = {
   graphId: 0
 };
@@ -185,18 +203,6 @@ export const discardObject = (vid, callback) => {
     callback && callback(false, err);
   });
 };
-
-// 移动对象
-export const moveObject = (params, callback) => {
-  return axios.post(api['move'], {
-    ...commonParams,
-    ...params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
 
 export const rearrangeChildren = (params, callback) => {
   return axios.post(api['rearrange'], {

@@ -227,6 +227,8 @@ export const G6OperateFunctions = {
   },
   moveNode: function (dragItem: Item, dropItem: Item, graph: Graph) {
     const allData = store.getState().object.data;
+    const graphData = store.getState().object.graphData;
+
     const dragItemId = dragItem.get('id'),
       dragItemModel = dragItem.get('model'),
       dragItemXid = dragItemModel.data.xid,
@@ -456,11 +458,12 @@ export const G6OperateFunctions = {
       }
       return;
     }
-    moveObject({
-      vid: dragItemId,
-      src: dragItemParentId,
-      dest: dropItemId,
-      newIndex
+    moveObject(graphData?.id, {
+      'x.object.id': dragItemId,
+      'x.object.version.parent': {
+        'x.object.id': dropItemId,
+        'x.object.index': newIndex
+      }
     }, (success: boolean, response: any) => {
       if (!success) {
         notification.error({
@@ -778,7 +781,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
   });
   const sourceNodeXIndex = sourceNodeModel.data['x.object.version.parent']['x.object.index'];
   const sourcePrevNodeXIndex = sourcePrevNodeItem ? (sourcePrevNodeItem.getModel().data as any)['x.object.version.parent']['x.object.index'] : sourceNodeXIndex - 1;
-  const newParentIndex = sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2);
+  const newParentIndex = Math.floor(sourcePrevNodeXIndex + ((sourceNodeXIndex - sourcePrevNodeXIndex) / 2));
   const newParent = {
     "x.object.id": parentNodeModel.id,
     "x.object.index": newParentIndex,
@@ -1288,12 +1291,12 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
     if (item['xid'] === dropPrevItemXid) {
       const dropPrevItemXindex: number = Number((item['x.object.version.parent'] || {})['x.object.index']);
-      newParentIndex = dropPrevItemXindex + (dropItemParentIndex - dropPrevItemXindex) / 2;
+      newParentIndex = Math.floor(dropPrevItemXindex + (dropItemParentIndex - dropPrevItemXindex) / 2);
       Object.assign(newParent, {
         "x.object.index": newParentIndex
       });
     } else if (dropItemIndex === 0 && index === 0) {
-      newParentIndex = dropItemParentIndex / 2;
+      newParentIndex = Math.floor(dropItemParentIndex / 2);
       Object.assign(newParent, {
         "x.object.index": newParentIndex
       });
@@ -1626,7 +1629,7 @@ export function registerBehavior() {
             const dropPrevNodeXIndex = dropPrevNodeItem ? (((dropPrevNodeItem.getModel().data as ObjectConfig)['x.object.version.parent'] || {})['x.object.index'] || 1024) : droNodeXIndex - 1;
             const newParent: ObjectParentInfo = {
               'x.object.id': parentUid,
-              'x.object.index': dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2)
+              'x.object.index': Math.floor(dropPrevNodeXIndex + ((droNodeXIndex - dropPrevNodeXIndex) / 2))
             };
 
             const obj: CustomObjectConfig = {
@@ -1778,11 +1781,13 @@ export function registerBehavior() {
             store.dispatch(setGraphLoading(false));
           }
         } else {
-          moveObject({
-            vid: dragItemId,
-            src: dragItemParentUid,
-            dest: dropItemParentUid,
-            newIndex: _.get(shouldUpdateObject[0], 'x.object.version.parent', { 'x.object.index': 1024 })['x.object.index']
+          const graphData = store.getState().object.graphData;
+          moveObject(graphData?.id, {
+            'x.object.id': dragItemId,
+            'x.object.version.parent': {
+              'x.object.id': dropItemParentUid,
+              'x.object.index': _.get(shouldUpdateObject[0], 'x.object.version.parent', { 'x.object.index': 1024 })['x.object.index']
+            }
           }, (success: boolean, response: any) => {
             if (!success) {
               notification.error({
@@ -1801,7 +1806,7 @@ export function registerBehavior() {
           return;
         }
 
-        if (Number(dropItemModel.data['x.object.version.childs']) > 0 && Boolean(_.get(dropItemModel.data, 'collapsed'))) {
+        if (Number(dropItemModel.data['x.object.version.childs']) > 0 && Boolean(_.get(dropItemModel.data, 'collapsed', true))) {
           G6OperateFunctions.expandNode(dropItem, (this as any).graph, () => {
             G6OperateFunctions.moveNode(dragItem, dropItem, graph);
           });
