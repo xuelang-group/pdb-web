@@ -1245,11 +1245,14 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     graph.zoom(1);
   }
   const searchLLM = function () {
-    dispatch(setGraphLoading(true));
-    dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id;
     const content = _.get(searchRef, "current.input.value", "");
-    if (!content) return;
+    if (!content) {
+      onRestGraph();
+      return;
+    }
+    dispatch(setGraphLoading(true));
+    dispatch(setCurrentEditModel(null));
     runLLM({ graphId, tree: true, content }, (success: boolean, response: any) => {
       if (success) {
         updateGraphData(response);
