@@ -1,16 +1,16 @@
-import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal } from "antd";
+import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal, Input, InputRef } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
-import G6, { Item } from "@antv/g6";
+import G6, { ComboConfig, EdgeConfig, Item } from "@antv/g6";
 import _ from "lodash";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as XLSX from 'xlsx';
 
-import { ObjectRelationConig, RelationsConfig, setCurrentGraphTab, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
+import { NodeItemData, ObjectRelationConig, RelationsConfig, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig, setTypeLoading } from "@/reducers/editor";
 import store, { StoreState } from "@/store";
 import { Parent, setObjects } from "@/reducers/object";
 import { addObject, clearObjects, getChildren } from "@/actions/object";
-import { covertToGraphData } from "@/utils/objectGraph";
+import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
 import { useLocation, useParams } from "react-router";
 import { nodeColorList, typeLabelMap, uuid } from "@/utils/common";
 import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relation";
@@ -19,6 +19,7 @@ import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/ty
 import { setTypes, TypeConfig } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
+import { runLLM } from "@/actions/query";
 
 const templateExampleData = {
   "类型表": { "!ref": "A1:C12", "A1": { "t": "s", "v": "名称（唯一标识）", "r": "<t>名称（唯一标识）</t>", "h": "名称（唯一标识）", "w": "名称（唯一标识）" }, "B1": { "t": "s", "v": "类型（默认对象类型）", "r": "<t>类型（默认对象类型）</t>", "h": "类型（默认对象类型）", "w": "类型（默认对象类型）" }, "C1": { "t": "s", "v": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "r": "<t>是否开启版本管理（TRUE / FALSE，默认FALSE）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>", "h": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "w": "是否开启版本管理（TRUE / FALSE，默认FALSE）" }, "A2": { "t": "s", "v": "航司", "r": "<t>航司</t>", "h": "航司", "w": "航司" }, "B2": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "C2": { "t": "b", "v": true, "w": "TRUE" }, "A3": { "t": "s", "v": "飞机", "r": "<t>飞机</t>", "h": "飞机", "w": "飞机" }, "B3": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "A4": { "t": "s", "v": "交付", "r": "<t>交付</t>", "h": "交付", "w": "交付" }, "B4": { "t": "s", "v": "关系类型", "r": "<t>关系类型</t>", "h": "关系类型", "w": "关系类型" }, "!margins": { "left": 0.7, "right": 0.7, "top": 0.75, "bottom": 0.75, "header": 0.3, "footer": 0.3 } },
@@ -73,7 +74,18 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
     [operateDisabled, setOperateDisabled] = useState(false); // 重置按钮灰化
   const [filterForm] = Form.useForm();
+  const searchRef = useRef<InputRef>(null);
+
   let uploadCofirm: any;
+
+  const onRestGraph = () => {
+    const graph = (window as any).PDB_GRAPH;
+    if (!graph || !graphDataMap['main']) return;
+    dispatch(setCurrentGraphTab("main"));
+    graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+    graph.render();
+    graph.zoom(1);
+  }
 
   const tabs = [{
     key: 'setting',
@@ -86,17 +98,27 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     icon: 'icon-shaixuan',
     popover: true
   }, {
+    key: 'search',
+    label: '大模型搜索',
+    icon: <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="42663" id="mx_n_1717570529332" width="16" height="16"><path d="M987.637795 198.56213h-146.293955a36.590555 36.590555 0 1 0 0 73.18111h91.408122c10.103362 0.034133 18.261145 8.191915 18.295278 18.261145v475.711351c0 10.069229-8.191915 18.227012-18.295278 18.261144H91.544655a18.363544 18.363544 0 0 1-18.295278-18.261144V290.004385a18.363544 18.363544 0 0 1 18.295278-18.261145h91.442255a36.590555 36.590555 0 1 0 0-73.18111H36.658822C16.48623 198.596263 0.136533 214.94596 0.068267 235.152685v585.346485c0.068266 20.172592 16.383831 36.522289 36.556422 36.590555h430.92888v87.824159H321.259614a36.590555 36.590555 0 1 0 0 73.146977h365.769021a36.590555 36.590555 0 1 0 0-73.146977h-146.430487V857.089725h446.868982A36.692954 36.692954 0 0 0 1024.057685 820.49917V235.118552a36.692954 36.692954 0 0 0-36.590555-36.556422h0.170665z m-475.47242 276.067547a235.688231 235.688231 0 0 0 141.378806-47.547242l108.884208 108.952474a36.590555 36.590555 0 1 0 51.745599-51.745599l-109.225538-109.225538a237.292481 237.292481 0 1 0-192.748942 99.531772h-0.068266z m0-402.427842a164.623366 164.623366 0 1 1 0.136532 329.280864 164.623366 164.623366 0 0 1-0.170665-329.280864z m-249.170759 638.559802a36.692954 36.692954 0 0 0 36.556423-36.590555v-190.257234a36.590555 36.590555 0 1 0-73.146978 0v190.223101c0.034133 20.206725 16.383831 36.522289 36.590555 36.590555z m146.293955-139.126029v102.398942a36.590555 36.590555 0 1 0 73.146978 0v-102.398942a36.590555 36.590555 0 1 0-73.146978 0z m182.850378 58.538062v43.895013a36.590555 36.590555 0 1 0 73.146977 0v-43.792615a36.590555 36.590555 0 1 0-73.146977 0v-0.102398z" p-id="42664" fill="#707070"></path></svg>,
+    onClick: () => {
+      setSelectedTab(_.get(selectedTab, 'key', '') === "search" ? null : {
+        key: 'search'
+      });
+    }
+  }, {
     key: 'reset',
     label: '重置画布',
     icon: 'icon-zhongzhi1',
-    onClick: () => {
-      const graph = (window as any).PDB_GRAPH;
-      if (!graph || !graphDataMap['main']) return;
-      dispatch(setCurrentGraphTab("main"));
-      graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
-      graph.render();
-      graph.zoom(1);
-    }
+    // onClick: () => {
+    //   const graph = (window as any).PDB_GRAPH;
+    //   if (!graph || !graphDataMap['main']) return;
+    //   dispatch(setCurrentGraphTab("main"));
+    //   graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
+    //   graph.render();
+    //   graph.zoom(1);
+    // }
+    onClick: onRestGraph
   }];
 
   useEffect(() => {
@@ -1208,10 +1230,43 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     XLSX.writeFile(workbook, '示例数据.xlsx');
   }
 
+  const updateGraphData = function (data: any) {
+    const graph = (window as any).PDB_GRAPH;
+    if (!data || !graph) return;
+    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
+    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    dispatch(setCurrentGraphTab("explore"));
+    dispatch(setToolbarConfig({
+      key: "explore",
+      config: { relationLines, showRelationLine: true, showRelationLabel: true }
+    }));
+    graph.data({ nodes, edges, combos });
+    graph.render();
+    graph.zoom(1);
+  }
+  const searchLLM = function () {
+    dispatch(setGraphLoading(true));
+    dispatch(setCurrentEditModel(null));
+    const graphId = routerParams.id;
+    const content = _.get(searchRef, "current.input.value", "");
+    if (!content) return;
+    runLLM({ graphId, tree: true, content }, (success: boolean, response: any) => {
+      if (success) {
+        updateGraphData(response);
+      } else {
+        notification.error({
+          message: '搜索失败',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(setGraphLoading(false));
+    });
+  }
+
   return (
     <>
       <div className='pdb-graph-toolbar'>
-        {!location.pathname.endsWith("/template") && tabs.map((tab) => (
+        {!location.pathname.endsWith("/template") && tabs.map((tab: any) => tab.popover ? (
           <Popover
             visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
             placement="right"
@@ -1255,11 +1310,34 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                 }}
               >
                 <div className="pdb-graph-toolbar-icon">
-                  <i className={`operation-icon spicon ${tab.icon}`}></i>
+                  {typeof tab.icon === 'string' ?
+                    <i className={`operation-icon spicon ${tab.icon}`}></i> :
+                    tab.icon
+                  }
                 </div>
               </div>
             </Tooltip>
           </Popover>
+        ) : (
+          <Tooltip title={tab.label} placement="right">
+            <div
+              className={`pdb-graph-toolbar-item ${_.get(selectedTab, 'key', '') === tab.key ? 'selected' : ''} ${tab.key === 'reset' && currentGraphTab === 'main' ? 'disabled' : ''}`}
+              onClick={() => {
+                if (tab.key === 'reset' && currentGraphTab === 'main') return;
+                if (tab.popover) {
+                  setSelectedTab(_.get(selectedTab, 'key', '') === tab.key ? null : tab);
+                }
+                tab.onClick && tab.onClick();
+              }}
+            >
+              <div className="pdb-graph-toolbar-icon">
+                {typeof tab.icon === 'string' ?
+                  <i className={`operation-icon spicon ${tab.icon}`}></i> :
+                  tab.icon
+                }
+              </div>
+            </div>
+          </Tooltip>
         ))}
         <Tooltip
           title={
@@ -1284,6 +1362,25 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         </Tooltip>
       </div>
       {contextHolder}
+      {_.get(selectedTab, 'key', '') === 'search' &&
+        <Input
+          ref={searchRef}
+          className="pdb-llm-search"
+          placeholder="大模型搜索"
+          suffix={<i className="spicon icon-sousuo2" onClick={searchLLM}></i>}
+          onPressEnter={searchLLM}
+          autoFocus
+          onFocus={(event) => {
+            const graph = (window as any).PDB_GRAPH;
+            if (!event.target.value && graph && currentGraphTab === "main") {
+              dispatch(setGraphDataMap({
+                ...graphDataMap,
+                'main': graph.save()
+              }));
+            }
+          }}
+        />
+      }
     </>
   )
 }

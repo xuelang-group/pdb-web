@@ -4,7 +4,8 @@ const apiPrefix = '/pdb/api/v1/object/search';
 export const api = {
   'results': apiPrefix + '/results',
   'pql': apiPrefix + '/pql',
-  'vertex': apiPrefix + '/vertex'
+  'vertex': apiPrefix + '/vertex',
+  'llm': apiPrefix + '/llm' // 大模型接口 - 后端玄同
 };
 
 export const runPql = function (params, callback) {
@@ -41,4 +42,12 @@ export const saveQueryData = function (graphId, json, callback) {
     }, function () {
       callback && callback(false);
     });
+}
+
+export const runLLM = function (params, callback) {
+  return axios.post(api['llm'], params).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
 }
