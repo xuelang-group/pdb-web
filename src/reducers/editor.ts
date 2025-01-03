@@ -64,6 +64,7 @@ interface ToolbarItemConfig {
   showRelationLabel: boolean
   filters: Array<FilterConfig>
   pageSize?: number
+  queryParams?: any // explore时，分页搜索请求参数
 }
 
 interface ToolbarConfig {
@@ -117,7 +118,8 @@ const initialState: EditorState = {
       relationLines: {},
       showRelationLine: false,
       showRelationLabel: false,
-      filters: []
+      filters: [],
+      pageSize: 10
     },
     'vertex': {
       relationLines: {},

@@ -32,6 +32,14 @@ export const getQueryResult = function (params, callback) {
   });
 }
 
+export const getQueryChildren = function(params, callback) {
+  return axios.post('/pdb/api/v1/object/search/results/children', params).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 // 保存查询构建器数据
 export const saveQueryData = function (graphId, json, callback) {
   const queryPath = 'studio/' + window.appConfig.userId + '/pdb/graph/' + graphId + '/query.json';
