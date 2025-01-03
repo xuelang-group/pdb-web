@@ -3,6 +3,7 @@ import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
 import { rollbackMetric, addMetric } from "@/actions/indicator";
+import { getMetricDetail2, checkVersion } from "@/actions/indicator";
 
 export default function UseHistoryModal(props: any) {
   const [infoForm] = Form.useForm()
@@ -68,6 +69,7 @@ export default function UseHistoryModal(props: any) {
       okButtonProps={{
         loading: modalLoading
       }}
+      maskClosable={false}
     >
       <Spin spinning={modalLoading}>
         <Form
@@ -114,9 +116,35 @@ export default function UseHistoryModal(props: any) {
                       name={'version'}
                       rules={[
                         { required: true, message: '请输入版本号' },
-                        { 
-                          pattern: /^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$/, 
-                          message: '版本号格式不正确，应该是 X.X.X 的格式，且不允许有前导零',
+                        // { 
+                        //   pattern: /^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2}$/, 
+                        //   message: '版本号格式不正确，应该是 X.X.X 的格式，且不允许有前导零',
+                        // },
+                        {
+                          validateTrigger: 'onBlur',
+                          validator: async(_, value) =>
+                          {
+                            if(editId) {
+                              const resD = await getMetricDetail2({id: editId})
+                              if(resD.data) {
+                                const res = await checkVersion({new_version: value, ori_id: resD.data?.ori_id})
+                                if(res.data?.success) {
+                                  return Promise.resolve()
+                                } else {
+                                  return Promise.reject(new Error(res.data?.message))
+                                }
+                              } else {
+                                return Promise.reject(new Error(resD.data?.message))
+                              }
+                            } else {
+                              const res = await checkVersion({new_version: value})
+                              if(res.data?.success) {
+                                return Promise.resolve()
+                              } else {
+                                return Promise.reject(new Error(res.data?.message))
+                              }
+                            }
+                          }
                         },
                       ]}
                       tooltip="1.格式X.X.X，仅允许使用数字和.作为分隔符，不支持字母、特殊字符等。
