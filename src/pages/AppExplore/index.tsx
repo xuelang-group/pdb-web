@@ -454,8 +454,8 @@ export default function AppExplore() {
         let _types: TypeConfig[] = JSON.parse(JSON.stringify(searchTypes));
         if (prevSearchTagType === 'relation') {
           // typeOptions.push(enterOption);
-          const relationName = prevSearchTag['key'],
-            relationsIsReverse = prevSearchTag['isReverse'], // isReverse: false，正向关系；true，反向关系。
+          const relationsIsReverse = prevSearchTag['isReverse'], // isReverse: false，正向关系；true，反向关系。
+            relationName = relationsIsReverse ? prevSearchTag['key'].slice(1) : prevSearchTag['key'], // 如果是反向关系，把前缀~去掉
             sourceType = _.get(_.get(searchTagMap[index], currentTags[currentTags.length - 2]), 'key', ""),
             targetTypeMap: any = {};
 
@@ -495,22 +495,23 @@ export default function AppExplore() {
 
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
-          let sourceRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
-            targetRelations = _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []);
+          const prevTypeKey = prevSearchTag['key'];
+          let sourceRelations = _.get(_.get(typeRelationMap, prevTypeKey, {}), 'source', []),
+            targetRelations = _.get(_.get(typeRelationMap, prevTypeKey, {}), 'target', []);
           if (currentTags.length > 1) {
             // 前一个的前一个tag的类型
             const priorSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 2]),
               priorSearchTagType = _.get(priorSearchTag, 'type', "");
             //如果都为对象类型，下拉框选择只显示关系类型列表
             if (priorSearchTag && priorSearchTagType === 'type' && priorSearchTagType === prevSearchTagType) {
-              console.log(typeRelationMap)
+              const priorTypeKey = prevSearchTag['key'];
               sourceRelations = _.intersection(
-                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'source', []),
-                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'target', []),
+                _.get(_.get(typeRelationMap, priorTypeKey, {}), 'source', []),
+                _.get(_.get(typeRelationMap, prevTypeKey, {}), 'target', []),
               );
               targetRelations = _.intersection(
-                _.get(_.get(typeRelationMap, priorSearchTag['key'], {}), 'target', []),
-                _.get(_.get(typeRelationMap, prevSearchTag['key'], {}), 'source', []),
+                _.get(_.get(typeRelationMap, priorTypeKey, {}), 'target', []),
+                _.get(_.get(typeRelationMap, prevTypeKey, {}), 'source', []),
               );
             }
           }
@@ -573,8 +574,8 @@ export default function AppExplore() {
               label: "反向关系",
               options: reverseSearchRelations.map((val: RelationConfig, index: number) => ({
                 label: "~" + val['r.type.label'],
-                value: val['r.type.name'] + `-${currentTagLen}`,
-                key: val['r.type.name'],
+                value: "~" + val['r.type.name'] + `-${currentTagLen}`,
+                key: "~" + val['r.type.name'],
                 type: 'relation',
                 isReverse: true,
                 data: val
@@ -765,10 +766,11 @@ export default function AppExplore() {
           let option = {
             name
           };
-          if (detail.key === "e_x_parent" || detail.key === "~e_x_parent") {
+          let optionKey = detail.key;
+          if (optionKey === "e_x_parent" || optionKey === "~e_x_parent") {
             Object.assign(option, {
               type: "relation",
-              id: detail.key,
+              id: optionKey,
             });
           } else {
             const type = detail.type === "type" ? "object" : detail.type;
@@ -776,12 +778,14 @@ export default function AppExplore() {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
-              id: (detail.isReverse ? "~" : "") + detail.key
+              id: optionKey
             });
 
             if (type === "relation") {
-              if (detail.key !== "e_x_parent" && detail.key !== "~e_x_parent" && !detail.key.startsWith("__TEMPORARY_RELATION__")) {
-                relationNames.push(detail.key.replace('.', '_'));
+              if (optionKey !== "e_x_parent" && optionKey !== "~e_x_parent" && !optionKey.startsWith("__TEMPORARY_RELATION__")) {
+                let relationName = optionKey;
+                if (detail.isReverse) relationName = relationName.slice(1);
+                relationNames.push(relationName.replace('.', '_'));
               }
               Object.assign(option, {
                 bindType: _.get(detail, "bindType", "innerjoin")
@@ -968,7 +972,8 @@ export default function AppExplore() {
       lastLabel = _label.slice(findIndex + currentSearchValue.length);
     return (
       <>
-        {key.startsWith("Relation") && <i className={`iconfont icon-${data.isReverse ? "fanxiangguanxi" : "zhengxiangguanxi"}`}></i>}
+        {key.startsWith("Relation") && <i className="iconfont icon-fanxiangguanxi"></i>}
+        {key.startsWith("~Relation") && <i className="iconfont icon-zhengxiangguanxi"></i>}
         <span className="pdb-explore-dropdown-label">
           <span>{prevLabel}</span>
           <span style={{ color: 'red' }}>{centerLabel}</span>
