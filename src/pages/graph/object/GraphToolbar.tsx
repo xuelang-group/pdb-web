@@ -69,7 +69,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
-    [pageSize, setPageSize] = useState<number | undefined>(2),
+    [pageSize, setPageSize] = useState<number | undefined>(10),
     [selectedTab, setSelectedTab] = useState({} as any),  // 画布工具栏 - 当前选中项
     [filterMap, setFilterMap] = useState({ type: {}, relation: {} }),  // 画布工具栏 - 视图过滤数据
     [uploading, setUploading] = useState(false), // 上传xlsx文件中
@@ -108,10 +108,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
   useEffect(() => {
     filterForm.resetFields();
     if (!toolbarConfig[currentGraphTab]) return;
-    const { relationLines, showRelationLabel, showRelationLine, filters } = toolbarConfig[currentGraphTab];
+    const { relationLines, showRelationLabel, showRelationLine, filters, pageSize } = toolbarConfig[currentGraphTab];
     setRelationLines(relationLines);
     setShowRelationLable(showRelationLabel);
     setShowRelationLine(showRelationLine);
+    setPageSize(pageSize);
     filterForm.setFieldValue('filter', filters);
   }, [currentGraphTab]);
 
@@ -434,7 +435,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     setPageSize(value);
     if (currentGraphTab === 'main') saveSettingConfig({ pageSize: value });
     dispatch(setToolbarConfig({
-      key: 'main',
+      key: currentGraphTab,
       config: {
         pageSize: value
       }
