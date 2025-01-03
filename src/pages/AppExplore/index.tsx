@@ -994,8 +994,8 @@ export default function AppExplore() {
       lastLabel = _label.slice(findIndex + currentSearchValue.length);
     return (
       <>
-        {key.startsWith("Relation") && <i className="iconfont icon-fanxiangguanxi"></i>}
-        {key.startsWith("~Relation") && <i className="iconfont icon-zhengxiangguanxi"></i>}
+        {key.startsWith("~Relation") && <i className="iconfont icon-fanxiangguanxi"></i>}
+        {key.startsWith("Relation") && <i className="iconfont icon-zhengxiangguanxi"></i>}
         <span className="pdb-explore-dropdown-label">
           <span>{prevLabel}</span>
           <span style={{ color: 'red' }}>{centerLabel}</span>
