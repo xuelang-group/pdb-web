@@ -15,7 +15,7 @@ import { ObjectConfig } from '@/reducers/object';
 
 export default function MultiModelParamEditor(props: any) {
   const dispatch = useDispatch();
-  const graphData = useSelector((state: any) => state[props.route].graphData),
+  const graphData = useSelector((state: any) => state.object.graphData),
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround);
 
