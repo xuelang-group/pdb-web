@@ -42,7 +42,7 @@ export default function RelationList(props: RelationListProps) {
       const relationId = item['r.type.id'],
         targetId = item['r.object.target.id'],
         targetLabel = item['r.object.target.name'];
-      if (!targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
+      if (targetId && !targetLabel) Object.assign(noLabelObject, { [targetId]: targetId });
       if (!usedTargetMap[targetId] && targetLabel) {
         _targetList.push({
           value: targetId,
