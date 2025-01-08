@@ -1237,20 +1237,87 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     XLSX.writeFile(workbook, '示例数据.xlsx');
   }
 
-  const updateGraphData = function (data: any) {
+  const updateGraphData = function (data: any, params: any) {
+    
     const graph = (window as any).PDB_GRAPH;
-    if (!data || !graph) return;
-    const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
-    convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
-    dispatch(setCurrentGraphTab("explore"));
-    dispatch(setToolbarConfig({
-      key: "explore",
-      config: { relationLines, showRelationLine: true, showRelationLabel: true }
-    }));
-    graph.data({ nodes, edges, combos });
+
+    if (!data || !graph || !rootId) return;
+    const relationLines = {};
+    const newData = data.map((value: any, index: number) => {
+      const infoIndex = _.get(value, 'tags.0.name') === 'v_node' ? 0 : 1,
+        attrIndex = infoIndex === 0 ? 1 : 0;
+      const newValue = JSON.parse(JSON.stringify(value)),
+        parents = newValue['e_x_parent'],
+        currentParent = parents.filter((val: Parent) => val.dst?.toString() === rootId)[0],
+        defaultInfo = _.get(newValue.tags[infoIndex], 'props', {}),
+        attrValue = _.get(newValue.tags[attrIndex], 'props', {}),
+        uid = newValue['vid'].toString();
+
+      // 获取对象关系列表数据
+      const relations: any[] = [];
+      Object.keys(newValue).forEach((key: string) => {
+        if (key.startsWith("Relation_")) {
+          const relationKey = key.replace('_', '.');
+          if (_.isArray(newValue[key])) {
+            newValue[key].forEach((target: any) => {
+              relations.push({
+                relation: relationKey,
+                target: {
+                  uid: _.get(target, 'dst', '').toString()
+                },
+                attrValue: _.get(target, 'props', {})
+              });
+            });
+          } else {
+            relations.push({
+              relation: relationKey,
+              target: {
+                uid: _.get(newValue[key], 'dst', '').toString()
+              },
+              attrValue: _.get(newValue[key], 'props', {})
+            });
+          }
+        }
+      });
+      Object.assign(relationLines, {
+        [uid]: relations
+      });
+
+      return {
+        ...defaultInfo,
+        'x_attr_value': { ...attrValue },
+        'e_x_parent': parents,
+        'x_children': _.get(newValue, 'x_children', 0),
+        currentParent: {
+          ...(_.get(currentParent, 'props', {})),
+          uid: currentParent.dst.toString(),
+          id: rootId,
+        },
+        'x_id': rootId + '.' + index,
+        id: uid,
+        uid: uid
+      };
+    });
+    let graphData: any = covertToGraphData(newData, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'), true);
+    graph.data(JSON.parse(JSON.stringify(graphData)));
     graph.render();
     graph.zoom(1);
+    dispatch(setCurrentGraphTab("explore"));
+    dispatch(setToolbarConfig({ config: { relationLines, queryParams: params, showRelationLine: true, showRelationLabel: true }, key: 'explore' }));
+    // const graph = (window as any).PDB_GRAPH;
+    // if (!data || !graph) return;
+    // const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};
+    // convertResultData(data, null, nodes, edges, combos, edgeIdMap, relationLines);
+    // dispatch(setCurrentGraphTab("explore"));
+    // dispatch(setToolbarConfig({
+    //   key: "explore",
+    //   config: { relationLines, showRelationLine: true, showRelationLabel: true }
+    // }));
+    // graph.data({ nodes, edges, combos });
+    // graph.render();
+    // graph.zoom(1);
   }
+  
   const searchLLM = function () {
     const graphId = routerParams.id;
     const content = _.get(searchRef, "current.input.value", "");
@@ -1260,9 +1327,28 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     }
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
-    runLLM({ graphId, tree: true, content }, (success: boolean, response: any) => {
+    runLLM({ graphId, tree: false, content }, (success: boolean, response: any) => {
       if (success) {
-        updateGraphData(response);
+        const { childrenVid, relationNames } = response
+        const _param = {vid: rootId, childrenVid, relationNames }
+        const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
+        const limit = Number(PAGE_SIZE);
+        if (limit > 0 && childrenVid.length > limit) {
+          Object.assign(_param, { first: limit, offset: 0 });
+        }
+        getChildren(_param, (success: boolean, data: any) => {
+          console.log("get children: ", success, data)
+          if (success) {
+            updateGraphData(data, {..._param, graphId});
+          } else {
+            notification.error({
+              message: '搜索失败',
+              description: data.message || data.msg
+            });
+          } 
+        })
+
+        // updateGraphData(response);
       } else {
         notification.error({
           message: '搜索失败',
