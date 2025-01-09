@@ -19,7 +19,7 @@ import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/ty
 import { setTypes, TypeConfig } from "@/reducers/type";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
-import { runLLM } from "@/actions/query";
+import { runLLM, getQueryChildren } from "@/actions/query";
 
 const templateExampleData = {
   "类型表": { "!ref": "A1:C12", "A1": { "t": "s", "v": "名称（唯一标识）", "r": "<t>名称（唯一标识）</t>", "h": "名称（唯一标识）", "w": "名称（唯一标识）" }, "B1": { "t": "s", "v": "类型（默认对象类型）", "r": "<t>类型（默认对象类型）</t>", "h": "类型（默认对象类型）", "w": "类型（默认对象类型）" }, "C1": { "t": "s", "v": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "r": "<t>是否开启版本管理（TRUE / FALSE，默认FALSE）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>", "h": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "w": "是否开启版本管理（TRUE / FALSE，默认FALSE）" }, "A2": { "t": "s", "v": "航司", "r": "<t>航司</t>", "h": "航司", "w": "航司" }, "B2": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "C2": { "t": "b", "v": true, "w": "TRUE" }, "A3": { "t": "s", "v": "飞机", "r": "<t>飞机</t>", "h": "飞机", "w": "飞机" }, "B3": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "A4": { "t": "s", "v": "交付", "r": "<t>交付</t>", "h": "交付", "w": "交付" }, "B4": { "t": "s", "v": "关系类型", "r": "<t>关系类型</t>", "h": "关系类型", "w": "关系类型" }, "!margins": { "left": 0.7, "right": 0.7, "top": 0.75, "bottom": 0.75, "header": 0.3, "footer": 0.3 } },
@@ -1330,16 +1330,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     runLLM({ graphId, tree: false, content }, (success: boolean, response: any) => {
       if (success) {
         const { childrenVid, relationNames } = response
-        const _param = {vid: rootId, childrenVid, relationNames }
-        const PAGE_SIZE = toolbarConfig[currentGraphTab]["pageSize"] || 0;
-        const limit = Number(PAGE_SIZE);
-        if (limit > 0 && childrenVid.length > limit) {
-          Object.assign(_param, { first: limit, offset: 0 });
-        }
-        getChildren(_param, (success: boolean, data: any) => {
-          console.log("get children: ", success, data)
+        const _param = {vid: rootId, childrenVid, relationNames, graphId }
+        getQueryChildren(_param, (success: boolean, data: any) => {
           if (success) {
-            updateGraphData(data, {..._param, graphId});
+            updateGraphData(data, _param);
           } else {
             notification.error({
               message: '搜索失败',

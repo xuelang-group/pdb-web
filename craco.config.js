@@ -52,11 +52,11 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "hhttp://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/f6f16c60cd8b11ef85bdf748afbe794a/7000/pdb",
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/f6f16c60cd8b11ef85bdf748afbe794a/7000",
         changeOrigin: true,
         // onProxyReq(proxyReq) {
         //   // 设置Cookie
-        //   proxyReq.setHeader('Cookie', 'os.sid=s%3AulMkyM8OURwh3O1HDKz3OIRzM4hevtmG.z7OEj7FlH%2BqXougGOYU%2FgiARC998UjjPHfAM4lXqFUI; Path=/; Expires=Tue, 26 Mar 2024 11:51:16 GMT; HttpOnly');
+        //   proxyReq.setHeader('Cookie', 'dev.sid=s%3ARSsJnauHWD1S2Xu1-2gUusLAYeAcW0wr.%2FbKVdHNGmhU4EK2aLVHxxy35MQ6UVaHtBcTqVDVjPnc; Path=/; Expires=Fri, 10 Jan 2025 02:34:53 GMT; HttpOnl');
         // },
       },  
       '/indicator': {
