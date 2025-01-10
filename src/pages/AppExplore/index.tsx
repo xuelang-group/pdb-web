@@ -858,13 +858,13 @@ export default function AppExplore() {
       if (success) {
         getQueryResultChildren(graphId, {
           'x.object.id': rootId,
-          'children': response,
-          'relations': relationNames
+          'children': response.children,
+          'relations': response.relations
         }, (success: boolean, _response: any) => {
           if (success) {
             updateGraphData(_response, {
-              'children': response,
-              'relations': relationNames
+              'children': response.children,
+              'relations': response.relations
             });
           } else {
             notification.error({

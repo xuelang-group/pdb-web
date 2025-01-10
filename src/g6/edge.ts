@@ -11,7 +11,7 @@ export const SAME_ROOT_TREE_NODE_RELATION_LINE = 'same-root-tree-relation-line';
 export const ROOT_NODE_RELATION_LINE = 'root-node-relation-line'; // 根节点间的关系连线类型
 
 // 模板画布
-export const TEMPLATE_RELATION_LINE = ''; // 关系类型连线
+export const TEMPLATE_RELATION_LINE = 'template-relation-line'; // 关系类型连线
 
 export const defaultEdgeStyle = {
   stroke: '#F77234',

@@ -15,7 +15,7 @@ import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
 import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig
+  TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig, setSearchAround
 } from '@/reducers/editor';
 import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
@@ -175,13 +175,8 @@ export default function Editor(props: EditorProps) {
             <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         }
-        // return `<ul class="pdb-graph-node-contextmenu">
-        //   <li title="探索">探索</li>
-        //   <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-        //   ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
-        //     '<li title="一键展开">一键展开</li>' : ''}
-        // </ul>`;
         return `<ul class="pdb-graph-node-contextmenu">
+          <li title="探索">探索</li>
           <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
           ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
@@ -195,12 +190,12 @@ export default function Editor(props: EditorProps) {
         const itemModel = item.get("model");
         switch (target?.title) {
           /** 最新接口没有支持 */
-          // case "探索":
-          //   const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
-          //   _searchAround.show = true;
-          //   _searchAround.options.push({ start: [itemModel.data], options: [] });
-          //   dispatch(setSearchAround(_searchAround));
-          //   break;
+          case "探索":
+            const _searchAround = JSON.parse(JSON.stringify(store.getState().editor.searchAround));
+            _searchAround.show = true;
+            _searchAround.options.push({ start: [itemModel.data], options: [] });
+            dispatch(setSearchAround(_searchAround));
+            break;
           case "复制":
             graphCopyItem = JSON.parse(JSON.stringify(itemModel));
             break;

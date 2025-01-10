@@ -10,11 +10,12 @@ import { StoreState } from "@/store";
 import { defaultNodeColor, getBorderColor, getTextColor, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import PdbPanel from "../Panel";
 import "./index.less";
-import { queryApi, runVertex } from "@/actions/query";
+import { getQueryResultChildren, queryApi, runVertex } from "@/actions/query";
 import { covertToGraphData } from "@/utils/objectGraph";
 import { useParams } from "react-router-dom";
 import moment from "moment";
 import ExportApi from "../ExportApi";
+import { PqlResultParamsState, setPqlResultParams } from "@/reducers/query";
 
 let prevActiveTabIndex: string = "", __searchAroundOptions = {};
 export default function SearchAround() {
@@ -24,6 +25,7 @@ export default function SearchAround() {
     routerParams = useParams();
 
   const rootId = useSelector((state: StoreState) => state.editor.rootNode['x.object.id']),
+    graphData = useSelector((state: StoreState) => state.object.graphData),
     toolbarConfig = useSelector((state: StoreState) => state.editor.toolbarConfig),
     relationMap = useSelector((state: StoreState) => state.editor.relationMap),
     typeRelationMap = useSelector((state: StoreState) => state.editor.typeRelationMap),
@@ -160,19 +162,19 @@ export default function SearchAround() {
     if (index > -1) {
       _searchAroundOptions_[tabIndex]['options'][index][key] = value;
       setSearchAroundOptions(_searchAroundOptions_);
-      if (key === "object" || key === "conditions") {
-        handleSearch(tabIndex, false, _searchAroundOptions_);
-      }
+      // if (key === "object" || key === "conditions") {
+      //   handleSearch(tabIndex, false, _searchAroundOptions_);
+      // }
     } else {
       _searchAroundOptions_[tabIndex][key] = value;
       setSearchAroundOptions(_searchAroundOptions_);
-      if (key === "results") {
-        handleSearch(tabIndex, false, _searchAroundOptions_);
-      }
+      // if (key === "results") {
+      //   handleSearch(tabIndex, false, _searchAroundOptions_);
+      // }
     }
   }
 
-  const updateGraphData = function (data: ObjectConfig[]) {
+  const updateGraphData = function (data: ObjectConfig[], queryResultParams: PqlResultParamsState) {
     const graph = (window as any).PDB_GRAPH;
 
     if (!data || !graph) return;
@@ -193,6 +195,7 @@ export default function SearchAround() {
     const graphData = covertToGraphData(_data, rootId, _.get(toolbarConfig[currentGraphTab], 'filterMap.type'), true);
     dispatch(setObjects(_data));
     dispatch(setCurrentGraphTab("vertex"));
+    dispatch(setPqlResultParams(queryResultParams));
     dispatch(setToolbarConfig({
       key: "vertex",
       config: { relationLines, showRelationLine: true, showRelationLabel: true }
@@ -207,7 +210,7 @@ export default function SearchAround() {
     const vertex = [];
     vertex.push({
       type: "object",
-      id: start.map((val: any) => val.id)
+      id: start.map((val: CustomObjectConfig) => val['x.object.id'])
     });
     options.map((opt: { object: string; id: string; conditions: any[]; }) => {
       const { object, id, conditions } = opt;
@@ -263,27 +266,36 @@ export default function SearchAround() {
 
   const handleSearch = function (index: number, tree: boolean, _searchAroundOptions = searchAroundOptions) {
     const graph = (window as any).PDB_GRAPH;
-    if (tree && graph && currentGraphTab === "main") {
+    if (graph && currentGraphTab === "main") {
       dispatch(setGraphDataMap({
         ...graphDataMap,
         'main': graph.save()
       }));
     }
     const vertex = getVertexParams(index, _searchAroundOptions);
-    const graphId = routerParams.id;
-    if (tree) {
-      dispatch(setGraphLoading(true));
-      dispatch(setCurrentEditModel(null));
-    }
+    const graphId = graphData?.id;
+    dispatch(setGraphLoading(true));
+    dispatch(setCurrentEditModel(null));
     runVertex({ graphId, vertex, tree }, (success: boolean, response: any) => {
       if (success) {
-        if (tree) {
-          updateGraphData(response);
-        } else {
-          const _searchAroundOptions_ = JSON.parse(JSON.stringify(_searchAroundOptions));
-          _searchAroundOptions_[index]['results'] = response;
-          setSearchAroundOptions(_searchAroundOptions_);
-        }
+        getQueryResultChildren(graphId, {
+          'x.object.id': rootId,
+          'children': response.children,
+          'relations': response.relations
+        }, (success: boolean, _response: any) => {
+          if (success) {
+            updateGraphData(_response, {
+              'children': response.children,
+              'relations': response.relations
+            });
+          } else {
+            notification.error({
+              message: '搜索失败',
+              description: _response.message || _response.msg
+            });
+          }
+          dispatch(setGraphLoading(false));
+        });
       } else {
         tree && notification.error({
           message: '搜索失败',
@@ -302,7 +314,7 @@ export default function SearchAround() {
     changeValue(tabIndex, -1, "results", {}, _searchAroundOptions);
   }
 
-  const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[], results = {}) {
+  const renderOptionPanel = function (tabIndex: number, option: any, index: number, objectType: string, relations: any[]) {
     const relationName = option.id,
       targetTypeMap: any = {};
     relationMap[relationName]['r.type.binds'].forEach(bind => {
@@ -357,7 +369,6 @@ export default function SearchAround() {
               fieldNames={{ value: 'x.type.id', label: 'x.type.name' }}
               onChange={value => changeValue(tabIndex, index, 'object', value)}
             ></Select>
-            {option.object && <span>{_.get(results, option.object.replace(".", "_"), []).length}</span>}
           </div>
         </div>
       </div>
@@ -461,7 +472,7 @@ export default function SearchAround() {
             const relations = !objectType ? [] :
               Array.from(new Set(_.get(_.get(typeRelationMap, objectType, {}), 'source', [])))
                 .map((id: string) => ({ key: relationMap[id]['r.type.id'], label: relationMap[id]['r.type.name'], data: relationMap[id] }));
-            return renderOptionPanel(tabIndex, opt, index, objectType, relations, results);
+            return renderOptionPanel(tabIndex, opt, index, objectType, relations);
           })}
           <div>
             {renderAddRelationBtn(relations, btnDisabled)}
