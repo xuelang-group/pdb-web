@@ -10,13 +10,13 @@ const api = {
   get: `${objectApiPrefix}/get`,
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
+  rearrange: `${objectApiPrefix}/children/rearrange`,
 
   /** 接口暂未支持 */
   move: `${objectApiPrefix}/move`,
   checkout: `${objectApiPrefix}/checkout`,
   checkin: `${objectApiPrefix}/checkin`,
   discard: `${objectApiPrefix}/checkout/discard`,
-  rearrange: `${objectApiPrefix}/children/rearrange`,
 };
 
 /**
@@ -160,6 +160,24 @@ export const moveObject = (graphId, params, callback) => {
   });
 }
 
+/**
+ * 子对象顺序调整
+ * @param {int} graphId 项目ID
+ * @param {string} id 父对象ID
+ * @param {*} callback 
+ * @returns 
+ */
+export const rearrangeChildren = (graphId, id, callback) => {
+  return axios.post(api['rearrange'], {
+    graphId,
+    'x.object.id': id
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+}
+
 const commonParams = {
   graphId: 0
 };
@@ -203,18 +221,6 @@ export const discardObject = (vid, callback) => {
     callback && callback(false, err);
   });
 };
-
-export const rearrangeChildren = (params, callback) => {
-  return axios.post(api['rearrange'], {
-    ...commonParams,
-    ...params
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
-}
-
 
 /**
  * =====================================================================

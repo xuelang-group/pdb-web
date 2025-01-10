@@ -476,7 +476,6 @@ export const G6OperateFunctions = {
         handleUpdateObjects();
       }
     });
-
   },
   selectItem: function (item: Item, type: ITEM_TYPE, state: string, graph: Graph) {
     graph.findAllByState(type, state).forEach((item: any) => {
@@ -766,7 +765,7 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
   const sourceNodeIndex = sourceNodeIds.pop();
   const parentNodeXid = sourceNodeIds.join('.');
 
-  const parentNodeId = sourceNodeModel.parent;
+  const parentNodeId = _.get(sourceNodeModel.data['x.object.version.parent'], 'x.object.id');
   const parentNode = graph.findById(parentNodeId);
   if (!parentNode) return;
   const parentNodeModel = parentNode.get('model');
@@ -951,10 +950,11 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
         }
       }
     }
-    if (Number.isInteger(newParentIndex)) {
+    if (newParentIndex !== sourcePrevNodeXIndex && newParentIndex !== sourceNodeIndex) {
       updateGraphData();
     } else {
-      rearrangeChildren({ uid: parentNodeModel.uid }, (success: boolean, response: any) => {
+      const graphId = store.getState().object.graphData.id;
+      rearrangeChildren(graphId, parentNodeId, (success: boolean, response: any) => {
         if (success) {
           const parentCombo: any = graph.findById(parentNodeId + "-combo");
           if (parentCombo) {
@@ -966,10 +966,10 @@ export async function addBrotherNode(sourceNode: Item, graph: Graph, typeInfo: T
               const config = id.split('-');
               G6OperateFunctions.changePagination(graph, { parent }, Number(config[2]) - Number(PAGE_SIZE()));
             } else {
-              G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid }, 0);
+              G6OperateFunctions.changePagination(graph, { parent: parentNodeId }, 0);
             }
           } else {
-            G6OperateFunctions.changePagination(graph, { parent: parentNodeModel.uid }, 0);
+            G6OperateFunctions.changePagination(graph, { parent: parentNodeId }, 0);
           }
         } else {
           updateGraphData();
@@ -1286,7 +1286,7 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
   const dropPrevItemXid = dropItemIndex > 1 ? (rootId + "." + (dropItemIndex - 1)) : "";
   let currentIndex = dropItemIndex, dropItemDataIndex = -1;
   const newObjData = JSON.parse(JSON.stringify(data));
-  let newParentIndex: number;
+  let newParentIndex: number, shouldRearrangeIndex = false;
   const dropItemParentIndex = Number((dropItemModel.data['x.object.version.parent'] || {})['x.object.index']);
   newObjData.forEach((item: CustomObjectConfig, index: number) => {
     if (item['xid'] === dropPrevItemXid) {
@@ -1295,11 +1295,13 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
       Object.assign(newParent, {
         "x.object.index": newParentIndex
       });
+      shouldRearrangeIndex = newParentIndex === dropPrevItemXindex || newParentIndex === dropItemParentIndex;
     } else if (dropItemIndex === 0 && index === 0) {
       newParentIndex = Math.floor(dropItemParentIndex / 2);
       Object.assign(newParent, {
         "x.object.index": newParentIndex
       });
+      shouldRearrangeIndex = newParentIndex === dropItemParentIndex || newParentIndex === 0;
     }
 
     if (dropItemDataIndex === -1 && item['xid'] === dropItemXid) dropItemDataIndex = index;
@@ -1356,69 +1358,66 @@ export function insertRootNode(graph: Graph, typeInfo: TypeConfig, dropItem: any
         graph.focusItem(item, true);
       }, 0);
     }
-    // if (Number.isInteger(newParentIndex)) {
-    updateGraphData();
-    /**
-     * rearrangeChildren接口没有，暂不支持
-     */
-    // } else {
-    // const parentId = newParent['x.object.id'];
-    // const graphId = store.getState().object.graphData.id;
+    if (!shouldRearrangeIndex) {
+      updateGraphData();
+    } else {
+      const parentId = newParent['x.object.id'];
+      const graphId = store.getState().object.graphData.id;
 
-    // rearrangeChildren({ uid: parentId }, (success: boolean, response: any) => {
-    //   if (success) {
-    //     getChildren(graphId, { 'x.object.id': parentId }, (success: boolean, data: any) => {
-    //       if (success) {
+      rearrangeChildren(graphId, parentId, (success: boolean, response: any) => {
+        if (success) {
+          getChildren(graphId, { 'x.object.id': parentId }, (success: boolean, data: any) => {
+            if (success) {
 
-    //         const { toolbarConfig, currentGraphTab } = store.getState().editor;
-    //         const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
-    //         let _data: any[] = [];
+              const { toolbarConfig, currentGraphTab } = store.getState().editor;
+              const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+              let _data: any[] = [];
 
-    //         _data = _data.concat(data.map((value: any, index: number) => {
-    //           // 获取对象关系列表数据
-    //           Object.assign(relationLines, {
-    //             [value['x.object.id']]: value['x.object.version.relations'] || []
-    //           });
+              _data = _data.concat(data.map((value: any, index: number) => {
+                // 获取对象关系列表数据
+                Object.assign(relationLines, {
+                  [value['x.object.id']]: value['x.object.version.relations'] || []
+                });
 
-    //           return {
-    //             ...value,
-    //             'xid': rootId + '.' + index,
-    //           };
-    //         }));
+                return {
+                  ...value,
+                  'xid': rootId + '.' + index,
+                };
+              }));
 
-    //         store.dispatch(setToolbarConfig({
-    //           key: 'main',
-    //           config: { relationLines }
-    //         }));
-    //         const curentGraphData: any = graph.save();
+              store.dispatch(setToolbarConfig({
+                key: 'main',
+                config: { relationLines }
+              }));
+              const curentGraphData: any = graph.save();
 
-    //         const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentId, xid: parentId }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
-    //         let newData: any[] = _data;
+              const { nodes, edges, combos } = replaceChildrenToGraphData({ id: parentId, xid: parentId }, _data, curentGraphData, _.get(toolbarConfig[currentGraphTab], 'filterMap.type', {}));
+              let newData: any[] = _data;
 
-    //         store.getState().object.data.forEach(function (obj: any) {
-    //           if (!obj['xid'] || obj['xid'].split(".").length > 2) {
-    //             newData.push(obj);
-    //           }
-    //         });
-    //         store.dispatch(setObjects(newData));
-    //         graph.changeData({
-    //           nodes,
-    //           edges,
-    //           combos
-    //         }, false);
-    //       } else {
-    //         notification.error({
-    //           message: '获取子实例失败：',
-    //           description: data.message || data.msg
-    //         });
-    //       }
-    //       store.dispatch(setGraphLoading(false));
-    //     });
-    //   } else {
-    //     updateGraphData();
-    //   }
-    // });
-    // }
+              store.getState().object.data.forEach(function (obj: any) {
+                if (!obj['xid'] || obj['xid'].split(".").length > 2) {
+                  newData.push(obj);
+                }
+              });
+              store.dispatch(setObjects(newData));
+              graph.changeData({
+                nodes,
+                edges,
+                combos
+              }, false);
+            } else {
+              notification.error({
+                message: '获取子实例失败：',
+                description: data.message || data.msg
+              });
+            }
+            store.dispatch(setGraphLoading(false));
+          });
+        } else {
+          updateGraphData();
+        }
+      });
+    }
   });
 }
 
