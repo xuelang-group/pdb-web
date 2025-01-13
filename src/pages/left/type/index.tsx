@@ -1,4 +1,4 @@
-import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree } from 'antd';
+import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -42,6 +42,7 @@ export default function Left() {
     [searchValue, setSearchValue] = useState(''),
     [filterValue, setFilterValue] = useState(''),
     [isSearched, setSearchedStatus] = useState(false),
+    [prototype, setPrototype] = useState<TypeConfig | undefined>(),
     [currentTab, setCurrentTab] = useState('type');
 
   useEffect(() => {
@@ -307,6 +308,8 @@ export default function Left() {
     let item = {};
     if (type === 'type') {
       item = getDefaultTypeConfig();
+      modalForm.setFieldValue('prototypeVersion', 'latest');
+      modalForm.setFieldValue('x.type.version', true);
     } else {
       item = getDefaultRelationConfig();
     }
@@ -470,6 +473,9 @@ export default function Left() {
     } else {
       if (key === 'inherit') {
         modalForm.setFieldValue('prototype', item['x.type.id']);
+        modalForm.setFieldValue('prototypeVersion', 'latest');
+        modalForm.setFieldValue('x.type.version', item['x.type.version']);
+        setPrototype(item);
       }
       setModalType(key);
       setOperateItem({ type, item });
@@ -524,7 +530,7 @@ export default function Left() {
               {list.map((item: any, index: number) => {
                 const label: any = item[prevLabel + 'type.name']
                 return (
-                  <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
+                  <Dropdown key={item['r.type.id']} overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                     <span
                       className={'type-item' + (currentEditModel && _.get(currentEditModel.data, prevLabel + 'type.id') === item[prevLabel + 'type.id'] ? ' selected' : '')}
                       onClick={() => handleSelectItem(item, type)}
@@ -636,7 +642,7 @@ export default function Left() {
           'x.type.version.attrs': [],
           'x.type.version.prototype': item['x.type.version.prototype'] || {},
           'x.type.name': name,
-          'x.type.version': false
+          'x.type.version': values['x.type.version'] === undefined ? true : values['x.type.version']
         }
         if (modalType === 'copy') {
           Object.assign(newType, {
@@ -648,7 +654,6 @@ export default function Left() {
           const colors = Object.keys(nodeColorList);
           Object.assign(newType, {
             'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
-            'x.type.version': values['x.type.version']
           });
         }
         if (prototype) {
@@ -680,6 +685,7 @@ export default function Left() {
     setModalType('');
     setModalOpen(false);
     setOperateItem({ type: '', item: {} });
+    setPrototype(undefined);
     modalForm.resetFields();
   }
 
@@ -693,6 +699,11 @@ export default function Left() {
     labelCol: { span: 6 },
     wrapperCol: { span: 18 },
   };
+
+  const onPrototypeChange = (typeId: string) => {
+    const type = typeId ? types.find(item => item['x.type.id'] == typeId) : undefined
+    setPrototype(type)
+  }
 
   const renderModal = () => {
     const { type } = operateItem;
@@ -726,22 +737,32 @@ export default function Left() {
           >
             <Input />
           </Form.Item>
-          {type === 'type' && modalType !== 'copy' &&
-            <Form.Item name="prototype" label="继承自" style={{ marginBottom: 0 }}>
-              <Select disabled={modalType === 'inherit'}>
+          {type === 'type' && modalType !== 'copy' && 
+            <Form.Item name="prototype" label="继承自">
+              <Select disabled={modalType === 'inherit'} onChange={onPrototypeChange}>
                 {prototypeList.map((item: any) => (
-                  <Select.Option value={item['x.type.id']}>
+                  <Select.Option key={item['x.type.id']} value={item['x.type.id']}>
                     {item['x.type.name']}
                   </Select.Option>
                 ))}
               </Select>
             </Form.Item>
           }
-          {/* {type === 'type' && modalType === 'add' &&
+          { 
+            type === 'type' && prototype && prototype['x.type.version'] && (
+              <Form.Item name="prototypeVersion" label="版本引用方式">
+                <Radio.Group>
+                  <Radio value={'latest'}>跟踪最新版本</Radio>
+                  <Radio value={'current'}>锁定当前版本</Radio>
+                </Radio.Group>
+              </Form.Item>
+            )
+          }
+          {type === 'type' && modalType !== 'copy' && 
             <Form.Item name="x.type.version" label="开启版本控制">
-              <Switch />
+              <Switch checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
             </Form.Item>
-          } */}
+          }
         </Form>
       </Modal>
     )

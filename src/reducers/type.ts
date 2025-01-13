@@ -90,7 +90,7 @@ export const getDefaultTypeConfig = () => {
     "x.type.version.attrs": [],
     "x.type.updated": timestamp,
     "x.type.created": timestamp,
-    "x.type.version.prototype": {}
+    "x.type.version.prototype": {},
   }
 };
 
