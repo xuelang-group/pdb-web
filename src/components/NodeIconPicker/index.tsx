@@ -28,7 +28,7 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
         {fonts.glyphs.map((font, index) => {
           if (index === 0) {
             return (
-              <Tooltip title="无图标">
+              <Tooltip key={font.icon_id} title="无图标">
                 <div
                   className={'pdb-iconpicker-item pdb-iconpicker-unset first-row-item' +
                     ((index + 1) === fontIconsLen ? ' icon-last-item' : '') +
@@ -42,7 +42,7 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
             )
           }
           return (
-            <div
+            <div key={font.icon_id}
               className={'pdb-iconpicker-item' + (index < 5 ? ' first-row-item' : '') +
                 ((index + 1) % 5 === 0 ? ' row-last-item' : ((index + 1) === fontIconsLen ? ' icon-last-item' : '')) +
                 (currentIcon === font.font_class ? ' selected' : '')
