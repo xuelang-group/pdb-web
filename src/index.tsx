@@ -32,13 +32,13 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
   const root = ReactDOM.createRoot(rootContainer);
   message.config({ prefixCls: 'pdb-ant-message' });
   notification.config({ prefixCls: 'pdb-ant-notification' });
-  Modal.config({ rootPrefixCls: 'pdb-ant' });
+  // Modal.config({ rootPrefixCls: 'pdb-ant' });
   const { locale, messages } = config;
 
   ConfigProvider.config({
     holderRender: (children: any) => {
       return <StyleProvider hashPriority="high">
-        <ConfigProvider>
+        <ConfigProvider prefixCls="pdb-ant">
           {children}
         </ConfigProvider>
       </StyleProvider>
