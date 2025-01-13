@@ -1096,14 +1096,14 @@ export default function Right(props: RightProps) {
             }
             {currentEditType === 'object' &&
               <Form.Item name='typeName' label='类型' >
-                <Input bordered={false} readOnly />
+                <Input variant="borderless" readOnly />
               </Form.Item>
             }
             <Form.Item name='created' label='创建时间' >
-              <Input bordered={false} readOnly />
+              <Input variant="borderless" readOnly />
             </Form.Item>
             <Form.Item name='lastChange' label='更改时间' >
-              <Input bordered={false} readOnly />
+              <Input variant="borderless" readOnly />
             </Form.Item>
           </div>
         </Form>
@@ -1150,32 +1150,32 @@ export default function Right(props: RightProps) {
             <>
               <div className='info-id'>
                 <Form.Item name='id' label='ID' >
-                  <Input ref={idRef} bordered={false} readOnly />
+                  <Input ref={idRef} variant="borderless" readOnly />
                 </Form.Item>
                 <i className='spicon icon-fuzhi' onClick={() => copyId(idRef)}></i>
               </div>
               {currentEditType === 'object' &&
                 <Form.Item name='typeName' label='类型' >
-                  <Input bordered={false} readOnly />
+                  <Input variant="borderless" readOnly />
                 </Form.Item>
               }
               {currentEditType === 'relation' && props.route === "object" &&
                 <Form.Item name='source' label='源对象' >
-                  <Input bordered={false} readOnly />
+                  <Input variant="borderless" readOnly />
                 </Form.Item>
               }
               {currentEditType === 'relation' && props.route === "object" &&
                 <Form.Item name='target' label='目标对象' >
-                  <Input bordered={false} readOnly />
+                  <Input variant="borderless" readOnly />
                 </Form.Item>
               }
               {!(currentEditType === "relation" && props.route === "object") &&
                 <>
                   <Form.Item name='created' label='创建时间' >
-                    <Input bordered={false} readOnly />
+                    <Input variant="borderless" readOnly />
                   </Form.Item>
                   <Form.Item name='lastChange' label='更改时间' >
-                    <Input bordered={false} readOnly />
+                    <Input variant="borderless" readOnly />
                   </Form.Item>
                 </>
               }
