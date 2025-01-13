@@ -116,7 +116,6 @@ export const objectSlice = createSlice({
       state.data = JSON.parse(JSON.stringify(action.payload));
     },
     setGraphData: (state, action: PayloadAction<any>) => {
-      action.payload.id = action.payload.graphId;
       state.graphData = JSON.parse(JSON.stringify(action.payload));
     },
     setObjectDetail: (state, action: PayloadAction<{ id: string, options: any }>) => {
