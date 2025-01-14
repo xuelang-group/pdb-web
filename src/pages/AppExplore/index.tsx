@@ -1144,7 +1144,7 @@ export default function AppExplore() {
       {showSearch &&
         <div className={"pdb-explore-search-group" + (indicatorCheckId ? " pdb-explore-search-group-disabled" : "")}>
           {searchTags.map((item, index) => (
-            <Popover
+            <Popover key={index}
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
                 !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey)) ||
                 (searchTags[index] && searchTags[index].length > 0 && filterPanelOpenKey.startsWith(EMPORARY_RELATION_KEY))

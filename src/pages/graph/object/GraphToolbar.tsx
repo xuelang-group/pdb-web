@@ -587,10 +587,10 @@ export default function GraphToolbar(props: GraphToolbarProps) {
                                     }
                                   >
                                     {target === 'relation' && relationList.map((info: RelationConfig) => (
-                                      <Select.Option value={info['r.type.id']} disabled={_.get(filterMap.relation, info['r.type.id'])}>{info['r.type.name']}</Select.Option>
+                                      <Select.Option key={info['r.type.id']} value={info['r.type.id']} disabled={_.get(filterMap.relation, info['r.type.id'])}>{info['r.type.name']}</Select.Option>
                                     ))}
                                     {target === 'type' && typeList.map((info: TypeConfig) => (
-                                      <Select.Option value={info['x.type.id']} disabled={_.get(filterMap.type, info['x.type.id'])}>{info['x.type.name']}</Select.Option>
+                                      <Select.Option key={info['x.type.id']} value={info['x.type.id']} disabled={_.get(filterMap.type, info['x.type.id'])}>{info['x.type.name']}</Select.Option>
                                     ))}
                                   </Select>
                                 </Form.Item>
@@ -1218,8 +1218,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     <>
       <div className='pdb-graph-toolbar'>
         {!location.pathname.endsWith("/template") && tabs.map((tab) => (
-          <Popover
-            visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
+          <Popover key={tab.key}
+            open={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
             placement="right"
             trigger="click"
             content={
@@ -1245,7 +1245,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             rootClassName={_.get(tab, 'key', '') === 'filter' ? 'pdb-graph-toolbar-panel edit_tools pdb-param-editor' : ''}
             getPopupContainer={() => document.getElementsByClassName('pdb-object-graph-content')[0] as HTMLElement}
             arrow={false}
-            onVisibleChange={(visible: boolean) => {
+            onOpenChange={(visible: boolean) => {
               if (!visible) setSelectedTab(null);
             }}
           >
