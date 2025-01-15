@@ -41,6 +41,7 @@ import { getHashParameterByName } from '@/utils/common';
 import { getGraphInfo } from './actions/graph';
 import { setGraphData } from '@/reducers/object';
 import { initG6 } from './g6';
+import List from './pages/list';
 
 const { Content } = Layout;
 let prevPathname = "";
@@ -236,9 +237,9 @@ function App(props: PdbConfig) {
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
-      {/* <Routes>
+      <Routes>
         <Route path="/:id?" element={<List route="object" theme={theme} />}></Route>
-      </Routes> */}
+      </Routes>
       <Layout className="pdb-layout">
         <Routes>
           <Route path="/:id/*" element={<CommonHeader route="object" centerContent={<ObjectHeaderExtra />} headerEXtraWidth={headerEXtraWidth} />} />
