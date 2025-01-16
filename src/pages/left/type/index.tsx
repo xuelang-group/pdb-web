@@ -3,7 +3,7 @@ import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented,
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-import _ from 'lodash';
+import _, { map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
@@ -422,11 +422,10 @@ export default function Left() {
     type: 'divider',
   }, {
     label: '版本控制',
-    key: 'versionControl',
-    // extra: <Switch checkedChildren="ON" unCheckedChildren="OFF" />
+    key: 'control',
   }, {
     label: '版本记录',
-    key: 'versionRecord',
+    key: 'history',
   }];
 
   const relationMenus = [{
@@ -449,53 +448,71 @@ export default function Left() {
     'relation': '关系'
   }
 
+  const handleDelete = (type: string, item: any) => {
+    const title = modalLabel['delete'] + typeLabel[type] + '类型';
+    const nameLabel = type === 'type' ? 'x.type.name' : 'r.type.name',
+      idLabel = type === 'type' ? 'x.type.id' : 'r.type.id';
+    modal.confirm({
+      className: 'pdb-confirm-modal',
+      title,
+      icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
+      getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
+      content: (
+        <>
+          <div className='pdb-confirm-info'>是否删除 “{item[nameLabel]}” {typeLabel[type]}类型 ?</div>
+          {currentTab === "type" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
+        </>
+      ),
+      okButtonProps: {
+        danger: true
+      },
+      okText: "确定删除",
+      cancelText: "取消",
+      onOk: () => {
+        setModalLoading(true);
+        if (type === 'type') {
+          removeType(item[idLabel], idLabel);
+        } else {
+          removeRelation(item[idLabel], idLabel);
+        }
+      },
+      onCancel: () => {
+        setModalLoading(false);
+      }
+    });
+  }
+
+  // 类型版本控制切换
+  const onToggleControl = (checked: boolean) => {
+    console.log('--- control: ', checked)
+  }
+
   const handleClickMenu = (menuInfo: any, type: string, item: any) => {
     const { key } = menuInfo;
 
-    if (key === 'delete') {
-      const title = modalLabel['delete'] + typeLabel[type] + '类型';
-      const nameLabel = type === 'type' ? 'x.type.name' : 'r.type.name',
-        idLabel = type === 'type' ? 'x.type.id' : 'r.type.id';
-      modal.confirm({
-        className: 'pdb-confirm-modal',
-        title,
-        icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
-        getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
-        content: (
-          <>
-            <div className='pdb-confirm-info'>是否删除 “{item[nameLabel]}” {typeLabel[type]}类型 ?</div>
-            {currentTab === "type" && <div className='pdb-confirm-description'>(当此类型被其他类型继承时，无法删除此类型)</div>}
-          </>
-        ),
-        okButtonProps: {
-          danger: true
-        },
-        okText: "确定删除",
-        cancelText: "取消",
-        onOk: () => {
-          setModalLoading(true);
-          if (type === 'type') {
-            removeType(item[idLabel], idLabel);
-          } else {
-            removeRelation(item[idLabel], idLabel);
-          }
-        },
-        onCancel: () => {
-          setModalLoading(false);
+    switch(key) {
+      case 'delete':
+        handleDelete(type, item);
+        break;
+      case 'publish':
+        break;
+      case 'control':
+        break;
+      case 'history':
+        break;
+      default:
+        if (key === 'inherit') {
+          modalForm.setFieldValue('prototype', item['x.type.id']);
+          modalForm.setFieldValue('x.type. ', item['x.type.version']);
+          // 继承自已开启版本控制的对象，则默认跟踪最新版本
+          const refer = item['x.type.version'] ? 0 : item['x.type.version.reference']
+          modalForm.setFieldValue('x.type.version.reference', refer);
+          setPrototype(item);
         }
-      });
-    } else {
-      if (key === 'inherit') {
-        modalForm.setFieldValue('prototype', item['x.type.id']);
-        modalForm.setFieldValue('x.type. ', item['x.type.version']);
-        // 继承自已开启版本控制的对象，则默认跟踪最新版本
-        const refer = item['x.type.version'] ? 0 : item['x.type.version.reference']
-        modalForm.setFieldValue('x.type.version.reference', refer);
-        setPrototype(item);
-      }
-      setModalType(key);
-      setOperateItem({ type, item });
-      setModalOpen(true);
+        setModalType(key);
+        setOperateItem({ type, item });
+        setModalOpen(true);
+
     }
   }
 
@@ -545,8 +562,21 @@ export default function Left() {
             <div className='type-list relation-list'>
               {list.map((item: any, index: number) => {
                 const label: any = item[prevLabel + 'type.name']
+                const items = type === 'type' ? map(typeMenus, menu => menu?.key === 'control' ? ({
+                  ...menu, 
+                  extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item['x.type.version']} onChange={onToggleControl} />
+                }) : menu) : relationMenus;
+                console.log('items: ', items)
                 return (
-                  <Dropdown key={item['r.type.id']} overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
+                  <Dropdown
+                    key={item['r.type.id']}
+                    overlayClassName='pdb-dropdown-menu'
+                    menu={{
+                      items: items,
+                      onClick: (menu: any) => handleClickMenu(menu, type, item)
+                    }}
+                    trigger={['contextMenu']}
+                  >
                     <span
                       className={'type-item' + (currentEditModel && _.get(currentEditModel.data, prevLabel + 'type.id') === item[prevLabel + 'type.id'] ? ' selected' : '')}
                       onClick={() => handleSelectItem(item, type)}
@@ -610,7 +640,17 @@ export default function Left() {
                 selectedKeys={currentEditModel ? [_.get(currentEditModel.data, 'x.type.id', '')] : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => (
-                  <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(menu, 'type', item.data) }} trigger={['contextMenu']}>
+                  <Dropdown
+                    overlayClassName='pdb-dropdown-menu'
+                    menu={{
+                      items: map(typeMenus, menu => menu?.key === 'control' ? ({
+                        ...menu, 
+                        extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item['x.type.version']} onChange={onToggleControl} />
+                      }) : menu),
+                      onClick: (menu: any) => handleClickMenu(menu, 'type', item.data)
+                    }}
+                    trigger={['contextMenu']}
+                  >
                     <span>
                       <i className='iconfont icon-duixiangleixing'></i>
                       <span className='type-item-label'>{item.title}</span>
@@ -620,7 +660,7 @@ export default function Left() {
                 expandedKeys={expandedKeys}
                 blockNode
                 showIcon
-                onSelect={(selectedKeys, event) => handleSelectItem((event.node as any).data, 'type')}
+                onSelect={(selectedKeys: any, event: { node: any; }) => handleSelectItem((event.node as any).data, 'type')}
               />
             </div>
           }
@@ -647,7 +687,7 @@ export default function Left() {
 
   // 弹窗 - 确定
   const handleModalOk = function () {
-    modalForm.validateFields().then(values => {
+    modalForm.validateFields().then((values: { [x: string]: any; name?: any; prototype?: any; }) => {
       const { name, prototype } = values;
       const { type, item } = operateItem;
       if (!type || !item) return;
@@ -696,7 +736,7 @@ export default function Left() {
         };
         createRelation(newRelation);
       }
-    }).catch(errorInfo => {
+    }).catch((errorInfo: any) => {
     });
   }
 
@@ -746,7 +786,7 @@ export default function Left() {
           <Form.Item name="name" label="类型名称" rules={[
             { required: true, message: '类型名称不能为空' },
             {
-              validator: async (_, value) => {
+              validator: async (_: any, value: string | any[]) => {
                 const _types = JSON.parse(JSON.stringify(prototypeList));
                 if (value.length > 50) {
                   throw new Error('类型名称最多支持50个字符');
