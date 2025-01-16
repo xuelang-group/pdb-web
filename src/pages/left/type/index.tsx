@@ -1,3 +1,4 @@
+import type { MenuProps } from 'antd';
 import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -308,7 +309,6 @@ export default function Left() {
     let item = {};
     if (type === 'type') {
       item = getDefaultTypeConfig();
-      modalForm.setFieldValue('prototypeVersion', 'latest');
       modalForm.setFieldValue('x.type.version', true);
     } else {
       item = getDefaultRelationConfig();
@@ -404,7 +404,7 @@ export default function Left() {
   }
 
   // 右键菜单
-  const typeMenus = [{
+  const typeMenus: MenuProps['items'] = [{
     label: '复制',
     key: 'copy',
   }, {
@@ -413,6 +413,20 @@ export default function Left() {
   }, {
     label: '删除',
     key: 'delete',
+  }, {
+    type: 'divider',
+  }, {
+    label: '发布',
+    key: 'publish',
+  }, {
+    type: 'divider',
+  }, {
+    label: '版本控制',
+    key: 'versionControl',
+    // extra: <Switch checkedChildren="ON" unCheckedChildren="OFF" />
+  }, {
+    label: '版本记录',
+    key: 'versionRecord',
   }];
 
   const relationMenus = [{
@@ -473,8 +487,10 @@ export default function Left() {
     } else {
       if (key === 'inherit') {
         modalForm.setFieldValue('prototype', item['x.type.id']);
-        modalForm.setFieldValue('prototypeVersion', 'latest');
-        modalForm.setFieldValue('x.type.version', item['x.type.version']);
+        modalForm.setFieldValue('x.type. ', item['x.type.version']);
+        // 继承自已开启版本控制的对象，则默认跟踪最新版本
+        const refer = item['x.type.version'] ? 0 : item['x.type.version.reference']
+        modalForm.setFieldValue('x.type.version.reference', refer);
         setPrototype(item);
       }
       setModalType(key);
@@ -642,13 +658,14 @@ export default function Left() {
           'x.type.version.attrs': [],
           'x.type.version.prototype': item['x.type.version.prototype'] || {},
           'x.type.name': name,
-          'x.type.version': values['x.type.version'] === undefined ? true : values['x.type.version']
+          'x.type.version': values['x.type.version'] === undefined ? true : values['x.type.version'],
         }
         if (modalType === 'copy') {
           Object.assign(newType, {
             'x.type.version.attrs': item['x.type.version.attrs'] || [],
             'x.type.metadata': item['x.type.metadata'],
-            'x.type.version': item['x.type.version']
+            'x.type.version': item['x.type.version'],
+            'x.type.version.reference': item['x.type.version.reference']
           });
         } else if (modalType === 'add') {
           const colors = Object.keys(nodeColorList);
@@ -657,7 +674,10 @@ export default function Left() {
           });
         }
         if (prototype) {
-          Object.assign(newType, { 'x.type.version.prototype': { 'x.type.id': prototype } });
+          Object.assign(newType, {
+            'x.type.version.prototype': { 'x.type.id': prototype }, 
+            'x.type.version.reference': values['x.type.version.reference']
+          });
           const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
           new_attrs.forEach((attr: AttrConfig) => {
             if (!attr.override) {
@@ -702,6 +722,9 @@ export default function Left() {
 
   const onPrototypeChange = (typeId: string) => {
     const type = typeId ? types.find(item => item['x.type.id'] == typeId) : undefined
+    if (type && type['x.type.version']) {
+      modalForm.setFieldValue('x.type.version.reference', 0);
+    }
     setPrototype(type)
   }
 
@@ -750,10 +773,10 @@ export default function Left() {
           }
           { 
             type === 'type' && prototype && prototype['x.type.version'] && (
-              <Form.Item name="prototypeVersion" label="版本引用方式">
+              <Form.Item name="x.type.version.reference" label="版本引用方式">
                 <Radio.Group>
-                  <Radio value={'latest'}>跟踪最新版本</Radio>
-                  <Radio value={'current'}>锁定当前版本</Radio>
+                  <Radio value={0}>跟踪最新版本</Radio>
+                  <Radio value={1}>锁定当前版本</Radio>
                 </Radio.Group>
               </Form.Item>
             )

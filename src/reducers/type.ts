@@ -27,18 +27,17 @@ export interface TypePrototypeConfig {
 }
 
 export interface TypeVersionConfig {
-  'x.type.version'?: boolean // 开启类型版本控制
   'x.type.version.id': string  // 类型版本ID
+  'x.type.version.prototype'?: TypePrototypeConfig // 继承类型
+  'x.type.version.created': number // 版本创建时间
+  'x.type.version.updated': number // 版本修改时间
+  'x.type.version.attrs'?: Array<AttrConfig> // 属性列表
   'x.type.version.name': string // 类型版本名称
   'x.type.version.description': string // 类型版本描述
   'x.type.prev.version.id': string // 上个版本对象类型版本ID
   'x.type.next.version.id': string // 下个版本对象类型版本ID
-  'x.type.version.created': number // 版本创建时间
-  'x.type.version.updated': number // 版本修改时间
   'x.type.version.state': VersionState // 版本状态
   'x.type.version.editor': string // 版本创建人
-  'x.type.version.prototype'?: TypePrototypeConfig // 继承类型
-  'x.type.version.attrs'?: Array<AttrConfig> // 属性列表
 }
 export interface TypeConfig extends TypeVersionConfig {
   'x.type.id': string // 对象类型ID
@@ -47,6 +46,8 @@ export interface TypeConfig extends TypeVersionConfig {
   'x.type.editor': string // 创建人
   'x.type.created': number // 类型创建时间
   'x.type.updated': number // 类型修改时间
+  'x.type.version'?: boolean // 开启类型版本控制
+  'x.type.version.reference'?: number // 版本引用方式
 }
 
 interface TypeState {

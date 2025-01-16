@@ -171,13 +171,9 @@
       color: var(--text-color1) !important;
 
       &-divider {
-        width: calc(100% - 3.2rem);
-        margin-left: 1.6rem;
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-        margin-right: 0;
-        background: var(--border-color2);
-        border-color: var(--border-color2);
+        height: 0!important;
+        background-color: unset!important;
+        border-bottom: solid 1px var(--border-color2);
       }
 
       &:not(.pdb-ant-menu-item-selected):hover {
