@@ -1308,13 +1308,13 @@ export default function Right(props: RightProps) {
                   currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
-                <NodeColorPicker
+                <NodeColorPicker key={'fill'}
                   type='fill'
                   disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
-                <NodeColorPicker
+                <NodeColorPicker key={'border'}
                   type='border'
                   disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
