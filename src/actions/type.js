@@ -100,10 +100,15 @@ export const getTypeList = (graphId, callback) => {
  */
 const typeVersionApiPrefix = `${typeApiPrefix}/version`;
 const versionApi = {
+  'control': typeVersionApiPrefix + '/control',
   'add': typeVersionApiPrefix + '/add',
   'delete': typeVersionApiPrefix + '/delete',
   'update': typeVersionApiPrefix + '/update',
+  'copy': typeVersionApiPrefix + '/copy',
+  'list': typeVersionApiPrefix + '/list',
   'get': typeVersionApiPrefix + '/get',
+  'change': typeVersionApiPrefix + '/change',
+  'diff': typeVersionApiPrefix + '/diff',
 }
 
 /**
@@ -124,13 +129,12 @@ export const addTypeVerison = (graphId, typeInfo, callback) => {
 /**
  * 删除对象类型版本
  * @param {int} graphId 项目ID
- * @param {string} type 类型ID
  * @param {string} typeVersionID 类型版本ID
  * @param {Function} callback 
  * @returns 
  */
-export const deleteTypeVerison = (graphId, type, typeVersionID, callback) => {
-  return axios.post(versionApi['delete'], { graphId, type, typeVersionID }).then(({ data }) => {
+export const deleteTypeVerison = (graphId, typeVersionID, callback) => {
+  return axios.post(versionApi['delete'], { graphId, "x.type.version.id": typeVersionID }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
@@ -138,16 +142,56 @@ export const deleteTypeVerison = (graphId, type, typeVersionID, callback) => {
 };
 
 /**
- * 修改对象类型版本状态
+ * 复制对象类型版本
  * @param {int} graphId 项目ID
- * @param {string} type 类型ID
- * @param {string} typeVersionID 类型版本ID
- * @param {int} state 状态 0-草稿 | 1-审核中 | 2-已发布
+ * @param {string} typeName 类型名称
+ * @param {string} typeVersionID 要复制对象类型的版本ID
+ * @param {number} copyMethod 复制范围 0-该版本 1-该版本及其之前版本
  * @param {Function} callback 
  * @returns 
  */
-export const updateTypeVerisonState = (graphId, type, typeVersionID, state, callback) => {
-  return axios.post(versionApi['update'], { graphId, type, typeVersionID, state }).then(({ data }) => {
+export const copyTypeVerison = (graphId, typeVersionID, typeName, copyMethod, callback) => {
+  return axios.post(versionApi['copy'], {
+    graphId,
+    copyMethod,
+    "x.type.version.id": typeVersionID,
+    "x.type.name": typeName,
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 修改对象类型版本
+ * @param {int} graphId 项目ID
+ * @param {TypeConfig} typeInfo 类型信息
+ * @param {Function} callback 
+ * @returns 
+ */
+export const updateTypeVerison = (graphId, typeInfo, callback) => {
+  return axios.post(versionApi['update'], { graphId, ...typeInfo }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+  type VersionListParam = {
+    "x.type.id": string; // 类型ID
+    "first": int;  // 分页大小
+    "offset": int; // 偏移量
+  }
+ * 查询对象类型版本列表
+ * @param {int} graphId 项目ID
+ * @param {VersionListParam} param
+ * @param {Function} callback 
+ * @returns 
+ */
+export const getTypeVerisonList = (graphId, param, callback) => {
+  return axios.post(versionApi['list'], { graphId, ...param }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
@@ -163,7 +207,69 @@ export const updateTypeVerisonState = (graphId, type, typeVersionID, state, call
  * @returns 
  */
 export const getTypeVerison = (graphId, type, typeVersionID, callback) => {
-  return axios.post(versionApi['delete'], { graphId, type, typeVersionID }).then(({ data }) => {
+  return axios.post(versionApi['get'], { graphId, type, typeVersionID }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 类型版本控制切换
+ * @param {int} graphId 项目ID
+ * @param {string} type 类型ID
+ * @param {boolean} typeVersion 开启版本控制
+ * @param {Function} callback 
+ * @returns 
+ */
+export const updateTypeVerisonControl = (graphId, type, typeVersion, callback) => {
+  return axios.post(versionApi['control'], {
+    graphId,
+    "x.type.id": type,
+    "x.type.version": typeVersion
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 启用对象类型历史版本
+ * @param {int} graphId 项目ID
+ * @param {string} typeVersionID 要启用的版本ID
+ * @param {string} typeVersionName 版本名称（版本号）
+ * @param {integer} changeMethod 启用方式 0-保存为新版本 1-直接回退
+ * @param {Function} callback 
+ * @returns 
+ */
+export const changeTypeVerison = (graphId, typeVersionID, typeVersionName, changeMethod, callback) => {
+  return axios.post(versionApi['control'], {
+    graphId,
+    changeMethod,
+    "x.type.version.id": typeVersionID,
+    "x.type.version.name": typeVersionName
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 启用对象类型历史版本
+ * @param {int} graphId 项目ID
+ * @param {string} oldVersionId 要对比的旧版本ID
+ * @param {string} newVersionId 要对比的新版本ID
+ * @param {Function} callback 
+ * @returns 
+ */
+export const diffTypeVerison = (graphId, oldVersionId, newVersionId, callback) => {
+  return axios.post(versionApi['control'], {
+    graphId,
+    oldVersionId,
+    newVersionId
+  }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);
