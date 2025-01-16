@@ -21,7 +21,7 @@
     "@visactor/react-vtable": "^1.8.2",
     "aliyun-sdk": "^1.12.10",
     "aliyun-sdk2": "^1.0.5",
-    "antd": "^5.12.5",
+    "antd": "^5.23.1",
     "axios": "^1.5.0",
     "codemirror": "5.x",
     "dayjs": "^1.11.10",
@@ -86,5 +86,6 @@
     "@types/papaparse": "^5.3.14",
     "@types/react-router-dom": "^5.3.3",
     "craco-less": "^3.0.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
