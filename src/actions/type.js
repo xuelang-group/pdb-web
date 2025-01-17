@@ -10,6 +10,7 @@ const api = {
   delete: typeApiPrefix + '/delete',
   update: typeApiPrefix + '/update',
   get: typeApiPrefix + '/get',
+  copy: typeApiPrefix + '/copy',
 };
 
 /**
@@ -59,6 +60,23 @@ export const setType = (graphId, params, callback) => {
   return axios.post(api['update'], {
     graphId,
     set: params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+/**
+ * 复制对象类型
+ * @param {int} graphId 项目ID
+ * @param {'x.type.id': string, 'x.type.name': string, 'x.type.version.name': string, copyMethod: } param 类型信息
+ * @param {Function} callback 
+ * @returns 
+ */
+export const copyType = (graphId, param, callback) => {
+  return axios.post(api['copy'], {
+    graphId,
+    ...param
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

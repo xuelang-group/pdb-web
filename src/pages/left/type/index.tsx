@@ -3,7 +3,7 @@ import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented,
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-import _, { map } from 'lodash';
+import _, { isNaN, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
@@ -12,7 +12,7 @@ import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/re
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteType, addType, getTypeInfo } from '@/actions/type';
+import { getTypeList, deleteType, addType, getTypeInfo, copyType } from '@/actions/type';
 import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
@@ -202,29 +202,32 @@ export default function Left() {
     if (tab !== currentTab) setCurrentTab(tab);
   }, [location]);
 
-  // 添加对象类型
-  const createType = function (type: any) {
-    addType(graphData?.id, [type], (success: boolean, response: any) => {
-      setModalLoading(false);
-      const message = modalLabel[modalType] + typeLabel[operateItem.type];
-      if (success) {
-        let newTypes = JSON.parse(JSON.stringify(types));
-        if (modalType === 'add' || modalType === 'copy' || modalType === 'inherit') {
-          Object.assign(type, { ...response[0] });
-          handleSelectItem(type, operateItem.type);
-          newTypes.push(type);
-          notification.success({
-            message: `${message}成功`,
-          });
-        }
-        isModalOpen && handleModalCancel();
-        dispatch(setTypes(newTypes));
-      } else {
-        notification.error({
-          message: `${message}失败`,
-          description: response.message || response.msg
+  // 添加、继承、复制对象类型回调函数
+  const handleTypeCallback = (success: boolean, response: any, type: any) => {
+    setModalLoading(false);
+    const message = modalLabel[modalType] + typeLabel[operateItem.type];
+    if (success) {
+      let newTypes = JSON.parse(JSON.stringify(types));
+      if (modalType === 'add' || modalType === 'copy' || modalType === 'inherit') {
+        const newType = modalType === 'copy' ? response : Object.assign({}, type, { ...response[0] });
+        handleSelectItem(newType, operateItem.type);
+        newTypes.push(newType);
+        notification.success({
+          message: `${message}成功`,
         });
       }
+      isModalOpen && handleModalCancel();
+      dispatch(setTypes(newTypes));
+    } else {
+      notification.error({
+        message: `${message}失败`,
+        description: response.message || response.msg
+      });
+    }
+  };
+  const createType = function (type: any) {
+    addType(graphData?.id, [type], (success: boolean, response: any) => {      
+      handleTypeCallback(success, response, type);
     });
   }
 
@@ -440,7 +443,9 @@ export default function Left() {
     'delete': '删除',
     'copy': '复制',
     'inherit': '继承',
-    'add': '新建'
+    'add': '新建',
+    'publish': '发布',
+    'history': '版本记录',
   };
 
   const typeLabel: any = {
@@ -489,7 +494,6 @@ export default function Left() {
 
   const handleClickMenu = (menuInfo: any, type: string, item: any) => {
     const { key } = menuInfo;
-
     switch(key) {
       case 'delete':
         handleDelete(type, item);
@@ -501,13 +505,33 @@ export default function Left() {
       case 'history':
         break;
       default:
-        if (key === 'inherit') {
+        if (['copy', 'inherit'].includes(key)) {
           modalForm.setFieldValue('prototype', item['x.type.id']);
-          modalForm.setFieldValue('x.type. ', item['x.type.version']);
-          // 继承自已开启版本控制的对象，则默认跟踪最新版本
-          const refer = item['x.type.version'] ? 0 : item['x.type.version.reference']
-          modalForm.setFieldValue('x.type.version.reference', refer);
+          modalForm.setFieldValue('x.type.version', item['x.type.version']);
           setPrototype(item);
+          if (key === 'inherit') {
+            // 继承自已开启版本控制的对象，则默认跟踪最新版本
+            const refer = item['x.type.version'] ? 0 : item['x.type.version.reference']
+            modalForm.setFieldValue('x.type.version.reference', refer);
+          }
+          if (key === 'copy') {
+            let copyName = ''
+            const _index = item['x.type.name'].lastIndexOf('_');
+            if (_index > 0) {
+              const suffix = item['x.type.name'].slice(_index + 1);
+              const num = Number(suffix);
+              if (!isNaN(num)) {
+                copyName = item['x.type.name'].slice(0, _index) + '_' + `${num+1}`;
+              } else {
+                copyName = item['x.type.name'] + '_' + '2';
+              }
+            } else {
+              copyName = item['x.type.name'] + '_' + '2';
+            }
+            modalForm.setFieldValue('name', copyName);
+            // 被复制对象已开启版本控制，复制范围
+            item['x.type.version'] && modalForm.setFieldValue('copyMethod', 0);
+          }
         }
         setModalType(key);
         setOperateItem({ type, item });
@@ -695,38 +719,45 @@ export default function Left() {
       if (type === 'type') {
         const newType = {
           'x.type.id': uuid(TYPE_ID_PREFIX),
-          'x.type.version.attrs': [],
-          'x.type.version.prototype': item['x.type.version.prototype'] || {},
           'x.type.name': name,
-          'x.type.version': values['x.type.version'] === undefined ? true : values['x.type.version'],
         }
-        if (modalType === 'copy') {
-          Object.assign(newType, {
-            'x.type.version.attrs': item['x.type.version.attrs'] || [],
-            'x.type.metadata': item['x.type.metadata'],
-            'x.type.version': item['x.type.version'],
-            'x.type.version.reference': item['x.type.version.reference']
-          });
-        } else if (modalType === 'add') {
-          const colors = Object.keys(nodeColorList);
-          Object.assign(newType, {
-            'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
-          });
-        }
-        if (prototype) {
-          Object.assign(newType, {
-            'x.type.version.prototype': { 'x.type.id': prototype }, 
-            'x.type.version.reference': values['x.type.version.reference']
-          });
-          const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
-          new_attrs.forEach((attr: AttrConfig) => {
-            if (!attr.override) {
-              Object.assign(attr, { override: prototype });
+        switch(modalType) {
+          case 'copy':
+            copyType(graphData?.id, {
+              ...newType,
+              'x.type.version.name': values['x.type.version.name'],
+              'copyMethod': values['copyMethod']
+            }, (success: boolean, response: any) => {      
+              handleTypeCallback(success, response, {});
+            })
+            break;
+          default:
+            Object.assign(newType, {
+              'x.type.version.attrs': [],
+              'x.type.version.prototype': item['x.type.version.prototype'] || {},
+              'x.type.version': values['x.type.version'] === undefined ? true : values['x.type.version'],
+            });
+            if (modalType === 'add') {
+              const colors = Object.keys(nodeColorList);
+              Object.assign(newType, {
+                'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
+              });
             }
-          });
-          Object.assign(newType, { 'x.type.version.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
+            if (prototype) {
+              Object.assign(newType, {
+                'x.type.version.prototype': { 'x.type.id': prototype }, 
+                'x.type.version.reference': values['x.type.version.reference']
+              });
+              const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
+              new_attrs.forEach((attr: AttrConfig) => {
+                if (!attr.override) {
+                  Object.assign(attr, { override: prototype });
+                }
+              });
+              Object.assign(newType, { 'x.type.version.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
+            }
+            createType(newType);
         }
-        createType(newType);
       } else {
         const newRelation = {
           'r.type.id': uuid(RELATION_ID_PREFIX),
@@ -750,6 +781,7 @@ export default function Left() {
   }
 
   const [modalForm] = Form.useForm();
+  const copyMethod = Form.useWatch('copyMethod', modalForm);
 
   const handleChangeTab = function (activeKey: string) {
     setCurrentTab(activeKey);
@@ -796,7 +828,7 @@ export default function Left() {
               }
             }
           ]}
-            style={type === 'type' && modalType !== 'copy' ? {} : { marginBottom: 0 }}
+            style={type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) ? {} : { marginBottom: 0 }}
           >
             <Input />
           </Form.Item>
@@ -813,7 +845,19 @@ export default function Left() {
           }
           { 
             type === 'type' && prototype && prototype['x.type.version'] && (
-              <Form.Item name="x.type.version.reference" label="版本引用方式">
+              modalType === 'copy' ? <>
+                <Form.Item name="copyMethod" label="复制范围">
+                  <Radio.Group>
+                    <Radio value={0}>最新版本</Radio>
+                    <Radio value={1}>最新版本及其全部历史版本</Radio>
+                  </Radio.Group>
+                </Form.Item>
+                {
+                  copyMethod === 0 && <Form.Item name='x.type.version.name' label='版本号'>
+                      <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+                  </Form.Item>
+                }
+              </> : <Form.Item name="x.type.version.reference" label="版本引用方式">
                 <Radio.Group>
                   <Radio value={0}>跟踪最新版本</Radio>
                   <Radio value={1}>锁定当前版本</Radio>
@@ -821,9 +865,9 @@ export default function Left() {
               </Form.Item>
             )
           }
-          {type === 'type' && modalType !== 'copy' && 
+          {type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) &&
             <Form.Item name="x.type.version" label="开启版本控制">
-              <Switch checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
+              <Switch disabled={modalType === 'copy'} checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
             </Form.Item>
           }
         </Form>
