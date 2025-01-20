@@ -399,3 +399,20 @@ export function getHashParameterByName(name: string) {
   }
   return result
 }
+
+export function getDefaultCopyName(name: string) {
+  let copyName = ''
+  const _index = name.lastIndexOf('_');
+  if (_index > 0) {
+    const suffix = name.slice(_index + 1);
+    const num = Number(suffix);
+    if (!isNaN(num)) {
+      copyName = name.slice(0, _index) + '_' + `${num+1}`;
+    } else {
+      copyName = name + '_' + '2';
+    }
+  } else {
+    copyName = name + '_' + '2';
+  }
+  return copyName
+}

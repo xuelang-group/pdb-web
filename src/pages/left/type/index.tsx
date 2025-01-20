@@ -7,14 +7,15 @@ import _, { find, findIndex, isNaN, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, setVersionModal, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
-import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVerisonControl } from '@/actions/type';
+import { defaultNodeColor, getBorderColor, getDefaultCopyName, getTextColor, nodeColorList, uuid } from '@/utils/common';
+import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVerisonControl, setType } from '@/actions/type';
 import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
+import VersionModal from './versionModal';
 import './index.less';
 
 const { Search } = Input;
@@ -561,6 +562,29 @@ export default function Left() {
         handleDelete(type, item);
         break;
       case 'history':
+        dispatch(setVersionModal({open: true, type: item}));
+        break;
+      case 'reference-0':
+      case 'reference-1':
+        const refer = key === 'reference-1' ? 1 : 0;
+        const currentType = Object.assign({}, item)
+        currentType['x.type.version.reference'] = refer
+        setType(graphData.id, [currentType], (success: boolean, response: any) => {
+          if (success) {
+            const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
+            const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == item['x.type.id']);
+            newTypes[targetTypeIndex] = currentType
+            dispatch(setTypes(newTypes));
+            notification.success({
+              message: `${refer ? '锁定当前' : '跟踪最新'}版本成功`,
+            });
+          } else {
+            notification.error({
+              message: `${refer ? '锁定当前' : '跟踪最新'}版本失败`,
+              description: response.message || response.msg
+            });
+          }
+        })
         break;
       case 'control':
         item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item)
@@ -576,19 +600,7 @@ export default function Left() {
             modalForm.setFieldValue('x.type.version.reference', refer);
           }
           if (key === 'copy') {
-            let copyName = ''
-            const _index = item['x.type.name'].lastIndexOf('_');
-            if (_index > 0) {
-              const suffix = item['x.type.name'].slice(_index + 1);
-              const num = Number(suffix);
-              if (!isNaN(num)) {
-                copyName = item['x.type.name'].slice(0, _index) + '_' + `${num+1}`;
-              } else {
-                copyName = item['x.type.name'] + '_' + '2';
-              }
-            } else {
-              copyName = item['x.type.name'] + '_' + '2';
-            }
+            const copyName = getDefaultCopyName(item['x.type.name'])
             modalForm.setFieldValue('name', copyName);
             // 被复制对象已开启版本控制，复制范围
             item['x.type.version'] && modalForm.setFieldValue('copyMethod', 0);
@@ -723,7 +735,6 @@ export default function Left() {
                 selectedKeys={currentEditModel ? [_.get(currentEditModel.data, 'x.type.id', '')] : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => {
-                  console.log('item: ', item.data['x.type.name'], item.data)
                   const items = map(typeMenus, menu => menu?.key === 'control' ? ({
                     ...menu, 
                     extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
@@ -893,6 +904,23 @@ export default function Left() {
     setPrototype(type)
   }
 
+  const onValidateTypeName = async (_: any, value: string | any[]) => {
+    const _types = JSON.parse(JSON.stringify(types));
+    if (value.length > 50) {
+      throw new Error('类型名称最多支持50个字符');
+    } else if (_types && _types.findIndex((_type: any, index: number) => _type["x.type.name"] === value) > -1) {
+      throw new Error('该名称已被使用');
+    }
+  }
+  const onValidateRelationName = async (_: any, value: string | any[]) => {
+    const _types = JSON.parse(JSON.stringify(relations));
+    if (value.length > 50) {
+      throw new Error('类型名称最多支持50个字符');
+    } else if (_types && _types.findIndex((_type: any, index: number) => _type["r.type.name"] === value) > -1) {
+      throw new Error('该名称已被使用');
+    }
+  }
+
   const renderModal = () => {
     const { type, item } = operateItem;
     const title = modalLabel[modalType] + typeLabel[type] + '类型';
@@ -917,14 +945,7 @@ export default function Left() {
             <Form.Item name="name" label="类型名称" rules={[
               { required: true, message: '类型名称不能为空' },
               {
-                validator: async (_: any, value: string | any[]) => {
-                  const _types = JSON.parse(JSON.stringify(prototypeList));
-                  if (value.length > 50) {
-                    throw new Error('类型名称最多支持50个字符');
-                  } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.name"] === value) > -1) {
-                    throw new Error('该名称已被使用');
-                  }
-                }
+                validator: type === 'type' ? onValidateTypeName : onValidateRelationName
               }
             ]}
               style={type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) ? {} : { marginBottom: 0 }}
@@ -995,6 +1016,7 @@ export default function Left() {
       </div>
       {renderModal()}
       {contextHolder}
+      <VersionModal types={types} />
     </PdbPanel>
   );
 }
