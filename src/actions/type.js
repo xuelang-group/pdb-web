@@ -275,7 +275,7 @@ export const changeTypeVerison = (graphId, typeVersionID, typeVersionName, chang
 };
 
 /**
- * 启用对象类型历史版本
+ * 对象类型版本对比
  * @param {int} graphId 项目ID
  * @param {string} oldVersionId 要对比的旧版本ID
  * @param {string} newVersionId 要对比的新版本ID

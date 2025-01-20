@@ -413,7 +413,7 @@ export default function Right(props: RightProps) {
             message: '获取对象类型属性失败',
             description: response.message || response.msg
           });
-        }
+        } 
       });
     });
   }

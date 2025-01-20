@@ -23,7 +23,7 @@ export interface AttrConfig {
 
 export interface TypePrototypeConfig {
   'x.type.id': string // 父对象类型ID
-  'x.type.version.id': string // 父对象版本ID
+  'x.type.version.id'?: string // 父对象版本ID
 }
 
 export interface TypeVersionConfig {

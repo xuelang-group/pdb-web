@@ -3,16 +3,16 @@ import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented,
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-import _, { isNaN, map } from 'lodash';
+import _, { find, findIndex, isNaN, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TYPE_ID_PREFIX } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig } from '@/reducers/type';
 import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteType, addType, getTypeInfo, copyType } from '@/actions/type';
+import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVerisonControl } from '@/actions/type';
 import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import './index.less';
@@ -488,8 +488,70 @@ export default function Left() {
   }
 
   // 类型版本控制切换
-  const onToggleControl = (checked: boolean) => {
-    console.log('--- control: ', checked)
+  const onToggleControl = (typeId: string, checked: boolean) => {
+    updateTypeVerisonControl(graphData?.id, typeId, checked, (success: boolean, response: any) => {
+      setModalLoading(false);
+      isModalOpen && handleModalCancel();
+      if (success) {
+        const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
+        const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == typeId);
+        newTypes[targetTypeIndex]['x.type.version'] = checked
+        dispatch(setTypes(newTypes));
+        notification.success({
+          message: `${checked ? '开启' : '关闭'}版本控制成功`,
+        });
+      } else {
+        notification.error({
+          message: `${checked ? '开启' : '关闭'}版本控制失败`,
+          description: response.message || response.msg
+        });
+      }
+    })
+  }
+
+  // 关闭类型版本控制
+  const closeVersionControl = (item: any) => {
+    // 是否"锁定当前版本"被子对象继承
+    const index = findIndex(types, (tp) => {
+      const proto = tp['x.type.version.prototype']
+      return !!proto && tp['x.type.version.reference'] == 1 && proto['x.type.id'] === item['x.type.id']
+    });
+    const content = index > -1 ? (
+      <>
+        <div>当前最新版本 V{item['x.type.version.name']} 已被引用，若关闭版本控制，系统将自动复制 V{item['x.type.version.name']} 为对象类型副本，并迁移所有引用子对象至该副本。</div>
+        <div>关闭版本控制后，版本更新将暂停，现有版本记录会被保留，并可在重启版本控制后继续使用。</div>
+      </>
+    ) : '关闭版本控制后，版本更新将暂停，现有版本记录会被保留，并可在重启版本控制后继续使用。';
+    
+    modal.confirm({
+      className: 'pdb-confirm-modal',
+      title: '确定要关闭版本控制吗？',
+      icon: <i className="pdb-confirm-icon spicon icon-jinggao1 text-warning"></i>,
+      getContainer: () => (document.getElementsByClassName('pdb')[0] || document.body) as any,
+      content: content,
+      okText: "确定",
+      cancelText: "取消",
+      onOk: () => {
+        setModalLoading(true);
+        onToggleControl(item['x.type.id'], !item['x.type.version']);
+      },
+      onCancel: () => {
+        setModalLoading(false);
+      }
+    });
+  }
+
+  // 开启类型版本控制
+  const openVersionControl = (key: string, type: string, item: any) => {
+    /** 正常情况下，版本控制从 关闭 --> 开启，直接打开开关即可。
+     * 但想到 2 种特殊情况：
+     * 特殊情况1：对象类型A关闭版本控制前，最新版本为V1.5.0。
+     * 关闭版本控制后，又进行了对象A的若干属性更改并发布。此时再打开版本控制，需要设置并发布一个新版本。
+     * 特殊情况2：对象类型A曾有过多版本，然后关闭了版本控制，此时B继承了A，继承时，无需选择版本引用方式；若后续，A又打开了版本控制，此时，B对A的版本引用方式自动设置为「跟踪最新版本」，用户可手动再进行修改，详见：🔗 继承类型的右键菜单。
+     */
+    setModalType(key);
+    setOperateItem({ type, item });
+    setModalOpen(true);
   }
 
   const handleClickMenu = (menuInfo: any, type: string, item: any) => {
@@ -498,11 +560,10 @@ export default function Left() {
       case 'delete':
         handleDelete(type, item);
         break;
-      case 'publish':
+      case 'history':
         break;
       case 'control':
-        break;
-      case 'history':
+        item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item)
         break;
       default:
         if (['copy', 'inherit'].includes(key)) {
@@ -536,7 +597,6 @@ export default function Left() {
         setModalType(key);
         setOperateItem({ type, item });
         setModalOpen(true);
-
     }
   }
 
@@ -588,9 +648,8 @@ export default function Left() {
                 const label: any = item[prevLabel + 'type.name']
                 const items = type === 'type' ? map(typeMenus, menu => menu?.key === 'control' ? ({
                   ...menu, 
-                  extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item['x.type.version']} onChange={onToggleControl} />
+                  extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
                 }) : menu) : relationMenus;
-                console.log('items: ', items)
                 return (
                   <Dropdown
                     key={item['r.type.id']}
@@ -663,24 +722,54 @@ export default function Left() {
                 treeData={treeData}
                 selectedKeys={currentEditModel ? [_.get(currentEditModel.data, 'x.type.id', '')] : []}
                 switcherIcon={() => (<span></span>)}
-                titleRender={(item: any) => (
-                  <Dropdown
-                    overlayClassName='pdb-dropdown-menu'
-                    menu={{
-                      items: map(typeMenus, menu => menu?.key === 'control' ? ({
-                        ...menu, 
-                        extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item['x.type.version']} onChange={onToggleControl} />
-                      }) : menu),
-                      onClick: (menu: any) => handleClickMenu(menu, 'type', item.data)
-                    }}
-                    trigger={['contextMenu']}
-                  >
-                    <span>
-                      <i className='iconfont icon-duixiangleixing'></i>
-                      <span className='type-item-label'>{item.title}</span>
-                    </span>
-                  </Dropdown>
-                )}
+                titleRender={(item: any) => {
+                  console.log('item: ', item.data['x.type.name'], item.data)
+                  const items = map(typeMenus, menu => menu?.key === 'control' ? ({
+                    ...menu, 
+                    extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
+                  }) : menu);
+                  const parentTypeId = item.data['x.type.version.prototype']['x.type.id']
+                  const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
+                  const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
+                  const reference = item.data['x.type.version.reference']
+                  if (parentTypeVersion) {
+                    // 如果父对象开启了版本控制，其子对象的右键菜单选项中，会多一项“父对象引用方式”，可在级联菜单中，修改其引用父对象版本的方式。
+                    items.push({type: 'divider'})
+                    items.push({
+                      key: 'reference',
+                      label: '父对象引用方式',
+                      children: [
+                        {
+                          key: 'reference-0',
+                          label: '跟踪最新版本',
+                          extra: reference == 0 ?  <i className="spicon icon-xuanzhong1" /> : ''
+                        },
+                        {
+                          key: 'reference-1',
+                          label: '锁定当前版本',
+                          extra: reference ?  <i className="spicon icon-xuanzhong1" /> : ''
+                        },
+                      ],
+                    })
+                  }
+                  return (
+                    <Dropdown
+                      overlayClassName='pdb-dropdown-menu'
+                      menu={{
+                        items,
+                        selectable: parentTypeVersion,
+                        selectedKeys: parentTypeVersion && ('x.type.version.reference' in item.data) ? [`reference-${reference}`] : [],
+                        onClick: (menu: any) => handleClickMenu(menu, 'type', item.data)
+                      }}
+                      trigger={['contextMenu']}
+                    >
+                      <span>
+                        <i className='iconfont icon-duixiangleixing'></i>
+                        <span className='type-item-label'>{item.title}</span>
+                      </span>
+                    </Dropdown>
+                  )
+                }}
                 expandedKeys={expandedKeys}
                 blockNode
                 showIcon
@@ -712,7 +801,7 @@ export default function Left() {
   // 弹窗 - 确定
   const handleModalOk = function () {
     modalForm.validateFields().then((values: { [x: string]: any; name?: any; prototype?: any; }) => {
-      const { name, prototype } = values;
+      const { name } = values;
       const { type, item } = operateItem;
       if (!type || !item) return;
       setModalLoading(true);
@@ -743,15 +832,19 @@ export default function Left() {
                 'x.type.metadata': JSON.stringify({ color: colors[Math.floor(Math.random() * colors.length)] }),
               });
             }
-            if (prototype) {
+            if (values.prototype) {
+              const versionPrototype: TypePrototypeConfig = { 'x.type.id': values.prototype }
+              if (prototype) {
+                versionPrototype['x.type.version.id'] = prototype['x.type.version.id']
+              }
               Object.assign(newType, {
-                'x.type.version.prototype': { 'x.type.id': prototype }, 
+                'x.type.version.prototype': versionPrototype, 
                 'x.type.version.reference': values['x.type.version.reference']
               });
               const new_attrs = JSON.parse(JSON.stringify(item['x.type.version.attrs'] || []));
               new_attrs.forEach((attr: AttrConfig) => {
                 if (!attr.override) {
-                  Object.assign(attr, { override: prototype });
+                  Object.assign(attr, { override: values.prototype });
                 }
               });
               Object.assign(newType, { 'x.type.version.attrs': new_attrs, 'x.type.version': item['x.type.version'] });
@@ -801,7 +894,7 @@ export default function Left() {
   }
 
   const renderModal = () => {
-    const { type } = operateItem;
+    const { type, item } = operateItem;
     const title = modalLabel[modalType] + typeLabel[type] + '类型';
     const prototypeList = type === 'type' ? types : relations;
     return (
@@ -815,24 +908,31 @@ export default function Left() {
         onCancel={handleModalCancel}
       >
         <Form {...layout} form={modalForm}>
-          <Form.Item name="name" label="类型名称" rules={[
-            { required: true, message: '类型名称不能为空' },
-            {
-              validator: async (_: any, value: string | any[]) => {
-                const _types = JSON.parse(JSON.stringify(prototypeList));
-                if (value.length > 50) {
-                  throw new Error('类型名称最多支持50个字符');
-                } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.name"] === value) > -1) {
-                  throw new Error('该名称已被使用');
+          {
+            ['publish', 'control'].includes(modalType) ? (
+              <Form.Item style={{marginBottom: 0}} name='x.type.version.name' label={`${item['x.type.version.name'] ? '新' : ''}版本号`}>
+                <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+              </Form.Item>
+            ) : (
+            <Form.Item name="name" label="类型名称" rules={[
+              { required: true, message: '类型名称不能为空' },
+              {
+                validator: async (_: any, value: string | any[]) => {
+                  const _types = JSON.parse(JSON.stringify(prototypeList));
+                  if (value.length > 50) {
+                    throw new Error('类型名称最多支持50个字符');
+                  } else if (_types && _types.findIndex((_type: any, index: number) => _type[type === 'type' ? "x.type.name" : "r.type.name"] === value) > -1) {
+                    throw new Error('该名称已被使用');
+                  }
                 }
               }
-            }
-          ]}
-            style={type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) ? {} : { marginBottom: 0 }}
-          >
-            <Input />
-          </Form.Item>
-          {type === 'type' && modalType !== 'copy' && 
+            ]}
+              style={type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) ? {} : { marginBottom: 0 }}
+            >
+              <Input />
+            </Form.Item>
+          )}
+          {type === 'type' && ['add', 'inherit'].includes(modalType) && 
             <Form.Item name="prototype" label="继承自">
               <Select disabled={modalType === 'inherit'} onChange={onPrototypeChange}>
                 {prototypeList.map((item: any) => (
@@ -865,7 +965,7 @@ export default function Left() {
               </Form.Item>
             )
           }
-          {type === 'type' && (modalType !== 'copy' || prototype && prototype['x.type.version']) &&
+          {type === 'type' && (['add', 'inherit'].includes(modalType) || prototype && prototype['x.type.version']) &&
             <Form.Item name="x.type.version" label="开启版本控制">
               <Switch disabled={modalType === 'copy'} checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
             </Form.Item>
