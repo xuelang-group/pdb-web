@@ -1,10 +1,11 @@
-import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio } from 'antd';
+import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Switch } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { getTypeVerisonList } from '@/actions/type';
+import { getDefaultCopyName } from '@/utils/common';
 
 const ActionTitle: {
   'copy': string;
@@ -28,7 +29,6 @@ export default function VersionModal({types}: VersionModalProps) {
        versionModal = useSelector((state: StoreState) => state.type.versionModal);
 
   const [form] = Form.useForm();
-  const [formDiff] = Form.useForm();
   const copyMethod = Form.useWatch('copyMethod', form);
 
   const [versions, setVersions] = useState<TypeVersionConfig[]>([]);
@@ -91,8 +91,33 @@ export default function VersionModal({types}: VersionModalProps) {
       setOpen(true)
       setCurrType(type);
       setCurrVersion(version)
+      if (type === 'copy') {
+        form.setFieldsValue({
+          'x.type.version.id': version['x.type.version.id'],
+          'x.type.name': '',
+          'x.type.version.name': '',
+          'copyMethod': 0
+        })
+      } else{
+        form.setFieldsValue({
+          'newVersionId': version['x.type.version.id'],
+          'oldVersionId': ''
+        })
+      }
     } else {
     }
+  }
+
+  const handleCopy = (values: {[key:string]: any}) => {
+
+  }
+
+  const handleConfirm = () => {
+    form.validateFields().then((values) => {
+      handleCopy(values)
+    }).catch(err => {
+
+    })
   }
 
   const onValidateTypeName = async (_: any, value: string | any[]) => {
@@ -114,14 +139,17 @@ export default function VersionModal({types}: VersionModalProps) {
           <Radio value={1}>该版本及其全部历史版本</Radio>
         </Radio.Group>
       </Form.Item>
-      <Form.Item label="版本号" name="x.type.version.name">
-      <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+      {!copyMethod && <Form.Item label="版本号" name="x.type.version.name">
+        <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+      </Form.Item>}
+      <Form.Item name="x.type.version" label="版本控制">
+        <Switch disabled checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
       </Form.Item>
     </Form>
   )
 
   const renderDiff = () => currVersion && (
-    <Form {...layout} form={formDiff}>
+    <Form {...layout} form={form}>
       <Form.Item label="对比版本一" name="newVersionId">
         <Input />
       </Form.Item>
@@ -156,6 +184,8 @@ export default function VersionModal({types}: VersionModalProps) {
         title={ActionTitle[currType]}
         width={520}
         destroyOnClose
+        okText={currType === 'diff' ? "开始对比" : "确定"}
+        onOk={handleConfirm}
       >
         { currType === 'copy' && renderCopy() }
         { currType === 'diff' && renderDiff() }
