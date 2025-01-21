@@ -1,0 +1,42 @@
+.pdb-llm-output {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  width: 40%;
+  margin-left: -20%;
+  border: solid 1px var(--border-color1);
+  border-radius: 3px;
+  background-color: var(--fill-color4);
+  box-shadow: var(--box-shadow);
+  &-header {
+    display: flex;
+    justify-content: flex-end;
+  }
+  &-btn {
+    display: block;
+    width: 36px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    color: var(--icon-color2);
+    cursor: pointer;
+    translate: all .4s linear;
+    &:hover {
+      background-color: var(--fill-color3);
+    }
+  }
+  &-body {
+    margin: 0 4px 4px;
+    border: solid 1px var(--border-color2);
+    background-color: var(--component-bg);
+    translate: all 1s ease;
+    &.fade-in-up {
+      height: 24rem;
+      transform: scaleY(1);
+    }
+    &.fade-out-down {
+      height: 0;
+      transform: scaleY(0.001);
+    }
+  }
+}

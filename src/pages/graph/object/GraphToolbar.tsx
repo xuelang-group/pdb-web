@@ -17,6 +17,7 @@ import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relatio
 import { RelationConfig, setRelations } from "@/reducers/relation";
 import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/type";
 import { setTypes, TypeConfig } from "@/reducers/type";
+import { toggle } from "@/reducers/llmStream";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
 import { runLLM, getQueryChildren } from "@/actions/query";
@@ -102,9 +103,13 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     label: '大模型搜索',
     icon: <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="42663" id="mx_n_1717570529332" width="16" height="16"><path d="M987.637795 198.56213h-146.293955a36.590555 36.590555 0 1 0 0 73.18111h91.408122c10.103362 0.034133 18.261145 8.191915 18.295278 18.261145v475.711351c0 10.069229-8.191915 18.227012-18.295278 18.261144H91.544655a18.363544 18.363544 0 0 1-18.295278-18.261144V290.004385a18.363544 18.363544 0 0 1 18.295278-18.261145h91.442255a36.590555 36.590555 0 1 0 0-73.18111H36.658822C16.48623 198.596263 0.136533 214.94596 0.068267 235.152685v585.346485c0.068266 20.172592 16.383831 36.522289 36.556422 36.590555h430.92888v87.824159H321.259614a36.590555 36.590555 0 1 0 0 73.146977h365.769021a36.590555 36.590555 0 1 0 0-73.146977h-146.430487V857.089725h446.868982A36.692954 36.692954 0 0 0 1024.057685 820.49917V235.118552a36.692954 36.692954 0 0 0-36.590555-36.556422h0.170665z m-475.47242 276.067547a235.688231 235.688231 0 0 0 141.378806-47.547242l108.884208 108.952474a36.590555 36.590555 0 1 0 51.745599-51.745599l-109.225538-109.225538a237.292481 237.292481 0 1 0-192.748942 99.531772h-0.068266z m0-402.427842a164.623366 164.623366 0 1 1 0.136532 329.280864 164.623366 164.623366 0 0 1-0.170665-329.280864z m-249.170759 638.559802a36.692954 36.692954 0 0 0 36.556423-36.590555v-190.257234a36.590555 36.590555 0 1 0-73.146978 0v190.223101c0.034133 20.206725 16.383831 36.522289 36.590555 36.590555z m146.293955-139.126029v102.398942a36.590555 36.590555 0 1 0 73.146978 0v-102.398942a36.590555 36.590555 0 1 0-73.146978 0z m182.850378 58.538062v43.895013a36.590555 36.590555 0 1 0 73.146977 0v-43.792615a36.590555 36.590555 0 1 0-73.146977 0v-0.102398z" p-id="42664" fill="#707070"></path></svg>,
     onClick: () => {
-      setSelectedTab(_.get(selectedTab, 'key', '') === "search" ? null : {
+      const newSelectedTab = _.get(selectedTab, 'key', '') === "search" ? null : {
         key: 'search'
-      });
+      }
+      setSelectedTab(newSelectedTab);
+      if (!newSelectedTab) {
+        dispatch(toggle(false))
+      }
     }
   }, {
     key: 'reset',
@@ -1334,6 +1339,24 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         getQueryChildren(_param, (success: boolean, data: any) => {
           if (success) {
             updateGraphData(data, _param);
+            console.log(data)
+            // 查询结果的自然语言总结功能
+            const json = _.map(data, item => {
+              const v_node = _.find(item.tags, {name: 'v_node'});
+              const nodeProps = v_node.props;
+              const info: {[key:string]: any} = {
+                "x_type_name": nodeProps['x_type_name'],
+                "x_name": nodeProps['x_name'],
+                "props": nodeProps,
+              }
+              const relationId = Object.keys(item).find(key => key.startsWith("Relation_"));
+              const relationIdKey = relationId?.replace('_', '.')
+              if (relationIdKey) {
+                info[relationIdKey] = relationMap[relationIdKey];
+              }
+              return info
+            })
+            dispatch(toggle(true))
           } else {
             notification.error({
               message: '搜索失败',
@@ -1352,7 +1375,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       dispatch(setGraphLoading(false));
     });
   }
-
+  console.log('relationMap: ', relationMap)
   return (
     <>
       <div className='pdb-graph-toolbar'>
