@@ -1,6 +1,6 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal, Input, InputRef } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
-import G6, { ComboConfig, EdgeConfig, Item } from "@antv/g6";
+import G6, { ComboConfig, EdgeConfig, Item, Node } from "@antv/g6";
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,10 +17,11 @@ import { addRelationByGraphId, deleteRelationByGraphId } from "@/actions/relatio
 import { RelationConfig, setRelations } from "@/reducers/relation";
 import { addTypeByGraphId, deleteTypeByGraphId, resetSchema } from "@/actions/type";
 import { setTypes, TypeConfig } from "@/reducers/type";
-import { toggle } from "@/reducers/llmStream";
+import { toggle, setParams } from "@/reducers/llmStream";
 import "./index.less";
 import { getFile, putFile } from "@/actions/minioOperate";
 import { runLLM, getQueryChildren } from "@/actions/query";
+import { G6OperateFunctions } from '@/g6/object/behavior';
 
 const templateExampleData = {
   "类型表": { "!ref": "A1:C12", "A1": { "t": "s", "v": "名称（唯一标识）", "r": "<t>名称（唯一标识）</t>", "h": "名称（唯一标识）", "w": "名称（唯一标识）" }, "B1": { "t": "s", "v": "类型（默认对象类型）", "r": "<t>类型（默认对象类型）</t>", "h": "类型（默认对象类型）", "w": "类型（默认对象类型）" }, "C1": { "t": "s", "v": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "r": "<t>是否开启版本管理（TRUE / FALSE，默认FALSE）</t><phoneticPr fontId=\"1\" type=\"noConversion\"/>", "h": "是否开启版本管理（TRUE / FALSE，默认FALSE）", "w": "是否开启版本管理（TRUE / FALSE，默认FALSE）" }, "A2": { "t": "s", "v": "航司", "r": "<t>航司</t>", "h": "航司", "w": "航司" }, "B2": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "C2": { "t": "b", "v": true, "w": "TRUE" }, "A3": { "t": "s", "v": "飞机", "r": "<t>飞机</t>", "h": "飞机", "w": "飞机" }, "B3": { "t": "s", "v": "对象类型", "r": "<t>对象类型</t>", "h": "对象类型", "w": "对象类型" }, "A4": { "t": "s", "v": "交付", "r": "<t>交付</t>", "h": "交付", "w": "交付" }, "B4": { "t": "s", "v": "关系类型", "r": "<t>关系类型</t>", "h": "关系类型", "w": "关系类型" }, "!margins": { "left": 0.7, "right": 0.7, "top": 0.75, "bottom": 0.75, "header": 0.3, "footer": 0.3 } },
@@ -107,9 +108,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         key: 'search'
       }
       setSelectedTab(newSelectedTab);
-      if (!newSelectedTab) {
-        dispatch(toggle(false))
-      }
     }
   }, {
     key: 'reset',
@@ -208,6 +206,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       });
     }
   }, [systemInfo]);
+
+  useEffect(() => {
+    const open = !!selectedTab && selectedTab.key === 'search'
+    dispatch(toggle(open))
+  }, selectedTab)
 
   function saveSettingConfig(config: any) {
     const { userId, appId, nodeId } = systemInfo;
@@ -1339,23 +1342,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         getQueryChildren(_param, (success: boolean, data: any) => {
           if (success) {
             updateGraphData(data, _param);
-            console.log(data)
-            // 查询结果的自然语言总结功能
-            const json = _.map(data, item => {
-              const v_node = _.find(item.tags, {name: 'v_node'});
-              const nodeProps = v_node.props;
-              const info: {[key:string]: any} = {
-                "x_type_name": nodeProps['x_type_name'],
-                "x_name": nodeProps['x_name'],
-                "props": nodeProps,
-              }
-              const relationId = Object.keys(item).find(key => key.startsWith("Relation_"));
-              const relationIdKey = relationId?.replace('_', '.')
-              if (relationIdKey) {
-                info[relationIdKey] = relationMap[relationIdKey];
-              }
-              return info
-            })
             dispatch(toggle(true))
           } else {
             notification.error({
@@ -1364,8 +1350,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             });
           } 
         })
-
-        // updateGraphData(response);
+        // 查询结果的自然语言总结功能
+        dispatch(setParams({query: content, data: response.contentJson}))
       } else {
         notification.error({
           message: '搜索失败',
@@ -1375,7 +1361,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       dispatch(setGraphLoading(false));
     });
   }
-  console.log('relationMap: ', relationMap)
   return (
     <>
       <div className='pdb-graph-toolbar'>

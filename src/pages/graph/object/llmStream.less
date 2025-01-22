@@ -2,8 +2,8 @@
   position: absolute;
   left: 50%;
   bottom: 24px;
-  width: 40%;
-  margin-left: -20%;
+  width: 50%;
+  margin-left: -25%;
   border: solid 1px var(--border-color1);
   border-radius: 3px;
   background-color: var(--fill-color4);
@@ -27,16 +27,23 @@
   }
   &-body {
     margin: 0 4px 4px;
+    padding: 0 12px;
     border: solid 1px var(--border-color2);
     background-color: var(--component-bg);
     translate: all 1s ease;
+    height: 100%;
+    overflow: auto;
     &.fade-in-up {
-      height: 24rem;
+      height: 42rem;
       transform: scaleY(1);
     }
     &.fade-out-down {
       height: 0;
       transform: scaleY(0.001);
+    }
+    > p {
+      font-size: 14px;
+      color: var(--text-color2);
     }
   }
 }

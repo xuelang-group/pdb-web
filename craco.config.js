@@ -50,6 +50,7 @@ module.exports = {
     }
   },
   devServer: {
+    compress: false,
     proxy: {
       '/pdb': {
         target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/f6f16c60cd8b11ef85bdf748afbe794a/7000",
@@ -59,6 +60,13 @@ module.exports = {
         //   proxyReq.setHeader('Cookie', 'dev.sid=s%3ARSsJnauHWD1S2Xu1-2gUusLAYeAcW0wr.%2FbKVdHNGmhU4EK2aLVHxxy35MQ6UVaHtBcTqVDVjPnc; Path=/; Expires=Fri, 10 Jan 2025 02:34:53 GMT; HttpOnl');
         // },
       },  
+      '/summary': {
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/cabb8910d86111efa7ef6f83df648473/7789",
+        changeOrigin: true,
+        // pathRewrite: {
+        //   '^/stream': ''
+        // }
+      },
       '/indicator': {
         target: "http://sp10.xuelangyun.com:30080/proxr/80210299/56648/5db701007e0711ef95b3e5448473221c/7789",
         changeOrigin: true,
