@@ -87,10 +87,11 @@ export default function LLMStream(props: ModalProps) {
         }
       }
     })
+    console.log('eventSource: ', eventSource)
   }
 
   useEffect(() => {
-    if (open) {
+    if (open && !fetching) {
       handlePlay()
     }
   }, [open])
