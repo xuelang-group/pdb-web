@@ -7,7 +7,7 @@ import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { isEmpty, compact, isString } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { setLoading, setTableData, updateDisabledField, setFuncResult } from "@/reducers/indicator";
+import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
@@ -27,6 +27,7 @@ export default function VTable(props: {width: number, height: number}) {
   const mergeCell = useSelector((state: StoreState) => state.indicator.mergeCell);
   const func = useSelector((state: StoreState) => state.indicator.func);
   const result = useSelector((state: StoreState) => state.indicator.result);
+  const nextShowConfiguration = useSelector((state: StoreState) => state.indicator.nextShowConfiguration);
 
   const option: IOption = {
     widthMode: 'autoWidth',
@@ -239,6 +240,12 @@ export default function VTable(props: {width: number, height: number}) {
       if (success) {
         dispatch(setLoading(false));
         dispatch(setTableData(response.trim()));
+        if(nextShowConfiguration) {
+          dispatch(setDimension(nextShowConfiguration.dimension));
+          dispatch(setFunc(nextShowConfiguration.func));
+          dispatch(setGroupBy(nextShowConfiguration.groupBy));
+          dispatch(setNextShowConfiguration(null))
+        }
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }

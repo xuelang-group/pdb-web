@@ -7,7 +7,7 @@ import './index.less';
 import { Button, Dropdown, Space, Spin } from 'antd';
 import type { MenuProps } from 'antd';
 import { DownOutlined, CheckOutlined, RollbackOutlined, SaveOutlined } from '@ant-design/icons';
-import { exit, setcheckVersionList, setNowCheckVersion, setCheckId, setGroupBy, setDimension,setFunc } from "@/reducers/indicator";
+import { exit, setcheckVersionList, setNowCheckVersion, setCheckId, setGroupBy, setDimension,setFunc, setNextShowConfiguration } from "@/reducers/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
 import { clearQuery } from "@/reducers/query";
 import UseHistoryModal from './components/UseHistoryModal';
@@ -67,11 +67,16 @@ export default function Indicator(props: any) {
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNowCheckVersion(version))
-            setTimeout(() => {
-              dispatch(setDimension(dimensionStr));
-              dispatch(setFunc(res.metric_params.func));
-              dispatch(setGroupBy(groupByArr));
-            }, 500)
+            dispatch(setNextShowConfiguration({
+              dimension: dimensionStr,
+              func: res.metric_params.func,
+              groupBy: groupByArr
+            }))
+            // setTimeout(() => {
+            //   dispatch(setDimension(dimensionStr));
+            //   dispatch(setFunc(res.metric_params.func));
+            //   dispatch(setGroupBy(groupByArr));
+            // }, 500)
           }
         })
       }
@@ -90,11 +95,16 @@ export default function Indicator(props: any) {
           dispatch(setApi(res.pql_params.api));
           dispatch(setcheckVersionList(null))
           dispatch(setNowCheckVersion(null))
-          setTimeout(() => {
-            dispatch(setDimension(dimensionStr));
-            dispatch(setFunc(res.metric_params.func));
-            dispatch(setGroupBy(groupByArr));
-          }, 500)
+          dispatch(setNextShowConfiguration({
+            dimension: dimensionStr,
+            func: res.metric_params.func,
+            groupBy: groupByArr
+          }))
+          // setTimeout(() => {
+          //   dispatch(setDimension(dimensionStr));
+          //   dispatch(setFunc(res.metric_params.func));
+          //   dispatch(setGroupBy(groupByArr));
+          // }, 500)
         }
       })
     } else {

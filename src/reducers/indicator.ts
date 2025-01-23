@@ -52,6 +52,7 @@ interface IndicatorState {
   currentBuzProcess: any;
   checkVersionList: any[] | null;
   nowCheckVersion: any | null;
+  nextShowConfiguration: any | null;
 }
 
 // 使用该类型定义初始 state
@@ -81,6 +82,7 @@ const initialState: IndicatorState = {
   currentBuzProcess: {},
   checkVersionList: null,
   nowCheckVersion: null,
+  nextShowConfiguration: null,
 }
 
 let groupByNameDict: Record = {}
@@ -332,12 +334,15 @@ export const indicatorSlice = createSlice({
     setNowCheckVersion: (state, action: PayloadAction<any>) => {
       state.nowCheckVersion = action.payload;
     },
+    setNextShowConfiguration: (state, action: PayloadAction<any>) => {
+      state.nextShowConfiguration = action.payload;
+    }
   }
 })
 
 export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
   setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
-  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, exit 
+  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, setNextShowConfiguration, exit 
 } = indicatorSlice.actions
 
 export default indicatorSlice.reducer

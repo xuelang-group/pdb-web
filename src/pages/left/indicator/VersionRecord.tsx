@@ -3,7 +3,7 @@ import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
-import { setCheckId, setGroupBy, setDimension,setFunc, setcheckVersionList, setNowCheckVersion } from "@/reducers/indicator";
+import { setCheckId, setGroupBy, setDimension,setFunc, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration } from "@/reducers/indicator";
 import { useEffect, useState } from "react";
 
 
@@ -36,11 +36,16 @@ export default function VersionRecord(props: any) {
         dispatch(setcheckVersionList(verData))
         dispatch(setNowCheckVersion(record.version))
         onCancel()
-        setTimeout(() => {
-          dispatch(setDimension(dimensionStr));
-          dispatch(setFunc(res.metric_params.func));
-          dispatch(setGroupBy(groupByArr));
-        }, 500)
+        dispatch(setNextShowConfiguration({
+          dimension: dimensionStr,
+          func: res.metric_params.func,
+          groupBy: groupByArr
+        }))
+        // setTimeout(() => {
+        //   dispatch(setDimension(dimensionStr));
+        //   dispatch(setFunc(res.metric_params.func));
+        //   dispatch(setGroupBy(groupByArr));
+        // }, 500)
       }
     })
   }

@@ -7,7 +7,7 @@ import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator"
 import { useParams, useNavigate } from 'react-router-dom';
 import _, { set } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
-  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess } from "@/reducers/indicator";
+  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import VersionRecord from './VersionRecord'
@@ -103,12 +103,17 @@ export default function List(props: any) {
         const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         dispatch(setCheckId(tempObj.id));
         dispatch(setQueryParams(tempObj.pql_params.params));
-        dispatch(setDimension(dimensionStr));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
+        dispatch(setNextShowConfiguration({
+          dimension: dimensionStr,
+          func: tempObj.metric_params.func,
+          groupBy: groupByArr
+        }))
         setTimeout(() => {
-          dispatch(setFunc(tempObj.metric_params.func));
-          dispatch(setGroupBy(groupByArr));
+          // dispatch(setDimension(dimensionStr));
+          // dispatch(setFunc(tempObj.metric_params.func));
+          // dispatch(setGroupBy(groupByArr));
           dispatch(setcheckVersionList(null))
           dispatch(setNowCheckVersion(null))
         }, 500)
@@ -121,11 +126,16 @@ export default function List(props: any) {
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNeedCheckId(null));
-            setTimeout(() => {
-              dispatch(setDimension(dimensionStr));
-              dispatch(setFunc(res.metric_params.func));
-              dispatch(setGroupBy(groupByArr));
-            }, 500)
+            dispatch(setNextShowConfiguration({
+              dimension: dimensionStr,
+              func: tempObj.metric_params.func,
+              groupBy: groupByArr
+            }))
+            // setTimeout(() => {
+            //   dispatch(setDimension(dimensionStr));
+            //   dispatch(setFunc(res.metric_params.func));
+            //   dispatch(setGroupBy(groupByArr));
+            // }, 500)
             metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
               if (success) {
                 dispatch(setcheckVersionList(resH))
@@ -148,10 +158,15 @@ export default function List(props: any) {
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
+          dispatch(setNextShowConfiguration({
+            dimension: dimensionStr,
+            func: tempObj.metric_params.func,
+            groupBy: groupByArr
+          }))
           setTimeout(() => {
-            dispatch(setDimension(dimensionStr));
-            dispatch(setFunc(tempObj.metric_params.func));
-            dispatch(setGroupBy(groupByArr));
+            // dispatch(setDimension(dimensionStr));
+            // dispatch(setFunc(tempObj.metric_params.func));
+            // dispatch(setGroupBy(groupByArr));
             dispatch(setcheckVersionList(null))
             dispatch(setNowCheckVersion(null))
           }, 500)
@@ -165,11 +180,16 @@ export default function List(props: any) {
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNeedEditId(null));
-            setTimeout(() => {
-              dispatch(setDimension(dimensionStr));
-              dispatch(setFunc(res.metric_params.func));
-              dispatch(setGroupBy(groupByArr));
-            }, 500)
+            dispatch(setNextShowConfiguration({
+              dimension: dimensionStr,
+              func: tempObj.metric_params.func,
+              groupBy: groupByArr
+            }))
+            // setTimeout(() => {
+            //   dispatch(setDimension(dimensionStr));
+            //   dispatch(setFunc(res.metric_params.func));
+            //   dispatch(setGroupBy(groupByArr));
+            // }, 500)
             metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
               if (success) {
                 dispatch(setcheckVersionList(resH))
@@ -235,11 +255,16 @@ export default function List(props: any) {
       dispatch(setCheckId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
       dispatch(setApi(item.pql_params.api));
-      setTimeout(() => {
-        dispatch(setDimension(dimensionStr));
-        dispatch(setFunc(item.metric_params.func));
-        dispatch(setGroupBy(groupByArr));
-      }, 500)
+      dispatch(setNextShowConfiguration({
+        dimension: dimensionStr,
+        func: item.metric_params.func,
+        groupBy: groupByArr
+      }))
+      // setTimeout(() => {
+      //   dispatch(setDimension(dimensionStr));
+      //   dispatch(setFunc(item.metric_params.func));
+      //   dispatch(setGroupBy(groupByArr));
+      // }, 500)
     }
     if (menu.key === 'edit') {
       const dimensionStr = item.metric_params.dimension.name_cn
@@ -247,11 +272,16 @@ export default function List(props: any) {
       dispatch(setEditId(item.id));
       dispatch(setQueryParams(item.pql_params.params));
       dispatch(setApi(item.pql_params.api));
-      setTimeout(() => {
-        dispatch(setDimension(dimensionStr));
-        dispatch(setFunc(item.metric_params.func));
-        dispatch(setGroupBy(groupByArr));
-      }, 500)
+      dispatch(setNextShowConfiguration({
+        dimension: dimensionStr,
+        func: item.metric_params.func,
+        groupBy: groupByArr
+      }))
+      // setTimeout(() => {
+      //   dispatch(setDimension(dimensionStr));
+      //   dispatch(setFunc(item.metric_params.func));
+      //   dispatch(setGroupBy(groupByArr));
+      // }, 500)
     }
     if (menu.key ==='version') {
       setVersionVisible(true)
