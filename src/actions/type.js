@@ -162,19 +162,15 @@ export const deleteTypeVerison = (graphId, typeVersionID, callback) => {
 /**
  * 复制对象类型版本
  * @param {int} graphId 项目ID
- * @param {string} typeName 类型名称
- * @param {string} typeVersionID 要复制对象类型的版本ID
+ * @param {string} x.type.name 类型名称
+ * @param {string} x.type.version.id 要复制对象类型的版本ID
+ * @param {string} x.type.version.name 要复制对象类型的版本ID
  * @param {number} copyMethod 复制范围 0-该版本 1-该版本及其之前版本
  * @param {Function} callback 
  * @returns 
  */
-export const copyTypeVerison = (graphId, typeVersionID, typeName, copyMethod, callback) => {
-  return axios.post(versionApi['copy'], {
-    graphId,
-    copyMethod,
-    "x.type.version.id": typeVersionID,
-    "x.type.name": typeName,
-  }).then(({ data }) => {
+export const copyTypeVerison = (params, callback) => {
+  return axios.post(versionApi['copy'], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

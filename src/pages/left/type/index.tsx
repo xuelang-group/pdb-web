@@ -3,7 +3,7 @@ import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented,
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
-import _, { find, findIndex, isNaN, map } from 'lodash';
+import _, { find, findIndex, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
@@ -753,12 +753,12 @@ export default function Left() {
                         {
                           key: 'reference-0',
                           label: '跟踪最新版本',
-                          extra: reference == 0 ?  <i className="spicon icon-xuanzhong1" /> : ''
+                          extra: reference == 0 ? <i className="spicon icon-xuanzhong1" /> : ''
                         },
                         {
                           key: 'reference-1',
                           label: '锁定当前版本',
-                          extra: reference ?  <i className="spicon icon-xuanzhong1" /> : ''
+                          extra: reference ? <i className="spicon icon-xuanzhong1" /> : ''
                         },
                       ],
                     })

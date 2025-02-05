@@ -1,11 +1,12 @@
-import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Switch } from 'antd';
+import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Switch, message } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
-import { getTypeVerisonList } from '@/actions/type';
+import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
+import moment from 'moment';
 
 const ActionTitle: {
   'copy': string;
@@ -48,6 +49,7 @@ export default function VersionModal({types}: VersionModalProps) {
   }, {
     dataIndex: 'x.type.version.created',
     title: '创建时间',
+    render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
   }, {
     dataIndex: '',
     title: '操作',
@@ -92,9 +94,10 @@ export default function VersionModal({types}: VersionModalProps) {
       setCurrType(type);
       setCurrVersion(version)
       if (type === 'copy') {
+        const copyName = versionModal.type ? getDefaultCopyName(versionModal.type['x.type.name']) : '';
         form.setFieldsValue({
           'x.type.version.id': version['x.type.version.id'],
-          'x.type.name': '',
+          'x.type.name': copyName,
           'x.type.version.name': '',
           'copyMethod': 0
         })
@@ -109,15 +112,38 @@ export default function VersionModal({types}: VersionModalProps) {
   }
 
   const handleCopy = (values: {[key:string]: any}) => {
+    console.log('copy: ', values)
+    currVersion && copyTypeVerison({
+      graphId: graphData.id,
+      "x.type.version.id": currVersion["x.type.version.id"],
+      ...values,
+    }, (success: boolean, response: any) => {
+      if (success) {
+        message.success('复制成功')
+        setOpen(false)
+      } else {
+        notification.error({
+          message: `复制失败`,
+          description: response.message || response.msg
+        });
+      }
+    })
+  }
+
+  const handleDiff = (values: {[key:string]: any}) => {
 
   }
 
   const handleConfirm = () => {
-    form.validateFields().then((values) => {
-      handleCopy(values)
-    }).catch(err => {
+    form.validateFields().then((values: { [key: string]: any; }) => {
+      currType === 'copy' ? handleCopy(values) : handleDiff(values)
+    }).catch((err: any) => {
 
     })
+  }
+
+  const onCancel = () => {
+    setOpen(false)
   }
 
   const onValidateTypeName = async (_: any, value: string | any[]) => {
@@ -142,7 +168,7 @@ export default function VersionModal({types}: VersionModalProps) {
       {!copyMethod && <Form.Item label="版本号" name="x.type.version.name">
         <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
       </Form.Item>}
-      <Form.Item name="x.type.version" label="版本控制">
+      <Form.Item label="版本控制">
         <Switch disabled checkedChildren="ON" unCheckedChildren="OFF" defaultChecked  />
       </Form.Item>
     </Form>
@@ -186,6 +212,7 @@ export default function VersionModal({types}: VersionModalProps) {
         destroyOnClose
         okText={currType === 'diff' ? "开始对比" : "确定"}
         onOk={handleConfirm}
+        onCancel={() => setOpen(false)}
       >
         { currType === 'copy' && renderCopy() }
         { currType === 'diff' && renderDiff() }
