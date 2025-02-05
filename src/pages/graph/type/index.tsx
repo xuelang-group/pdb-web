@@ -1,5 +1,5 @@
 import G6 from '@antv/g6';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
 import { Button, Dropdown, Flex, Space, Typography } from 'antd';
 import { DownOutlined, RollbackOutlined, SaveOutlined } from '@ant-design/icons'
@@ -11,10 +11,12 @@ import { labelThemeStyle } from '@/g6/edge';
 import './index.less';
 import { map } from 'lodash';
 import { TypeVersionConfig } from '@/reducers/type';
+import { setIsEditing } from '@/reducers/editor';
 
 let graph: any;
 
 export default function Editor(props: any) {
+  const dispatch = useDispatch();
   const graphRef = useRef(null);
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
   const currentVersion = useSelector((state: StoreState) => state.type.currentVersion);
@@ -84,6 +86,10 @@ export default function Editor(props: any) {
 
     (window as any).PDB_GRAPH = graph;
   }
+
+  useEffect(() => {
+    dispatch(setIsEditing(!currentVersion))
+  }, [currentVersion])
 
   useEffect(() => {
     initLayout([]);

@@ -155,7 +155,7 @@ export const editorSlice = createSlice({
       state.currentEditModel = JSON.parse(JSON.stringify(action.payload));
     },
     setIsEditing: (state, action: PayloadAction<boolean>) => {
-      // state.isEditing = action.payload;
+      state.isEditing = action.payload;
     },
     setMultiEditModel: (state, action: PayloadAction<Array<NodeItemData | EdgeItemData | TypeItemData> | null>) => {
       state.multiEditModel = JSON.parse(JSON.stringify(action.payload));

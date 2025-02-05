@@ -257,6 +257,7 @@ export default function Right(props: RightProps) {
       }
       return;
     }
+            console.log('model: ', currentEditModel)
     const currentEditDefaultData = JSON.parse(JSON.stringify(currentEditModel.data || {}));
 
     // 判断当前编辑的类型
@@ -968,7 +969,7 @@ export default function Right(props: RightProps) {
                   <Empty image={require('@/assets/images/search_empty.png')} />
                 }
               </div>
-              {props.route === 'type' &&
+              {props.route === 'type' && isEditing &&
                 <div className='param-btn'>
                   <Button className='btn-default' onClick={addParam} block icon={<i className='spicon icon-tianjia2'></i>}>
                     添加属性
@@ -1049,6 +1050,8 @@ export default function Right(props: RightProps) {
 
   const appName = Form.useWatch('name', infoForm),
     appId = Form.useWatch('id', infoForm);
+
+  const disabled = currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing;
 
   const renderPanelForm = function () {
     if (!currentEditModel) {
@@ -1141,7 +1144,7 @@ export default function Right(props: RightProps) {
                 placeholder={'点击编辑名称'}
                 onBlur={changeName}
                 onPressEnter={changeName}
-                disabled={currentEditType !== 'object' && location.pathname.endsWith("/template") || !isEditing}
+                disabled={disabled}
               />
             </Form.Item>
             <div className='info-name-hidden'>{appName}</div>
@@ -1303,20 +1306,20 @@ export default function Right(props: RightProps) {
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>
                 <NodeIconPicker
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={disabled}
                   changeIcon={(icon: string) => changeNodeMetadata('icon', icon)}
                   currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
                 <NodeColorPicker key={'fill'}
                   type='fill'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={disabled}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
                 <NodeColorPicker key={'border'}
                   type='border'
-                  disabled={currentEditType !== 'object' && location.pathname.endsWith("/template")}
+                  disabled={disabled}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                   changeColor={(color: string, isDefault?: boolean) => changeNodeMetadata('borderColor', color, isDefault)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'borderColor')}

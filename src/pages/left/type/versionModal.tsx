@@ -7,6 +7,7 @@ import { StoreState } from '@/store';
 import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
 import moment from 'moment';
+import { setCurrentEditModel } from '@/reducers/editor';
 
 const ActionTitle: {
   'copy': string;
@@ -29,6 +30,7 @@ export default function VersionModal({types}: VersionModalProps) {
   const graphData = useSelector((state: StoreState) => state.object.graphData);
   const versionModal = useSelector((state: StoreState) => state.type.versionModal);
   const versions = useSelector((state: StoreState) => state.type.versionList);
+  const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
 
   const [form] = Form.useForm();
   const copyMethod = Form.useWatch('copyMethod', form);
@@ -110,6 +112,10 @@ export default function VersionModal({types}: VersionModalProps) {
     } else {
       // 查看历史版本
       dispatch(setCurrentVersion(version))
+      if (currentEditModel?.data) {
+        Object.assign(currentEditModel?.data, version)
+      }
+      dispatch(setCurrentEditModel(currentEditModel))
       handleCancel()
     }
   }
