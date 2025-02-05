@@ -2,7 +2,7 @@ import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Swi
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setCurrentVersion, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
@@ -26,13 +26,13 @@ interface VersionModalProps {
 
 export default function VersionModal({types}: VersionModalProps) {
   const dispatch = useDispatch();
-  const graphData = useSelector((state: StoreState) => state.object.graphData),
-       versionModal = useSelector((state: StoreState) => state.type.versionModal);
+  const graphData = useSelector((state: StoreState) => state.object.graphData);
+  const versionModal = useSelector((state: StoreState) => state.type.versionModal);
+  const versions = useSelector((state: StoreState) => state.type.versionList);
 
   const [form] = Form.useForm();
   const copyMethod = Form.useWatch('copyMethod', form);
 
-  const [versions, setVersions] = useState<TypeVersionConfig[]>([]);
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -71,10 +71,10 @@ export default function VersionModal({types}: VersionModalProps) {
       }, (success: boolean, response: any) => {
         setLoading(false)
         if (success) {
-          setVersions(response.list)
+          dispatch(setVersionList(response.list))
           setTotal(response.total)
         } else {
-          setVersions([])
+          dispatch(setVersionList([]))
           notification.error({
             message: '对象类型版本列表失败',
             description: response.message || response.msg
@@ -108,6 +108,9 @@ export default function VersionModal({types}: VersionModalProps) {
         })
       }
     } else {
+      // 查看历史版本
+      dispatch(setCurrentVersion(version))
+      handleCancel()
     }
   }
 
@@ -140,10 +143,6 @@ export default function VersionModal({types}: VersionModalProps) {
     }).catch((err: any) => {
 
     })
-  }
-
-  const onCancel = () => {
-    setOpen(false)
   }
 
   const onValidateTypeName = async (_: any, value: string | any[]) => {

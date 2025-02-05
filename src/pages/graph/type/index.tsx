@@ -1,18 +1,24 @@
 import G6 from '@antv/g6';
 import { useSelector } from 'react-redux';
 import { useEffect, useRef } from 'react';
+import { Button, Dropdown, Flex, Space, Typography } from 'antd';
+import { DownOutlined, RollbackOutlined, SaveOutlined } from '@ant-design/icons'
 
 import type { StoreState } from '@/store';
 import type { ObjectConfig } from '@/reducers/object';
 import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
 import './index.less';
+import { map } from 'lodash';
+import { TypeVersionConfig } from '@/reducers/type';
 
 let graph: any;
 
 export default function Editor(props: any) {
   const graphRef = useRef(null);
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
+  const currentVersion = useSelector((state: StoreState) => state.type.currentVersion);
+  const versionList = useSelector((state: StoreState) => state.type.versionList);
 
   useEffect(() => {
     const container: any = graphRef.current;
@@ -89,8 +95,35 @@ export default function Editor(props: any) {
     }
   }, []);
 
+  const renderVersions = () => {
+    const items = map(versionList, (v: TypeVersionConfig) => ({ key: v["x.type.version.id"], label: 'V' + v["x.type.version.name"]}));
+    const id = currentVersion ? currentVersion["x.type.version.id"] : '';
+    const name = currentVersion ? currentVersion["x.type.version.name"] : '';
+    return (
+      <div className='pdb-type-version'>
+        <Flex justify="space-between" align="center">
+          <Space>
+            <Typography.Text strong>历史版本：</Typography.Text>
+            <Dropdown placement="bottom" arrow menu={{ items, selectable: true, defaultSelectedKeys: [id] }} overlayStyle={{width: 120}}>
+              <Space>
+                <Typography.Text strong>V{ name }</Typography.Text>
+                <DownOutlined />
+              </Space>
+            </Dropdown>
+          </Space>
+          <Space size={12}>
+            <Button>版本对比</Button>
+            <Button icon={<RollbackOutlined />}>回到最新版本</Button>
+            <Button type="primary" icon={<SaveOutlined />}>启用此版本</Button>
+          </Space>
+        </Flex>
+      </div>
+    )
+  }
+
   return (
     <div className="pdb-graph">
+      { currentVersion && renderVersions() }
       <div ref={graphRef} className="graph" id="type-graph"></div>
     </div>
   );
