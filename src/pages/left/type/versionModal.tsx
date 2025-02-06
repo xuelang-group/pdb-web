@@ -59,9 +59,9 @@ export default function VersionModal({types}: VersionModalProps) {
     width: 300,
     render(text: any, record: TypeVersionConfig) { 
       return (<Space size={12}>
-        <a key='detail' onClick={() => handleClick('detail', record)}>查看</a>
+        { total > 1 && <a key='detail' onClick={() => handleClick('detail', record)}>查看</a> }
         <a key='copy' onClick={() => handleClick('copy', record)}>复制</a>
-        { total > 1 && <a key='detail' onClick={() => handleClick('diff', record)}>版本对比</a> }
+        { total > 1 && <a key='diff' onClick={() => handleClick('diff', record)}>版本对比</a> }
       </Space>)
     }
   }]
