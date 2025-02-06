@@ -7,7 +7,7 @@ import _, { find, findIndex, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, setVersionModal, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig, resetCurrentType, setCurrentVersion } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, setVersionModal, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig, setCurrentVersion } from '@/reducers/type';
 import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';

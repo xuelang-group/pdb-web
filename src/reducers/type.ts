@@ -15,10 +15,10 @@ export interface AttrConfig {
   "name": string // 属性名称
   "display": string // 展示名称
   "type": AttrType // 类型
-  "required": true // 是否必填
+  "required": boolean // 是否必填
   "default"?: any // 默认值
   "datetimeFormat"?: DatetimeFormat // 日期时间格式
-  "override"?: boolean // 类型属性是否为继承而来
+  "override"?: string // 类型属性是否为继承而来
 }
 
 export interface TypePrototypeConfig {
@@ -34,9 +34,9 @@ export interface TypeVersionConfig {
   'x.type.version.attrs'?: Array<AttrConfig> // 属性列表
   'x.type.version.name': string // 类型版本名称
   'x.type.version.description': string // 类型版本描述
-  'x.type.prev.version.id': string // 上个版本对象类型版本ID
-  'x.type.next.version.id': string // 下个版本对象类型版本ID
-  'x.type.version.state': VersionState // 版本状态
+  'x.type.prev.version.id'?: string // 上个版本对象类型版本ID
+  'x.type.next.version.id'?: string // 下个版本对象类型版本ID
+  'x.tpye.version.state': VersionState // 版本状态
   'x.type.version.editor': string // 版本创建人
 }
 export interface TypeConfig extends TypeVersionConfig {
@@ -57,7 +57,8 @@ interface TypeState {
     type?: TypeConfig,
   },
   versionList: Array<TypeVersionConfig>,
-  currentVersion?: TypeVersionConfig
+  currentVersion?: TypeVersionConfig,
+  diffVersion?: TypeVersionConfig,
 }
 
 // 使用该类型定义初始 state
@@ -99,10 +100,8 @@ export const typeSlice = createSlice({
     setCurrentVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
       state.currentVersion = action.payload;
     },
-    resetCurrentType: (state) => {
-      state.versionModal.open = false;
-      state.versionModal.type = undefined;
-      state.currentVersion = undefined;
+    setDiffVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
+      state.diffVersion = action.payload;
     },
   }
 });
@@ -119,5 +118,5 @@ export const getDefaultTypeConfig = () => {
   }
 };
 
-export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, resetCurrentType } = typeSlice.actions
+export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion } = typeSlice.actions
 export default typeSlice.reducer
