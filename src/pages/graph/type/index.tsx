@@ -10,7 +10,7 @@ import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
 import './index.less';
 import { map } from 'lodash';
-import { TypeVersionConfig } from '@/reducers/type';
+import { setCurrentVersion, TypeVersionConfig } from '@/reducers/type';
 import { setIsEditing } from '@/reducers/editor';
 
 let graph: any;
@@ -87,6 +87,10 @@ export default function Editor(props: any) {
     (window as any).PDB_GRAPH = graph;
   }
 
+  const backToLatest = () => {
+    dispatch(setCurrentVersion(undefined))
+  }
+
   useEffect(() => {
     dispatch(setIsEditing(!currentVersion))
   }, [currentVersion])
@@ -94,6 +98,7 @@ export default function Editor(props: any) {
   useEffect(() => {
     initLayout([]);
 
+    dispatch(setIsEditing(!currentVersion))
     return () => {
       graph?.destroy();
       graph = null;
@@ -119,7 +124,7 @@ export default function Editor(props: any) {
           </Space>
           <Space size={12}>
             <Button>版本对比</Button>
-            <Button icon={<RollbackOutlined />}>回到最新版本</Button>
+            <Button icon={<RollbackOutlined />} onClick={backToLatest}>回到最新版本</Button>
             <Button type="primary" icon={<SaveOutlined />}>启用此版本</Button>
           </Space>
         </Flex>

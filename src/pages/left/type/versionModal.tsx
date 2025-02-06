@@ -8,6 +8,7 @@ import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
 import moment from 'moment';
 import { setCurrentEditModel } from '@/reducers/editor';
+import { cloneDeep } from 'lodash';
 
 const ActionTitle: {
   'copy': string;
@@ -112,16 +113,17 @@ export default function VersionModal({types}: VersionModalProps) {
     } else {
       // 查看历史版本
       dispatch(setCurrentVersion(version))
-      if (currentEditModel?.data) {
-        Object.assign(currentEditModel?.data, version)
+      const data = cloneDeep(currentEditModel?.data) as TypeConfig;
+      if (data && data["x.type.version.attrs"]) {
+        Object.assign(data, version)
       }
-      dispatch(setCurrentEditModel(currentEditModel))
+      const newCurrentModel = Object.assign({}, currentEditModel, { data })
+      dispatch(setCurrentEditModel(newCurrentModel))
       handleCancel()
     }
   }
 
   const handleCopy = (values: {[key:string]: any}) => {
-    console.log('copy: ', values)
     currVersion && copyTypeVerison({
       graphId: graphData.id,
       "x.type.version.id": currVersion["x.type.version.id"],

@@ -69,6 +69,7 @@ export default function Right(props: RightProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
+    currentVersion = useSelector((state: StoreState) => state.type.currentVersion),
     relations = useSelector((state: StoreState) => state.relation.data),
     isEditing = useSelector((state: StoreState) => state.editor.isEditing),
     typesMap = useSelector((state: StoreState) => state.editor.typeMap);
@@ -257,7 +258,7 @@ export default function Right(props: RightProps) {
       }
       return;
     }
-            console.log('model: ', currentEditModel)
+    
     const currentEditDefaultData = JSON.parse(JSON.stringify(currentEditModel.data || {}));
 
     // 判断当前编辑的类型
@@ -938,6 +939,8 @@ export default function Right(props: RightProps) {
 
   // 属性列表
   const renderParams = () => {
+    console.log('isEditing: ', isEditing)
+    console.log('currentVersion: ', currentVersion)
     return (
       <div className='types-content' ref={handleRef}>
         {(typeLoading || attrLoading) ?
@@ -955,8 +958,8 @@ export default function Right(props: RightProps) {
                         index={index}
                         attr={attr}
                         isActive={currentEditParam && currentEditParam.name === attr.name}
-                        canOperate={props.route === 'type'}
-                        canDrag={props.route === 'type' && currentEditType === 'type'}
+                        canOperate={props.route === 'type' && isEditing}
+                        canDrag={props.route === 'type' && currentEditType === 'type' && isEditing}
                         moveParam={moveParam}
                         deleteParam={deleteTypeConfig}
                         editParam={editTypeConfig}
