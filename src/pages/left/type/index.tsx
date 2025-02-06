@@ -659,10 +659,21 @@ export default function Left() {
             <div className='type-list relation-list'>
               {list.map((item: any, index: number) => {
                 const label: any = item[prevLabel + 'type.name']
-                const items = type === 'type' ? map(typeMenus, menu => menu?.key === 'control' ? ({
-                  ...menu, 
-                  extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
-                }) : menu) : relationMenus;
+                const items = type === 'type' ? map(typeMenus, menu => {
+                  if (menu?.key === 'control') {
+                    return {
+                      ...menu, 
+                      extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
+                    }
+                  }
+                  if (menu?.key === 'history') {
+                    return {
+                      ...menu,
+                      disabled: !item.data['x.type.version']
+                    }
+                  }
+                  return menu
+                }) : relationMenus;
                 return (
                   <Dropdown
                     key={item['r.type.id']}
@@ -736,10 +747,21 @@ export default function Left() {
                 selectedKeys={currentEditModel ? [_.get(currentEditModel.data, 'x.type.id', '')] : []}
                 switcherIcon={() => (<span></span>)}
                 titleRender={(item: any) => {
-                  const items = map(typeMenus, menu => menu?.key === 'control' ? ({
-                    ...menu, 
-                    extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
-                  }) : menu);
+                  const items = map(typeMenus, menu => {
+                    if (menu?.key === 'control') {
+                      return {
+                        ...menu, 
+                        extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
+                      }
+                    }
+                    if (menu?.key === 'history') {
+                      return {
+                        ...menu,
+                        disabled: !item.data['x.type.version']
+                      }
+                    }
+                    return menu
+                  });
                   const parentTypeId = item.data['x.type.version.prototype']['x.type.id']
                   const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
                   const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
