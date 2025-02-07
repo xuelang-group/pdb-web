@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Col, Row, Select, Typography } from "antd";
+import { Col, Flex, Row, Select, Typography } from "antd";
 import type { StoreState } from '@/store';
 import { setCurrentVersion, setDiffVersion, TypeVersionConfig } from '@/reducers/type';
 import { map } from 'lodash';
@@ -30,7 +30,6 @@ export default function DiffVersionPane() {
           <Typography.Text className="pdb-diff-version-time" type="secondary">创建时间：{moment(currentVersion["x.type.version.created"]).format("YYYY-MM-DD HH:mm:ss")}</Typography.Text>
           <div className='pdb-diff-version-title'><Typography.Text strong>基本信息</Typography.Text></div>
           <div className='pdb-diff-version-title'><Typography.Text strong>属性信息</Typography.Text></div>
-          <DiffAttrTable attrs={currentVersion['x.type.version.attrs'] || []} />
         </Col>
         <Col span={12}>
           <Select value={diffVersionId} style={{width: '100%'}} options={items} />
@@ -39,7 +38,18 @@ export default function DiffVersionPane() {
           <div className='pdb-diff-version-title'><Typography.Text strong>属性信息</Typography.Text></div>
         </Col>
       </Row>
-      <Row gutter={24}></Row>
+      <Row gutter={24} style={{"flex": 1}}>
+        <Col span={12}>
+          <DiffAttrTable attrs={currentVersion['x.type.version.attrs'] || []} modifyNames={{'fullname': ['display']}} createdNames={['lines']} deletedNames={['count']} />
+        </Col>
+        <Col span={12}>
+        </Col>
+      </Row>
+      <Flex justify="center" align="center">
+        <div className='pdb-diff-tag pdb-diff-tag-new'>新增</div>
+        <div className='pdb-diff-tag pdb-diff-tag-modify'>修改</div>
+        <div className='pdb-diff-tag pdb-diff-tag-deleted'>移除</div>
+      </Flex>
     </div>
   )
 }

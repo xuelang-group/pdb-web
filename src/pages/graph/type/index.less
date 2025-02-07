@@ -11,6 +11,8 @@
   left: 24px;
   right: 24px;
   bottom: 24px;
+  display: flex;
+  flex-direction: column;
   padding: 24px;
   border-radius: 4px;
   background-color: var(--component-bg);
@@ -38,4 +40,48 @@
 .pdb-diff-title-small {
   // font-size: 12px;
   font-weight: normal;
+}
+.pdb-diff {
+  &-new {
+    display: block;
+    background-color: #E8FFEA;
+  }
+  &-del {
+    display: block;
+    background-color: #FFECE8;
+    text-decoration: line-through;
+  }
+  &-mod {
+    display: block;
+    background-color: #FFFBE6;
+  }
+  &-tag {
+    margin: 0 12px;
+    display: flex;
+    align-items: center;
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border-width: 1px;
+      border-style: solid;
+    }
+    &-new::before {
+      background-color: #E8FFEA;
+      border-color: #AFF0B5;
+    }
+    &-modify::before {
+      background-color: #FFFBE6;
+      border-color: #FFF1B8;
+    }
+    &-deleted::before {
+      background-color: #FFECE8;
+      border-color: #FDCDC5;
+    }
+  }
+  &-table {
+    height: 100%;
+  }
 }

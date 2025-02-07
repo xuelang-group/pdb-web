@@ -25,7 +25,7 @@ export default function Editor(props: any) {
   const versionList = useSelector((state: StoreState) => state.type.versionList);
 
   useEffect(() => {
-    console.log('currentEditModel: ', currentEditModel)
+    // console.log('currentEditModel: ', currentEditModel)
     const container: any = graphRef.current;
     if (!container || !container.clientWidth || !container.clientHeight || !graph) return;
     graph.changeSize(container.clientWidth, container.clientHeight);
@@ -156,16 +156,16 @@ export default function Editor(props: any) {
     dispatch(setIsEditing(!currentVersion))
   }, [currentVersion])
 
-  useEffect(() => {
-    if (diffVersion && graph) {
-      graph?.destroy();
-      graph = null;
-      (window as any).PDB_GRAPH = null;
-    } else if (!diffVersion && !graph) {
-      initLayout([])
-      renderTypeNode()
-    }
-  }, [diffVersion])
+  // useEffect(() => {
+  //   if (diffVersion && graph) {
+  //     graph?.destroy();
+  //     graph = null;
+  //     (window as any).PDB_GRAPH = null;
+  //   } else if (!diffVersion && !graph) {
+  //     initLayout([])
+  //     renderTypeNode()
+  //   }
+  // }, [diffVersion])
 
   const renderVersions = () => {
     if (diffVersion) {
