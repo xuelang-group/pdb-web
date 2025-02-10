@@ -34,19 +34,17 @@ export default function VersionModal() {
 
   const handleConfirm = () => {
     form.validateFields().then((values: { [key: string]: any; }) => {
-      console.log('diff version: ', values)
+      const { currVersionId, diffVersionId } = values
+      if (!currentVersion || currentVersion["x.type.version.id"] !== currVersionId) {
+        const curr = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === currVersionId)
+        dispatch(setCurrentVersion(curr))
+      }
+      const diff = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === diffVersionId)
+      dispatch(setDiffVersion(diff))
+      dispatch(setDiffModalOpen(false))
     }).catch((err: any) => {
 
     })
-  }
-  
-  const onCurrChange = (val:string) => {
-    const curr = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === val)
-    dispatch(setCurrentVersion(curr))
-  }
-  const onDiffChange = (val:string) => {
-    const diff = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === val)
-    dispatch(setDiffVersion(diff))
   }
     
   const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: 'V' + v["x.type.version.name"]}));
@@ -68,11 +66,11 @@ export default function VersionModal() {
       onCancel={() => dispatch(setDiffModalOpen(false))}
     >
       <Form {...layout} form={form}>
-        <Form.Item label="对比版本一" name="currVersionId"> 
-          <Select style={{width: '100%'}} options={currOptions} onChange={onCurrChange} />
+        <Form.Item label="对比版本一" name="currVersionId" rules={[{ required: true, message: '请选择对比版本一' }]}> 
+          <Select style={{width: '100%'}} options={currOptions} />
         </Form.Item>
-        <Form.Item label="对比版本二" name="diffVersionId">
-          <Select style={{width: '100%'}} options={diffOptions} onChange={onDiffChange} />
+        <Form.Item label="对比版本二" name="diffVersionId" rules={[{ required: true, message: '请选择对比版本二' }]}>
+          <Select style={{width: '100%'}} options={diffOptions} />
         </Form.Item>
       </Form>
     </Modal>
