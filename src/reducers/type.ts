@@ -38,11 +38,11 @@ export interface TypeVersionConfig {
   'x.type.next.version.id'?: string // 下个版本对象类型版本ID
   'x.tpye.version.state': VersionState // 版本状态
   'x.type.version.editor': string // 版本创建人
+  'x.type.metadata': string // 元数据
 }
 export interface TypeConfig extends TypeVersionConfig {
   'x.type.id': string // 对象类型ID
   'x.type.name': string // 对象类型名称
-  'x.type.metadata': string // 元数据
   'x.type.editor': string // 创建人
   'x.type.created': number // 类型创建时间
   'x.type.updated': number // 类型修改时间

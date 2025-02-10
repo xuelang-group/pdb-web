@@ -1,14 +1,16 @@
 import { Descriptions, Table, Typography } from "antd";
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import type { StoreState } from '@/store';
 import { AttrConfig } from "@/reducers/type";
-import { get, keys } from "lodash";
+import { clone, get } from "lodash";
 
 interface DiffProps {
   attrs: Array<AttrConfig>;
   deletedNames: string[];
   createdNames: string[];
   modifyNames: {[key:string]: string[]};
+  expandedRowKeys: string[];
+  changeExpandedKeys: Function;
 }
 
 export default function DiffAttrTable(props: DiffProps) {
@@ -51,7 +53,7 @@ export default function DiffAttrTable(props: DiffProps) {
       case 'required':
         return value ? '是' : '否'
       case 'override':
-        return typesMap[value]["x.type.name"]
+        return typesMap[value] ? typesMap[value]["x.type.name"] : <Typography.Text ellipsis>{value}</Typography.Text>
       default:
         return value || '--'
     }
@@ -73,6 +75,18 @@ export default function DiffAttrTable(props: DiffProps) {
     )
   }
 
+  const handleExpand = (expanded: boolean, record: AttrConfig) => {
+    const index = props.expandedRowKeys.indexOf(record.name);
+    if (expanded && index == -1) {
+      props.changeExpandedKeys([...props.expandedRowKeys, record.name])
+    }
+    if (!expanded && index > -1) {
+      const keys = clone(props.expandedRowKeys);
+      keys.splice(index, 1)
+      props.changeExpandedKeys(keys)
+    }
+  }
+
   return (
     <Table rowKey="name" className="pdb-diff-table"
       rowHoverable={false}
@@ -81,8 +95,9 @@ export default function DiffAttrTable(props: DiffProps) {
       dataSource={props.attrs}
       expandable={{
         expandedRowRender: expandedRowRender,
-        // rowExpandable: true,
+        expandedRowKeys: props.expandedRowKeys,
         columnWidth: 34,
+        onExpand: handleExpand
       }}
       // scroll={{ y: `calc(100% - 40px)`}}
       pagination={false}

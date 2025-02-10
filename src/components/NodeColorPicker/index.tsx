@@ -7,7 +7,7 @@ import './index.less';
 interface NodeColorPickerProps {
   type: string
   currentColor: string
-  changeColor: Function
+  changeColor?: Function
   fillColor?: string
   disabled?: boolean
 }
@@ -41,9 +41,9 @@ export default function NodeColorPicker(props: NodeColorPickerProps) {
 
   const selectDefaultColor = function() {
     if (type === 'fill') {
-      changeColor(defaultNodeColor.fill);
+      changeColor && changeColor(defaultNodeColor.fill);
     } else {
-      changeColor(getBorderColor(undefined, fillColor));
+      changeColor && changeColor(getBorderColor(undefined, fillColor));
     }
     setIsCustomColor(true);
   }
@@ -60,7 +60,7 @@ export default function NodeColorPicker(props: NodeColorPickerProps) {
           {
             colorList.map((color: string) => {
               return (
-                <div className='pdb-color-item' style={{ backgroundColor: color }} onClick={() => changeColor(color)}>
+                <div className='pdb-color-item' style={{ backgroundColor: color }} onClick={() => changeColor && changeColor(color)}>
                   {(selectedColor === color && (type === 'fill' || currentColor)) && <i className='spicon icon-xuanzhong1'></i>}
                 </div>
               )
@@ -78,7 +78,7 @@ export default function NodeColorPicker(props: NodeColorPickerProps) {
           <ColorPicker
             rootClassName='pdb-color-picker-popup'
             value={selectedColor} 
-            onChangeComplete={(color) => changeColor(color.toRgbString())} 
+            onChangeComplete={(color) => changeColor && changeColor(color.toRgbString())} 
             format='rgb'
             trigger='hover' 
           >

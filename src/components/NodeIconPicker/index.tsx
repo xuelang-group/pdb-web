@@ -11,7 +11,7 @@ import './index.less';
 
 export interface NodeIconPickerProps {
   disabled?: boolean
-  changeIcon: Function
+  changeIcon?: Function
   currentIcon: string
 }
 
@@ -34,7 +34,7 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
                     ((index + 1) === fontIconsLen ? ' icon-last-item' : '') +
                     (!currentIcon ? ' selected' : '')
                   }
-                  onClick={() => changeIcon('')}
+                  onClick={() => changeIcon && changeIcon('')}
                 >
                   <i className={`iconfont icon-${font.font_class}`}></i>
                 </div>
@@ -47,7 +47,7 @@ export default function NodeIconPicker(props: NodeIconPickerProps) {
                 ((index + 1) % 5 === 0 ? ' row-last-item' : ((index + 1) === fontIconsLen ? ' icon-last-item' : '')) +
                 (currentIcon === font.font_class ? ' selected' : '')
               }
-              onClick={() => changeIcon(font.font_class)}
+              onClick={() => changeIcon && changeIcon(font.font_class)}
             >
               <i className={`iconfont icon-${font.font_class}`}></i>
               {/* <svg className="svg-icon" aria-hidden="true">

@@ -25,7 +25,7 @@ export default function Editor(props: any) {
   const versionList = useSelector((state: StoreState) => state.type.versionList);
 
   useEffect(() => {
-    // console.log('currentEditModel: ', currentEditModel)
+    console.log('currentEditModel: ', currentEditModel)
     const container: any = graphRef.current;
     if (!container || !container.clientWidth || !container.clientHeight || !graph) return;
     graph.changeSize(container.clientWidth, container.clientHeight);
@@ -103,6 +103,7 @@ export default function Editor(props: any) {
 
   const handleDiffVersion = () => {
     dispatch(setDiffVersion({
+        "x.type.metadata": "{\"color\":\"#FFDCD9\"}",
         "x.type.version.id": "1879708844238573568",
         "x.type.version.name": "1.0.0",
         "x.type.version.created": 1736992486425,

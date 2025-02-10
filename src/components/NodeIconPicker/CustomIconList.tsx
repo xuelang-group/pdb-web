@@ -88,7 +88,7 @@ export default function CustomIconList(props: NodeIconPickerProps) {
                   ((index + 1) % 5 === 0 ? ' row-last-item' : ((index + 1) === (iconKeys.length + 1) ? ' icon-last-item' : '')) +
                   (currentIcon === iconKey ? ' selected' : '')
                 }
-                onClick={() => changeIcon(iconKeys[index - 1])}
+                onClick={() => changeIcon && changeIcon(iconKeys[index - 1])}
               >
                 <img className="pdb-icon-custom-item" src={getImagePath(iconKey)} />
               </div>
