@@ -156,17 +156,6 @@ export default function Editor(props: any) {
     dispatch(setIsEditing(!currentVersion))
   }, [currentVersion])
 
-  // useEffect(() => {
-  //   if (diffVersion && graph) {
-  //     graph?.destroy();
-  //     graph = null;
-  //     (window as any).PDB_GRAPH = null;
-  //   } else if (!diffVersion && !graph) {
-  //     initLayout([])
-  //     renderTypeNode()
-  //   }
-  // }, [diffVersion])
-
   const renderVersions = () => {
     if (diffVersion) {
       return (
