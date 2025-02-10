@@ -9,10 +9,11 @@ import type { ObjectConfig } from '@/reducers/object';
 import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
 import { map } from 'lodash';
-import { setCurrentVersion, setDiffVersion, TypeVersionConfig } from '@/reducers/type';
+import { setCurrentVersion, setDiffModalOpen, setDiffVersion, TypeVersionConfig } from '@/reducers/type';
 import { setIsEditing } from '@/reducers/editor';
 import DiffVersionPane from './DiffVersionPane';
 import './index.less';
+import DiffVersionModal from './DiffVersionModal';
 
 let graph: any;
 
@@ -102,45 +103,7 @@ export default function Editor(props: any) {
   }
 
   const handleDiffVersion = () => {
-    dispatch(setDiffVersion({
-        "x.type.metadata": "{\"color\":\"#FFDCD9\"}",
-        "x.type.version.id": "1879708844238573568",
-        "x.type.version.name": "1.0.0",
-        "x.type.version.created": 1736992486425,
-        "x.type.version.updated": 1736992486425,
-        "x.tpye.version.state": 0,
-        "x.type.version.description": '',
-        "x.type.version.editor": '',
-        "x.type.version.attrs": [
-            {
-                "name": "fullname",
-                "display": "全称",
-                "type": "string",
-                "default": null,
-                "required": false,
-                "override": "Type_sNJsjRPKvwo8hiOyA8O1736934737063"
-            },
-            {
-                "name": "count",
-                "display": "飞机数量",
-                "type": "int",
-                "default": null,
-                "required": false,
-                "override": "Type_sNJsjRPKvwo8hiOyA8O1736934737063"
-            },
-            {
-                "name": "seets",
-                "display": "座位数",
-                "type": "int",
-                "default": null,
-                "required": false
-            }
-        ],
-        "x.type.version.prototype": {
-            "x.type.id": "Type_sNJsjRPKvwo8hiOyA8O1736934737063",
-            "x.type.version.id": "1879466624117903360"
-        }
-    }))
+    dispatch(setDiffModalOpen(true))
   }
 
   useEffect(() => {
@@ -198,6 +161,7 @@ export default function Editor(props: any) {
       { currentVersion && renderVersions() }
       <div ref={graphRef} className="graph" id="type-graph"></div>
       { diffVersion && <DiffVersionPane />}
+      <DiffVersionModal />
     </div>
   );
 }

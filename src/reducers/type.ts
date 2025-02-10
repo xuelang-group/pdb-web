@@ -59,6 +59,7 @@ interface TypeState {
   versionList: Array<TypeVersionConfig>,
   currentVersion?: TypeVersionConfig,
   diffVersion?: TypeVersionConfig,
+  diffModalOpen: boolean,
 }
 
 // 使用该类型定义初始 state
@@ -68,6 +69,7 @@ const initialState: TypeState = {
     open: false
   },
   versionList: [],
+  diffModalOpen: false
 }
 
 // 对象列表
@@ -103,6 +105,9 @@ export const typeSlice = createSlice({
     setDiffVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
       state.diffVersion = action.payload;
     },
+    setDiffModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.diffModalOpen = action.payload;
+    },
   }
 });
 
@@ -118,5 +123,5 @@ export const getDefaultTypeConfig = () => {
   }
 };
 
-export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion } = typeSlice.actions
+export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion, setDiffModalOpen } = typeSlice.actions
 export default typeSlice.reducer

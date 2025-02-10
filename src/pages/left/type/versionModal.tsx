@@ -2,7 +2,7 @@ import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Swi
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setCurrentVersion, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setCurrentVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
@@ -10,13 +10,6 @@ import moment from 'moment';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { cloneDeep } from 'lodash';
 
-const ActionTitle: {
-  'copy': string;
-  'diff': string;
-} = {
-  'copy': '复制版本为新对象类型',
-  'diff': '选择对比版本',
-}
 const layout = {
   labelCol: { span: 5 },
   wrapperCol: { span: 18 },
@@ -40,7 +33,6 @@ export default function VersionModal({types}: VersionModalProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [currVersion, setCurrVersion] = useState<TypeVersionConfig>();
-  const [currType, setCurrType] = useState<'copy' | 'diff'>('copy'); // 当前的操作
 
   const columns = [{
     dataIndex: 'x.type.version.name',
@@ -93,8 +85,6 @@ export default function VersionModal({types}: VersionModalProps) {
 
   const handleClick = (type: 'copy' | 'diff' | 'detail', version: TypeVersionConfig) => {
     if (type !== 'detail') {
-      setOpen(true)
-      setCurrType(type);
       setCurrVersion(version)
       if (type === 'copy') {
         const copyName = versionModal.type ? getDefaultCopyName(versionModal.type['x.type.name']) : '';
@@ -104,11 +94,9 @@ export default function VersionModal({types}: VersionModalProps) {
           'x.type.version.name': '',
           'copyMethod': 0
         })
+        setOpen(true)
       } else{
-        form.setFieldsValue({
-          'newVersionId': version['x.type.version.id'],
-          'oldVersionId': ''
-        })
+        dispatch(setDiffModalOpen(true))
       }
     } else {
       // 查看历史版本
@@ -141,13 +129,9 @@ export default function VersionModal({types}: VersionModalProps) {
     })
   }
 
-  const handleDiff = (values: {[key:string]: any}) => {
-
-  }
-
   const handleConfirm = () => {
     form.validateFields().then((values: { [key: string]: any; }) => {
-      currType === 'copy' ? handleCopy(values) : handleDiff(values)
+      handleCopy(values)
     }).catch((err: any) => {
 
     })
@@ -181,17 +165,6 @@ export default function VersionModal({types}: VersionModalProps) {
     </Form>
   )
 
-  const renderDiff = () => currVersion && (
-    <Form {...layout} form={form}>
-      <Form.Item label="对比版本一" name="newVersionId">
-        <Input />
-      </Form.Item>
-      <Form.Item label="对比版本二" name="oldVersionId">
-        <Input />
-      </Form.Item>
-    </Form>
-  )
-
   return (
     <>
       <Modal
@@ -214,15 +187,14 @@ export default function VersionModal({types}: VersionModalProps) {
       </Modal> 
       <Modal
         open={open}
-        title={ActionTitle[currType]}
+        title="复制版本为新对象类型"
         width={520}
         destroyOnClose
-        okText={currType === 'diff' ? "开始对比" : "确定"}
+        okText="确定"
         onOk={handleConfirm}
         onCancel={() => setOpen(false)}
       >
-        { currType === 'copy' && renderCopy() }
-        { currType === 'diff' && renderDiff() }
+        { renderCopy() }
       </Modal>
     </>
   )

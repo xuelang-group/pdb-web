@@ -99,7 +99,6 @@ export default function DiffAttrTable(props: DiffProps) {
         columnWidth: 34,
         onExpand: handleExpand
       }}
-      // scroll={{ y: `calc(100% - 40px)`}}
       pagination={false}
     />
   )
