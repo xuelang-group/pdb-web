@@ -939,8 +939,6 @@ export default function Right(props: RightProps) {
 
   // 属性列表
   const renderParams = () => {
-    console.log('isEditing: ', isEditing)
-    console.log('currentVersion: ', currentVersion)
     return (
       <div className='types-content' ref={handleRef}>
         {(typeLoading || attrLoading) ?
@@ -1314,13 +1312,13 @@ export default function Right(props: RightProps) {
                   currentIcon={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'icon', '')}
                 />
                 <Divider type='vertical' />
-                <NodeColorPicker key={'fill'}
+                <NodeColorPicker key='fill'
                   type='fill'
                   disabled={disabled}
                   changeColor={(color: string) => changeNodeMetadata('color', color)}
                   currentColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}
                 />
-                <NodeColorPicker key={'border'}
+                <NodeColorPicker key='border'
                   type='border'
                   disabled={disabled}
                   fillColor={_.get(JSON.parse(currentEditDefaultData[metadataKey] || '{}'), 'color', defaultNodeColor.fill)}

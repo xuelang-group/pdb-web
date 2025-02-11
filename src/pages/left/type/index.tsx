@@ -1,5 +1,5 @@
 import type { MenuProps } from 'antd';
-import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio } from 'antd';
+import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio, message } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -12,7 +12,7 @@ import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/re
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
 import { defaultNodeColor, getBorderColor, getDefaultCopyName, getTextColor, nodeColorList, uuid } from '@/utils/common';
-import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVerisonControl, setType } from '@/actions/type';
+import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVerisonControl, setType, getTypeVerisonList } from '@/actions/type';
 import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import VersionModal from './versionModal';
@@ -490,14 +490,25 @@ export default function Left() {
   }
 
   // 类型版本控制切换
-  const onToggleControl = (typeId: string, checked: boolean) => {
-    updateTypeVerisonControl(graphData?.id, typeId, checked, (success: boolean, response: any) => {
+  const onToggleControl = (typeId: string, checked: boolean, versionName?: string) => {
+    if (!graphData?.id) {
+      message.error("缺少 graphId ！")
+      return
+    }
+    const params: {graphId: number; "x.type.id": string; "x.type.version": boolean; "x.type.version.name"?: string} = {
+      graphId: graphData?.id,
+      "x.type.id": typeId, 
+      "x.type.version": checked,
+    }
+    versionName && (params["x.type.version.name"] = versionName)
+    updateTypeVerisonControl(params, (success: boolean, response: any) => {
       setModalLoading(false);
       isModalOpen && handleModalCancel();
       if (success) {
         const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
         const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == typeId);
-        newTypes[targetTypeIndex]['x.type.version'] = checked
+        newTypes[targetTypeIndex]['x.type.version'] = checked        
+        handleSelectItem(newTypes[targetTypeIndex], 'type');
         dispatch(setTypes(newTypes));
         notification.success({
           message: `${checked ? '开启' : '关闭'}版本控制成功`,
@@ -549,11 +560,22 @@ export default function Left() {
      * 但想到 2 种特殊情况：
      * 特殊情况1：对象类型A关闭版本控制前，最新版本为V1.5.0。
      * 关闭版本控制后，又进行了对象A的若干属性更改并发布。此时再打开版本控制，需要设置并发布一个新版本。
-     * 特殊情况2：对象类型A曾有过多版本，然后关闭了版本控制，此时B继承了A，继承时，无需选择版本引用方式；若后续，A又打开了版本控制，此时，B对A的版本引用方式自动设置为「跟踪最新版本」，用户可手动再进行修改，详见：🔗 继承类型的右键菜单。
+     * 特殊情况2：对象类型A曾有过多版本，然后关闭了版本控制，此时B继承了A，继承时，无需选择版本引用方式；若后续，A又打开了版本控制，此时，B对A的版本引用方式自动设置为「跟踪最新版本」，用户可手动再进行修改
      */
-    setModalType(key);
-    setOperateItem({ type, item });
-    setModalOpen(true);
+    getTypeVerisonList(graphData.id, {
+      'x.type.id': item['x.type.id']
+    }, (success: boolean, response: any) => {
+      if (success) {
+        if (response.total > 1) {
+          setModalType(key);
+          setOperateItem({ type, item });
+          setModalOpen(true);
+        } else {
+          onToggleControl(item['x.type.id'], true)
+        }
+      } else {
+      } 
+    })
   }
 
   const handleClickMenu = (menuInfo: any, type: string, item: any) => {
@@ -563,6 +585,7 @@ export default function Left() {
         handleDelete(type, item);
         break;
       case 'history':
+        handleSelectItem(item, 'type')
         dispatch(setVersionModal({open: true, type: item}));
         break;
       case 'reference-0':
@@ -576,6 +599,7 @@ export default function Left() {
             const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == item['x.type.id']);
             newTypes[targetTypeIndex] = currentType
             dispatch(setTypes(newTypes));
+            handleSelectItem(newTypes, 'type');
             notification.success({
               message: `${refer ? '锁定当前' : '跟踪最新'}版本成功`,
             });
@@ -588,7 +612,8 @@ export default function Left() {
         })
         break;
       case 'control':
-        item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item)
+        setOperateItem({ type, item });
+        item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item);
         break;
       default:
         if (['copy', 'inherit'].includes(key)) {
@@ -663,7 +688,7 @@ export default function Left() {
                   if (menu?.key === 'control') {
                     return {
                       ...menu, 
-                      extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
+                      extra: <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF" checked={item.data['x.type.version']} />
                     }
                   }
                   if (menu?.key === 'history') {
@@ -751,7 +776,7 @@ export default function Left() {
                     if (menu?.key === 'control') {
                       return {
                         ...menu, 
-                        extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" defaultChecked={item.data['x.type.version']} />
+                        extra: <Switch style={{'pointerEvents': 'none'}} size="small" checkedChildren="ON" unCheckedChildren="OFF" checked={item.data['x.type.version']} />
                       }
                     }
                     if (menu?.key === 'history') {
@@ -793,7 +818,10 @@ export default function Left() {
                         items,
                         selectable: parentTypeVersion,
                         selectedKeys: parentTypeVersion && ('x.type.version.reference' in item.data) ? [`reference-${reference}`] : [],
-                        onClick: (menu: any) => handleClickMenu(menu, 'type', item.data)
+                        onClick: (menu: any) => {
+                          menu.domEvent.stopPropagation()
+                          handleClickMenu(menu, 'type', item.data)
+                        }
                       }}
                       trigger={['contextMenu']}
                     >
@@ -853,6 +881,9 @@ export default function Left() {
             }, (success: boolean, response: any) => {      
               handleTypeCallback(success, response, {});
             })
+            break;
+          case 'control':
+            onToggleControl(item["x.type.id"], true, values["x.type.version.name"])
             break;
           default:
             Object.assign(newType, {

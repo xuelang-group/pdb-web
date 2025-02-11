@@ -136,7 +136,7 @@ export default function Editor(props: any) {
     const name = currentVersion ? currentVersion["x.type.version.name"] : '';
     return (
       <div className='pdb-type-version'>
-        <Flex justify="space-between" align="center">
+        <Flex wrap justify="space-between" align="center">
           <Space>
             <Typography.Text strong>历史版本：</Typography.Text>
             <Dropdown placement="bottom" arrow menu={{ items, selectable: true, defaultSelectedKeys: [id] }} overlayStyle={{width: 120}}>

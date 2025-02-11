@@ -236,12 +236,8 @@ export const getTypeVerison = (graphId, type, typeVersionID, callback) => {
  * @param {Function} callback 
  * @returns 
  */
-export const updateTypeVerisonControl = (graphId, type, typeVersion, callback) => {
-  return axios.post(versionApi['control'], {
-    graphId,
-    "x.type.id": type,
-    "x.type.version": typeVersion
-  }).then(({ data }) => {
+export const updateTypeVerisonControl = (params, callback) => {
+  return axios.post(versionApi['control'], params).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

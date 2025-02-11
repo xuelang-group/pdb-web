@@ -31,12 +31,12 @@ export default function DiffMetadata(props: DiffMetaProps) {
               currentIcon={icon}
             />
             <Divider type='vertical' />
-            <NodeColorPicker key={'fill'}
+            <NodeColorPicker key='fill'
               type='fill'
               disabled={true}
               currentColor={color}
             />
-            <NodeColorPicker key={'border'}
+            <NodeColorPicker key='border'
               type='border'
               disabled={true}
               currentColor={borderColor}
