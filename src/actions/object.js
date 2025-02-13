@@ -11,6 +11,7 @@ const api = {
   children: `${objectApiPrefix}/children`,
   copy: `${objectApiPrefix}/copy`,
   rearrange: `${objectApiPrefix}/children/rearrange`,
+  count: `${objectApiPrefix}/count`,
 
   /** 接口暂未支持 */
   move: `${objectApiPrefix}/move`,
@@ -215,6 +216,19 @@ export const discardObject = (vid, callback) => {
   return axios.post(api['discard'], {
     ...commonParams,
     vid
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+/**
+ * 对象计数
+ */
+export const getObjectCount = (graphId, typeId, callback) => {
+  return axios.post(api['count'], {
+    graphId,
+    "x.type.id": typeId
   }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {

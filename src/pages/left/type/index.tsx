@@ -1,5 +1,5 @@
 import type { MenuProps } from 'antd';
-import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio, message } from 'antd';
+import { Dropdown, Empty, Form, Input, InputRef, Modal, notification, Segmented, Select, Spin, Tooltip, Tree, Switch, Radio, message, Alert } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -7,7 +7,7 @@ import _, { find, findIndex, map } from 'lodash';
 
 import { defaultCircleR, nodeStateStyle } from '@/g6/node';
 import { setCurrentEditModel, setRelationLoading, setTypeLoading } from '@/reducers/editor';
-import { AttrConfig, getDefaultTypeConfig, setTypes, setVersionModal, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig, setCurrentVersion } from '@/reducers/type';
+import { AttrConfig, getDefaultTypeConfig, setTypes, setVersionModal, TypeConfig, TYPE_ID_PREFIX, TypePrototypeConfig, setCurrentVersion, setStateType } from '@/reducers/type';
 import { getDefaultRelationConfig, RELATION_ID_PREFIX, setRelations } from '@/reducers/relation';
 import store, { StoreState } from '@/store';
 import { fittingString } from '@/utils/objectGraph';
@@ -16,6 +16,7 @@ import { getTypeList, deleteType, addType, getTypeInfo, copyType, updateTypeVeri
 import { addRelation, deleteRelation, getRelation } from '@/actions/relation';
 import PdbPanel from '@/components/Panel';
 import VersionModal from './versionModal';
+import VersionState from './VersionState';
 import './index.less';
 
 const { Search } = Input;
@@ -612,8 +613,11 @@ export default function Left() {
         })
         break;
       case 'control':
-        setOperateItem({ type, item });
         item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item);
+        break;
+      case 'publish': // 检出|发布
+        handleSelectItem(item, 'type')
+        dispatch(setStateType(item))
         break;
       default:
         if (['copy', 'inherit'].includes(key)) {
@@ -783,6 +787,12 @@ export default function Left() {
                       return {
                         ...menu,
                         disabled: !item.data['x.type.version']
+                      }
+                    }
+                    if (menu?.key === 'publish') {
+                      return {
+                        ...menu,
+                        label: item.data['x.type.version.state'] ? '检出' : '发布'
                       }
                     }
                     return menu
@@ -989,10 +999,15 @@ export default function Left() {
         onOk={handleModalOk}
         onCancel={handleModalCancel}
       >
+        {modalType === 'control' && <Alert message="检测到内容更新，创建新版本后即可启用版本控制。" type="warning" showIcon />}
         <Form {...layout} form={modalForm}>
           {
             ['publish', 'control'].includes(modalType) ? (
-              <Form.Item style={{marginBottom: 0}} name='x.type.version.name' label={`${item['x.type.version.name'] ? '新' : ''}版本号`}>
+              <Form.Item style={{marginBottom: 0}}
+                name='x.type.version.name'
+                label={`${!item['x.type.version.name'] ? '新' : ''}版本号`}
+                rules={[{required: true, message: '版本号不能为空'}]} 
+              >
                 <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
               </Form.Item>
             ) : (
@@ -1071,6 +1086,7 @@ export default function Left() {
       {renderModal()}
       {contextHolder}
       <VersionModal types={types} />
+      <VersionState />
     </PdbPanel>
   );
 }

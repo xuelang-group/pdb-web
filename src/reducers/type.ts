@@ -36,7 +36,7 @@ export interface TypeVersionConfig {
   'x.type.version.description': string // 类型版本描述
   'x.type.prev.version.id'?: string // 上个版本对象类型版本ID
   'x.type.next.version.id'?: string // 下个版本对象类型版本ID
-  'x.tpye.version.state': VersionState // 版本状态
+  'x.type.version.state': VersionState // 版本状态
   'x.type.version.editor': string // 版本创建人
   'x.type.metadata': string // 元数据
 }
@@ -60,6 +60,8 @@ interface TypeState {
   currentVersion?: TypeVersionConfig,
   diffVersion?: TypeVersionConfig,
   diffModalOpen: boolean,
+  // 类型版本状态-检出、发布
+  stateType?: TypeConfig,
 }
 
 // 使用该类型定义初始 state
@@ -108,6 +110,9 @@ export const typeSlice = createSlice({
     setDiffModalOpen: (state, action: PayloadAction<boolean>) => {
       state.diffModalOpen = action.payload;
     },
+    setStateType: (state, action: PayloadAction<TypeConfig | undefined>) => {
+      state.stateType = action.payload;
+    },
   }
 });
 
@@ -123,5 +128,5 @@ export const getDefaultTypeConfig = () => {
   }
 };
 
-export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion, setDiffModalOpen } = typeSlice.actions
+export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion, setDiffModalOpen, setStateType } = typeSlice.actions
 export default typeSlice.reducer

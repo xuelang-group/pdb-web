@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip, Space } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -265,6 +265,9 @@ export default function Right(props: RightProps) {
     let currentEditType = 'object';
     if (currentEditDefaultData['x.type.name']) {
       currentEditType = 'type';
+      const state = currentEditDefaultData['x.type.version.state']
+      // 发布状态不可编辑
+      dispatch(setIsEditing(!state))
     } else if (currentEditDefaultData['r.type.name']) {
       currentEditType = 'relation';
     }
@@ -1286,6 +1289,22 @@ export default function Right(props: RightProps) {
   //     }
   //   });
   // }
+  const handleReset = () => {
+    modal.confirm({
+      title: "确定要重置对象属性吗？",
+      content: "重置对象属性后，将删除当前编辑，并恢复至上次发布的内容。",
+      okText: "确定",
+      cancelText: "取消",
+      onOk: function () {
+      }
+    })
+  }
+  const renderFooter = () => currentEditType === 'type' && !currentVersion ? (
+    !currentEditDefaultData["x.type.version.state"] ? <>
+      <Button style={{marginBottom: 8}} block type="primary">发布</Button>
+      <Button block onClick={handleReset}>重置</Button>
+    </> : <Button block type="primary">检出</Button>
+  ) : undefined
 
   return (
     <div className='pdb-right-panel' style={{ display: currentEditModel || props.route !== 'type' ? 'block' : 'none' }}>
@@ -1302,7 +1321,7 @@ export default function Right(props: RightProps) {
         }
         {multiEditModel && multiEditModel.length > 0 ?
           <MultiModelParamEditor /> :
-          <PdbPanel title={panelTitle} direction='right' canCollapsed={true}>
+          <PdbPanel title={panelTitle} direction='right' canCollapsed={true} footer={renderFooter()}>
             {renderPanelForm()}
             {currentEditDefaultData && currentEditType !== 'relation' &&
               <div className='pdb-node-metadata'>

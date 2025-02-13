@@ -6,6 +6,7 @@ interface PanelProps {
   title?: string // 面板标题
   className?: string
   children?: ReactNode // 面板自定义内容
+  footer?: ReactNode   
   external?: ReactNode
   direction?: string
   canCollapsed?: boolean
@@ -13,7 +14,7 @@ interface PanelProps {
   customRender?: ReactNode // 整个自定义内容
 }
 
-export default function PdbPanel({ title, children, external, direction, canCollapsed, customRender, ...other }: PanelProps) {
+export default function PdbPanel({ title, children, footer, external, direction, canCollapsed, customRender, ...other }: PanelProps) {
   const [siderHidden, _setSiderHidden] = useState(false);
   const siderHiddenRef = useRef(siderHidden);
   const setSiderHidden = function (value: boolean) {
@@ -85,6 +86,9 @@ export default function PdbPanel({ title, children, external, direction, canColl
       <div className='pdb-sider-content'>
         {children}
       </div>
+      { footer && (
+        <div className='pdb-sider-footer'> { footer } </div>
+      )}
       {canCollapsed && renderCollapsedBtn()}
     </div>
   );
