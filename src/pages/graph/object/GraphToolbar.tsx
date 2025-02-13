@@ -1,7 +1,7 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal, Input, InputRef } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { ComboConfig, EdgeConfig, Item, Node } from "@antv/g6";
-import _ from "lodash";
+import _, { forEach } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as XLSX from 'xlsx';
@@ -1312,6 +1312,11 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     graph.zoom(1);
     dispatch(setCurrentGraphTab("explore"));
     dispatch(setToolbarConfig({ config: { relationLines, queryParams: params, showRelationLine: true, showRelationLabel: true }, key: 'explore' }));
+
+    // 默认展开搜索结果的第一层级
+    const nodes = graph.getNodes()
+    forEach(nodes, node => G6OperateFunctions.expandNode(node, graph))
+
     // const graph = (window as any).PDB_GRAPH;
     // if (!data || !graph) return;
     // const nodes: NodeItemData[] = [], edges: EdgeConfig[] = [], combos: ComboConfig[] = [], edgeIdMap = {}, relationLines = {};

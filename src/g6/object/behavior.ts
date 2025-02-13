@@ -304,15 +304,17 @@ export const G6OperateFunctions = {
         getChildren(params, responseCallback);
       }
     } else {
-      store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
+      if (callback) {
+        store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
+        node.update({
+          data: {
+            ...model.data,
+            collapsed
+          }
+        });
+        callback();
+      }
       graph.expandCombo(comboId);
-      node.update({
-        data: {
-          ...model.data,
-          collapsed
-        }
-      });
-      callback && callback();
     }
   },
   moveNode: function (dragItem: Item, dropItem: Item, graph: Graph) {
