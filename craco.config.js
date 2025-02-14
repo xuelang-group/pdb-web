@@ -68,7 +68,7 @@ module.exports = {
         // }
       },
       '/indicator': {
-        target: "http://sp10.xuelangyun.com:30080/proxr/80210299/56648/5db701007e0711ef95b3e5448473221c/7789",
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/f6f16c60cd8b11ef85bdf748afbe794a/7000",
         changeOrigin: true,
         pathRewrite: {
           '^/indicator': ''

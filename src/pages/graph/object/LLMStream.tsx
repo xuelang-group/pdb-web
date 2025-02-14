@@ -8,40 +8,8 @@ import remarkGfm from 'remark-gfm';// 划线、表、任务列表和直接url等
 import rehypeRaw from 'rehype-raw'// 解析标签，支持html语法
 import { toggle } from "@/reducers/llmStream";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { get } from "lodash";
 import './llmStream.less';
-
-
-// const md = `A paragraph with *emphasis* and **strong importance**.
-
-// > A block quote with ~strikethrough~ and a URL: https://reactjs.org.
-
-// * Lists
-// * [ ] todo
-// * [x] done
-
-// A table:
-
-// | a | b |
-// | - | - |
-
-// Here is some JavaScript code:
-
-// ~~~js
-// console.log('It works!')
-// ~~~
-
-// <div class="note">
-
-// Some *emphasis* and <strong>strong</strong>!
-
-// </div>
-
-// # This is perfect!
-
-//  # Hi
-
-//   This is **not** a paragraph.
-// `
 
 export default function LLMStream() {
   const dispatch = useDispatch();
@@ -57,7 +25,8 @@ export default function LLMStream() {
     setFetching(true)
     let retryCount = 0
     const ctrl = new AbortController()
-    const eventSource = fetchEventSource('/llm/summary', {
+    const base = get(window, 'pdbConfig.basePath', '')
+    const eventSource = fetchEventSource(`${base}/summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
