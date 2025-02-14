@@ -600,7 +600,7 @@ export default function Left() {
             const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == item['x.type.id']);
             newTypes[targetTypeIndex] = currentType
             dispatch(setTypes(newTypes));
-            handleSelectItem(newTypes, 'type');
+            handleSelectItem(currentType, 'type');
             notification.success({
               message: `${refer ? '锁定当前' : '跟踪最新'}版本成功`,
             });

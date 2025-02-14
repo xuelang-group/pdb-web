@@ -225,15 +225,11 @@ export const discardObject = (vid, callback) => {
 /**
  * 对象计数
  */
-export const getObjectCount = (graphId, typeId, callback) => {
-  return axios.post(api['count'], {
+export const getObjectCount = async (graphId, typeId) => {
+  return await axios.post(api['count'], {
     graphId,
     "x.type.id": typeId
-  }).then(({ data }) => {
-    callback && callback(data.success, data.success ? data.data : data);
-  }, (err) => {
-    callback && callback(false, err);
-  });
+  })
 };
 
 /**
