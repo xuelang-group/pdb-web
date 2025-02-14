@@ -6,48 +6,44 @@ import { useDispatch, useSelector } from "react-redux";
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';// 划线、表、任务列表和直接url等的语法扩展
 import rehypeRaw from 'rehype-raw'// 解析标签，支持html语法
-import rehypeHighlight from 'rehype-highlight'
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { toggle } from "@/reducers/llmStream";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import './llmStream.less';
 
-interface ModalProps {
-}
 
-const md = `A paragraph with *emphasis* and **strong importance**.
+// const md = `A paragraph with *emphasis* and **strong importance**.
 
-> A block quote with ~strikethrough~ and a URL: https://reactjs.org.
+// > A block quote with ~strikethrough~ and a URL: https://reactjs.org.
 
-* Lists
-* [ ] todo
-* [x] done
+// * Lists
+// * [ ] todo
+// * [x] done
 
-A table:
+// A table:
 
-| a | b |
-| - | - |
+// | a | b |
+// | - | - |
 
-Here is some JavaScript code:
+// Here is some JavaScript code:
 
-~~~js
-console.log('It works!')
-~~~
+// ~~~js
+// console.log('It works!')
+// ~~~
 
-<div class="note">
+// <div class="note">
 
-Some *emphasis* and <strong>strong</strong>!
+// Some *emphasis* and <strong>strong</strong>!
 
-</div>
+// </div>
 
-# This is perfect!
+// # This is perfect!
 
- # Hi
+//  # Hi
 
-  This is **not** a paragraph.
-`
+//   This is **not** a paragraph.
+// `
 
-export default function LLMStream(props: ModalProps) {
+export default function LLMStream() {
   const dispatch = useDispatch();
   const open = useSelector((state: StoreState) => state.llmStream.open);
   const params = useSelector((state: StoreState) => state.llmStream.params);
@@ -61,7 +57,7 @@ export default function LLMStream(props: ModalProps) {
     setFetching(true)
     let retryCount = 0
     const ctrl = new AbortController()
-    const eventSource = fetchEventSource('/summary', {
+    const eventSource = fetchEventSource('/llm/summary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
