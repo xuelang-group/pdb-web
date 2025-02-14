@@ -94,6 +94,7 @@ export default function VersionState() {
           description: response.message || response.msg
         });
       }
+      dispatch(setStateType(undefined))
     })
   }
 

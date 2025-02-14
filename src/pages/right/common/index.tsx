@@ -22,7 +22,7 @@ import { getTypeInfo, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
-import { AttrConfig, setTypeDetail, TypeConfig } from '@/reducers/type';
+import { AttrConfig, setStateType, setTypeDetail, TypeConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
@@ -1301,9 +1301,9 @@ export default function Right(props: RightProps) {
   }
   const renderFooter = () => currentEditType === 'type' && !currentVersion ? (
     !currentEditDefaultData["x.type.version.state"] ? <>
-      <Button style={{marginBottom: 8}} block type="primary">发布</Button>
+      <Button style={{marginBottom: 8}} block type="primary" onClick={() => setStateType(currentEditDefaultData)}>发布</Button>
       <Button block onClick={handleReset}>重置</Button>
-    </> : <Button block type="primary">检出</Button>
+    </> : <Button block type="primary" onClick={() => setStateType(currentEditDefaultData)}>检出</Button>
   ) : undefined
 
   return (
