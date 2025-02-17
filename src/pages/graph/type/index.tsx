@@ -31,6 +31,7 @@ export default function Editor(props: any) {
   const versionList = useSelector((state: StoreState) => state.type.versionList);
   
   const [form] = Form.useForm();
+  const changeMethod = Form.useWatch('changeMethod', form);
   const [startOpen, setStartOpen] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
 
@@ -186,15 +187,15 @@ export default function Editor(props: any) {
       >
         <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本 V2.3.0 已被引用，若启用历史版本，系统将自动复制 V2.3.0 为对象类型副本，并迁移所有引用的子对象至该副本。`} />
         <Form {...layout} form={form}>
-          <Form.Item label="启用方式">
+          <Form.Item label="启用方式" name="changeMethod" initialValue={{changeMethod: 0}}>
             <Radio.Group>
               <Radio value={0}>保存为新版本</Radio>
               <Radio value={1}>直接回退</Radio>
             </Radio.Group>
           </Form.Item>
-          <Form.Item label="新版本号" name="x.type.version.name" rules={[{required: true, message: '版本号不能为空'}]}>
+          {!changeMethod && <Form.Item label="新版本号" name="x.type.version.name" rules={[{required: true, message: '版本号不能为空'}]}>
             <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
-          </Form.Item>
+          </Form.Item>}
         </Form>
       </Modal>
     </div>
