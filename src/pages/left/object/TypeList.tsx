@@ -1,4 +1,4 @@
-import { Input, InputRef, Tree, Dropdown, Spin, Button, Segmented, Empty } from 'antd';
+import { Input, InputRef, Tree, Dropdown, Spin, Button, Segmented, Empty, Tooltip } from 'antd';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import _ from 'lodash';
 import { TypeConfig } from '@/reducers/type';
 import { setCurrentEditModel } from '@/reducers/editor';
 import { StoreState } from '@/store';
+import TypeVersionIcon from '@/components/TypeIcon';
 import './index.less';
 
 const { Search } = Input;
@@ -243,8 +244,15 @@ export default function TypeList() {
                       draggable={currentGraphTab === 'main'}
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
-                      <i className='iconfont icon-duixiangleixing'></i>
-                      {item.title}
+                    { !item.data['x.type.version']
+                      ? <i className='iconfont icon-duixiangleixing'></i>
+                      : TypeVersionIcon
+                    }
+                      <span className='type-item-label'>{item.title}
+                        <Tooltip title={item.data["x.type.version.state"] ? '已发布' : '未发布'}>
+                        <span className={`type-item-state ${item.data["x.type.version.state"] ? 'published' : ''}`}></span>
+                        </Tooltip>
+                      </span>
                     </span>
                   </Dropdown>
                 )}
