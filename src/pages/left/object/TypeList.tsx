@@ -50,6 +50,7 @@ export default function TypeList() {
           title: val['x.type.name'],
           key: typeName,
           data: val,
+          disabled: !val['x.type.version.state'],
           children: _children,
         });
         if (_children.length > 0) expandedKeys.push(typeName);
@@ -89,6 +90,7 @@ export default function TypeList() {
           title,
           key: typeId,
           data: type,
+          disabled: !type['x.type.version.state'],
           children,
         });
         if (children.length > 0) expandedKeys.push(typeId);
@@ -238,10 +240,11 @@ export default function TypeList() {
                     overlayClassName='pdb-dropdown-menu'
                     menu={{ items: typeMenus, onClick: (menu) => handleClickMenu(routerParams.id, 'type', item) }}
                     trigger={['contextMenu']}
+                    disabled={item.disabled}
                   >
                     <span
-                      className='type-item'
-                      draggable={currentGraphTab === 'main'}
+                      className={`type-item${item.disabled ? 'type-item-disabled' : ''}`}
+                      draggable={currentGraphTab === 'main' && !item.disabled}
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
                     { !item.data['x.type.version']
