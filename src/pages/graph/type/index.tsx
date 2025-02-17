@@ -1,7 +1,7 @@
 import G6 from '@antv/g6';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useRef } from 'react';
-import { Button, Dropdown, Flex, Space, Typography } from 'antd';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Button, Dropdown, Flex, Form, Input, Modal, Radio, Space, Typography } from 'antd';
 import { DownOutlined, RollbackOutlined, SaveOutlined } from '@ant-design/icons'
 
 import type { StoreState } from '@/store';
@@ -12,10 +12,15 @@ import { map } from 'lodash';
 import { setCurrentVersion, setDiffModalOpen, setDiffVersion, TypeVersionConfig } from '@/reducers/type';
 import { setIsEditing } from '@/reducers/editor';
 import DiffVersionPane from './DiffVersionPane';
-import './index.less';
 import DiffVersionModal from './DiffVersionModal';
+import './index.less';
 
 let graph: any;
+
+const layout = {
+  labelCol: { span: 5 },
+  wrapperCol: { span: 18 },
+};
 
 export default function Editor(props: any) {
   const dispatch = useDispatch();
@@ -24,6 +29,10 @@ export default function Editor(props: any) {
   const currentVersion = useSelector((state: StoreState) => state.type.currentVersion);
   const diffVersion = useSelector((state: StoreState) => state.type.diffVersion);
   const versionList = useSelector((state: StoreState) => state.type.versionList);
+  
+  const [form] = Form.useForm();
+  const [startOpen, setStartOpen] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
   useEffect(() => {
     console.log('currentEditModel: ', currentEditModel)
@@ -120,6 +129,9 @@ export default function Editor(props: any) {
     dispatch(setIsEditing(!currentVersion))
   }, [currentVersion])
 
+  const handleStartOk = () => {}
+  const handleStartCancel = () => {}
+
   const renderVersions = () => {
     if (diffVersion) {
       return (
@@ -149,7 +161,7 @@ export default function Editor(props: any) {
           <Space size={12}>
             <Button onClick={handleDiffVersion}>版本对比</Button>
             <Button icon={<RollbackOutlined />} onClick={backToLatest}>回到最新版本</Button>
-            <Button type="primary" icon={<SaveOutlined />}>启用此版本</Button>
+            <Button type="primary" icon={<SaveOutlined />} onClick={() => setStartOpen(true)}>启用此版本</Button>
           </Space>
         </Flex>
       </div>
@@ -161,7 +173,30 @@ export default function Editor(props: any) {
       { currentVersion && renderVersions() }
       <div ref={graphRef} className="graph" id="type-graph"></div>
       { diffVersion && <DiffVersionPane />}
-      <DiffVersionModal />
+      <DiffVersionModal />    
+      <Modal
+        title="启用历史版本"
+        open={startOpen}
+        okText="启用"
+        cancelText="取消"
+        confirmLoading={startLoading}
+        onOk={handleStartOk}
+        onCancel={handleStartCancel}
+        wrapClassName="pdb-state-modal"
+      >
+        <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本 V2.3.0 已被引用，若启用历史版本，系统将自动复制 V2.3.0 为对象类型副本，并迁移所有引用的子对象至该副本。`} />
+        <Form {...layout} form={form}>
+          <Form.Item label="启用方式">
+            <Radio.Group>
+              <Radio value={0}>保存为新版本</Radio>
+              <Radio value={1}>直接回退</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item label="新版本号" name="x.type.version.name" rules={[{required: true, message: '版本号不能为空'}]}>
+            <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
