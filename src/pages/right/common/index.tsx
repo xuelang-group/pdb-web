@@ -10,7 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import _ from 'lodash';
+import _, { find } from 'lodash';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
 import { js as beautify } from 'js-beautify';
@@ -22,7 +22,7 @@ import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
-import { AttrConfig, setStateType, setTypeDetail, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { AttrConfig, setStateType, setTypeDetail, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
@@ -83,6 +83,7 @@ export default function Right(props: RightProps) {
     [metadataKey, setMetadataKey] = useState(''),
     [attrLoading, setAttrLoading] = useState(false),
     [panelTitle, setPanelTitle] = useState(''),
+    [prototypeVersion, setPrototypeVersion] = useState<boolean>(false),
     [versionLoading, setVersionLoading] = useState<boolean>(false),
     [versionList, setVersionList] = useState<TypeVersionConfig[]>([]);
   // [hasVersion, setHasVersion] = useState(false),
@@ -127,6 +128,10 @@ export default function Right(props: RightProps) {
         }
         setVersionLoading(false)
       })
+      const parentTypeId = currentEditDefaultData['x.type.version.prototype']['x.type.id']
+      const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
+      const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
+      setPrototypeVersion(parentTypeVersion)
     }
   }, [currentEditDefaultData?.['x.type.id']])
 
@@ -1032,7 +1037,7 @@ export default function Right(props: RightProps) {
           />
         </div>
         <div className='pdb-type-common-item wrap'>
-          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a>详情</a>}</span>
+          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal({open: true, type: currentEditDefaultData}))}>详情</a>}</span>
           <Table className={!currentEditDefaultData['x.type.version'] ? 'pdb-type-table-disabled' : ''}
             style={{maxHeight: 300}}
             columns={versionColumns}
@@ -1044,7 +1049,7 @@ export default function Right(props: RightProps) {
             loading={versionLoading}
           />
         </div>
-        {currentEditDefaultData['x.type.version.prototype']['x.type.id'] && <div className='pdb-type-common-item wrap'>
+        {prototypeVersion && <div className='pdb-type-common-item wrap'>
           <span>父对象引用方式：</span>
           <Select style={{width: '100%'}}
             value={currentEditDefaultData['x.type.version.reference']}
