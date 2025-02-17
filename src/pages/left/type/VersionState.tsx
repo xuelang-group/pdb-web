@@ -163,7 +163,7 @@ export default function VersionState() {
       onCancel={handleCancel}
       wrapClassName="pdb-state-modal"
     >
-      <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本 V2.3.0 已被引用，若发布新版本，系统将自动复制 V2.3.0 为对象类型副本，并迁移所有引用的子对象至该副本。`} />
+      { stateType && <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本 V${stateType["x.type.version.name"]} 已被引用，若发布新版本，系统将自动复制 V${stateType["x.type.version.name"]} 为对象类型副本，并迁移所有引用的子对象至该副本。`} /> }
       <Form {...layout} form={form}>
         <Form.Item
           style={{marginBottom: 0}}

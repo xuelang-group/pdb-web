@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip, Space } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Tooltip, Space, Radio, Table, Tag } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -18,11 +18,11 @@ import { js as beautify } from 'js-beautify';
 import type { StoreState } from '@/store';
 import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
-import { getTypeInfo, setType } from '@/actions/type';
+import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
-import { AttrConfig, setStateType, setTypeDetail, TypeConfig } from '@/reducers/type';
+import { AttrConfig, setStateType, setTypeDetail, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
@@ -82,7 +82,9 @@ export default function Right(props: RightProps) {
     [showMore, setShowMore] = useState(Boolean(!currentEditModel)), // 查看更多
     [metadataKey, setMetadataKey] = useState(''),
     [attrLoading, setAttrLoading] = useState(false),
-    [panelTitle, setPanelTitle] = useState('');
+    [panelTitle, setPanelTitle] = useState(''),
+    [versionLoading, setVersionLoading] = useState<boolean>(false),
+    [versionList, setVersionList] = useState<TypeVersionConfig[]>([]);
   // [hasVersion, setHasVersion] = useState(false),
   // [checkoutVersion, setCheckoutVersion] = useState({});
 
@@ -112,6 +114,21 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     resizeGraph();
   }, [currentEditParam]);
+
+  useEffect(() => {
+    // 版本记录      
+    if(currentEditDefaultData && currentEditDefaultData['x.type.id']) {
+      setVersionLoading(true)
+      getTypeVerisonList(graphData.id, {
+        'x.type.id': currentEditDefaultData['x.type.id']
+      }, (success: boolean, response: any) => {
+        if (success) {
+          setVersionList(response.list)
+        }
+        setVersionLoading(false)
+      })
+    }
+  }, [currentEditDefaultData?.['x.type.id']])
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
     let prevLabel = '';
@@ -987,25 +1004,65 @@ export default function Right(props: RightProps) {
     );
   }
 
-  // const renderCommon = () => {
-  //   return (
-  //     <div className='pdb-type-common'>
-  //       <div className='pdb-type-common-item'>
-  //         <span>开启版本控制： </span>
-  //         <Switch
-  //           value={currentEditDefaultData['x.type.version']}
-  //           onChange={checked => {
-  //             updateItemData({
-  //               ...currentEditDefaultData,
-  //               'x.type.version': checked
-  //             });
-  //           }}
-  //           disabled
-  //         />
-  //       </div>
-  //     </div>
-  //   )
-  // }
+  const versionColumns = [{
+    dataIndex: 'x.type.version.name',
+    title: '版本号',
+    render: (text:string, record: TypeVersionConfig) => currentEditDefaultData['x.type.version.id'] === record['x.type.version.id'] ? (
+      <Space><span>V{text}</span><Tag>当前版本</Tag></Space>
+      ) : `V${text}`
+  }, {
+    dataIndex: 'x.type.version.created',
+    title: '创建时间',
+    render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
+  }]
+  const renderCommon = () => {
+    return (
+      <div className='pdb-type-common'>
+        <div className='pdb-type-common-item'>
+          <span>开启版本控制： </span>
+          <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF"
+            checked={currentEditDefaultData['x.type.version']}
+            onChange={checked => {
+              updateItemData({
+                ...currentEditDefaultData,
+                'x.type.version': checked
+              });
+            }}
+            disabled={!isEditing}
+          />
+        </div>
+        <div className='pdb-type-common-item wrap'>
+          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a>详情</a>}</span>
+          <Table className={!currentEditDefaultData['x.type.version'] ? 'pdb-type-table-disabled' : ''}
+            style={{maxHeight: 300}}
+            columns={versionColumns}
+            dataSource={versionList}
+            pagination={false}
+            size="small"
+            // scroll={{y: 480}}
+            rowKey={'x.type.version.id'}
+            loading={versionLoading}
+          />
+        </div>
+        {currentEditDefaultData['x.type.version.prototype']['x.type.id'] && <div className='pdb-type-common-item wrap'>
+          <span>父对象引用方式：</span>
+          <Select style={{width: '100%'}}
+            value={currentEditDefaultData['x.type.version.reference']}
+            disabled={!isEditing}
+            onChange={value => {
+              updateItemData({
+                ...currentEditDefaultData,
+                'x.type.version.reference': value
+              });
+            }}
+          >
+            <Select.Option value={0}>跟踪最新版本</Select.Option>
+            <Select.Option value={1}>锁定当前版本</Select.Option>
+          </Select>
+        </div>}
+      </div>
+    )
+  }
 
   // 复制id
   const copyId = (ref: any) => {
@@ -1021,11 +1078,11 @@ export default function Right(props: RightProps) {
   }];
 
   if (currentEditType === 'type') {
-    // rightPanelTabs.push({
-    //   key: 'common',
-    //   label: '高级配置',
-    //   children: renderCommon()
-    // });
+    rightPanelTabs.push({
+      key: 'common',
+      label: '高级配置',
+      children: renderCommon()
+    });
   } else if (currentEditType === 'relation') {
     if (props.route === 'type' || location.pathname.endsWith("/template")) {
       rightPanelTabs.push({

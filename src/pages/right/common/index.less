@@ -504,13 +504,33 @@
     &-item {
       display: flex;
       align-items: center;
+      margin-bottom: 1.6rem;
 
       &>span:nth-child(1) {
-        margin: .4rem 0;
         font-weight: 400;
         color: var(--text-color3);
         white-space: break-spaces;
         min-width: 5rem;
+      }
+
+      &.wrap {
+        display: block;
+        >span:nth-child(1) {
+          display: block;
+          margin-bottom: .8rem;
+        }
+      }
+    }
+
+    .pdb-ant-table-wrapper.pdb-type-table-disabled {
+      .pdb-ant-table-thead > tr > th,
+      .pdb-ant-table-thead > tr > td,
+      .pdb-ant-table-cell  {
+        color: var(--text-color4)!important;
+        .pdb-ant-tag {
+          border-color: var(--border-color2);
+          color: var(--text-color4);
+        }
       }
     }
   }
