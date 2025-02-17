@@ -212,6 +212,24 @@
             top: -0.8rem;
           }
         }
+        &-label {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        &-state {
+          display: inline-block;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 3px solid fade(#D8D8D8, 25%);
+          background-color: #D8D8D8;
+          background-clip: content-box;
+          &.published {
+            border-color: fade(#60BF4D, 20%);
+            background-color: #60BF4D;
+          }
+        }
       }
     }
 
@@ -275,6 +293,9 @@
         &.icon-guanxileixing {
           color: var(--warning-color) !important;
         }
+      }
+      .anticon {
+        margin-right: .6rem;
       }
     }
   }

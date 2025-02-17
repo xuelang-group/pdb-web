@@ -1275,7 +1275,7 @@ export default function Right(props: RightProps) {
   //       const item = graph.findById(currentEditModel?.id);
   //       if (item) {
   //         graph?.updateItem(item, {
-  //           data: {
+  //           data: { 
   //             ...currentEditModel?.data,
   //             'x_checkout': false
   //           }
