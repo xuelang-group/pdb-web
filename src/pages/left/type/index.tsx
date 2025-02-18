@@ -326,7 +326,7 @@ export default function Left() {
   }
 
   // 点击左侧item，画布更新
-  const handleSelectItem = (item: any, type: string) => {
+  const handleSelectItem = (item: any, type: string, cb?: Function) => {
     const graph = (window as any).PDB_GRAPH;
     if (!graph) return;
     graph.clear();
@@ -373,6 +373,7 @@ export default function Left() {
         const model = node.getModel();
         dispatch(setCurrentEditModel({ ...model }));
         dispatch(setCurrentVersion(undefined))
+        cb && cb()
       });
     } else {
       getRelation(graphData?.id, [item['r.type.id']], (success: boolean, response: any) => {
@@ -617,8 +618,9 @@ export default function Left() {
         item['x.type.version'] ? closeVersionControl(item) : openVersionControl(key, type, item);
         break;
       case 'publish': // 检出|发布
-        handleSelectItem(item, 'type')
-        dispatch(setStateType(item))
+        handleSelectItem(item, 'type', () => {
+          dispatch(setStateType(item))
+        })
         break;
       default:
         if (['copy', 'inherit'].includes(key)) {

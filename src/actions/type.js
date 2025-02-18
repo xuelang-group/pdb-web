@@ -11,6 +11,9 @@ const api = {
   update: typeApiPrefix + '/update',
   get: typeApiPrefix + '/get',
   copy: typeApiPrefix + '/copy',
+  checkReferLock: typeApiPrefix + '/children/reference/lock/check',
+  checkObject: typeApiPrefix + '/object/exist/check',
+  checkChildrenObject: typeApiPrefix + '/children/object/exist/check',
 };
 
 /**
@@ -107,6 +110,48 @@ export const getTypeInfo = (graphId, type, callback) => {
  */
 export const getTypeList = (graphId, callback) => {
   return axios.post(api['get'], { graphId }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 判断任一继承对象类型以“锁定当前版本”的方式引用父类型
+ */
+export const checkReferLock = (graphId, typeId, callback) => {
+  return axios.post(api['checkReferLock'], {
+    graphId,
+    "x.type.id": typeId
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 判断对象类型存在实例
+ */
+export const checkObject = (graphId, typeId, callback) => {
+  return axios.post(api['checkObject'], {
+    graphId,
+    "x.type.id": typeId
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**
+ * 判断任一“非锁定当前版本”的继承对象类型已有实例
+ */
+export const checkChildrenObject = (graphId, typeId, callback) => {
+  return axios.post(api['checkChildrenObject'], {
+    graphId,
+    "x.type.id": typeId
+  }).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

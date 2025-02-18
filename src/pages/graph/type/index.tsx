@@ -36,7 +36,7 @@ export default function Editor(props: any) {
   const [startLoading, setStartLoading] = useState(false);
 
   useEffect(() => {
-    console.log('currentEditModel: ', currentEditModel)
+    // console.log('currentEditModel: ', currentEditModel)
     const container: any = graphRef.current;
     if (!container || !container.clientWidth || !container.clientHeight || !graph) return;
     graph.changeSize(container.clientWidth, container.clientHeight);

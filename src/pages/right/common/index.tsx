@@ -133,7 +133,7 @@ export default function Right(props: RightProps) {
       const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
       setPrototypeVersion(parentTypeVersion)
     }
-  }, [currentEditDefaultData?.['x.type.id']])
+  }, [currentEditDefaultData?.['x.type.id'], currentEditDefaultData?.['x.type.version.state']])
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
     let prevLabel = '';
@@ -1013,7 +1013,7 @@ export default function Right(props: RightProps) {
     dataIndex: 'x.type.version.name',
     title: '版本号',
     render: (text:string, record: TypeVersionConfig) => currentEditDefaultData['x.type.version.id'] === record['x.type.version.id'] ? (
-      <Space><span>V{text}</span><Tag>当前版本</Tag></Space>
+      <Space>{text && <span>V{text}</span>}<Tag>当前版本</Tag></Space>
       ) : `V${text}`
   }, {
     dataIndex: 'x.type.version.created',
@@ -1363,9 +1363,9 @@ export default function Right(props: RightProps) {
   }
   const renderFooter = () => currentEditType === 'type' && !currentVersion ? (
     !currentEditDefaultData["x.type.version.state"] ? <>
-      <Button style={{marginBottom: 8}} block type="primary" onClick={() => setStateType(currentEditDefaultData)}>发布</Button>
+      <Button style={{marginBottom: 8}} block type="primary" onClick={() => dispatch(setStateType(currentEditDefaultData))}>发布</Button>
       <Button block onClick={handleReset}>重置</Button>
-    </> : <Button block type="primary" onClick={() => setStateType(currentEditDefaultData)}>检出</Button>
+    </> : <Button block type="primary" onClick={() => dispatch(setStateType(currentEditDefaultData))}>检出</Button>
   ) : undefined
 
   return (
