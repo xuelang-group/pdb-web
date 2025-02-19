@@ -283,7 +283,7 @@ export const G6OperateFunctions = {
               collapsed
             }
           });
-          callback && callback(nodes);
+          callback && callback(id, nodes);
         } else {
           notification.error({
             message: '获取子实例失败：',

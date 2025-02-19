@@ -1,7 +1,7 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal, Input, InputRef } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { ComboConfig, EdgeConfig, Item, Node } from "@antv/g6";
-import _, { filter, forEach } from "lodash";
+import _, { filter, forEach, isEmpty } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as XLSX from 'xlsx';
@@ -1323,14 +1323,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     // 默认展开搜索结果的第一层级
     const nodes = graph.getNodes()
 
-    forEach(nodes, node => G6OperateFunctions.expandNode(node, graph, (_nodes: any) => {
-      const nodeId = node.getID()
-      const children = filter(_nodes, ({parent, type, childLen}) => parent == nodeId && type == "pdbNode" && childLen > 0)
+    const expandNodeCallback = (nodeId: string, childNodes: any) => {
+      const children = filter(childNodes, ({parent, type, childLen}) => parent == nodeId && type == "pdbNode" && childLen > 0)
       forEach(children, ({id}) => {
         const child = graph.findById(id);
-        G6OperateFunctions.expandNode(child, graph)
+        G6OperateFunctions.expandNode(child, graph, expandNodeCallback)
       })
-    }))
+    }
+
+    forEach(nodes, node => G6OperateFunctions.expandNode(node, graph, expandNodeCallback))
 
     // const graph = (window as any).PDB_GRAPH;
     // if (!data || !graph) return;
