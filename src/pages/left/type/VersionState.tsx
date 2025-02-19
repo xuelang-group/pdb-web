@@ -134,6 +134,7 @@ export default function VersionState() {
       setHasReferLock(false)
       setHasObject(false)
       setHasReferObject(false)
+      setVersionName('')
       form.setFieldValue('x.type.version.name', '')
       return
     } 
@@ -151,6 +152,8 @@ export default function VersionState() {
     })
   }, [stateType])
 
+  const verName = stateType && stateType["x.type.version.name"] ? ` V${stateType["x.type.version.name"]} ` : ''
+
   return (
     <>
     <Modal
@@ -163,7 +166,7 @@ export default function VersionState() {
       onCancel={handleCancel}
       wrapClassName="pdb-state-modal"
     >
-      { stateType && hasReferLock && <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本 V${stateType["x.type.version.name"]} 已被引用，若发布新版本，系统将自动复制 V${stateType["x.type.version.name"]} 为对象类型副本，并迁移所有引用的子对象至该副本。`} /> }
+      { stateType && hasReferLock && <Alert className="pdb-state-alert" showIcon type="warning" message={`当前最新版本${verName}已被引用，若发布新版本，系统将自动复制${verName}为对象类型副本，并迁移所有引用的子对象至该副本。`} /> }
       <Form {...layout} form={form}>
         <Form.Item
           style={{marginBottom: 0}}

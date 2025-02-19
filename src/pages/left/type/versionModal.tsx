@@ -37,10 +37,12 @@ export default function VersionModal({types}: VersionModalProps) {
   const columns = [{
     dataIndex: 'x.type.version.name',
     title: '版本号',
-    render: (text:string, record: TypeVersionConfig) => versionModal.type
-      && versionModal.type['x.type.version.id'] === record['x.type.version.id'] ? (
-      <Space><span>V{text}</span><Tag>当前版本</Tag></Space>
-      ) : `V${text}`
+    render: (text:string, record: TypeVersionConfig) => {
+      const vn = text ? `V${text}` : '--'
+      return versionModal.type && versionModal.type['x.type.version.id'] === record['x.type.version.id'] ? (
+      <Space><span>{vn}</span><Tag>当前版本</Tag></Space>
+      ) : vn
+    }
   }, {
     dataIndex: 'x.type.version.created',
     title: '创建时间',
