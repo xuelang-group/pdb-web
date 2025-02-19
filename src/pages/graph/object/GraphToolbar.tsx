@@ -1,7 +1,7 @@
 import { Button, Collapse, Empty, Form, Popover, Select, Switch, Tooltip, InputNumber, notification, Upload, message, Modal, Input, InputRef } from "antd";
 import { labelThemeStyle } from "@/g6/type/edge";
 import G6, { ComboConfig, EdgeConfig, Item, Node } from "@antv/g6";
-import _, { forEach } from "lodash";
+import _, { filter, forEach } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import * as XLSX from 'xlsx';
@@ -67,6 +67,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     indicatorEditId = useSelector((state: StoreState) => state.indicator.editId), // 指标编辑id
     typeList = useSelector((state: StoreState) => state.type.data), // 画布工具栏 - 支持的对象类型列表
     relationList = useSelector((state: StoreState) => state.relation.data); // 画布工具栏 - 支持的关系类型列表
+  const params = useSelector((state: StoreState) => state.llmStream.params);
+    
   const [relationLines, setRelationLines] = useState<RelationsConfig>({}),   // 画布中所有关系边 {[uid]: [{ target: {uid, x_name}, relation }]}
     [showRelationLine, setShowRelationLine] = useState(false),  // 画布工具栏 - 画布是否展示关系边 
     [showRelationLabel, setShowRelationLable] = useState(false),   // 画布工具栏 - 边是否展示关系名称
@@ -209,7 +211,12 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
   useEffect(() => {
     const open = !!selectedTab && selectedTab.key === 'search'
-    dispatch(toggle(open))
+    if (open && params) {
+      dispatch(toggle(true))
+    } else {
+      dispatch(toggle(false))
+      dispatch(setParams(undefined))
+    } 
   }, selectedTab)
 
   function saveSettingConfig(config: any) {
@@ -1315,7 +1322,15 @@ export default function GraphToolbar(props: GraphToolbarProps) {
 
     // 默认展开搜索结果的第一层级
     const nodes = graph.getNodes()
-    forEach(nodes, node => G6OperateFunctions.expandNode(node, graph))
+
+    forEach(nodes, node => G6OperateFunctions.expandNode(node, graph, (_nodes: any) => {
+      const nodeId = node.getID()
+      const children = filter(_nodes, ({parent, type, childLen}) => parent == nodeId && type == "pdbNode" && childLen > 0)
+      forEach(children, ({id}) => {
+        const child = graph.findById(id);
+        G6OperateFunctions.expandNode(child, graph)
+      })
+    }))
 
     // const graph = (window as any).PDB_GRAPH;
     // if (!data || !graph) return;

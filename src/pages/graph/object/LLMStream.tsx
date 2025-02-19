@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';// 划线、表、任务列表和直接url等的语法扩展
 import rehypeRaw from 'rehype-raw'// 解析标签，支持html语法
-import { toggle } from "@/reducers/llmStream";
+import { setParams, toggle } from "@/reducers/llmStream";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { get } from "lodash";
 import './llmStream.less';
@@ -20,8 +20,12 @@ export default function LLMStream() {
   const [fetching, setFetching] = useState(false)
   const [message, setMessage] = useState<string>('')
 
+  const handleClose = () => {
+    dispatch(toggle(false))
+    dispatch(setParams(undefined))
+  }
+
   const handlePlay = () => {
-    if (!params) return
     setFetching(true)
     let retryCount = 0
     const ctrl = new AbortController()
@@ -52,14 +56,16 @@ export default function LLMStream() {
         }
       }
     })
-    console.log('eventSource: ', eventSource)
   }
 
   useEffect(() => {
-    if (open && !fetching) {
+    if (open && params && !fetching) {
       handlePlay()
+    } else {
+      setFetching(false)
+      setMessage('')
     }
-  }, [open])
+  }, [open, params])
 
   const renderBody = () => {
     // console.log(message)
@@ -85,7 +91,7 @@ export default function LLMStream() {
       <div className="pdb-llm-output-header">
         {/* <Button onClick={handlePlay}>测试</Button> */}
         <span className="pdb-llm-output-btn" onClick={() => setCollapsed(!collapsed)}>{ collapsed ? <BorderOutlined /> : <MinusSquareOutlined /> }</span>
-        <span className="pdb-llm-output-btn" onClick={() => dispatch(toggle(false))}><CloseSquareOutlined /></span>
+        <span className="pdb-llm-output-btn" onClick={handleClose}><CloseSquareOutlined /></span>
       </div>
       { renderBody() }
     </div>
