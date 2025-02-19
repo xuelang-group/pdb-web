@@ -60,12 +60,20 @@ export default function VersionState() {
     if (success && stateType && state !== undefined) {
       const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
       const targetTypeIndex = findIndex(newTypes, tp => tp['x.type.id'] == stateType['x.type.id']);
-      newTypes[targetTypeIndex] = {...stateType, "x.type.version.state": state}
+      let currentType
+      if (!response) {
+        currentType = {...stateType, "x.type.version.state": state}
+      } else if (response['x.type.id']) {
+        currentType = response
+      } else if (response[0]['x.type.id']) {
+        currentType = response[0]
+      }
+      newTypes[targetTypeIndex] = currentType
       dispatch(setTypes(newTypes));
       
       const graph = (window as any).PDB_GRAPH;
       if (currentEditModel) {
-        const newModel = Object.assign({}, currentEditModel, {data: newTypes[targetTypeIndex]})
+        const newModel = Object.assign({}, currentEditModel, {data: currentType})
         graph.updateItem(currentEditModel.id, newModel)
         dispatch(setCurrentEditModel(newModel))
       }
