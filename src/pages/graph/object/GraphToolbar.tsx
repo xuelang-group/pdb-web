@@ -1330,7 +1330,6 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         G6OperateFunctions.expandNode(child, graph, expandNodeCallback)
       })
     }
-
     forEach(nodes, node => G6OperateFunctions.expandNode(node, graph, expandNodeCallback))
 
     // const graph = (window as any).PDB_GRAPH;
