@@ -47,7 +47,7 @@ export default function VersionModal() {
     })
   }
     
-  const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: 'V' + v["x.type.version.name"]}));
+  const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: v["x.type.version.name"] ? `V${v["x.type.version.name"]}`: '--'}));
 
   const diffVersionId = form.getFieldValue('diffVersionId')
   const currVersionId = form.getFieldValue('currVersionId')

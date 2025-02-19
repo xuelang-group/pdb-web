@@ -8,9 +8,9 @@ import type { StoreState } from '@/store';
 import type { ObjectConfig } from '@/reducers/object';
 import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
-import { map } from 'lodash';
+import { find, map } from 'lodash';
 import { setCurrentVersion, setDiffModalOpen, setDiffVersion, TypeVersionConfig } from '@/reducers/type';
-import { setIsEditing } from '@/reducers/editor';
+import { setCurrentEditModel, setIsEditing } from '@/reducers/editor';
 import DiffVersionPane from './DiffVersionPane';
 import DiffVersionModal from './DiffVersionModal';
 import './index.less';
@@ -116,6 +116,12 @@ export default function Editor(props: any) {
     dispatch(setDiffModalOpen(true))
   }
 
+  const handleSelectVersion = ({ key }: {key: string}) => {
+    const version = find(versionList, {'x.type.version.id': key})
+    console.log('handleSelectVersion: ', version)
+    dispatch(setCurrentVersion(version))
+  }
+
   useEffect(() => {
     initLayout([]);
 
@@ -144,7 +150,7 @@ export default function Editor(props: any) {
         </div>
       )
     }
-    const items = map(versionList, (v: TypeVersionConfig) => ({ key: v["x.type.version.id"], label: 'V' + v["x.type.version.name"]}));
+    const items = map(versionList, (v: TypeVersionConfig) => ({ key: v["x.type.version.id"], label: v["x.type.version.name"] ? `V${v["x.type.version.name"]}` : '--'}));
     const id = currentVersion ? currentVersion["x.type.version.id"] : '';
     const name = currentVersion ? currentVersion["x.type.version.name"] : '';
     return (
@@ -152,9 +158,14 @@ export default function Editor(props: any) {
         <Flex wrap justify="space-between" align="center">
           <Space>
             <Typography.Text strong>历史版本：</Typography.Text>
-            <Dropdown placement="bottom" arrow menu={{ items, selectable: true, defaultSelectedKeys: [id] }} overlayStyle={{width: 120}}>
+            <Dropdown
+              placement="bottom"
+              arrow
+              menu={{ items, selectable: true, defaultSelectedKeys: [id], onClick: handleSelectVersion }}
+              overlayStyle={{width: 120}}
+            >
               <Space>
-                <Typography.Text strong>V{ name }</Typography.Text>
+                <Typography.Text strong>{ name ? `V${name}` : '--' }</Typography.Text>
                 <DownOutlined />
               </Space>
             </Dropdown>

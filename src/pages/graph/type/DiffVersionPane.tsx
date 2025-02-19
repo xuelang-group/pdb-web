@@ -74,7 +74,7 @@ export default function DiffVersionPane() {
     }
   }, [currentVersion, diffVersion])
   
-  const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: 'V' + v["x.type.version.name"]}));
+  const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: v["x.type.version.name"] ? `V${v["x.type.version.name"]}`: '--'}));
 
   if (!currentVersion || !diffVersion) return null;
   const currOptions = diffVersionId ? items.map(item => item.value === diffVersionId ? ({...item, disabled: true}) : item) : items;

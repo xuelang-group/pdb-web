@@ -10,7 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import _, { find } from 'lodash';
+import _, { find, isEmpty } from 'lodash';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
 import { js as beautify } from 'js-beautify';
@@ -25,7 +25,7 @@ import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setStateType, setTypeDetail, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
-import { NodeItemData, setIsEditing, setToolbarConfig } from '@/reducers/editor';
+import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
 import NodeColorPicker from '@/components/NodeColorPicker';
@@ -308,6 +308,19 @@ export default function Right(props: RightProps) {
       // setHasVersion(false);
     }
   }, [currentEditModel]);
+
+  useEffect(() => {
+    if (currentEditModel) {
+      let data = {}
+      if (currentVersion) {
+        Object.assign(data, currentEditModel.data, currentVersion)
+      } else if (currentEditDefaultData && typesMap) {
+        const typeId = currentEditDefaultData?.['x.type.id'];
+        data = typesMap[typeId]
+      }
+      !isEmpty(data) && dispatch(setCurrentEditModel(Object.assign({}, currentEditModel, {data: data})))
+    }
+  }, [currentVersion])
 
   const [paramDragging, setParamDragging] = useState(false);
   let timer: any = null;
