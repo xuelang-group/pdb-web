@@ -30,7 +30,7 @@ export default function LLMStream() {
     let retryCount = 0
     const ctrl = new AbortController()
     const base = get(window, 'pdbConfig.basePath', '')
-    const eventSource = fetchEventSource(`${base}/summary`, {
+    const eventSource = fetchEventSource(`${base}/llm/summary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function LLMStream() {
   }
 
   useEffect(() => {
-    if (open && params && !fetching) {
+    if (open && params) {
       handlePlay()
     } else {
       setFetching(false)
@@ -89,7 +89,6 @@ export default function LLMStream() {
   return open ? (
     <div className="pdb-llm-output">
       <div className="pdb-llm-output-header">
-        {/* <Button onClick={handlePlay}>测试</Button> */}
         <span className="pdb-llm-output-btn" onClick={() => setCollapsed(!collapsed)}>{ collapsed ? <BorderOutlined /> : <MinusSquareOutlined /> }</span>
         <span className="pdb-llm-output-btn" onClick={handleClose}><CloseSquareOutlined /></span>
       </div>
