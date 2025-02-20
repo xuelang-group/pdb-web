@@ -292,19 +292,14 @@ export const updateTypeVerisonControl = (params, callback) => {
 /**
  * 启用对象类型历史版本
  * @param {int} graphId 项目ID
- * @param {string} typeVersionID 要启用的版本ID
- * @param {string} typeVersionName 版本名称（版本号）
+ * @param {string} x.type.version.id" 要启用的版本ID
+ * @param {string} x.type.version.name 版本名称（版本号）
  * @param {integer} changeMethod 启用方式 0-保存为新版本 1-直接回退
  * @param {Function} callback 
  * @returns 
  */
-export const changeTypeVerison = (graphId, typeVersionID, typeVersionName, changeMethod, callback) => {
-  return axios.post(versionApi['control'], {
-    graphId,
-    changeMethod,
-    "x.type.version.id": typeVersionID,
-    "x.type.version.name": typeVersionName
-  }).then(({ data }) => {
+export const changeTypeVerison = (param, callback) => {
+  return axios.post(versionApi['change'], param).then(({ data }) => {
     callback && callback(data.success, data.success ? data.data : data);
   }, (err) => {
     callback && callback(false, err);

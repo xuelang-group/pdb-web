@@ -22,7 +22,7 @@ import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
-import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
@@ -74,6 +74,7 @@ export default function Right(props: RightProps) {
     isEditing = useSelector((state: StoreState) => state.editor.isEditing),
     typesMap = useSelector((state: StoreState) => state.editor.typeMap);
 
+  const versionList = useSelector((state: StoreState) => state.type.versionList);
   const [currentEditDefaultData, setCurrentEditDefaultData] = useState(null as any), // 当前对象原始数据
     [currentEditType, setCurrentEditType] = useState(''), // 当前编辑的是对象，类型还是关系
     [attrs, setAttrs] = useState([] as any[]), // 属性列表
@@ -84,8 +85,7 @@ export default function Right(props: RightProps) {
     [attrLoading, setAttrLoading] = useState(false),
     [panelTitle, setPanelTitle] = useState(''),
     [prototypeVersion, setPrototypeVersion] = useState<boolean>(false),
-    [versionLoading, setVersionLoading] = useState<boolean>(false),
-    [versionList, setVersionList] = useState<TypeVersionConfig[]>([]);
+    [versionLoading, setVersionLoading] = useState<boolean>(false);
   // [hasVersion, setHasVersion] = useState(false),
   // [checkoutVersion, setCheckoutVersion] = useState({});
 
@@ -124,7 +124,7 @@ export default function Right(props: RightProps) {
         'x.type.id': currentEditDefaultData['x.type.id']
       }, (success: boolean, response: any) => {
         if (success) {
-          setVersionList(response.list)
+          dispatch(setVersionList(response.list))
         }
         setVersionLoading(false)
       })
@@ -1027,7 +1027,7 @@ export default function Right(props: RightProps) {
     title: '版本号',
     render: (text:string, record: TypeVersionConfig) => {
       const vn = text ? `V${text}` : '--'
-      return currentEditDefaultData['x.type.version.id'] === record['x.type.version.id'] ? (
+      return typesMap[currentEditDefaultData['x.type.id']] && typesMap[currentEditDefaultData['x.type.id']]['x.type.version.id'] === record['x.type.version.id'] ? (
       <Space><span>{vn}</span><Tag>当前版本</Tag></Space>
       ) : vn
     }

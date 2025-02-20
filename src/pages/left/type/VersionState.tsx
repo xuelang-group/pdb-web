@@ -5,16 +5,16 @@
 import { addTypeVerison, checkChildrenObject, checkObject, checkReferLock, setType, updateTypeVerison } from "@/actions/type";
 import { setStateType, setTypes, TypeConfig, VersionState as StateType } from "@/reducers/type";
 import { StoreState } from "@/store";
-import { Alert, Button, Flex, Form, Input, message, Modal, notification, Space, Typography } from "antd";
+import { Alert, Button, Flex, Form, Input, message, Modal, notification, Typography } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons"
-import { filter, findIndex, forEach, isEmpty, map } from "lodash";
+import { findIndex } from "lodash";
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCurrentEditModel } from "@/reducers/editor";
 
 const layout = {
-  labelCol: { span: 5 },
-  wrapperCol: { span: 18 },
+  labelCol: { span: 6 },
+  wrapperCol: { span: 17 },
 };
 
 export default function VersionState() {
@@ -178,17 +178,23 @@ export default function VersionState() {
       <Form {...layout} form={form}>
         <Form.Item
           style={{marginBottom: 0}}
-          name='x.type.version.name'
           label={`新版本号`}
+          name='x.type.version.name'
           rules={[{required: true, message: '版本号不能为空'}]}
+          tooltip={
+            <>
+            格式 X.X.X，仅允许使用数字和 . 作为分隔符，不支持字母、特殊字符等。<br />不允许前导零，如 00.01.02 是无效的，应改为 0.1.2 。
+            </>
+          }
         >
-          <Input addonBefore="V" placeholder={'仅允许数字，以 . 作为分隔符，例：1.0.0'} />
+          <Input addonBefore="V" placeholder={`请输入更高的版本号（当前版本号：${verName}）`} />
         </Form.Item>
       </Form>
     </Modal>
     <Modal
       open={confirmOpen} width={416}
       footer={null}
+      onCancel={() => setConfirmOpen(false)}
     >
       <div className="pdb-state-confirm">
         <ExclamationCircleFilled className="pdb-state-confirm-icon" />
