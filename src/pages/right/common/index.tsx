@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag, message } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -10,7 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper'
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import _, { find, isEmpty } from 'lodash';
+import _, { find, findIndex, isEmpty } from 'lodash';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import 'codemirror/lib/codemirror.css';
 import { js as beautify } from 'js-beautify';
@@ -22,7 +22,7 @@ import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
 import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
-import { AttrConfig, setStateType, setTypeDetail, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
 import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
@@ -1368,19 +1368,53 @@ export default function Right(props: RightProps) {
   //   });
   // }
   const handleReset = () => {
-    modal.confirm({
+    Modal.confirm({
       title: "确定要重置对象属性吗？",
       content: "重置对象属性后，将删除当前编辑，并恢复至上次发布的内容。",
       okText: "确定",
       cancelText: "取消",
-      onOk: function () {
+      onOk() {
+        const prevId = currentEditDefaultData?.['x.type.prev.version.id'];
+        const prevVersion = find(versionList, {'x.type.version.id': prevId})
+        if (prevVersion) {
+          return setType(graphData.id, [{
+            "x.type.id": currentEditDefaultData?.['x.type.id'],
+            "x.type.metadata": prevVersion['x.type.metadata'],
+            "x.type.version.attrs": prevVersion["x.type.version.attrs"]
+          }], (success: boolean, response: any) => {
+            if (success) {
+              const newType = response[0]
+              const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
+              const index = findIndex(newTypes, tp => tp['x.type.id'] == newType['x.type.id']);
+              newTypes[index] = newType
+              dispatch(setTypes(newTypes));
+              const graph = (window as any).PDB_GRAPH;
+              if (currentEditModel) {
+                const newModel = Object.assign({}, currentEditModel, {data: newType})
+                graph.updateItem(currentEditModel.id, newModel)
+                dispatch(setCurrentEditModel(newModel))
+              }
+              message.success('重置对象属性成功');
+            } else {
+              notification.error({
+                message: '重置对象属性失败',
+                description: response.message || response.msg
+              })
+            }
+          })
+        } else {
+          notification.error({
+            message: '重置对象属性失败',
+            description: '未找到对象的上一个版本'
+          })
+        }
       }
     })
   }
   const renderFooter = () => currentEditType === 'type' && !currentVersion ? (
     !currentEditDefaultData["x.type.version.state"] ? <>
       <Button style={{marginBottom: 8}} block type="primary" onClick={() => dispatch(setStateType(currentEditDefaultData))}>发布</Button>
-      <Button block onClick={handleReset}>重置</Button>
+      {versionList.length > 1 && <Button block onClick={handleReset}>重置</Button>}
     </> : <Button block type="primary" onClick={() => dispatch(setStateType(currentEditDefaultData))}>检出</Button>
   ) : undefined
 
