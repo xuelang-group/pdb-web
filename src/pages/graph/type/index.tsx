@@ -9,7 +9,7 @@ import type { ObjectConfig } from '@/reducers/object';
 import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
 import { find, findIndex, map, set } from 'lodash';
-import { setCurrentVersion, setDiffModalOpen, setDiffVersion, setTypes, setVersionList, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setSelectedVersion, setDiffModalOpen, setDiffVersion, setTypes, setVersionList, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { setCurrentEditModel, setIsEditing, setTypeMap } from '@/reducers/editor';
 import DiffVersionPane from './DiffVersionPane';
 import DiffVersionModal from './DiffVersionModal';
@@ -29,7 +29,7 @@ export default function Editor(props: any) {
   const graphData = useSelector((state: StoreState) => state.object.graphData);
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
   const typeMap = useSelector((state: StoreState) => state.editor.typeMap);
-  const currentVersion = useSelector((state: StoreState) => state.type.currentVersion);
+  const selectedVersion = useSelector((state: StoreState) => state.type.selectedVersion);
   const diffVersion = useSelector((state: StoreState) => state.type.diffVersion);
   const versionList = useSelector((state: StoreState) => state.type.versionList);
   const types = useSelector((state: StoreState) => state.type.data);
@@ -128,7 +128,7 @@ export default function Editor(props: any) {
   }
 
   const backToLatest = () => {
-    dispatch(setCurrentVersion(undefined))
+    dispatch(setSelectedVersion(undefined))
   }
 
   const handleDiffVersion = () => {
@@ -137,7 +137,7 @@ export default function Editor(props: any) {
 
   const handleSelectVersion = ({ key }: {key: string}) => {
     const version = find(versionList, {'x.type.version.id': key})
-    dispatch(setCurrentVersion(version))
+    dispatch(setSelectedVersion(version))
   }
 
   useEffect(() => {
@@ -151,14 +151,14 @@ export default function Editor(props: any) {
   }, []);
 
   useEffect(() => {
-    dispatch(setIsEditing(!currentVersion))
-  }, [currentVersion])
+    dispatch(setIsEditing(!selectedVersion))
+  }, [selectedVersion])
 
   const handleChangeVersion = (values: {[key:string]: any}, objectSyncMethod=0) => {    
-    currentVersion ? changeTypeVerison({
+    selectedVersion ? changeTypeVerison({
       graphId: graphData.id,
-      "x.type.version.id": currentVersion['x.type.version.id'],
-      "x.type.version.name": currentVersion['x.type.version.name'],
+      "x.type.version.id": selectedVersion['x.type.version.id'],
+      "x.type.version.name": selectedVersion['x.type.version.name'],
       objectSyncMethod,
       ...values
     }, (success: boolean, response: any) => {
@@ -239,8 +239,8 @@ export default function Editor(props: any) {
       const versionName = type['x.type.version.name']
       latestVersionName = versionName ? `V${versionName}` : ''
     }
-    const id = currentVersion ? currentVersion["x.type.version.id"] : '';
-    const name = currentVersion ? currentVersion["x.type.version.name"] : '';
+    const id = selectedVersion ? selectedVersion["x.type.version.id"] : '';
+    const name = selectedVersion ? selectedVersion["x.type.version.name"] : '';
     const hisVerName = name ? ` V${name} ` : ''
     return (
       <div className='pdb-type-version'>
@@ -330,9 +330,9 @@ export default function Editor(props: any) {
   }
   return (
     <div className="pdb-graph">
-      { currentVersion && renderVersions() }
+      { selectedVersion && renderVersions() }
       <div ref={graphRef} className="graph" id="type-graph"></div>
-      { diffVersion && <DiffVersionPane />}
+      { !!diffVersion && <DiffVersionPane />}
       <DiffVersionModal />
     </div>
   );

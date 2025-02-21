@@ -2,7 +2,7 @@ import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Swi
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setCurrentVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setSelectedVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
@@ -113,7 +113,7 @@ export default function VersionModal({types}: VersionModalProps) {
       }
     } else {
       // 查看历史版本
-      dispatch(setCurrentVersion(version))
+      dispatch(setSelectedVersion(version))
       const data = cloneDeep(currentEditDefaultData) as TypeConfig;
       if (data && data["x.type.version.attrs"]) {
         Object.assign(data, version)

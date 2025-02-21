@@ -69,7 +69,7 @@ export default function Right(props: RightProps) {
     multiEditModel = useSelector((state: StoreState) => state.editor.multiEditModel),
     searchAround = useSelector((state: StoreState) => state.editor.searchAround),
     types = useSelector((state: StoreState) => state.type.data),
-    currentVersion = useSelector((state: StoreState) => state.type.currentVersion),
+    selectedVersion = useSelector((state: StoreState) => state.type.selectedVersion),
     relations = useSelector((state: StoreState) => state.relation.data),
     isEditing = useSelector((state: StoreState) => state.editor.isEditing),
     typesMap = useSelector((state: StoreState) => state.editor.typeMap);
@@ -312,15 +312,15 @@ export default function Right(props: RightProps) {
   useEffect(() => {
     if (currentEditModel) {
       let data = {}
-      if (currentVersion) {
-        Object.assign(data, currentEditModel.data, currentVersion)
+      if (selectedVersion) {
+        Object.assign(data, currentEditModel.data, selectedVersion)
       } else if (currentEditDefaultData && typesMap) {
         const typeId = currentEditDefaultData?.['x.type.id'];
         data = typesMap[typeId]
       }
       !isEmpty(data) && dispatch(setCurrentEditModel(Object.assign({}, currentEditModel, {data: data})))
     }
-  }, [currentVersion])
+  }, [selectedVersion])
 
   const [paramDragging, setParamDragging] = useState(false);
   let timer: any = null;
@@ -1411,7 +1411,7 @@ export default function Right(props: RightProps) {
       }
     })
   }
-  const renderFooter = () => currentEditType === 'type' && !currentVersion ? (
+  const renderFooter = () => currentEditType === 'type' && !selectedVersion ? (
     !currentEditDefaultData["x.type.version.state"] ? <>
       <Button style={{marginBottom: 8}} block type="primary" onClick={() => dispatch(setStateType(currentEditDefaultData))}>发布</Button>
       {versionList.length > 1 && <Button block onClick={handleReset}>重置</Button>}

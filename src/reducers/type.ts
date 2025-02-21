@@ -54,8 +54,8 @@ interface TypeState {
   data: Array<TypeConfig>,
   versionModal: boolean,
   versionList: Array<TypeVersionConfig>,
-  currentVersion?: TypeVersionConfig,
-  diffVersion?: TypeVersionConfig,
+  selectedVersion?: TypeVersionConfig,
+  diffVersion?: string[],
   diffModalOpen: boolean,
   // 类型版本状态-检出、发布
   stateType?: TypeConfig,
@@ -96,10 +96,10 @@ export const typeSlice = createSlice({
     setVersionList: (state, action: PayloadAction<TypeVersionConfig[]>) => {
       state.versionList = action.payload;
     },
-    setCurrentVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
-      state.currentVersion = action.payload;
+    setSelectedVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
+      state.selectedVersion = action.payload;
     },
-    setDiffVersion: (state, action: PayloadAction<TypeVersionConfig | undefined>) => {
+    setDiffVersion: (state, action: PayloadAction<string[] | undefined>) => {
       state.diffVersion = action.payload;
     },
     setDiffModalOpen: (state, action: PayloadAction<boolean>) => {
@@ -123,5 +123,5 @@ export const getDefaultTypeConfig = () => {
   }
 };
 
-export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setCurrentVersion, setDiffVersion, setDiffModalOpen, setStateType } = typeSlice.actions
+export const { setTypes, setTypeDetail, reset, setVersionModal, setVersionList, setSelectedVersion, setDiffVersion, setDiffModalOpen, setStateType } = typeSlice.actions
 export default typeSlice.reducer

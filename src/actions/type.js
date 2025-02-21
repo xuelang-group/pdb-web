@@ -315,7 +315,7 @@ export const changeTypeVerison = (param, callback) => {
  * @returns 
  */
 export const diffTypeVerison = (graphId, oldVersionId, newVersionId, callback) => {
-  return axios.post(versionApi['control'], {
+  return axios.post(versionApi['diff'], {
     graphId,
     oldVersionId,
     newVersionId

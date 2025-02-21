@@ -2,7 +2,7 @@ import { Input, Form, notification, Modal, message, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setCurrentVersion, setDiffModalOpen, setDiffVersion, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setSelectedVersion, setDiffModalOpen, setDiffVersion, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { find, map } from 'lodash';
 
@@ -14,46 +14,37 @@ const layout = {
 export default function VersionModal() {
   const dispatch = useDispatch();
   const diffModalOpen = useSelector((state: StoreState) => state.type.diffModalOpen);
-  const currentVersion = useSelector((state: StoreState) => state.type.currentVersion);
-  const diffVersion = useSelector((state: StoreState) => state.type.diffVersion);
+  const selectedVersion = useSelector((state: StoreState) => state.type.selectedVersion);
   const versionList = useSelector((state: StoreState) => state.type.versionList);
 
   const [form] = Form.useForm();
 
   useEffect(() => {
     form.setFieldsValue({
-      'currVersionId': currentVersion ? currentVersion['x.type.version.id'] : '',
+      'oldVersionId': selectedVersion ? selectedVersion['x.type.version.id'] : '',
     })
-  }, [currentVersion])
+  }, [selectedVersion])
 
-  useEffect(() => {
-    form.setFieldsValue({
-      'diffVersionId': diffVersion ? diffVersion['x.type.version.id'] : '',
-    })
-  }, [diffVersion])
+  const handleCancel = () => {
+    dispatch(setDiffModalOpen(false))
+    dispatch(setDiffVersion(undefined))
+  }
 
   const handleConfirm = () => {
     form.validateFields().then((values: { [key: string]: any; }) => {
-      const { currVersionId, diffVersionId } = values
-      if (!currentVersion || currentVersion["x.type.version.id"] !== currVersionId) {
-        const curr = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === currVersionId)
-        dispatch(setCurrentVersion(curr))
-      }
-      const diff = find(versionList, (item: TypeVersionConfig) => item["x.type.version.id"] === diffVersionId)
-      dispatch(setDiffVersion(diff))
+      const { oldVersionId, newVersionId } = values
+      dispatch(setDiffVersion([oldVersionId, newVersionId]))
       dispatch(setDiffModalOpen(false))
-    }).catch((err: any) => {
-
-    })
+    }).catch((err: any) => { })
   }
     
   const items = map(versionList, (v: TypeVersionConfig) => ({ value: v["x.type.version.id"], label: v["x.type.version.name"] ? `V${v["x.type.version.name"]}`: '--'}));
 
-  const diffVersionId = form.getFieldValue('diffVersionId')
-  const currVersionId = form.getFieldValue('currVersionId')
+  const oldVersionId = form.getFieldValue('oldVersionId')
+  const newVersionId = form.getFieldValue('newVersionId')
 
-  const currOptions = diffVersionId ? items.map(item => item.value === diffVersionId ? ({...item, disabled: true}) : item) : items;
-  const diffOptions = currVersionId ? items.map(item => item.value === currVersionId ? ({...item, disabled: true}) : item) : items;
+  const oldOptions = newVersionId ? items.map(item => item.value === newVersionId ? ({...item, disabled: true}) : item) : items;
+  const newOptions = oldVersionId ? items.map(item => item.value === oldVersionId ? ({...item, disabled: true}) : item) : items;
 
   return (
     <Modal
@@ -63,14 +54,14 @@ export default function VersionModal() {
       destroyOnClose
       okText="开始对比"
       onOk={handleConfirm}
-      onCancel={() => dispatch(setDiffModalOpen(false))}
+      onCancel={handleCancel}
     >
       <Form {...layout} form={form}>
-        <Form.Item label="对比版本一" name="currVersionId" rules={[{ required: true, message: '请选择对比版本一' }]}> 
-          <Select style={{width: '100%'}} options={currOptions} />
+        <Form.Item label="对比版本一" name="oldVersionId" rules={[{ required: true, message: '请选择对比版本一' }]}> 
+          <Select style={{width: '100%'}} options={oldOptions} />
         </Form.Item>
-        <Form.Item label="对比版本二" name="diffVersionId" rules={[{ required: true, message: '请选择对比版本二' }]}>
-          <Select style={{width: '100%'}} options={diffOptions} />
+        <Form.Item label="对比版本二" name="newVersionId" rules={[{ required: true, message: '请选择对比版本二' }]}>
+          <Select style={{width: '100%'}} options={newOptions} />
         </Form.Item>
       </Form>
     </Modal>
