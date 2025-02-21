@@ -118,7 +118,7 @@ export default function Right(props: RightProps) {
 
   useEffect(() => {
     // 版本记录      
-    if(currentEditDefaultData && currentEditDefaultData['x.type.id']) {
+    if(currentEditType == 'type' && currentEditDefaultData && currentEditDefaultData['x.type.id']) {
       setVersionLoading(true)
       getTypeVerisonList(graphData.id, {
         'x.type.id': currentEditDefaultData['x.type.id']
@@ -128,10 +128,12 @@ export default function Right(props: RightProps) {
         }
         setVersionLoading(false)
       })
-      const parentTypeId = currentEditDefaultData['x.type.version.prototype']['x.type.id']
-      const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
-      const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
-      setPrototypeVersion(parentTypeVersion)
+      if (!isEmpty(currentEditDefaultData['x.type.version.prototype'])) {
+        const parentTypeId = currentEditDefaultData['x.type.version.prototype']['x.type.id']
+        const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
+        const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
+        setPrototypeVersion(parentTypeVersion)
+      }
     }
   }, [currentEditDefaultData?.['x.type.id'], currentEditDefaultData?.['x.type.version.state']])
 
