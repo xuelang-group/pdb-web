@@ -233,7 +233,7 @@ export default function AppExplore() {
       reverseParsing();
     }
 
-    if (queryParams.graphId == null && searchTags && !_.isEmpty(searchTags)) {
+    if (queryParams.graphId == null && searchTags && (searchTags.length > 1 || !_.isEmpty(searchTags[0]))) {
       setSearchTags([[]]);
       setSearchTagMap([{}]);
       setCurrentFocusIndex(0);
