@@ -14,7 +14,7 @@ import { setCurrentEditModel, setIsEditing, setTypeMap } from '@/reducers/editor
 import DiffVersionPane from './DiffVersionPane';
 import DiffVersionModal from './DiffVersionModal';
 import './index.less';
-import { changeTypeVerison, checkChildrenObject, checkObject, checkReferLock, getTypeInfo, getTypeVerisonList } from '@/actions/type';
+import { changeTypeVerison, checkChildrenObject, checkObject, checkReferLock, getTypeInfo } from '@/actions/type';
 
 let graph: any;
 
@@ -177,12 +177,6 @@ export default function Editor(props: any) {
             newTypes[index] = type
             dispatch(setCurrentEditModel(Object.assign({}, currentEditModel, {data: type})))
             dispatch(setTypes(newTypes));
-          }
-        })
-        // 并更新版本列表
-        getTypeVerisonList(graphData.id, {'x.type.id': typeId}, (success: boolean, response: any) => {
-          if (success) {
-            dispatch(setVersionList(response.list))
           }
         })
       } else {

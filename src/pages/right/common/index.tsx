@@ -1053,7 +1053,7 @@ export default function Right(props: RightProps) {
           />
         </div>
         <div className='pdb-type-common-item wrap'>
-          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal({open: true, type: currentEditDefaultData}))}>详情</a>}</span>
+          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal(true))}>详情</a>}</span>
           <Table className={!currentEditDefaultData['x.type.version'] ? 'pdb-type-table-disabled' : ''}
             style={{maxHeight: 300}}
             columns={versionColumns}

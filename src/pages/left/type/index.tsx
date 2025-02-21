@@ -588,8 +588,9 @@ export default function Left() {
         handleDelete(type, item);
         break;
       case 'history':
-        handleSelectItem(item, 'type')
-        dispatch(setVersionModal({open: true, type: item}));
+        handleSelectItem(item, 'type', () => {
+          dispatch(setVersionModal(true));
+        })
         break;
       case 'reference-0':
       case 'reference-1':

@@ -8,7 +8,7 @@ import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
 import moment from 'moment';
 import { setCurrentEditModel } from '@/reducers/editor';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEmpty } from 'lodash';
 
 const layout = {
   labelCol: { span: 5 },
@@ -33,13 +33,15 @@ export default function VersionModal({types}: VersionModalProps) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [currVersion, setCurrVersion] = useState<TypeVersionConfig>();
+  const [currentEditDefaultData, setCurrentEditDefaultData] = useState<TypeConfig>();
 
   const columns = [{
     dataIndex: 'x.type.version.name',
     title: '版本号',
     render: (text:string, record: TypeVersionConfig) => {
       const vn = text ? `V${text}` : '--'
-      return versionModal.type && versionModal.type['x.type.version.id'] === record['x.type.version.id'] ? (
+      const typeVersionId = currentEditDefaultData?.['x.type.version.id']
+      return typeVersionId && typeVersionId === record['x.type.version.id'] ? (
       <Space><span>{vn}</span><Tag>当前版本</Tag></Space>
       ) : vn
     }
@@ -61,10 +63,18 @@ export default function VersionModal({types}: VersionModalProps) {
   }]
 
   useEffect(() => {
-    if (versionModal.type) {
+    if (currentEditModel?.data && currentEditModel?.data.hasOwnProperty('x.type.id')) {
+      const currentEditDefaultData = JSON.parse(JSON.stringify(currentEditModel.data || {}));
+      setCurrentEditDefaultData(currentEditDefaultData)
+    }
+  }, [currentEditModel])
+
+  useEffect(() => {
+    if ((!isEmpty(currentEditDefaultData))) {
+      const typeId = currentEditDefaultData['x.type.id']
       setLoading(true)
       getTypeVerisonList(graphData.id, {
-        'x.type.id': versionModal.type['x.type.id']
+        'x.type.id': typeId
       }, (success: boolean, response: any) => {
         setLoading(false)
         if (success) {
@@ -79,17 +89,18 @@ export default function VersionModal({types}: VersionModalProps) {
         } 
       })
     }
-  }, [versionModal.type])
+  }, [versionModal])
 
   const handleCancel = () => {
-    dispatch(setVersionModal({open: false}))
+    dispatch(setVersionModal(false))
   }
 
   const handleClick = (type: 'copy' | 'diff' | 'detail', version: TypeVersionConfig) => {
     if (type !== 'detail') {
       setCurrVersion(version)
-      if (type === 'copy') {
-        const copyName = versionModal.type ? getDefaultCopyName(versionModal.type['x.type.name']) : '';
+      if (type === 'copy' && !isEmpty(currentEditDefaultData)) {
+        const typeName = currentEditDefaultData['x.type.name']
+        const copyName = typeName ? getDefaultCopyName(typeName) : '';
         form.setFieldsValue({
           'x.type.version.id': version['x.type.version.id'],
           'x.type.name': copyName,
@@ -103,7 +114,7 @@ export default function VersionModal({types}: VersionModalProps) {
     } else {
       // 查看历史版本
       dispatch(setCurrentVersion(version))
-      const data = cloneDeep(currentEditModel?.data) as TypeConfig;
+      const data = cloneDeep(currentEditDefaultData) as TypeConfig;
       if (data && data["x.type.version.attrs"]) {
         Object.assign(data, version)
       }
@@ -170,7 +181,7 @@ export default function VersionModal({types}: VersionModalProps) {
   return (
     <>
       <Modal
-        open={versionModal.open}
+        open={versionModal}
         title='版本记录'
         footer={null}
         width={960}

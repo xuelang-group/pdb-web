@@ -52,10 +52,7 @@ export interface TypeConfig extends TypeVersionConfig {
 
 interface TypeState {
   data: Array<TypeConfig>,
-  versionModal: {
-    open: boolean,
-    type?: TypeConfig,
-  },
+  versionModal: boolean,
   versionList: Array<TypeVersionConfig>,
   currentVersion?: TypeVersionConfig,
   diffVersion?: TypeVersionConfig,
@@ -67,9 +64,7 @@ interface TypeState {
 // 使用该类型定义初始 state
 const initialState: TypeState = {
   data: [],
-  versionModal: {
-    open: false
-  },
+  versionModal: false,
   versionList: [],
   diffModalOpen: false
 }
@@ -95,7 +90,7 @@ export const typeSlice = createSlice({
       }
       state.data = newData;
     },
-    setVersionModal: (state, action: PayloadAction<{ open: boolean, type?: TypeConfig }>) => {
+    setVersionModal: (state, action: PayloadAction<boolean>) => {
       state.versionModal = action.payload;
     },
     setVersionList: (state, action: PayloadAction<TypeVersionConfig[]>) => {
