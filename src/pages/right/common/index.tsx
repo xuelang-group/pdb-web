@@ -289,7 +289,8 @@ export default function Right(props: RightProps) {
       currentEditType = 'type';
       const state = currentEditDefaultData['x.type.version.state']
       // 发布状态不可编辑
-      dispatch(setIsEditing(!state))
+      const uneditable = !!selectedVersion || !!state
+      dispatch(setIsEditing(!uneditable))
     } else if (currentEditDefaultData['r.type.name']) {
       currentEditType = 'relation';
     }

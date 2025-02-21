@@ -8,9 +8,9 @@ import type { StoreState } from '@/store';
 import type { ObjectConfig } from '@/reducers/object';
 import { nodeStateStyle } from '@/g6/node';
 import { labelThemeStyle } from '@/g6/edge';
-import { find, findIndex, map, set } from 'lodash';
-import { setSelectedVersion, setDiffModalOpen, setDiffVersion, setTypes, setVersionList, TypeConfig, TypeVersionConfig } from '@/reducers/type';
-import { setCurrentEditModel, setIsEditing, setTypeMap } from '@/reducers/editor';
+import { find, findIndex, map } from 'lodash';
+import { setSelectedVersion, setDiffModalOpen, setDiffVersion, setTypes, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setCurrentEditModel } from '@/reducers/editor';
 import DiffVersionPane from './DiffVersionPane';
 import DiffVersionModal from './DiffVersionModal';
 import './index.less';
@@ -149,10 +149,6 @@ export default function Editor(props: any) {
       (window as any).PDB_GRAPH = null;
     }
   }, []);
-
-  useEffect(() => {
-    dispatch(setIsEditing(!selectedVersion))
-  }, [selectedVersion])
 
   const handleChangeVersion = (values: {[key:string]: any}, objectSyncMethod=0) => {    
     selectedVersion ? changeTypeVerison({

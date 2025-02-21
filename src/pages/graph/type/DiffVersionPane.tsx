@@ -41,19 +41,58 @@ export default function DiffVersionPane() {
       })
       return
     }
-    diffTypeVerison(graphData.id, diffVersion[0], diffVersion[1], (success:boolean, response:any) => {
-      if (success) {
-        const { base, attr } = response
-        console.log('diff version, base: ', base)
-        console.log('diff version, attr: ', attr)
-      } else {
-        notification.error({
-          message: '对象类型版本对比失败',
-          description: response.message || response.msg
-        })
+
+    // diffTypeVerison(graphData.id, diffVersion[0], diffVersion[1], (success:boolean, response:any) => {
+    //   if (success) {
+    //     const { base, attr } = response
+    //     console.log('diff version, base: ', base)
+    //     console.log('diff version, attr: ', attr)
+    //   } else {
+    //     notification.error({
+    //       message: '对象类型版本对比失败',
+    //       description: response.message || response.msg
+    //     })
+    //   }
+    // })
+  }
+
+  useEffect(() => {
+    if (!oldVersion || !newVersion) return
+
+    const currAttrs = oldVersion["x.type.version.attrs"]
+    const diffAttrs = newVersion["x.type.version.attrs"]
+    const latest = oldVersion["x.type.version.created"] - newVersion["x.type.version.created"] > 0;
+    setCurrentIsLatest(latest);
+    
+    const currNames = map(currAttrs, "name");
+    const diffNames = map(diffAttrs, "name");
+    const currDiff: string[] = difference(currNames, diffNames);
+    const diffCurr: string[] = difference(diffNames, currNames);
+    const newNames = latest ? currDiff : diffCurr;
+    const delNames = latest ? diffCurr : currDiff;
+    const modNames: {[key:string]: string[]} = {};
+    forEach(currAttrs, attr => {
+      if (diffNames.includes(attr.name)) {
+        const diffAttr = find(diffAttrs, {name: attr.name});
+        const defaultModified = attr.default !== diffAttr?.default;
+        const displayModified = attr.display !== diffAttr?.display;
+        const requiredModified = attr.required !== diffAttr?.required;
+        const typeModified = attr.type !== diffAttr?.type;
+        const overrideModified = attr.override !== diffAttr?.override;
+        if (defaultModified || displayModified || requiredModified || typeModified || overrideModified) {
+          modNames[attr.name] = []
+          if (defaultModified) modNames[attr.name].push('default')
+          if (displayModified) modNames[attr.name].push('display')
+          if (requiredModified) modNames[attr.name].push('required')
+          if (typeModified) modNames[attr.name].push('type')
+          if (overrideModified) modNames[attr.name].push('override')
+        }
       }
     })
-  }
+    setCreatedNames(newNames)
+    setDeletedNames(delNames)
+    setModifyNames(modNames)
+  }, [oldVersion, newVersion])
 
   useEffect(() => {
     if (diffVersion) {
@@ -62,40 +101,7 @@ export default function DiffVersionPane() {
       const diff = find(versionList, item => item["x.type.version.id"] === diffVersion[1])
       setNewVersion(diff)
 
-      handleDiffVersion()
-      // const currAttrs = selectedVersion["x.type.version.attrs"]
-      // const diffAttrs = diffVersion["x.type.version.attrs"]
-      // const latest = selectedVersion["x.type.version.created"] - diffVersion["x.type.version.created"] > 0;
-      // setCurrentIsLatest(latest);
-      // const currNames = map(currAttrs, "name");
-      // const diffNames = map(diffAttrs, "name");
-      // const currDiff: string[] = difference(currNames, diffNames);
-      // const diffCurr: string[] = difference(diffNames, currNames);
-      // const newNames = latest ? currDiff : diffCurr;
-      // const delNames = latest ? diffCurr : currDiff;
-      // const modNames: {[key:string]: string[]} = {};
-      // forEach(currAttrs, attr => {
-      //   if (diffNames.includes(attr.name)) {
-      //     const diffAttr = find(diffAttrs, {name: attr.name});
-      //     const defaultModified = attr.default !== diffAttr?.default;
-      //     const displayModified = attr.display !== diffAttr?.display;
-      //     const requiredModified = attr.required !== diffAttr?.required;
-      //     const typeModified = attr.type !== diffAttr?.type;
-      //     const overrideModified = attr.override !== diffAttr?.override;
-      //     if (defaultModified || displayModified || requiredModified || typeModified || overrideModified) {
-      //       modNames[attr.name] = []
-      //       if (defaultModified) modNames[attr.name].push('default')
-      //       if (displayModified) modNames[attr.name].push('display')
-      //       if (requiredModified) modNames[attr.name].push('required')
-      //       if (typeModified) modNames[attr.name].push('type')
-      //       if (overrideModified) modNames[attr.name].push('override')
-      //     }
-      //   }
-      // })
-
-      // setCreatedNames(newNames)
-      // setDeletedNames(delNames)
-      // setModifyNames(modNames)
+      // handleDiffVersion()
     }
   }, [diffVersion])
   
