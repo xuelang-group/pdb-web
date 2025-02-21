@@ -161,6 +161,7 @@ export default function Editor(props: any) {
       setStartLoading(false)
       if (success) {
         setStartOpen(false)
+        setConfirmOpen(false)
         message.success('启用历史版本成功');
         const typeId = currentEditDefaultData?.['x.type.id']
         if (!typeId) return
