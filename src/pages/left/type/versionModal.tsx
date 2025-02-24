@@ -187,13 +187,12 @@ export default function VersionModal({types}: VersionModalProps) {
         width={960}
         onCancel={handleCancel}
       >
-        <Table
+        <Table className='pdb-table-scroll'
           style={{minHeight: 300}}
           columns={columns}
           dataSource={versions}
           pagination={false}
-          size="small"
-          // scroll={{y: 480}}
+          scroll={{y: 480}}
           rowKey={'x.type.version.id'}
           loading={loading}
         />
