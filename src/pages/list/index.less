@@ -110,11 +110,14 @@
           width: 100%;
           overflow: visible;
           display: flex;
-          padding-top: 4px;
-          padding-bottom: 8px;
-
+          padding-top: 5px;
+          padding-bottom: 5px;
+          margin-bottom: 0;
           &::before {
             border-radius: 2px;
+          }
+          .pdb-ant-tree-node-selected::before {
+            background-color: var(--primary-selected-bg);
           }
         }
 
