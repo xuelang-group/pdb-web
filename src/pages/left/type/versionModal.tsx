@@ -29,7 +29,6 @@ export default function VersionModal({types}: VersionModalProps) {
   const [form] = Form.useForm();
   const copyMethod = Form.useWatch('copyMethod', form);
 
-  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [currVersion, setCurrVersion] = useState<TypeVersionConfig>();
@@ -53,7 +52,8 @@ export default function VersionModal({types}: VersionModalProps) {
     dataIndex: '',
     title: '操作',
     width: 300,
-    render(text: any, record: TypeVersionConfig) { 
+    render(text: any, record: TypeVersionConfig) {
+      const total = versions.length
       return (<Space size={12}>
         { total > 1 && <a key='detail' onClick={() => handleClick('detail', record)}>查看</a> }
         <a key='copy' onClick={() => handleClick('copy', record)}>复制</a>
@@ -79,7 +79,6 @@ export default function VersionModal({types}: VersionModalProps) {
         setLoading(false)
         if (success) {
           dispatch(setVersionList(response.list))
-          setTotal(response.total)
         } else {
           dispatch(setVersionList([]))
           notification.error({
