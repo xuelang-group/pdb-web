@@ -897,7 +897,8 @@ export default function Left() {
         switch(modalType) {
           case 'copy':
             copyType(graphData?.id, {
-              ...newType,
+              'x.type.id': item["x.type.id"],
+              'x.type.name': name,
               'x.type.version.name': values['x.type.version.name'],
               'copyMethod': values['copyMethod']
             }, (success: boolean, response: any) => {      
