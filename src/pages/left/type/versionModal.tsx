@@ -2,13 +2,13 @@ import { Input, Form, notification, Modal, Table, Tag, Space, Radio, Switch, mes
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setSelectedVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
+import { setSelectedVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig, setTypes } from '@/reducers/type';
 import { StoreState } from '@/store';
 import { getTypeVerisonList, copyTypeVerison } from '@/actions/type';
 import { getDefaultCopyName } from '@/utils/common';
 import moment from 'moment';
 import { setCurrentEditModel } from '@/reducers/editor';
-import { cloneDeep, isEmpty } from 'lodash';
+import { cloneDeep, findIndex, isEmpty } from 'lodash';
 
 const layout = {
   labelCol: { span: 5 },
@@ -135,12 +135,14 @@ export default function VersionModal({types}: VersionModalProps) {
       ...values,
     }, (success: boolean, response: any) => {
       if (success) {
-        message.success('复制版本成功')
+        message.success('复制成功')
         setOpen(false)
-        // updateTypeVersions()
+        const newTypes: TypeConfig[] = JSON.parse(JSON.stringify(types));
+        newTypes.push(response)
+        dispatch(setTypes(newTypes));
       } else {
         notification.error({
-          message: `复制版本失败`,
+          message: `复制失败`,
           description: response.message || response.msg
         });
       }
