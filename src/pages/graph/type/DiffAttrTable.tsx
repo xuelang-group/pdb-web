@@ -3,8 +3,10 @@ import { useSelector } from 'react-redux';
 import type { StoreState } from '@/store';
 import { AttrConfig } from "@/reducers/type";
 import { clone, get } from "lodash";
+import { useEffect, useRef, useState } from "react";
 
 interface DiffProps {
+  maxHeight: number;
   attrs: Array<AttrConfig>;
   deletedNames: string[];
   createdNames: string[];
@@ -14,7 +16,26 @@ interface DiffProps {
 }
 
 export default function DiffAttrTable(props: DiffProps) {
+  const tableRef = useRef(null)
   const typesMap = useSelector((state: StoreState) => state.editor.typeMap);
+  const [scroll, setScroll] = useState<{y?: number}>()
+
+  const updateScroll = () => {
+    if (tableRef.current) {
+      const tb:any = tableRef.current
+      const h = tb?.offsetHeight
+      if (h > props.maxHeight) {
+        setScroll({y: props.maxHeight})
+      } else {
+        setScroll(undefined)
+      }
+      console.log(h, props.maxHeight)
+    }
+  }
+
+  useEffect(() => { 
+    updateScroll()
+  }, [props.maxHeight, props.expandedRowKeys])
 
   const getClassNames = (name: string, key: string) => {
     if (props.createdNames.includes(name)) return 'pdb-diff-new'
@@ -88,7 +109,8 @@ export default function DiffAttrTable(props: DiffProps) {
   }
 
   return (
-    <Table rowKey="name" className="pdb-diff-table"
+    <Table rowKey="name" className="pdb-table-scroll pdb-diff-table"
+      ref={tableRef}
       rowHoverable={false}
       size="small" bordered
       columns={columns}
@@ -100,6 +122,7 @@ export default function DiffAttrTable(props: DiffProps) {
         onExpand: handleExpand
       }}
       pagination={false}
+      scroll={scroll}
     />
   )
 }

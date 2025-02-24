@@ -11,6 +11,7 @@ import { diffTypeVerison } from '@/actions/type';
 
 export default function DiffVersionPane() {
   const dispatch = useDispatch();
+  const tableWrapper = useRef(null);
   const graphData = useSelector((state: StoreState) => state.object.graphData);
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
   const diffVersion = useSelector((state: StoreState) => state.type.diffVersion);
@@ -23,6 +24,7 @@ export default function DiffVersionPane() {
   const [deletedNames, setDeletedNames] = useState<string[]>([])
   const [modifyNames, setModifyNames] = useState<{[key:string]: string[]}>({})
   const [currentIsLatest, setCurrentIsLatest] = useState(false)
+  const [maxTableHeight, setMaxTableHeight] = useState(360)
 
   const onCurrChange = (val:string) => {
     const curr = find(versionList, item => item["x.type.version.id"] === val)
@@ -101,7 +103,10 @@ export default function DiffVersionPane() {
       const diff = find(versionList, item => item["x.type.version.id"] === diffVersion[1])
       setNewVersion(diff)
 
-      // handleDiffVersion()
+      if (tableWrapper.current) {
+        const wrapper: any = tableWrapper.current
+        setMaxTableHeight(wrapper?.offsetHeight)
+      }
     }
   }, [diffVersion])
   
@@ -129,9 +134,10 @@ export default function DiffVersionPane() {
           <div className='pdb-diff-version-title'><Typography.Text strong>属性信息</Typography.Text></div>
         </Col>
       </Row>
-      <Row gutter={24} style={{"flex": 1}}>
+      <Row gutter={24} style={{flex: '1 1'}} ref={tableWrapper}>
         <Col span={12}>
           <DiffAttrTable
+            maxHeight={maxTableHeight}
             attrs={oldVersion['x.type.version.attrs'] || []}
             modifyNames={modifyNames}
             createdNames={currentIsLatest ? createdNames : []}
@@ -142,6 +148,7 @@ export default function DiffVersionPane() {
         </Col>
         <Col span={12}>
           <DiffAttrTable
+            maxHeight={maxTableHeight}
             attrs={newVersion['x.type.version.attrs'] || []}
             modifyNames={modifyNames}
             createdNames={!currentIsLatest ? createdNames : []}
@@ -151,7 +158,7 @@ export default function DiffVersionPane() {
           />
         </Col>
       </Row>
-      <Flex justify="center" align="center">
+      <Flex justify="center" align="center" className='pdb-diff-foot'>
         <div className='pdb-diff-tag pdb-diff-tag-new'>新增</div>
         <div className='pdb-diff-tag pdb-diff-tag-modify'>修改</div>
         <div className='pdb-diff-tag pdb-diff-tag-deleted'>移除</div>

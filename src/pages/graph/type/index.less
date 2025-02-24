@@ -7,13 +7,11 @@
 }
 .pdb-diff-version {
   position: absolute;
-  top: 24px + 16px + 32px;
+  top: 72px;
   left: 24px;
   right: 24px;
-  bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
+  height: calc(100% - 72px - 24px);
+  padding: 24px 24px 48px;
   border-radius: 4px;
   background-color: var(--component-bg);
   &-time {
@@ -34,6 +32,13 @@
       margin-right: 8px;
       background-color: var(--primary-color);
     }
+  }
+  .pdb-diff-foot {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 12px;
   }
 }
 
@@ -80,9 +85,6 @@
       background-color: #FFECE8;
       border-color: #FDCDC5;
     }
-  }
-  &-table {
-    height: 100%;
   }
 }
 

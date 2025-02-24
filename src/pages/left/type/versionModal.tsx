@@ -137,7 +137,7 @@ export default function VersionModal({types}: VersionModalProps) {
       if (success) {
         message.success('复制版本成功')
         setOpen(false)
-        updateTypeVersions()
+        // updateTypeVersions()
       } else {
         notification.error({
           message: `复制版本失败`,
