@@ -304,6 +304,7 @@ export const G6OperateFunctions = {
         getChildren(params, responseCallback);
       }
     } else {
+      graph.expandCombo(comboId);
       if (callback) {
         store.dispatch(setObjectDetail({ uid: id, options: { collapsed } }));
         node.update({
@@ -314,7 +315,6 @@ export const G6OperateFunctions = {
         });
         callback();
       }
-      graph.expandCombo(comboId);
     }
   },
   moveNode: function (dragItem: Item, dropItem: Item, graph: Graph) {
@@ -2226,7 +2226,7 @@ export function registerBehavior() {
 
       clearTimeout(self.timer);
       self.throttleSetAllItemStates(e, self);
-      console.log(self)
+      // console.log(self)
     },
     clearActiveState(e: any) {
       const self = this as any;
