@@ -69,7 +69,7 @@ export default function VersionModal({types}: VersionModalProps) {
     }
   }, [currentEditModel])
 
-  useEffect(() => {
+  const updateTypeVersions = () => {
     if ((!isEmpty(currentEditDefaultData))) {
       const typeId = currentEditDefaultData['x.type.id']
       setLoading(true)
@@ -83,12 +83,16 @@ export default function VersionModal({types}: VersionModalProps) {
         } else {
           dispatch(setVersionList([]))
           notification.error({
-            message: '对象类型版本列表失败',
+            message: '请求对象类型版本列表失败',
             description: response.message || response.msg
           });
         } 
       })
     }
+  }
+
+  useEffect(() => {
+    updateTypeVersions()
   }, [versionModal])
 
   const handleCancel = () => {
@@ -131,11 +135,12 @@ export default function VersionModal({types}: VersionModalProps) {
       ...values,
     }, (success: boolean, response: any) => {
       if (success) {
-        message.success('复制成功')
+        message.success('复制版本成功')
         setOpen(false)
+        updateTypeVersions()
       } else {
         notification.error({
-          message: `复制失败`,
+          message: `复制版本失败`,
           description: response.message || response.msg
         });
       }
