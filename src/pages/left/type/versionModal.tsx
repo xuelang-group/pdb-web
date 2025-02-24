@@ -1,5 +1,5 @@
-import { Input, Button, Form, notification, Modal, Table, Tag, Space, Radio, Switch, message } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { Input, Form, notification, Modal, Table, Tag, Space, Radio, Switch, message } from 'antd';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { setSelectedVersion, setDiffModalOpen, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';

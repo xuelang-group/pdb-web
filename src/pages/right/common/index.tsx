@@ -128,12 +128,14 @@ export default function Right(props: RightProps) {
         }
         setVersionLoading(false)
       })
+
+      let protoVersion = false
       if (!isEmpty(currentEditDefaultData['x.type.version.prototype'])) {
         const parentTypeId = currentEditDefaultData['x.type.version.prototype']['x.type.id']
         const parentType = parentTypeId && find(types, {'x.type.id': parentTypeId});
-        const parentTypeVersion = parentType ? !!parentType['x.type.version'] : false;
-        setPrototypeVersion(parentTypeVersion)
+        protoVersion = parentType ? !!parentType['x.type.version'] : false;
       }
+      setPrototypeVersion(protoVersion)
     }
   }, [currentEditDefaultData?.['x.type.id'], currentEditDefaultData?.['x.type.version.state']])
 
@@ -298,10 +300,6 @@ export default function Right(props: RightProps) {
     }
     setCurrentEditType(currentEditType);
     initData(currentEditType, currentEditDefaultData, currentEditModel);
-
-    // const hasVersion = Boolean(currentEditDefaultData['x_version']);
-    // setHasVersion(hasVersion);
-    // hasVersion && dispatch(setIsEditing(currentEditDefaultData['x_checkout']));
 
     return () => {
       setCurrentEditParam(null);

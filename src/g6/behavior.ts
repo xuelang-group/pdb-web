@@ -2010,7 +2010,7 @@ export function registerBehavior() {
 
       clearTimeout(self.timer);
       self.throttleSetAllItemStates(e, self);
-      console.log(self)
+      // console.log(self)
     },
     clearActiveState(e: any) {
       const self = this as any;

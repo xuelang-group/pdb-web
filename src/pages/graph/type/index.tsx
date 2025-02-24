@@ -55,18 +55,6 @@ export default function Editor(props: any) {
   useEffect(() => {
     const currentEditDefaultData = JSON.parse(JSON.stringify(currentEditModel?.data || {}));
     setCurrentEditDefaultData(currentEditDefaultData)
-    if (currentEditDefaultData["x.type.id"]) {
-      const typeId = currentEditDefaultData["x.type.id"]
-      checkObject(graphData.id, typeId, (success: boolean, response: any) => {   
-        if (success) setHasObject(response)
-      })   
-      checkChildrenObject(graphData.id, typeId, (success: boolean, response: any) => {
-        if (success) setHasReferObject(response)
-      })
-      checkReferLock(graphData.id, typeId, (success: boolean, response: any) => {
-        if (success) setReferLock(response)
-      })
-    }
   }, [currentEditModel])
 
   function initLayout(data: Array<ObjectConfig>) {
@@ -213,6 +201,18 @@ export default function Editor(props: any) {
   const handleClickStart = () => {
     setStartOpen(true)
     form.setFieldValue('changeMethod', 0)
+    if (currentEditDefaultData && currentEditDefaultData["x.type.id"]) {
+      const typeId = currentEditDefaultData["x.type.id"]
+      checkObject(graphData.id, typeId, (success: boolean, response: any) => {   
+        if (success) setHasObject(response)
+      })   
+      checkChildrenObject(graphData.id, typeId, (success: boolean, response: any) => {
+        if (success) setHasReferObject(response)
+      })
+      checkReferLock(graphData.id, typeId, (success: boolean, response: any) => {
+        if (success) setReferLock(response)
+      })
+    }
   }
 
   const renderVersions = () => {

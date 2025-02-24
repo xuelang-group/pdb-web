@@ -49,7 +49,7 @@ export default function VersionState() {
         setOpen(false)
         setConfirmOpen(true)
       } else {
-        handleConfirm();
+        handleConfirm(0, values);
       }
     }).catch((err: any) => {
 
@@ -87,12 +87,13 @@ export default function VersionState() {
     dispatch(setStateType(undefined))
   }
 
-  const handleConfirm = (objectSyncMethod=0) => {
+  const handleConfirm = (objectSyncMethod=0, values={}) => {
     stateType && updateTypeVerison(graphData.id, {
       "x.type.version": stateType['x.type.version'],
       "x.type.version.id": stateType['x.type.version.id'],
       "x.type.version.name": versionName || stateType['x.type.version.name'],
       "x.type.version.state": state,
+      ...values,
       objectSyncMethod
     }, updateCallback)
     confirmOpen && setConfirmOpen(false)
@@ -117,7 +118,6 @@ export default function VersionState() {
 
   useEffect(() => {
     if (!stateType || state == undefined) return
-    console.log('====> ', state, hasObject, hasReferObject, hasReferLock)
     const version = stateType['x.type.version'];
     if (!state) {
       // 检出
@@ -146,15 +146,15 @@ export default function VersionState() {
       form.setFieldValue('x.type.version.name', '')
       return
     } 
-    const state = stateType?.['x.type.version.state'] ? 0 : 1;
+    const tpState = stateType?.['x.type.version.state'] ? 0 : 1;
     checkObject(graphData.id, stateType["x.type.id"], (success1: boolean, obj: any) => {      
       checkChildrenObject(graphData.id, stateType["x.type.id"], (success2: boolean, referObj: any) => {
         checkReferLock(graphData.id, stateType["x.type.id"], (success3: boolean, referLock: any) => {
-          setState(state) 
+          setState(tpState) 
           success1 && setHasObject(obj)
           success2 && setHasReferObject(referObj)
           success3 && setHasReferLock(referLock)
-          console.log('----> ', state, obj, referObj, referLock)
+          console.log('----> ', tpState, obj, referObj, referLock)
         });
       })
     })
