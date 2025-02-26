@@ -16,7 +16,8 @@ import { checkOutObject, deleteObjectRelation, getChildren, getRoots } from '@/a
 import { CustomObjectConfig, Parent, setObjectDetail, setObjects } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRelationMap, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
-  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap
+  TypeItemData, setShowSearch, setSearchAround, setGraphLoading, setScreenShootTimestamp, setTypeMap, setGraphDataMap,
+  RelationsConfig
 } from '@/reducers/editor';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
@@ -34,6 +35,7 @@ interface EditorProps {
 
 let graph: any;
 let graphCopyItem: any;
+let relatLines: RelationsConfig = {};
 export default function Editor(props: EditorProps) {
   const graphRef = useRef(null),
     routerParams = useParams(),
@@ -89,6 +91,7 @@ export default function Editor(props: EditorProps) {
       graph?.destroy();
       graph = null;
       (window as any).PDB_GRAPH = null;
+      relatLines = {};
     }
   }, [routerParams?.id]);
 
@@ -569,13 +572,22 @@ export default function Editor(props: EditorProps) {
     })();
   }
 
+  useEffect(() => {
+    relatLines = {}
+  }, [currentGraphTab])
+
+  useEffect(() => {
+    Object.assign(relatLines, toolbarConfig[currentGraphTab].relationLines)
+  }, [toolbarConfig])
+
   async function expandAll(item: any) {
     const graphData = JSON.parse(JSON.stringify(graph.save())),
       _objectData = JSON.parse(JSON.stringify(objectData));
     store.dispatch(setGraphLoading(true));
     const model = item.get("model");
     const shouldExpandCombo: any = [];
-    const relationLines = JSON.parse(JSON.stringify(_.get(toolbarConfig[currentGraphTab], 'relationLines', {})));
+    console.log('toolbarConfig expand: ', relatLines)
+    const relationLines = {...relatLines};
     await fetchChildren(model, graphData, _objectData, shouldExpandCombo, relationLines);
     store.dispatch(setToolbarConfig({
       key: currentGraphTab,
