@@ -35,7 +35,6 @@ interface EditorProps {
 
 let graph: any;
 let graphCopyItem: any;
-let relatLines: RelationsConfig = {};
 export default function Editor(props: EditorProps) {
   const graphRef = useRef(null),
     routerParams = useParams(),
@@ -91,7 +90,6 @@ export default function Editor(props: EditorProps) {
       graph?.destroy();
       graph = null;
       (window as any).PDB_GRAPH = null;
-      relatLines = {};
     }
   }, [routerParams?.id]);
 
@@ -572,21 +570,13 @@ export default function Editor(props: EditorProps) {
     })();
   }
 
-  useEffect(() => {
-    relatLines = {}
-  }, [currentGraphTab])
-
-  useEffect(() => {
-    Object.assign(relatLines, toolbarConfig[currentGraphTab].relationLines)
-  }, [toolbarConfig])
-
   async function expandAll(item: any) {
     const graphData = JSON.parse(JSON.stringify(graph.save())),
       _objectData = JSON.parse(JSON.stringify(objectData));
     store.dispatch(setGraphLoading(true));
     const model = item.get("model");
     const shouldExpandCombo: any = [];
-    console.log('toolbarConfig expand: ', relatLines)
+    const relatLines = store.getState().editor.toolbarConfig[currentGraphTab].relationLines;
     const relationLines = {...relatLines};
     await fetchChildren(model, graphData, _objectData, shouldExpandCombo, relationLines);
     store.dispatch(setToolbarConfig({
