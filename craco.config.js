@@ -61,7 +61,7 @@ module.exports = {
         // },
       },  
       '/summary': {
-        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/cabb8910d86111efa7ef6f83df648473/7789",
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55209/f6f16c60cd8b11ef85bdf748afbe794a/7000",
         changeOrigin: true,
         // pathRewrite: {
         //   '^/stream': ''
