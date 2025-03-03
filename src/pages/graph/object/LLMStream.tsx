@@ -39,6 +39,7 @@ export default function LLMStream() {
       signal: ctrl.signal,
       async onopen(response) {
         console.log('open: ', response)
+        setMessage(() => '')
       },
       onmessage(msg) {
         setMessage((prev) => `${prev}${msg.data.replaceAll('898989', '\n')}`)
@@ -48,12 +49,8 @@ export default function LLMStream() {
         setFetching(false)
       },
       onerror(error) {
-        if (retryCount) {
-          setFetching(false)
-          throw error
-        } else {
-          retryCount++
-        }
+        setFetching(false)
+        throw error
       }
     })
   }
