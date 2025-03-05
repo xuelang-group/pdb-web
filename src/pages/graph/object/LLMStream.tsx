@@ -38,8 +38,13 @@ export default function LLMStream() {
       body: JSON.stringify(params),
       signal: ctrl.signal,
       async onopen(response) {
-        console.log('open: ', response)
-        setMessage(() => '')
+        if (response.ok && response.headers.get('content-type') === 'text/event-stream') {
+          setMessage(() => '')
+        } else {
+          // throw new Error('连接失败')
+          console.error('连接失败')
+          return
+        }
       },
       onmessage(msg) {
         setMessage((prev) => `${prev}${msg.data.replaceAll('898989', '\n')}`)
@@ -49,6 +54,7 @@ export default function LLMStream() {
         setFetching(false)
       },
       onerror(error) {
+        console.log('onerror: ')
         setFetching(false)
         throw error
       }
