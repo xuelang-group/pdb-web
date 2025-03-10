@@ -1,5 +1,5 @@
 import { StoreState } from "@/store";
-import { Spin } from "antd";
+import { notification, Spin } from "antd";
 import { BorderOutlined, CloseSquareOutlined, MinusSquareOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,11 +38,15 @@ export default function LLMStream() {
       body: JSON.stringify(params),
       signal: ctrl.signal,
       async onopen(response) {
-        if (response.ok && response.headers.get('content-type') === 'text/event-stream') {
+        if (response.ok) {
           setMessage(() => '')
         } else {
           // throw new Error('连接失败')
           console.error('连接失败')
+          notification.error({
+            message: 'summary 连接失败',
+            description: `${response.status}: ${response.statusText}`
+          })
           return
         }
       },
