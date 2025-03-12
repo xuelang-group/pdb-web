@@ -37,6 +37,7 @@ export default function LLMStream() {
       },
       body: JSON.stringify(params),
       signal: ctrl.signal,
+      openWhenHidden: true,
       async onopen(response) {
         if (response.ok) {
           setMessage(() => '')
