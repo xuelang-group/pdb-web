@@ -38,6 +38,7 @@ import { RelationConfig, setRelations } from '@/reducers/relation';
 import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
 import { setRequestId, setNeedEditId, setNeedCheckId, setNeedVersionId } from '@/reducers/indicator';
 import { TypeConfig } from '@/reducers/type';
+import LLMOutputModal from '@/pages/graph/object/LLMStream';
 
 import { getHashParameterByName } from '@/utils/common';
 
@@ -270,6 +271,8 @@ function App(props: PdbConfig) {
         </Content>
       </Layout>
       <Spin className='pdb-init-loading' spinning={pageLoading} />
+      
+      <LLMOutputModal />
     </div>
   );
 }

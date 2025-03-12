@@ -27,7 +27,6 @@ import './index.less';
 import GraphToolbar from './GraphToolbar';
 import { setCommonParams } from '@/utils/common';
 import UpdateDisplayNameModal from './UpdateDisplayNameModal';
-import LLMOutputModal from './LLMStream';
 
 interface EditorProps {
   theme: string
@@ -887,7 +886,6 @@ export default function Editor(props: EditorProps) {
         }}
       />
       {contextHolder}
-      <LLMOutputModal />
     </div>
   );
 }

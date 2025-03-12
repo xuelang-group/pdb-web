@@ -1,4 +1,3 @@
-import { StoreState } from "@/store";
 import { notification, Spin } from "antd";
 import { BorderOutlined, CloseSquareOutlined, MinusSquareOutlined } from '@ant-design/icons';
 import { useEffect, useState } from "react";
@@ -6,16 +5,18 @@ import { useDispatch, useSelector } from "react-redux";
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';// 划线、表、任务列表和直接url等的语法扩展
 import rehypeRaw from 'rehype-raw'// 解析标签，支持html语法
-import { setParams, toggle } from "@/reducers/llmStream";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
+import Draggable from 'react-draggable';
 import { get } from "lodash";
+import { StoreState } from "@/store";
+import { setParams, toggle } from "@/reducers/llmStream";
 import './llmStream.less';
 
 export default function LLMStream() {
   const dispatch = useDispatch();
   const open = useSelector((state: StoreState) => state.llmStream.open);
   const params = useSelector((state: StoreState) => state.llmStream.params);
-
+ 
   const [collapsed, setCollapsed] = useState(false)
   const [fetching, setFetching] = useState(false)
   const [message, setMessage] = useState<string>('')
@@ -27,7 +28,6 @@ export default function LLMStream() {
 
   const handlePlay = () => {
     setFetching(true)
-    let retryCount = 0
     const ctrl = new AbortController()
     const base = get(window, 'pdbConfig.basePath', '')
     const eventSource = fetchEventSource(`${base}/llm/summary`, {
@@ -94,12 +94,14 @@ export default function LLMStream() {
   }
 
   return open ? (
-    <div className="pdb-llm-output">
-      <div className="pdb-llm-output-header">
-        <span className="pdb-llm-output-btn" onClick={() => setCollapsed(!collapsed)}>{ collapsed ? <BorderOutlined /> : <MinusSquareOutlined /> }</span>
-        <span className="pdb-llm-output-btn" onClick={handleClose}><CloseSquareOutlined /></span>
+    <Draggable handle=".pdb-llm-output-header">
+      <div className="pdb-llm-output">
+        <div className="pdb-llm-output-header">
+          <span className="pdb-llm-output-btn" onClick={() => setCollapsed(!collapsed)}>{ collapsed ? <BorderOutlined /> : <MinusSquareOutlined /> }</span>
+          <span className="pdb-llm-output-btn" onClick={handleClose}><CloseSquareOutlined /></span>
+        </div>
+        { renderBody() }
       </div>
-      { renderBody() }
-    </div>
+    </Draggable>
   ) : null
 }

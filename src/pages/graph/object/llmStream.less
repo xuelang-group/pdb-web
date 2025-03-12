@@ -1,9 +1,9 @@
 .pdb-llm-output {
   position: absolute;
-  left: 50%;
-  bottom: 24px;
-  width: 50%;
-  margin-left: -25%;
+  left: 30vw;
+  top: 22vh;
+  z-index: 9;
+  width: 40vw;
   border: solid 1px var(--border-color1);
   border-radius: 3px;
   background-color: var(--fill-color4);
@@ -11,6 +11,7 @@
   &-header {
     display: flex;
     justify-content: flex-end;
+    cursor: move;
   }
   &-btn {
     display: block;
@@ -34,7 +35,7 @@
     height: 100%;
     overflow: auto;
     &.fade-in-up {
-      height: 42rem;
+      height: 70vh;
       transform: scaleY(1);
     }
     &.fade-out-down {
