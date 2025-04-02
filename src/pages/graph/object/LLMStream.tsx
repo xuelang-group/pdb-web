@@ -28,6 +28,7 @@ export default function LLMStream() {
 
   const handlePlay = () => {
     setFetching(true)
+    // console.log('params: ', params)
     const ctrl = new AbortController()
     const base = get(window, 'pdbConfig.basePath', '')
     const eventSource = fetchEventSource(`${base}/llm/summary`, {
@@ -76,7 +77,6 @@ export default function LLMStream() {
   }, [open, params])
 
   const renderBody = () => {
-    // console.log(message)
     return (
       <div className={`pdb-llm-output-body ${collapsed ? 'fade-out-down' : 'fade-in-up'}`}>
         <Markdown

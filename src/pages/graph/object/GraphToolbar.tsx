@@ -1345,16 +1345,24 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     // graph.render();
     // graph.zoom(1);
   }
-  
-  const searchLLM = function () {
-    const graphId = routerParams.id;
-    const content = _.get(searchRef, "current.input.value", "");
-    if (!content) {
-      onRestGraph();
-      return;
+
+  const handleReceiveMessage = (e: any) => {
+    if (e.data.trigger) {
+      handleSearchLlm('111')
     }
+  }
+
+  useEffect(() => {
+    window.addEventListener('message', handleReceiveMessage)
+    return () => {
+      window.removeEventListener('message', handleReceiveMessage)
+    }
+  })
+
+  const handleSearchLlm = (content: string) => {
     dispatch(setGraphLoading(true));
     dispatch(setCurrentEditModel(null));
+    const graphId = routerParams.id;
     runLLM({ graphId, tree: false, content }, (success: boolean, response: any) => {
       if (success) {
         const { childrenVid, relationNames } = response
@@ -1362,7 +1370,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
         getQueryChildren(_param, (success: boolean, data: any) => {
           if (success) {
             updateGraphData(data, _param);
-            dispatch(toggle(true))
+            _.get(selectedTab, 'key', '') === "search" && dispatch(toggle(true))
           } else {
             notification.error({
               message: '搜索失败',
@@ -1370,6 +1378,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             });
           } 
         })
+        window.top?.postMessage({pdb: true, data: response.contentJson},'*')
         // 查询结果的自然语言总结功能
         dispatch(setParams({query: content, data: response.contentJson}))
       } else {
@@ -1381,9 +1390,23 @@ export default function GraphToolbar(props: GraphToolbarProps) {
       dispatch(setGraphLoading(false));
     });
   }
+  
+  const searchLLM = function () {
+    const content = _.get(searchRef, "current.input.value");
+    if (!content) {
+      onRestGraph();
+      return;
+    }
+    handleSearchLlm(content)
+  }
+  const postMsg = () => {
+    window.top?.postMessage({data: '1111'},'*')
+    window.postMessage({data: '222'},'*')
+  }
   return (
     <>
       <div className='pdb-graph-toolbar'>
+        {/* <Button onClick={postMsg}>Text</Button> */}
         {!location.pathname.endsWith("/template") && tabs.map((tab: any) => tab.popover ? (
           <Popover
             visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
