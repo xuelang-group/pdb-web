@@ -52,7 +52,7 @@ module.exports = {
   devServer: {
     proxy: {
       '/pdb': {
-        target: "http://10.88.40.73:30080/pdb",
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55211/81759ec00ea411f0b18cc98a310b2dc6/7000",
         changeOrigin: true,
         // onProxyReq(proxyReq) {
         //   // 设置Cookie
@@ -60,11 +60,11 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        target: "http://sp10.xuelangyun.com:30080/proxr/80210299/56648/5db701007e0711ef95b3e5448473221c/7789",
+        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55211/81759ec00ea411f0b18cc98a310b2dc6/7000",
         changeOrigin: true,
-        pathRewrite: {
-          '^/indicator': ''
-        }
+        // pathRewrite: {
+        //   '^/indicator': ''
+        // }
       },
       '/adapter': {
         target: "http://120.195.198.50:21881",

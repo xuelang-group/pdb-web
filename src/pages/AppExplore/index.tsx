@@ -926,9 +926,10 @@ export default function AppExplore() {
     let tooltip = "";
     const _searchTags = searchTags[index];
     if (!_searchTags) return (<></>);
-    if (_searchTags.length === 5) {
-      tooltip = "对象类型最多与2个对象类型关联。";
-    } else if (searchTabs === 'relation') {
+    // if (_searchTags.length === 5) {
+    //   tooltip = "对象类型最多与2个对象类型关联。";
+    // } else
+    if (searchTabs === 'relation') {
       tooltip = "两个对象类型之间必须以关系类型连接，请选择关系类型。"
     }
     return (

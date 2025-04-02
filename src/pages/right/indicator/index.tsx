@@ -30,6 +30,7 @@ export default function Right(props: any) {
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
   const updateModalVisible = useSelector((state: StoreState) => state.indicator.updateModalVisible);
+  const extraColumns = useSelector((state: StoreState) => state.indicator.extraColumns);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : ['']));
@@ -60,6 +61,7 @@ export default function Right(props: any) {
         dimension: getDimensionObj(dimension),
         func: func,
         group_by: getGroupByObj(compact(groupBy)),
+        extra_columns: extraColumns
       },
       pql_params: {
         api: api,

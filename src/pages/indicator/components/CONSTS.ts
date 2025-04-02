@@ -82,6 +82,7 @@ export type Col = {
   type: string;
   disabled?: boolean;
   checked?: boolean;
+  selected?: boolean;
   mergeCell?: boolean;
   fieldFormat?: (record: any) => any;
 }
@@ -92,8 +93,8 @@ export function getColumns(cols: Col[]) {
     "title": field,
     "dimensionKey": field,
     "mergeCell": mergeCell,
-    "disableSelect": !checked,
-    "disableHeaderSelect": !checked,
+    "disableSelect": true,
+    "disableHeaderSelect": true,
     "style": disabled ? {
       "bgColor": "#F4F6F9",
       "color": "#C2C7CC",
