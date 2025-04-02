@@ -14,11 +14,14 @@ const api = {
 };
 
 // 获取模板列表
-export const getCsv = (query, callback) => {
+export const getCsv = (query, extraColumns=[], callback) => {
   return axios.post(api['csv'], {
-    "api": "/pdb/api/v1/object/search/pql",
-    "params": query
-  }).then(({data}) => {
+    "pql_params": {
+      "api": queryApi['pql'],
+      "params": query
+    },
+    "extra_columns": extraColumns
+  }).then(({ data }) => {
     // console.log(data)
     callback && callback(data.success, data.success ? data.data: data);
   }, (err) => {
@@ -27,12 +30,13 @@ export const getCsv = (query, callback) => {
 };
 
 // 执行计算
-export const getFuncResult = ({dimension, func, groupBy, query}, callback) => {
+export const getFuncResult = ({dimension, func, groupBy, extraColumns, query}, callback) => {
   return axios.post(api['calc'], {
     "metric_params": {
       dimension,
       func,
-      group_by: groupBy
+      group_by: groupBy,
+      extra_columns: extraColumns
     },
     "pql_params": {
       "api": "/pdb/api/v1/object/search/pql",
