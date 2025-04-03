@@ -428,12 +428,12 @@ export default function AppExplore() {
     const currentTags = searchTags[index],
       currentTagLen = currentTags.length;
 
-    if (currentTagLen === 5) {
-      // 一层最多3个对象类型
-      setOptionMap({});
-      setFilterLoading(false);
-      return;
-    }
+    // if (currentTagLen === 5) {
+    //   // 一层最多3个对象类型
+    //   setOptionMap({});
+    //   setFilterLoading(false);
+    //   return;
+    // }
     if (currentTags.length > 0) {
       prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
       prevSearchTagType = _.get(prevSearchTag, 'type', "");
