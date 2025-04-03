@@ -109,10 +109,18 @@ export default function Right(props: any) {
 
   const getDimensionObj = (dimension: string) => {
     const header = query.csv.header
-    const dimensionObj = header.find((item: any) => item.attrName === dimension) || {attrId: '', attrName: ''}
-    return {
-      name: dimensionObj.attrId,
-      name_cn: dimensionObj.attrName,
+    const dimensionObj = header.find((item: any) => item.attrName === dimension)
+    if(dimensionObj) {
+      const { attrId, attrName } = dimensionObj
+      return {
+        name: attrId,
+        name_cn: attrName,
+      }
+    } else {
+      return  {
+        name: dimension,
+        name_cn: dimension,
+      }
     }
   }
 
