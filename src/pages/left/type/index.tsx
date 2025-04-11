@@ -634,7 +634,7 @@ export default function Left() {
             modalForm.setFieldValue('x.type.version.reference', refer);
           }
           if (key === 'copy') {
-            const copyName = getDefaultCopyName(item['x.type.name'])
+            const copyName = getDefaultCopyName(item['r.type.name'])
             modalForm.setFieldValue('name', copyName);
             // 被复制对象已开启版本控制，复制范围
             item['x.type.version'] && modalForm.setFieldValue('copyMethod', 0);
