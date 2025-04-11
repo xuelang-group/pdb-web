@@ -625,8 +625,9 @@ export default function Left() {
         break;
       default:
         if (['copy', 'inherit'].includes(key)) {
-          modalForm.setFieldValue('prototype', item['x.type.id']);
-          modalForm.setFieldValue('x.type.version', item['x.type.version']);
+          const prefix = type === 'relation' ? 'r' : 'x'
+          modalForm.setFieldValue('prototype', item[`${prefix}.type.id`]);
+          modalForm.setFieldValue('x.type.version', item[`${prefix}.type.version`]);
           setPrototype(item);
           if (key === 'inherit') {
             // 继承自已开启版本控制的对象，则默认跟踪最新版本
@@ -634,10 +635,10 @@ export default function Left() {
             modalForm.setFieldValue('x.type.version.reference', refer);
           }
           if (key === 'copy') {
-            const copyName = getDefaultCopyName(item['r.type.name'])
+            const copyName = getDefaultCopyName(item[`${prefix}.type.name`])
             modalForm.setFieldValue('name', copyName);
             // 被复制对象已开启版本控制，复制范围
-            item['r.type.version'] && modalForm.setFieldValue('copyMethod', 0);
+            item[`${prefix}.type.version`] && modalForm.setFieldValue('copyMethod', 0);
           }
         }
         setModalType(key);
