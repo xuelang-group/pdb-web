@@ -1037,44 +1037,51 @@ export default function Right(props: RightProps) {
     title: '创建时间',
     render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
   }]
-  const renderCommon = () => {
+  const renderCommon = (key: string) => {
     return (
       <div className='pdb-type-common'>
         <div className='pdb-type-common-item'>
           <span>开启版本控制： </span>
           <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF"
-            checked={currentEditDefaultData['x.type.version']}
+            checked={currentEditDefaultData[`x.${key}.version`]}
             onChange={checked => {
               updateItemData({
                 ...currentEditDefaultData,
-                'x.type.version': checked
+                [`x.${key}.version`]: checked
               });
             }}
             disabled={!isEditing}
           />
         </div>
+        {
+          key === 'object' && currentEditDefaultData[`x.${key}.version`] && (
+            <div className='pdb-type-common-item wrap'>              
+            <span>配置实例版本控制：{<a style={{float: 'right'}} onClick={() => {}}>修改</a>}</span>
+            </div>
+          )
+        }
         <div className='pdb-type-common-item wrap'>
-          <span>版本记录：{currentEditDefaultData['x.type.version'] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal(true))}>详情</a>}</span>
-          <Table className={!currentEditDefaultData['x.type.version'] ? 'pdb-table-scroll pdb-type-table-disabled' : 'pdb-table-scroll'}
+          <span>版本记录：{currentEditDefaultData[`x.${key}.version`] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal(true))}>详情</a>}</span>
+          <Table className={!currentEditDefaultData[`x.${key}.version`] ? 'pdb-table-scroll pdb-type-table-disabled' : 'pdb-table-scroll'}
             style={{maxHeight: 340}}
             columns={versionColumns}
             dataSource={versionList}
             pagination={false}
             size="small"
             scroll={{y: 300}}
-            rowKey={'x.type.version.id'}
+            rowKey={`x.${key}.version.id`}
             loading={versionLoading}
           />
         </div>
-        {prototypeVersion && <div className='pdb-type-common-item wrap'>
+        {key === 'type' && prototypeVersion && <div className='pdb-type-common-item wrap'>
           <span>父对象引用方式：</span>
           <Select style={{width: '100%'}}
-            value={currentEditDefaultData['x.type.version.reference']}
+            value={currentEditDefaultData[`x.${key}.version.reference`]}
             disabled={!isEditing}
             onChange={value => {
               updateItemData({
                 ...currentEditDefaultData,
-                'x.type.version.reference': value
+                [`x.${key}.version.reference`]: value
               });
             }}
           >
@@ -1103,7 +1110,7 @@ export default function Right(props: RightProps) {
     rightPanelTabs.push({
       key: 'common',
       label: '高级配置',
-      children: renderCommon()
+      children: renderCommon('type')
     });
   } else if (currentEditType === 'relation') {
     if (props.route === 'type' || location.pathname.endsWith("/template")) {
@@ -1123,6 +1130,11 @@ export default function Right(props: RightProps) {
       key: 'relation',
       label: '关系列表',
       children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
+    });
+    !isEmpty(currentEditDefaultData) && rightPanelTabs.push({
+      key: 'common',
+      label: '高级配置',
+      children: renderCommon('object')
     });
     // hasVersion && rightPanelTabs.push({
     //   key: 'version',
