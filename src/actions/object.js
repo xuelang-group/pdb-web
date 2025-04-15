@@ -317,19 +317,148 @@ export const getRelationTarget = (graphId, params, callback) => {
   });
 }
 
-/**
+/** 
  * 版本相关
  */
 const versionApiPrefix = `${objectApiPrefix}/version`
 
 const versionApi = {
-  list: versionApiPrefix + "/list",
+  control: versionApiPrefix + "/control",       // 对象版本控制
+  get: versionApiPrefix + "/get",               // 查询对象版本
+  add: versionApiPrefix + "/add",               // 新增对象版本
+  delete: versionApiPrefix + "/delete",         // 删除对象版本
+  update: versionApiPrefix + "/update",         // 修改对象版本
+  list: versionApiPrefix + "/list",             // 查询对象版本列表
+  change: versionApiPrefix + "/change",         // 启用对象历史版本
+  diff: versionApiPrefix + "/diff",             // 对象版本对比
   checkout: versionApiPrefix + "/checkout",
 }
 
-export const getVersionList = (params, callback) => {
+/**对象版本控制 [开启|关闭]
+ * @param {
+ *   'x.object.id': string;
+ *   'x.object.version': bool;
+ *   'x.object.version.name'?: string;
+ *   'x.object.version.control'?: object;  // 配置版本变化控制
+ * } params 
+ * @returns 对象数组
+ */
+export const setControl = (params, callback) => {
+  return axios.post(versionApi['control'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
 
+/**查询对象版本
+ * @param {
+ *   'x.object.version.id': string;
+ * } params 
+ * @returns 对象数组
+ */
+export const getVersion = (params, callback) => {
+  return axios.post(versionApi['get'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**新增、修改 对象版本
+ * @param {
+ *   'x.object.id': string;
+ *   'x.object.version.id': string;
+ *   'x.object.version.name': string;
+ *   'x.object.version.description': string;
+ *   'x.object.version.state': string;
+ *   ...
+ * } params 
+ * @returns 对象数组
+ */
+export const addVersion = (params, callback) => {
+  return axios.post(versionApi['add'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+export const updateVersion = (params, callback) => {
+  return axios.post(versionApi['update'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**删除对象版本
+ * @param {
+ *   'x.object.version.id': string;
+ * } params 
+ * @returns 
+ */
+export const delVersion = (params, callback) => {
+  return axios.post(versionApi['delete'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/**启用对象历史版本
+ * @param {
+ *   'x.object.version.id': string;
+ *   'x.object.version.name'?: string;
+ *   'changeMethod': int;  启用方式 0-保存为新版本 1-直接回退
+ * } params 
+ */
+export const changeVersion = (params, callback) => {
+  return axios.post(versionApi['change'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/** 
+ * @param {'x.object.id': string} params 
+ * @returns 对象数组
+ */
+export const getVersionList = (params, callback) => {
   return axios.post(versionApi['list'], {
+    ...commonParams,
+    ...params
+  }).then(({ data }) => {
+    callback && callback(data.success, data.success ? data.data : data);
+  }, (err) => {
+    callback && callback(false, err);
+  });
+};
+
+/** 
+ * @param {'oldVersionId': string; 'newVersionId': string} params 
+ * @returns 对比结果 {isUpdated: boolean; base: object; attr: object}
+ */
+export const diffVersion = (params, callback) => {
+  return axios.post(versionApi['diff'], {
     ...commonParams,
     ...params
   }).then(({ data }) => {
