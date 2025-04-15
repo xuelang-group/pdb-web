@@ -14,6 +14,7 @@
   .g6-component-contextmenu {
     padding: 0px;
     border: none;
+    background-color: var(--component-bg);
     box-shadow: var(--box-shadow);
 
     .graph-contextmenu {
@@ -39,7 +40,7 @@
     margin: 0;
     width: 16rem;
 
-    li {
+    li.item {
       padding: .8rem 1rem;
       cursor: pointer;
       color: var(--text-color1);
@@ -48,17 +49,28 @@
       span {
         pointer-events: none;
       }
-      span:nth-child(1) {
+      >span:nth-child(1) {
         flex: 1;
       }
-      span:nth-child(2) {
+      >span:nth-child(2) {
         color: var(--text-color3);
         font-size: 1rem;
       }
+      &.disabled {
+        color: var(--text-color4);
+        cursor: default;
+      }
 
-      &:hover {
+      &:not(.disabled):hover {
         background-color: var(--primary-selected-bg);
       }
+    }
+    li.divider {
+      margin: .4rem 0;
+      padding: 0;
+      height: 1px;
+      background-color: rgba(5,5,5,0.06);
+      // background-color: var(--fill-color3);
     }
   }
 
@@ -495,5 +507,73 @@
     line-height: 2.2rem;
     margin-top: .4rem;
     color: var(--text-color3);
+  }
+}
+
+.pdb-switch {
+  position: relative;
+  min-width: 2.8rem;
+  height: 16px;
+  padding: 0;
+  line-height: 16px;
+  vertical-align: middle;
+  background-color: rgba(0,0,0,0.25);
+  border: 0;
+  border-radius: 8px;
+  // transition: all .2s;
+  user-select: none;
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';
+  &-handle {
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px 0 rgba(0,35,11,0.2);
+    // transition: all .2s ease-in-out;
+  }
+  &-inner {
+    display: block;
+    overflow: hidden;
+    border-radius: 100px;
+    height: 100%;
+    font-size: 12px;
+    padding-inline-start: 18px;
+    padding-inline-end: 6px;
+    // transition: padding-inline-start 0.2s ease-in-out,padding-inline-end 0.2s ease-in-out;
+    &-checked, &-unchecked {
+      display: block;
+      min-height: 16px;
+      color: #fff;
+    }
+    &-checked {
+      margin-inline-start: calc(-100% + 16px - 36px);
+      margin-inline-end: calc(100% - 16px + 36px);
+    }
+    &-unchecked {
+      margin-top: -16px;
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+    }
+  }
+  &-checked {
+    background-color: var(--primary-color);
+    .pdb-switch-handle {
+      inset-inline-start: calc(100% - 14px);
+    }
+    .pdb-switch-inner {
+      padding-inline-start: 6px;
+      padding-inline-end: 18px;
+      &-checked {
+        margin-inline-start: 0;
+        margin-inline-end: 0;
+      }
+      &-unchecked {
+        margin-inline-start: calc(100% - 16px + 36px);
+        margin-inline-end: calc(-100% + 16px - 36px);
+      }
+    }
   }
 }

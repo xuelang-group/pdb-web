@@ -175,14 +175,28 @@ export default function Editor(props: EditorProps) {
             <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
           </ul>`;
         }
+        const version = _.get(itemModel.data, 'x.object.version');
         return `<ul class="pdb-graph-node-contextmenu">
-          <li title="探索">探索</li>
-          <li title="删除"><span>删除</span><span>Del/Backspace</span></li>
-          <li title="复制"><span>复制</span><span>Ctrl+c</span></li>
+          <li class="item" title="探索">探索</li>
+          <li class="item" title="删除"><span>删除</span><span>Del/Backspace</span></li>
+          <li class="item" title="复制"><span>复制</span><span>Ctrl+c</span></li>
           ${!_.isEmpty(graphCopyItem) && graphCopyItem.id !== itemModel.id ?
-            '<li title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
+            '<li class="item" title="粘贴"><span>粘贴</span><span>Ctrl+v</span></li>' : ''}
+          <li class="divider"></li>
+          <li class="item" title="版本控制">
+            <span>版本控制</span>
+            <button type="button" role="switch" class="pdb-switch pdb-switch-small${version ? ' pdb-switch-checked' : ''}" style="pointer-events: none;">
+              <div class="pdb-switch-handle"></div>
+              <span class="pdb-switch-inner">
+                <span class="pdb-switch-inner-checked">ON</span>
+                <span class="pdb-switch-inner-unchecked">OFF</span>
+              </span>
+            </button>
+          </li>
+          <li title="版本记录" class="${version ? 'item' : 'item disabled'}"><span>版本记录</span></li>
+          <li title="配置实例版本控制" class="${version ? 'item' : 'item disabled'}"><span>配置实例版本控制</span></li>
           ${(_.get(itemModel.data, 'x.object.version.childs', 0)) > 0 && _.get(itemModel, 'data.collapsed') !== false ?
-            '<li title="一键展开">一键展开</li>' : ''
+            '<li class="divider"></li><li class="item" title="一键展开">一键展开</li>' : ''
           }
         </ul>`;
       },
