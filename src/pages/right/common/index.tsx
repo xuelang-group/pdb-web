@@ -1038,6 +1038,7 @@ export default function Right(props: RightProps) {
     render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
   }]
   const renderCommon = (key: string) => {
+    if (isEmpty(currentEditDefaultData)) return (<div className='pdb-type-common'></div>)
     return (
       <div className='pdb-type-common'>
         <div className='pdb-type-common-item'>
@@ -1131,7 +1132,7 @@ export default function Right(props: RightProps) {
       label: '关系列表',
       children: (<RelationList source={currentEditModel as NodeItemData} loading={typeLoading || attrLoading} />)
     });
-    !isEmpty(currentEditDefaultData) && rightPanelTabs.push({
+    rightPanelTabs.push({
       key: 'common',
       label: '高级配置',
       children: renderCommon('object')

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { VersionState } from './type';
+import { NodeItemData } from './editor';
 
 export interface Parent {
   uid?: string
@@ -31,12 +32,20 @@ export interface ObjectRelationInfo {
   'r.object.attrvalue'?: any // 关系属性键值对
 }
 
+export interface ObjectVersionControl {
+  'x.object.version.control.value.change'?: boolean
+  'x.object.version.control.value.attrlist'?: string[]
+  'x.object.version.control.time.change'?: boolean
+  'x.object.version.control.time.period'?: number
+}
+
 export interface ObjectVersionConfig {
   'x.object.version'?: boolean // 开启版本控制
   'x.object.version.id'?: string // 对象版本ID
   'x.object.version.name'?: string // 对象版本名称
   'x.object.version.description'?: string // 对象版本描述
   'x.object.version.attrvalue'?: any // 属性值
+  'x.object.version.control'?: ObjectVersionControl // 配置版本变化控制
   'x.object.version.created'?: number // 对象版本创建时间
   'x.object.version.updated'?: number // 对象版本修改时间
   'x.object.version.state'?: VersionState // 对象版本修改时间
@@ -85,6 +94,11 @@ export interface ObjectGraphDataState {
 interface ObjectState {
   data: Array<CustomObjectConfig>
   graphData: ObjectGraphDataState
+  versionControl: {
+    open: boolean;
+    data?: CustomObjectConfig;
+    id?: string;
+  }
 }
 
 // 使用该类型定义初始 state
@@ -103,6 +117,11 @@ const initialState: ObjectState = {
     },
     created: "",
     updated: ""
+  },
+  versionControl: {
+    open: false,
+    data: undefined,
+    id: undefined
   }
 }
 
@@ -129,9 +148,16 @@ export const objectSlice = createSlice({
         }
       }
       state.data = newData;
+    },
+    setVersionControl: (state, action: PayloadAction<{ data: CustomObjectConfig; id: string; } | undefined>) => {
+      if (action.payload) {
+        state.versionControl = { open: true, ...action.payload }
+      } else {
+        state.versionControl = { open: false, data: undefined, id: undefined }
+      }
     }
   }
 })
 
-export const { setObjects, setObjectDetail, reset, setGraphData } = objectSlice.actions
+export const { setObjects, setObjectDetail, reset, setGraphData, setVersionControl } = objectSlice.actions
 export default objectSlice.reducer

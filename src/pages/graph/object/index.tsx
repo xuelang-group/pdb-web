@@ -12,7 +12,7 @@ import store from '@/store';
 import { edgeLabelStyle, TREE_NODE_STEP_LINE } from '@/g6/edge';
 import { G6OperateFunctions } from '@/g6/behavior';
 import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
-import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjects } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjectDetail, setObjects, setVersionControl } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig, setSearchAround
@@ -24,6 +24,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 
 import './index.less';
 import GraphToolbar from './GraphToolbar';
+import VersionControlModal from './VersionControlModal';
 
 interface EditorProps {
   theme: string
@@ -221,6 +222,26 @@ export default function Editor(props: EditorProps) {
             break;
           case "一键展开":
             expandAll(item);
+            break;
+          case "版本控制":
+            const version = itemModel.data['x.object.version']
+            if (version) {
+              // 直接关闭
+              const node = graph.findById(itemModel.id)
+              node.update({
+                data: {
+                  ...itemModel.data,
+                  'x.object.version': !version,
+                }
+              })
+              dispatch(setObjectDetail({
+                id: itemModel.data['x.object.id'],
+                options: { 'x.object.version': !version }
+              }))
+            } else {
+              // 打开 配置实例版本控制 弹窗
+              dispatch(setVersionControl({data: itemModel.data, id: itemModel.id}));
+            }
             break;
         }
       },
@@ -822,6 +843,7 @@ export default function Editor(props: EditorProps) {
       </div>
       <TemplateGraph theme={props.theme} />
       {contextHolder}
+      <VersionControlModal />
     </div>
   );
 }
