@@ -17,7 +17,7 @@ import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig, setSearchAround
 } from '@/reducers/editor';
-import { deleteObjectRelation, getChildren, getRoots, setCommonParams } from '@/actions/object';
+import { deleteObjectRelation, getChildren, getRoots, setCommonParams, setControl } from '@/actions/object';
 import { getImagePath, uploadFile } from '@/actions/minioOperate';
 import appDefaultScreenshotPath from '@/assets/images/no_image_xly.png';
 import TemplateGraph from '@/pages/graph/template/index';
@@ -227,17 +227,29 @@ export default function Editor(props: EditorProps) {
             const version = itemModel.data['x.object.version']
             if (version) {
               // 直接关闭
-              const node = graph.findById(itemModel.id)
-              node.update({
-                data: {
-                  ...itemModel.data,
-                  'x.object.version': !version,
+              setControl({
+                'x.object.id': itemModel.data['x.object.id'],
+                'x.object.version': !version,
+              }, (success: boolean, response: any) => {
+                if (success) {
+                  const node = graph.findById(itemModel.id)
+                  node.update({
+                    data: {
+                      ...itemModel.data,
+                      'x.object.version': !version,
+                    }
+                  })
+                  dispatch(setObjectDetail({
+                    id: itemModel.data['x.object.id'],
+                    options: { 'x.object.version': !version }
+                  }))
+                } else {
+                  notification.error({
+                    message: '关闭版本控制失败',
+                    description: response.message || response.msg
+                  });
                 }
               })
-              dispatch(setObjectDetail({
-                id: itemModel.data['x.object.id'],
-                options: { 'x.object.version': !version }
-              }))
             } else {
               // 打开 配置实例版本控制 弹窗
               dispatch(setVersionControl({data: itemModel.data, id: itemModel.id}));

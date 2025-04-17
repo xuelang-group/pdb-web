@@ -20,7 +20,7 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
-import { setObjectRelation, getObject, setObject } from '@/actions/object';
+import { setObjectRelation, getObject, setObject, setControl } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
@@ -1075,6 +1075,44 @@ export default function Right(props: RightProps) {
       </div>
     )
   }
+  const handleVersionToggle = (checked: boolean) => {
+    if (!currentEditModel) return
+    const id = currentEditModel.id
+    if (checked) {
+      // 开启
+      currentEditModel && dispatch(setVersionControl({ data: {...currentEditDefaultData}, id }));
+    } else {
+      // 关闭
+      setControl({
+        'x.object.id': currentEditDefaultData['x.object.id'],
+        'x.object.version': checked,
+      }, (success: boolean, response: any) => {
+        if (success) {
+          const graph = (window as any).PDB_GRAPH;
+          const node = graph.findById(id)
+          node.update({
+            data: {
+              ...currentEditDefaultData,
+              'x.object.version': checked,
+            }
+          })
+          dispatch(setObjectDetail({
+            id: currentEditDefaultData['x.object.id'],
+            options: { 'x.object.version': checked }
+          }))
+          setCurrentEditDefaultData({
+            ...currentEditDefaultData,
+            'x.object.version': checked
+          })
+        } else {
+          notification.error({
+            message: '关闭版本控制失败',
+            description: response.message || response.msg
+          });
+        }
+      })
+    }
+  }
   const renderCommon = (key: string) => {
     if (!currentEditModel || isEmpty(currentEditDefaultData)) return (<div className='pdb-type-common'></div>)
     return (
@@ -1084,10 +1122,10 @@ export default function Right(props: RightProps) {
           <Switch size="small" checkedChildren="ON" unCheckedChildren="OFF"
             checked={currentEditDefaultData[`x.${key}.version`]}
             onChange={checked => {
-              updateItemData({
+              key === 'type' ? updateItemData({
                 ...currentEditDefaultData,
                 [`x.${key}.version`]: checked
-              });
+              }) : handleVersionToggle(checked);
             }}
             disabled={!isEditing}
           />
