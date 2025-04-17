@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag, message } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag, message, Card, Typography, Collapse } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -24,7 +24,7 @@ import { setObjectRelation, getObject, setObject } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail, setVersionControl } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -1037,8 +1037,46 @@ export default function Right(props: RightProps) {
     title: '创建时间',
     render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
   }]
+  const renderVersionControl = () => {
+    if (!currentEditModel) return
+    const typeId = currentEditDefaultData['x.type.id']
+    const typeAttrs = typesMap[typeId]['x.type.version.attrs'] || []
+    const attrlist = currentEditDefaultData['x.object.version.control']['x.object.version.control.value.attrlist']
+    const list = typeAttrs.filter(item => attrlist.includes(item.name))
+    return (
+      <div className='pdb-type-common-item wrap'>              
+        <span>配置实例版本控制：{
+          <a style={{float: 'right'}}
+            onClick={() => {
+              dispatch(setVersionControl({
+                data: {...currentEditDefaultData},
+                id: currentEditModel?.id
+              }))
+            }}
+          >修改</a>
+        }</span>
+        <Collapse className='pdb-version-collapse'
+          defaultActiveKey={['1']}
+          items={[{
+            key: '1',
+            label: '依据属性值变化',
+            children: <>
+              {
+                list.map(item => (
+                  <div className='pdb-version-control-attr'>
+                    <Space>{item.display}<Typography.Text type='secondary'>{item.name}</Typography.Text></Space>
+                  </div>
+                ))
+              }
+            </>
+          }]}
+          size="small"
+        />
+      </div>
+    )
+  }
   const renderCommon = (key: string) => {
-    if (isEmpty(currentEditDefaultData)) return (<div className='pdb-type-common'></div>)
+    if (!currentEditModel || isEmpty(currentEditDefaultData)) return (<div className='pdb-type-common'></div>)
     return (
       <div className='pdb-type-common'>
         <div className='pdb-type-common-item'>
@@ -1055,11 +1093,7 @@ export default function Right(props: RightProps) {
           />
         </div>
         {
-          key === 'object' && currentEditDefaultData[`x.${key}.version`] && (
-            <div className='pdb-type-common-item wrap'>              
-            <span>配置实例版本控制：{<a style={{float: 'right'}} onClick={() => {}}>修改</a>}</span>
-            </div>
-          )
+          key === 'object' && currentEditDefaultData[`x.${key}.version`] && renderVersionControl()
         }
         <div className='pdb-type-common-item wrap'>
           <span>版本记录：{currentEditDefaultData[`x.${key}.version`] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal(true))}>详情</a>}</span>
