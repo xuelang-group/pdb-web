@@ -12,7 +12,7 @@ import store from '@/store';
 import { edgeLabelStyle, TREE_NODE_STEP_LINE } from '@/g6/edge';
 import { G6OperateFunctions } from '@/g6/behavior';
 import { OBJECT_NODE_TYPE, PAGINATION_NODE_TYPE } from '@/g6/node';
-import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjectDetail, setObjects, setVersionControl } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, PAGINATION_TYPE, setObjectDetail, setObjects, setVersionControl, setVersionModalOpen } from '@/reducers/object';
 import {
   NodeItemData, setToolbarConfig, setRootNode, setCurrentEditModel, setMultiEditModel, EdgeItemData,
   TypeItemData, setShowSearch, setGraphLoading, setScreenShootTimestamp, setGraphDataMap, RelationsConfig, setSearchAround
@@ -25,6 +25,7 @@ import TemplateGraph from '@/pages/graph/template/index';
 import './index.less';
 import GraphToolbar from './GraphToolbar';
 import VersionControlModal from './VersionControlModal';
+import VersionModal from './versionModal';
 
 interface EditorProps {
   theme: string
@@ -254,6 +255,9 @@ export default function Editor(props: EditorProps) {
               // 打开 配置实例版本控制 弹窗
               dispatch(setVersionControl({data: itemModel.data, id: itemModel.id}));
             }
+            break;
+          case "版本记录":
+            dispatch(setVersionModalOpen(true))
             break;
         }
       },
@@ -856,6 +860,7 @@ export default function Editor(props: EditorProps) {
       <TemplateGraph theme={props.theme} />
       {contextHolder}
       <VersionControlModal />
+      <VersionModal />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag, message, Card, Typography, Collapse } from 'antd';
+import { Input, Button, Form, InputRef, Tabs, Spin, notification, InputNumber, Select, DatePicker, Modal, Empty, Divider, Switch, Space, Table, Tag, message, Typography, Collapse } from 'antd';
 import { DownCircleOutlined, UpCircleOutlined } from '@ant-design/icons';
 import TextArea from 'antd/lib/input/TextArea';
 import { useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
@@ -20,11 +20,11 @@ import { defaultNodeColor, typeMap } from '@/utils/common';
 import { resizeGraph } from '@/utils/objectGraph';
 import { getTypeInfo, getTypeVerisonList, setType } from '@/actions/type';
 import { setRelation } from '@/actions/relation';
-import { setObjectRelation, getObject, setObject, setControl } from '@/actions/object';
+import { setObjectRelation, getObject, setObject, setControl, getVersionList } from '@/actions/object';
 import { getGraphInfo, updateGraphInfo } from '@/actions/graph'
 import { AttrConfig, setStateType, setTypeDetail, setTypes, setVersionList, setVersionModal, TypeConfig, TypeVersionConfig } from '@/reducers/type';
 import { RelationConfig, setRelationDetail } from '@/reducers/relation';
-import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, setGraphData, setObjectDetail, setVersionControl } from '@/reducers/object';
+import { CustomObjectConfig, ObjectConfig, ObjectGraphDataState, ObjectRelationInfo, ObjectVersionConfig, setGraphData, setObjectDetail, setObjectVersionList, setVersionControl, setVersionModalOpen } from '@/reducers/object';
 import { NodeItemData, setCurrentEditModel, setIsEditing, setToolbarConfig } from '@/reducers/editor';
 import PdbPanel from '@/components/Panel';
 import NodeIconPicker from '@/components/NodeIconPicker';
@@ -38,6 +38,7 @@ import RelationList from '../object/RelationList';
 import './index.less';
 import SearchAround from '@/components/SearchAround';
 import store from '@/store';
+import VersionList from '@/components/VersionList';
 // import VersionList from '../object/VersionList';
 
 const { Option } = Select;
@@ -117,11 +118,13 @@ export default function Right(props: RightProps) {
   }, [currentEditParam]);
 
   useEffect(() => {
-    // 版本记录      
-    if(currentEditType == 'type' && currentEditDefaultData && currentEditDefaultData['x.type.id']) {
+    // 版本记录  
+    if (!currentEditDefaultData || !currentEditType) return
+    const id = currentEditDefaultData[`x.${currentEditType}.id`]
+    if(currentEditType == 'type' && id) {
       setVersionLoading(true)
       getTypeVerisonList(graphData.id, {
-        'x.type.id': currentEditDefaultData['x.type.id']
+        'x.type.id': id
       }, (success: boolean, response: any) => {
         if (success) {
           dispatch(setVersionList(response.list))
@@ -137,7 +140,19 @@ export default function Right(props: RightProps) {
       }
       setPrototypeVersion(protoVersion)
     }
-  }, [currentEditDefaultData?.['x.type.id'], currentEditDefaultData?.['x.type.version.state']])
+    if (currentEditType == 'object' && id) {
+      setVersionLoading(true)
+      getVersionList({'x.object.id': id}, (success: boolean, response: any) => {
+        if (success) {
+          dispatch(setObjectVersionList(response))
+        }
+        setVersionLoading(false)
+      })
+    }
+  }, [
+    currentEditDefaultData?.[`x.${currentEditType}.id`],
+    currentEditDefaultData?.[`x.${currentEditType}.version.state`]
+  ])
 
   async function initData(currentEditType: string, currentEditDefaultData: any, currentEditModel: any) {
     let prevLabel = '';
@@ -1023,20 +1038,6 @@ export default function Right(props: RightProps) {
     );
   }
 
-  const versionColumns = [{
-    dataIndex: 'x.type.version.name',
-    title: '版本号',
-    render: (text:string, record: TypeVersionConfig) => {
-      const vn = text ? `V${text}` : '--'
-      return typesMap[currentEditDefaultData['x.type.id']] && typesMap[currentEditDefaultData['x.type.id']]['x.type.version.id'] === record['x.type.version.id'] ? (
-      <Space><span>{vn}</span><Tag>当前版本</Tag></Space>
-      ) : vn
-    }
-  }, {
-    dataIndex: 'x.type.version.created',
-    title: '创建时间',
-    render: (text:number) => moment(text).format("YYYY-MM-DD HH:mm:ss")
-  }]
   const renderVersionControl = () => {
     if (!currentEditModel) return
     const typeId = currentEditDefaultData['x.type.id']
@@ -1113,8 +1114,25 @@ export default function Right(props: RightProps) {
       })
     }
   }
-  const renderCommon = (key: string) => {
-    if (!currentEditModel || isEmpty(currentEditDefaultData)) return (<div className='pdb-type-common'></div>)
+  const renderCommon = (key: 'type' | 'object') => {
+    if (!currentEditModel || isEmpty(currentEditDefaultData) || key !== currentEditType) return (<div className='pdb-type-common'></div>)
+    let dataSource: {id?: string; name?: string; created?: number}[] = [];
+    let currentVersionId
+    if (key === 'type') {
+      dataSource = versionList.map((item: TypeVersionConfig) => ({
+        id: item[`x.type.version.id`],
+        name: item[`x.type.version.name`],
+        created: item[`x.type.version.created`]
+      }))
+      currentVersionId = typesMap[currentEditDefaultData[`x.${key}.id`]][`x.${key}.version.id`]
+    } else if (store.getState().object.versionList) {
+      dataSource = store.getState().object.versionList.map((item: ObjectVersionConfig) => ({
+        id: item[`x.object.version.id`],
+        name: item[`x.object.version.name`],
+        created: item[`x.object.version.created`]
+      }))
+      currentVersionId = currentEditDefaultData['x.object.version.id']
+    } 
     return (
       <div className='pdb-type-common'>
         <div className='pdb-type-common-item'>
@@ -1134,16 +1152,19 @@ export default function Right(props: RightProps) {
           key === 'object' && currentEditDefaultData[`x.${key}.version`] && renderVersionControl()
         }
         <div className='pdb-type-common-item wrap'>
-          <span>版本记录：{currentEditDefaultData[`x.${key}.version`] && <a style={{float: 'right'}} onClick={() => dispatch(setVersionModal(true))}>详情</a>}</span>
-          <Table className={!currentEditDefaultData[`x.${key}.version`] ? 'pdb-table-scroll pdb-type-table-disabled' : 'pdb-table-scroll'}
+          <span>版本记录：{
+          currentEditDefaultData[`x.${key}.version`] &&
+          <a style={{float: 'right'}}
+            onClick={() => key === 'type' ? dispatch(setVersionModal(true)) : dispatch(setVersionModalOpen(true))}>详情</a>
+          }</span>
+          <VersionList
+            disabled={!currentEditDefaultData[`x.${key}.version`]}
             style={{maxHeight: 340}}
-            columns={versionColumns}
-            dataSource={versionList}
-            pagination={false}
-            size="small"
-            scroll={{y: 300}}
-            rowKey={`x.${key}.version.id`}
+            data={dataSource}
+            currentVersionId={currentVersionId}
             loading={versionLoading}
+            size="small"
+            y={300}
           />
         </div>
         {key === 'type' && prototypeVersion && <div className='pdb-type-common-item wrap'>

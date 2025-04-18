@@ -98,6 +98,13 @@ interface ObjectState {
     open: boolean;
     data?: CustomObjectConfig;
     id?: string;
+  },
+  versionList: ObjectVersionConfig[]
+  versionModalOpen: boolean
+  versionDiffModal: {
+    open: boolean;
+    oldVersionId: string;
+    newVersionId: string;
   }
 }
 
@@ -122,6 +129,13 @@ const initialState: ObjectState = {
     open: false,
     data: undefined,
     id: undefined
+  },
+  versionList: [],
+  versionModalOpen: false,
+  versionDiffModal: {
+    open: false,
+    oldVersionId: '',
+    newVersionId: ''
   }
 }
 
@@ -155,9 +169,15 @@ export const objectSlice = createSlice({
       } else {
         state.versionControl = { open: false, data: undefined, id: undefined }
       }
-    }
+    },
+    setObjectVersionList: (state, action: PayloadAction<ObjectVersionConfig[]>) => {
+      state.versionList = action.payload
+    },
+    setVersionModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.versionModalOpen = action.payload
+    },
   }
 })
 
-export const { setObjects, setObjectDetail, reset, setGraphData, setVersionControl } = objectSlice.actions
+export const { setObjects, setObjectDetail, reset, setGraphData, setVersionControl, setObjectVersionList, setVersionModalOpen } = objectSlice.actions
 export default objectSlice.reducer
