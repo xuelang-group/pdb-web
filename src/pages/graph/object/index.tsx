@@ -224,6 +224,9 @@ export default function Editor(props: EditorProps) {
           case "一键展开":
             expandAll(item);
             break;
+          case "配置实例版本控制":
+            dispatch(setVersionControl({data: itemModel.data, id: itemModel.id}));
+            break;
           case "版本控制":
             const version = itemModel.data['x.object.version']
             if (version) {
