@@ -190,7 +190,7 @@ export default function VersionModal({types}: VersionModalProps) {
         open={versionModal}
         title='版本记录'
         footer={null}
-        width={960}
+        width={760}
         onCancel={handleCancel}
       >
         <Table className='pdb-table-scroll'

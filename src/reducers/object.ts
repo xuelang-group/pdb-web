@@ -176,8 +176,11 @@ export const objectSlice = createSlice({
     setVersionModalOpen: (state, action: PayloadAction<boolean>) => {
       state.versionModalOpen = action.payload
     },
+    setVersionDiffModal: (state, action: PayloadAction<{ open?: boolean; newVersionId?: string; oldVersionId?: string; }>) => {
+      state.versionDiffModal = Object.assign({}, state.versionDiffModal, action.payload)
+    }
   }
 })
 
-export const { setObjects, setObjectDetail, reset, setGraphData, setVersionControl, setObjectVersionList, setVersionModalOpen } = objectSlice.actions
+export const { setObjects, setObjectDetail, reset, setGraphData, setVersionControl, setObjectVersionList, setVersionModalOpen, setVersionDiffModal } = objectSlice.actions
 export default objectSlice.reducer

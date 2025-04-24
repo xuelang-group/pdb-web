@@ -1,15 +1,15 @@
-import { Input, Form, notification, Modal, Table, Tag, Space, Radio, Switch, message } from 'antd';
+import { Input, Form, notification, Modal, Table, Tag, Space, Radio, Switch, message, Select } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setObjectVersionList, setVersionModalOpen } from '@/reducers/object';
+import { setObjectVersionList, setVersionDiffModal, setVersionModalOpen } from '@/reducers/object';
 import { StoreState } from '@/store';
 import { getDefaultCopyName } from '@/utils/common';
 import moment from 'moment';
 import { setCurrentEditModel } from '@/reducers/editor';
-import { cloneDeep, findIndex, isEmpty } from 'lodash';
+import { cloneDeep, findIndex, isEmpty, map } from 'lodash';
 import { ObjectConfig, ObjectVersionConfig } from '@/reducers/object';
-import { getVersionList } from '@/actions/object';
+import { diffVersion, getVersionList } from '@/actions/object';
 
 const layout = {
   labelCol: { span: 5 },
@@ -20,6 +20,7 @@ export default function VersionModal() {
   const dispatch = useDispatch();
   const graphData = useSelector((state: StoreState) => state.object.graphData);
   const versionModalOpen = useSelector((state: StoreState) => state.object.versionModalOpen);
+  const versionDiffModal = useSelector((state: StoreState) => state.object.versionDiffModal);
   const versions = useSelector((state: StoreState) => state.object.versionList);
   const currentEditModel = useSelector((state: StoreState) => state.editor.currentEditModel);
 
@@ -98,17 +99,37 @@ export default function VersionModal() {
       setCurrVersion(version)
         // dispatch(setDiffModalOpen(true))
     } else {
-      // 查看历史版本
-      // dispatch(setSelectedVersion(version))
-      // const data = cloneDeep(currentEditDefaultData) as ObjectConfig;
-      // if (data && data["x.object.version.attrs"]) {
-      //   Object.assign(data, version)
-      // }
-      // const newCurrentModel = Object.assign({}, currentEditModel, { data })
-      // dispatch(setCurrentEditModel(newCurrentModel))
+      // 版本比对
+      dispatch(setVersionDiffModal({open: true, oldVersionId: version['x.object.version.id']}))
       handleCancel()
     }
   }
+
+  useEffect(() => {
+    versionDiffModal.open && form.setFieldsValue({
+      'oldVersionId': versionDiffModal.oldVersionId,
+    })
+  }, [versionDiffModal.open])
+
+  const handleDiffCancel = () => {
+    dispatch(setVersionDiffModal({open: false, oldVersionId: '', newVersionId: ''}))
+  }
+
+  const handleDiffConfirm = () => {
+    form.validateFields().then((values: { [key: string]: any; }) => {
+      dispatch(setVersionDiffModal({open: false, ...values}))
+    }).catch((err: any) => { })
+  }
+
+  const onValidate = async (_: any, value: string) => {
+    const oldVersionId = form.getFieldValue('oldVersionId')
+    const newVersionId = form.getFieldValue('newVersionId')
+    if (oldVersionId === newVersionId) {
+      throw new Error('不能选择同一版本进行比对');
+    }
+  }
+    
+  const items = map(versions, (v: ObjectVersionConfig) => ({ value: v["x.object.version.id"], label: v["x.object.version.name"] ? `V${v["x.object.version.name"]}`: '--'}));
 
   return (
     <>
@@ -116,7 +137,7 @@ export default function VersionModal() {
         open={versionModalOpen}
         title='版本记录'
         footer={null}
-        width={960}
+        width={760}
         onCancel={handleCancel}
       >
         <Table className='pdb-table-scroll'
@@ -129,6 +150,23 @@ export default function VersionModal() {
           loading={loading}
         />
       </Modal> 
+      <Modal
+        open={versionDiffModal.open}
+        title='选择对比版本'
+        width={520}
+        okText="开始对比"
+        onOk={handleDiffConfirm}
+        onCancel={handleDiffCancel}
+      >
+      <Form {...layout} form={form}>
+        <Form.Item label="对比版本一" name="oldVersionId" rules={[{ required: true, message: '请选择对比版本一' }, { validator: onValidate }]}> 
+          <Select style={{width: '100%'}} options={items} />
+        </Form.Item>
+        <Form.Item label="对比版本二" name="newVersionId" rules={[{ required: true, message: '请选择对比版本二' }, { validator: onValidate }]}>
+          <Select style={{width: '100%'}} options={items} />
+        </Form.Item>
+      </Form>
+      </Modal>
     </>
   )
 }
