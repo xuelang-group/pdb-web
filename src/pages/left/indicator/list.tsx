@@ -16,6 +16,8 @@ import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 
 export default function List(props: any) {
+  const navigate = useNavigate();
+  const routerParams = useParams();
   const [isIndSearched, setIndSearchedStatus] = useState(false);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
@@ -29,7 +31,6 @@ export default function List(props: any) {
   const [showCheckDrawer, setShowCheckDrawer] = useState(false);
   const [checkData, setCheckData] = useState(null);
   const searchRef = useRef<InputRef>(null);
-  const routerParams = useParams()
   const dispatch = useDispatch();
   const [versionVisible, setVersionVisible] = useState(false);
   const [versionId, setVersionId] = useState(null);
@@ -260,6 +261,7 @@ export default function List(props: any) {
         func: item.metric_params.func,
         groupBy: groupByArr
       }))
+      navigate(`/${routerParams.id}/indicator`)
       // setTimeout(() => {
       //   dispatch(setDimension(dimensionStr));
       //   dispatch(setFunc(item.metric_params.func));
@@ -277,6 +279,7 @@ export default function List(props: any) {
         func: item.metric_params.func,
         groupBy: groupByArr
       }))
+      navigate(`/${routerParams.id}/indicator`)
       // setTimeout(() => {
       //   dispatch(setDimension(dimensionStr));
       //   dispatch(setFunc(item.metric_params.func));

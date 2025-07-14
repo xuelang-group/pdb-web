@@ -1,0 +1,65 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button, Form, Modal, Radio } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { isEmpty } from "lodash";
+import { StoreState } from "@/store";
+import "./index.less";
+
+export default function Indicator(props: any) {
+  const navigate = useNavigate();
+  const routerParams = useParams();
+  const [form] = Form.useForm();
+  const [open, setOpen] = useState(false);
+  const query = useSelector((state: StoreState) => state.query.params);
+  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  
+  const onCreate = ({mode}: {mode: number}) => {
+    if (mode == 2) {
+      /**
+       * 专业模式即用户所需要的“先计算后定义”，这部分和原来已实现的，变化不大
+       * 只是在过滤处增加 “distinct”选项。在每个字段的右方，只有当该字段给勾选了，才可选“distinct”
+       */
+    } else {
+      navigate(`/${routerParams.id}/indicator/mode/${mode}`)
+    }
+  }
+
+  useEffect(() => {
+  }, []);
+
+  return (
+    <div className="pdb-indicator">
+      <div className="pdb-indicator-index">
+        <Button className="btn-create" icon={<PlusOutlined />} onClick={() => setOpen(true)}>初级指标</Button>
+        <Button className="btn-create" icon={<PlusOutlined />} disabled={isEmpty(allIndicators)} onClick={() => onCreate({mode: 3})}>高级指标</Button>
+      </div>
+      <Modal
+        open={open}
+        title='创建初级指标'
+        onCancel={() => setOpen(false)}
+        maskClosable={false}
+        okButtonProps={{ autoFocus: true, htmlType: 'submit' }}
+        modalRender={(dom) => (
+          <Form
+            form={form}
+            initialValues={{ mode: 1 }}
+            labelCol={{span: 6}}
+            wrapperCol={{span: 16, offset: 1}}
+            clearOnDestroy
+            onFinish={(values) => onCreate(values)}
+          >
+            {dom}
+          </Form>
+        )}
+      >
+        <Form.Item label="选择创建模式" name='mode' rules={[ { required: true, message: '请选择创建模式' } ]}>
+          <Radio.Group
+            options={[{value: 1, label: '简洁模式'}, {value: 2, label: '专业模式', disabled: isEmpty(allIndicators)}]}
+          />
+        </Form.Item>
+      </Modal>
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
 import { Modal, Form, Input, Tag, Spin, Table } from "antd";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
 import { setCheckId, setGroupBy, setDimension,setFunc, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration } from "@/reducers/indicator";
@@ -9,6 +10,8 @@ import { useEffect, useState } from "react";
 
 export default function VersionRecord(props: any) {
   const [verData, setVerData] = useState([])
+  const navigate = useNavigate();
+  const routerParams = useParams();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export default function VersionRecord(props: any) {
       if (success) {
         const dimensionStr = res.metric_params.dimension.name_cn
         const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
+        navigate(`/${routerParams.id}/indicator`)
         dispatch(setCheckId(res.id));
         dispatch(setQueryParams(res.pql_params.params));
         dispatch(setApi(res.pql_params.api));

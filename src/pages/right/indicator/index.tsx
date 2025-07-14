@@ -2,8 +2,9 @@ import PdbPanel from "@/components/Panel";
 import { Button, Form, InputRef, Select, message, Modal } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import React, { useState, useRef, useEffect } from "react";
-import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams, useNavigate } from 'react-router-dom';
+import { StoreState } from '@/store';
 import SaveModal from "./SaveModal";
 import UpdateModal from "./UpdateModal";
 import { setIndicatorLoading } from '@/reducers/editor';
@@ -17,13 +18,13 @@ import "./index.less";
 import { RelationConfig } from "@/reducers/relation";
 import { clearQuery } from "@/reducers/query";
 import { uuid } from "@/utils/common";
-import { useNavigate } from "react-router-dom";
 import { initialParams, setQueryParams } from "@/reducers/query";
 import { getImgHref } from "@/actions/minioOperate";
 import { compact } from "lodash";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
+  const routerParams = useParams();
   const [modalLoading, setModalLoading] = useState(false);
   const [infoForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
@@ -226,7 +227,7 @@ export default function Right(props: any) {
     });
     timeout = setTimeout(() => {
       savingModal && savingModal.destroy();
-      navigate(`/${systemInfo.graphId}`);
+      navigate(`/${systemInfo.graphId}/indicator`);
       savingModal = null;
       timeout = null;
     }, 3000);
@@ -375,6 +376,7 @@ export default function Right(props: any) {
                 onClick={() => {
                   dispatch(exit())
                   dispatch(clearQuery())
+                  navigate(`/${systemInfo.graphId}/indicator/index`);
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px' }}
               >
@@ -399,6 +401,7 @@ export default function Right(props: any) {
                 onClick={() => {
                   dispatch(exit())
                   dispatch(clearQuery())
+                  navigate(`/${systemInfo.graphId}/indicator/index`);
                 }}
                 style={{ marginRight: '17px', marginLeft: '17px' }}
               >

@@ -59,7 +59,7 @@ function App(props: PdbConfig) {
   useEffect(() => {
     prevPathname = location.pathname;
     dispatch(setPageLoading(true));
-    setSelectedTab(location.pathname.endsWith("/indicator") ? "indicator" : "pdb");
+    setSelectedTab(location.pathname.indexOf("/indicator") > -1 ? "indicator" : "pdb");
     getSystemInfo((success: boolean, response: any) => {
       if (success) {
         const { userId, graphId } = response;
@@ -231,7 +231,7 @@ function App(props: PdbConfig) {
             {/* 类型管理左侧类型列表 */}
             <Route path="/:id/edit" element={<TypeLeft />} />
             {/* 指标设计左侧类型列表 */}
-            <Route path="/:id/indicator" element={<IndicatorLeft />} />
+            <Route path="/:id/indicator/*" element={<IndicatorLeft />} />
           </Routes>
           <PdbContent>
             <Tabs
@@ -251,7 +251,7 @@ function App(props: PdbConfig) {
                 const { graphId } = systemInfo;
                 if (!graphId) return;
                 if (activeKey === "indicator") {
-                  navigate(`/${graphId}/indicator`);
+                  navigate(`/${graphId}/indicator/index`);
                 } else {
                   navigate(`/${graphId}`);
                 }
