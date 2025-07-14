@@ -203,6 +203,11 @@ export default function Indicator(props: any) {
           }
         />
       </Spin>
+      <UseHistoryModal
+        visible={modalVisible}
+        onCancel={() => setModalVisible(false)}
+        onSuccess={onBack}
+      />
     </div>
   );
 }

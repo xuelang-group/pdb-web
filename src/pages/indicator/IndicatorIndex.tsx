@@ -5,9 +5,11 @@ import { Button, Form, Modal, Radio } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { isEmpty } from "lodash";
 import { StoreState } from "@/store";
+import { setShowSearch } from "@/reducers/editor";
 import "./index.less";
 
 export default function Indicator(props: any) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const routerParams = useParams();
   const [form] = Form.useForm();
@@ -21,13 +23,12 @@ export default function Indicator(props: any) {
        * 专业模式即用户所需要的“先计算后定义”，这部分和原来已实现的，变化不大
        * 只是在过滤处增加 “distinct”选项。在每个字段的右方，只有当该字段给勾选了，才可选“distinct”
        */
+      dispatch(setShowSearch(true));
     } else {
       navigate(`/${routerParams.id}/indicator/mode/${mode}`)
     }
+    setOpen(false)
   }
-
-  useEffect(() => {
-  }, []);
 
   return (
     <div className="pdb-indicator">

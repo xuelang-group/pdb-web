@@ -29,7 +29,7 @@ export default function Indicator(props: any) {
     <>
       <div className="pdb-indicator-title">
         <Button className="pdb-indicator-back" type="text" size="small" icon={<LeftOutlined />} onClick={handleBack} />
-        <Typography.Text>{routerParams.type == '1' ? '基础指标编辑' : '高级指标编辑'}</Typography.Text>
+        <Typography.Text>{routerParams.type == '1' ? '初级指标创建' : '高级指标创建'}</Typography.Text>
       </div>
       { routerParams.type == '3' ? <AddAdvance /> : <AddSimple />}
     </>
