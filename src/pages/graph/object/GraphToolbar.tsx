@@ -1219,8 +1219,8 @@ export default function GraphToolbar(props: GraphToolbarProps) {
     <>
       <div className='pdb-graph-toolbar'>
         {!location.pathname.endsWith("/template") && tabs.map((tab) => (
-          <Popover
-            visible={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
+          <Popover key={tab.key}
+            open={tab.key === _.get(selectedTab, 'key', '') && tab.popover}
             placement="right"
             trigger="click"
             content={
@@ -1246,7 +1246,7 @@ export default function GraphToolbar(props: GraphToolbarProps) {
             rootClassName={_.get(tab, 'key', '') === 'filter' ? 'pdb-graph-toolbar-panel edit_tools pdb-param-editor' : ''}
             getPopupContainer={() => document.getElementsByClassName('pdb-object-graph-content')[0] as HTMLElement}
             arrow={false}
-            onVisibleChange={(visible: boolean) => {
+            onOpenChange={(visible: boolean) => {
               if (!visible) setSelectedTab(null);
             }}
           >
