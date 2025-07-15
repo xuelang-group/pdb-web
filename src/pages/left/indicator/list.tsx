@@ -344,7 +344,7 @@ export default function List(props: any) {
                   key: 'version',
                 })
                 return (
-                  <Dropdown
+                  <Dropdown key={item.id}
                     overlayClassName='pdb-dropdown-menu'
                     menu={{
                       items: menus,

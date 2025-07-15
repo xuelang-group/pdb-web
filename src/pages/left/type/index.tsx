@@ -525,7 +525,7 @@ export default function Left(props: any) {
               {list.map((item: any, index: number) => {
                 const label: any = item[prevLabel + 'type.label']
                 return (
-                  <Dropdown overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
+                  <Dropdown key={item.id} overlayClassName='pdb-dropdown-menu' menu={{ items: type === 'type' ? typeMenus : relationMenus, onClick: (menu) => handleClickMenu(menu, type, item) }} trigger={['contextMenu']}>
                     <span
                       className={'type-item' + (currentEditModel && currentEditModel.data && currentEditModel.data[prevLabel + 'type.name'] === item[prevLabel + 'type.name'] ? ' selected' : '')}
                       onClick={() => handleSelectItem(item, type, index)}

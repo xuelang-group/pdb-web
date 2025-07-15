@@ -655,7 +655,7 @@ export default function List(props: ListProps) {
     if (_.isEmpty(treeData)) {
       if (searchKeyword) {
         return (
-          <Empty className='suanpan-empty' image={(<img src={searchEmpty} />)} imageStyle={{ width: 160, marginBottom: 0 }} description="搜索结果为空" />
+          <Empty className='suanpan-empty' image={(<img src={searchEmpty} />)} styles={{ image: {width: 160, marginBottom: 0} }} description="搜索结果为空" />
         )
       }
       return null;

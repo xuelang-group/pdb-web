@@ -338,7 +338,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
         {filterOptions.length === 0 && !isNew &&
           <Empty
             image={getImgHref(EmptyImage)}
-            imageStyle={{ height: 120 }}
+            styles={{ image: {height: 120} }}
             description="暂无过滤条件"
           />
         }

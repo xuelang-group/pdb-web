@@ -298,7 +298,7 @@ export default function TypeList() {
               {relList.map((item: any, index: number) => {
                 const label: any = item[prevLabel + 'type.label']
                 return (
-                  <Dropdown
+                  <Dropdown key={item.id}
                     overlayClassName='pdb-dropdown-menu'
                     menu={{
                       items: typeMenus,

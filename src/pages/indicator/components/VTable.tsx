@@ -318,7 +318,7 @@ export default function VTable(props: {width: number, height: number}) {
           <div className="pdb-vtable-empty">
             <Empty
               image={getImgHref(EmptyImage)}
-              imageStyle={{ height: 240, marginBottom: 0 }}
+              styles={{image: { height: 240, marginBottom: 0 }}}
               description={
                 <Space direction="vertical" size={4}>
                 <Typography.Text >
