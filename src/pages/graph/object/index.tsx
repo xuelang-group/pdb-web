@@ -403,7 +403,7 @@ export default function Editor(props: EditorProps) {
     setGraphData(graphData);
     graph.render();
     graph.zoom(1);
-    dispatch(setShowSearch(true));
+    // dispatch(setShowSearch(true));
 
     (window as any).PDB_GRAPH = graph;
     dispatch(setGraphDataMap({

@@ -275,6 +275,13 @@ export default function AppExplore() {
     if (!dropdownOpen) setOptionMap({});
   }, [dropdownOpen]);
 
+  useEffect(() => {
+    if (showSearch) {
+      setCurrentFocusIndex(0);
+      setDropdownOpen(true)
+    }
+  }, [showSearch])
+
   // saveConfrimModal: 搜索框重新点击搜索时，检测到指标配置编辑，显示的弹窗
   let saveConfrimModal: any = null;
   const onCancel = () => {
@@ -893,9 +900,6 @@ export default function AppExplore() {
       handleClearSearch();
       return;
     };
-    setSearchLoading(true);
-    dispatch(setGraphLoading(true));
-    dispatch(setCurrentEditModel(null));
     const graphId = routerParams.id || '';
     updateQuery && dispatch(setQueryParams({
       graphId,
@@ -906,6 +910,9 @@ export default function AppExplore() {
     }));
 
     if (location.pathname.indexOf("/indicator") > -1) return;
+    setSearchLoading(true);
+    dispatch(setGraphLoading(true));
+    dispatch(setCurrentEditModel(null));
     runPql({ graphId, pql }, (success: boolean, response: any) => {
       if (success) {
         const params = { vid: rootId, childrenVid: response, graphId, typeNames, relationNames };
@@ -1196,13 +1203,14 @@ export default function AppExplore() {
       dispatch(setQueryParams(initialParams));
     }
   }
-
+  
   return (
     <div id="pdb-explore" className={`pdb-explore pdb-explore-${exploreExpand ? 'expand' : 'collapse'}`}>
-      {showSearch &&
+      {
+        // showSearch &&
         <div className={"pdb-explore-search-group" + (indicatorCheckId ? " pdb-explore-search-group-disabled" : "")}>
           {searchTags.map((item, index) => (
-            <Popover
+            <Popover key={index}
               open={currentFocusIndex === index && filterPanelOpenKey !== null && (
                 !_.isEmpty(_.get(searchTagMap[index], filterPanelOpenKey)) ||
                 (searchTags[index] && searchTags[index].length > 0 && filterPanelOpenKey.startsWith("__TEMPORARY_RELATION__"))
@@ -1335,9 +1343,9 @@ export default function AppExplore() {
           style={{ display: !searchLoading && !indicatorCheckId ? "block" : "none" }}
           onClick={event => {
             event.stopPropagation();
-            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId && (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0)) {
-              setSaveConfirmModal("search");
-              navigator(`/${systemInfo.graphId}/indicator`);
+            if (queryParams.graphId && !indicatorCheckId && !indicatorEditId) {
+              (dimension !== dimentionIitial || func || groupBy && groupBy.length > 0) && setSaveConfirmModal("search");
+              location.pathname.endsWith('/indicator') ? searchPQL() : navigator(`/${systemInfo.graphId}/indicator`);
             } else {
               searchPQL();
             }

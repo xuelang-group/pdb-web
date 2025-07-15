@@ -5,7 +5,6 @@ import { Button, Dropdown, Space, Spin } from "antd";
 import type { MenuProps } from "antd";
 import { StoreState } from "@/store";
 import VTable from "./components/VTable";
-import { setShowSearch } from "@/reducers/editor";
 import "./indicator.less";
 import {
   DownOutlined,
@@ -56,7 +55,6 @@ export default function Indicator(props: any) {
     updateSize();
     window.addEventListener("resize", updateSize);
 
-    dispatch(setShowSearch(true));
     return () => {
       window.removeEventListener("resize", updateSize);
     };
