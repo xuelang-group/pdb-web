@@ -1,4 +1,4 @@
-import { Alert, Button, Checkbox, Divider, Radio, Segmented } from "antd";
+import { Alert, Button, Checkbox, Divider, Radio, Segmented, Typography } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
@@ -38,6 +38,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
   const [allCheckedList, setAllCheckedList] = useState([]),
     [selectedTab, setSelectedTab] = useState('filter'),
     [checkedList, setCheckedList] = useState<string[]>([]),
+    [distincts, setDistincts] = useState<string[]>([]),
     [indeterminate, setIndeterminate] = useState(false),
     [checkAll, setCheckAll] = useState(true),
     [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]);
@@ -94,15 +95,19 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       value: 'filter'
     });
 
-    const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType }: any) => {
+    const defaultDistincts: string[] = []
+    const defaultCheckedList: string[] = tagTypeCsv.map(({ attrId, attrName, attrType, distinct }: any) => {
       let _attrName = attrName;
       if (tagTypeLabel && _attrName.endsWith('_' + tagTypeLabel)) {
         _attrName = _attrName.slice(0, -(tagTypeLabel.length + 1));
       }
-      return `${attrId}|${_attrName}|${attrType}`
+      const value = `${attrId}|${_attrName}|${attrType}`
+      if (distinct) defaultDistincts.push(value)
+      return value
     });
     setSelectedTab(_.get(originType, 'type', '') === 'type' ? 'column' : 'group');
     setCheckedList(defaultCheckedList);
+    setDistincts(defaultDistincts)
     setIndeterminate(defaultCheckedList.length !== tagTypeAttr.length);
     setCheckAll(defaultCheckedList.length === tagTypeAttr.length);
     setAllCheckedList(tagTypeAttr.map(({ name, display, type }: AttrConfig) => (`${name}|${display}|${type}`)));
@@ -157,7 +162,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       });
     }
 
-    const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [];
+    const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number, distinct?: boolean }[] = [];
     if (checkedList.length > 0) {
       const tagType: string = _.get(originType, 'type', ''),
         tagTypeData = _.get(originType, 'data', {}),
@@ -171,7 +176,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           attrId: valArr[0],
           attrName: valArr[1] + "_" + tagTypeLabel,
           attrType: valArr[2],
-          index: tagIndex
+          index: tagIndex,
+          distinct: distincts.includes(value)
         })
       });
     }
@@ -192,6 +198,9 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     setIndeterminate(!!list.length && list.length < tagTypeAttr.length);
     setCheckAll(list.length === tagTypeAttr.length);
   };
+  const onChangeDistinct = (list: any[]) => {
+    setDistincts(list)
+  }
 
   const onCheckAllChange = (e: any) => {
     setCheckedList(e.target.checked ? allCheckedList : []);
@@ -206,22 +215,35 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       tagTypeAttr = tagType === 'type' ? tagTypeData['x.type.attrs'] : [];
     return (
       <div className="pdb-explore-column">
-        <div className="pdb-explore-column-all">
+        <div className="pdb-explore-column-all pdb-explore-column-row">
           <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll} disabled={readOnly}>
             <span>{checkedList.length}</span>
             <span>/</span>
             <span>{tagTypeAttr.length}项</span>
           </Checkbox>
+          <Typography.Text>distinct</Typography.Text>
         </div>
-        <CheckboxGroup
-          options={tagTypeAttr.map(({ display, name, type }: AttrConfig) => ({
-            label: display,
-            value: `${name}|${display}|${type}`
-          }))}
-          value={checkedList}
-          disabled={readOnly}
-          onChange={onChange}
-        />
+        <div className="pdb-explore-column-row">
+          <CheckboxGroup
+            options={tagTypeAttr.map(({ display, name, type }: AttrConfig) => ({
+              label: display,
+              value: `${name}|${display}|${type}`
+            }))}
+            value={checkedList}
+            disabled={readOnly}
+            onChange={onChange}
+          />
+          <CheckboxGroup style={{width: 90}}
+            options={tagTypeAttr.map(({ display, name, type }: AttrConfig) => ({
+              label: '',
+              value: `${name}|${display}|${type}`,
+              disabled: !checkedList.includes(`${name}|${display}|${type}`)
+            }))}
+            value={distincts}
+            disabled={readOnly}
+            onChange={onChangeDistinct}
+          />
+        </div>
       </div>
     )
   }
