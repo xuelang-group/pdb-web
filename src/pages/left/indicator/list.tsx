@@ -4,7 +4,7 @@ import { Input, InputRef, Spin, message, Dropdown, Tag, Empty } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import _, { set } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
   setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration } from "@/reducers/indicator";
@@ -18,6 +18,7 @@ import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 export default function List(props: any) {
   const navigate = useNavigate();
   const routerParams = useParams();
+  const location = useLocation();
   const [isIndSearched, setIndSearchedStatus] = useState(false);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
@@ -291,9 +292,15 @@ export default function List(props: any) {
       setVersionId(item.ori_id)
     }
   }
+  
+  const handleDragStart = function (event: any, type: any) {
+    event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
+  }
 
   const renderIndicatorTree = useCallback((type: string) => {
     let indList = JSON.parse(JSON.stringify(indicatorList));
+    const draggable = location.pathname.endsWith('/indicator/advance');
+    console.log('--- draggable: ', draggable)
     return (
       <div className='list-container'>
         <div className='list-header'>
@@ -352,15 +359,21 @@ export default function List(props: any) {
                     }}
                     trigger={['contextMenu']}
                   >
-                    <span
-                      className={`type-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+                    <div
+                      className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+                      draggable={draggable}
+                      onDragStart={event => handleDragStart(event, item.data)}
                     >
-                      <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
-                      {(<span className='type-item-label'>{label}</span>)}
-                      {item.online === false && <Tag className='indicator-tag'>已下架</Tag>}
-                      {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
-                      {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
-                    </span>
+                      <span className='item-name'>
+                        <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
+                        {(<span className='type-item-label'>{label}</span>)}
+                      </span>
+                      <span className='item-status'>
+                        {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
+                        {editId === item.id && <Tag color="blue" className='indicator-tag'>编辑中</Tag>}
+                        {item.online === false && <Tag className='indicator-tag'>已下架</Tag>}
+                      </span>
+                    </div>
                   </Dropdown>
                 );
               })}
