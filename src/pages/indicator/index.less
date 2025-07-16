@@ -27,11 +27,14 @@
     &-body {
       padding: 8px 24px;
       height: calc(100% - 64px);
+      overflow: auto;
     }
     &-footer {
       display: flex;
       justify-content: space-between;
       padding: 16px 24px;
+      position: relative;
+      z-index: 3;
       box-shadow: 0 -2px 3px fade(#000, 5%);
     }
   }

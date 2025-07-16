@@ -34,7 +34,7 @@ const CheckboxGroup = Checkbox.Group;
 export default function ExploreFilter(props: ExploreFilterProps) {
   const { originType, saveConfig, close, isLastTag, tagIndex, readOnly } = props;
   const childRef = React.createRef();
-
+  
   const [allCheckedList, setAllCheckedList] = useState([]),
     [selectedTab, setSelectedTab] = useState('filter'),
     [checkedList, setCheckedList] = useState<string[]>([]),
