@@ -265,6 +265,7 @@ function App(props: PdbConfig) {
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
               {/* 指标设计右侧列表 */}
               <Route path="/:id/indicator" element={<IndicatorRight />} />
+              <Route path="/:id/indicator/advance" element={<IndicatorRight />} />
             </Routes>
           </PdbContent>
         </Content>

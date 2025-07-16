@@ -23,7 +23,7 @@ export default function Indicator(props: any) {
   }, []);
 
   return (
-    <div className="pdb-indicator-simple">
+    <div className="pdb-indicator">
       <h2>高级指标</h2>
     </div>
   );

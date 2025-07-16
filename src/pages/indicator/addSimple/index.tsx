@@ -197,6 +197,10 @@ export default function SimpleIndicator(props: any) {
   const query = useSelector((state: StoreState) => state.query.params);
   const [open, setOpen] = useState(false);
   const [limit, setLimit] = useState(100)
+  
+  const handleBack = () => {
+    navigate(`/${routerParams.id}/indicator/index`)
+  }
 
   const onFinish = (values: any) => {
     console.log("finish: ", values);
@@ -232,6 +236,11 @@ export default function SimpleIndicator(props: any) {
   useEffect(() => {}, []);
 
   return (
+    <>
+    <div className="pdb-indicator-title">
+      <Button className="pdb-indicator-back" type="text" size="small" icon={<LeftOutlined />} onClick={handleBack} />
+      <Typography.Text>{routerParams.type == '1' ? '初级指标创建' : '高级指标创建'}</Typography.Text>
+    </div>
     <div className="pdb-indicator-simple">
       <div className="pdb-indicator-simple-body">
         <Form name="simple" {...layout} onFinish={onFinish}>
@@ -327,10 +336,11 @@ export default function SimpleIndicator(props: any) {
       <div className="pdb-indicator-simple-footer">
         <Button type="primary" onClick={handleTryCompute}>试计算</Button>
         <Space size={16}>
-          <Button>关闭</Button>
+          <Button onClick={handleBack}>关闭</Button>
           <Button type="primary">保存</Button>
         </Space>
       </div>
     </div>
+    </>
   );
 }

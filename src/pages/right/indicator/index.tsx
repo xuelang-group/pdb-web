@@ -1,5 +1,5 @@
 import PdbPanel from "@/components/Panel";
-import { Button, Form, InputRef, Select, message, Modal } from 'antd';
+import { Button, Form, InputRef, Select, message, Modal, Space } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
@@ -360,69 +360,27 @@ export default function Right(props: any) {
             </Form.Item>
           </div>
         </Form>
-        {
-          checkId && (
-            <div style={{ marginTop: 'auto', marginBottom: '16px', display: 'flex', flexDirection: 'column' }}>
-              <Button
-                type="primary"
-                onClick={() => {
-                  dispatch(setEditId(checkId));
-                }}
-                style={{ marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
-              >
-                编辑指标
-              </Button>
-              <Button
-                onClick={() => {
-                  dispatch(exit())
-                  dispatch(clearQuery())
-                  navigate(`/${systemInfo.graphId}/indicator/index`);
-                }}
-                style={{ marginRight: '17px', marginLeft: '17px' }}
-              >
-                退出
-              </Button>
-            </div>
-          )
-        }
-        {
-          editId && (
-            <div style={{ marginTop: 'auto', marginBottom: '16px', display: 'flex', flexDirection: 'column' }}>
-              <Button
-                type="primary"
-                onClick={() => {
-                  dispatch(setUpdateModalVisible(true))
-                }}
-                style={{ marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
-              >
-                更新指标
-              </Button>
-              <Button
-                onClick={() => {
-                  dispatch(exit())
-                  dispatch(clearQuery())
-                  navigate(`/${systemInfo.graphId}/indicator/index`);
-                }}
-                style={{ marginRight: '17px', marginLeft: '17px' }}
-              >
-                退出
-              </Button>
-            </div>
-          )
-        }
-        {
-          !checkId && !editId && (
-            <Button
-              type="primary"
-              onClick={() => {
-                dispatch(setModalVisible(true))
-              }}
-              style={{ marginTop: 'auto', marginRight: '17px', marginLeft: '17px', marginBottom: '16px' }}
-            >
-              保存指标
-            </Button>
-          )
-        }
+        <Space direction="vertical" style={{margin: 'auto 0 16px', padding: '0 17px'}} size={16}>
+          <Button block
+            type="primary"
+            onClick={() => {
+              checkId && dispatch(setEditId(checkId));
+              editId && dispatch(setUpdateModalVisible(true))
+              !checkId && !editId && dispatch(setModalVisible(true))
+            }}
+          >
+            {!checkId && !editId ? '保存指标' : (checkId ? '编辑指标' : '更新指标')}
+          </Button>
+          <Button block
+            onClick={() => {
+              dispatch(exit())
+              dispatch(clearQuery())
+              navigate(`/${systemInfo.graphId}/indicator/index`);
+            }}
+          >
+            退出
+          </Button>
+        </Space>
       </PdbPanel>
       <SaveModal visible={modalVisible} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
       <UpdateModal visible={updateModalVisible} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
