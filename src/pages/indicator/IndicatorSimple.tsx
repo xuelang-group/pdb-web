@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Alert,
   Button,
   Col,
   Divider,
@@ -17,10 +16,8 @@ import {
   Typography,
 } from "antd";
 import { ExclamationCircleOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
-import { isEmpty } from "lodash";
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
 import { StoreState } from "@/store";
-import "./index.less";
 
 const { confirm } = Modal;
 
