@@ -1,5 +1,4 @@
 .pdb-layout {
-
   .pdb-content-sider {
     height: 100%;
     width: 27.3rem;
@@ -49,7 +48,7 @@
     .pdb-sider-content {
       display: flex;
       flex-direction: column;
-      height: ~'calc(100% - 4.8rem)';
+      height: ~"calc(100% - 4.8rem)";
       background-color: var(--component-bg);
 
       .type {
@@ -69,7 +68,7 @@
 
           &.selected {
             background: var(--primary-selected-bg);
-            color: var(--primary-color)
+            color: var(--primary-color);
           }
 
           &.disabled {
@@ -156,14 +155,12 @@
     }
 
     &.pdb-type-left {
-
       .pdb-sider-header,
       .pdb-ant-tabs {
         background: unset !important;
       }
 
       .type-item {
-
         &.pdb-ant-tree-treenode.isLeaf {
           overflow: visible;
 
@@ -176,7 +173,7 @@
             overflow: visible !important;
 
             &::before {
-              content: '';
+              content: "";
               position: absolute;
               top: -1.8rem;
               left: -0.5px;
@@ -186,7 +183,7 @@
             }
 
             &::after {
-              content: '';
+              content: "";
               position: absolute;
               left: -0.5px;
               width: 1.2rem;
@@ -195,10 +192,9 @@
               background: var(--border-color1);
             }
           }
-
         }
 
-        &.pdb-ant-tree-treenode.isFolder+.pdb-ant-tree-treenode.isLeaf {
+        &.pdb-ant-tree-treenode.isFolder + .pdb-ant-tree-treenode.isLeaf {
           .pdb-ant-tree-title::before {
             height: 2.6rem;
             top: -0.8rem;
@@ -209,7 +205,6 @@
 
     &.pdb-template-left {
       .type-item {
-
         &.pdb-ant-tree-treenode.isLeaf {
           overflow: visible;
 
@@ -222,7 +217,7 @@
             overflow: visible !important;
 
             &::before {
-              content: '';
+              content: "";
               position: absolute;
               top: -1.8rem;
               left: -1.65rem;
@@ -232,7 +227,7 @@
             }
 
             &::after {
-              content: '';
+              content: "";
               position: absolute;
               left: -1.65rem;
               width: 1.2rem;
@@ -241,10 +236,9 @@
               background: var(--border-color1);
             }
           }
-
         }
 
-        &.pdb-ant-tree-treenode.isFolder+.pdb-ant-tree-treenode.isLeaf {
+        &.pdb-ant-tree-treenode.isFolder + .pdb-ant-tree-treenode.isLeaf {
           .pdb-ant-tree-title::before {
             height: 2.6rem;
             top: -0.8rem;
@@ -258,7 +252,7 @@
       line-height: 3.6rem;
 
       .iconfont {
-        margin-right: .6rem;
+        margin-right: 0.6rem;
 
         &.icon-duixiangleixing {
           color: var(--primary-color) !important;
@@ -306,104 +300,104 @@
       width: 100%;
       height: 100%;
       display: flex;
+    }
 
-      .pdb-content-sider {
-        border: none;
-        border-left: 1px solid var(--border-color2);
+    .pdb-content-sider {
+      border: none;
+      border-left: 1px solid var(--border-color2);
 
-        .pdb-sider-content {
-          .pdb-ant-tabs {
-            flex: 1;
-            overflow: hidden;
+      .pdb-sider-content {
+        .pdb-ant-tabs {
+          flex: 1;
+          overflow: hidden;
 
-            .pdb-ant-tabs-content-holder {
-              overflow: auto;
-            }
-          }
-
-          .pdb-ant-form-item {
-            margin-bottom: 1.5rem;
-          }
-
-          .types-content {
+          .pdb-ant-tabs-content-holder {
             overflow: auto;
-            height: 100%;
-            padding: .8rem 0;
           }
+        }
 
-          .type-item {
+        .pdb-ant-form-item {
+          margin-bottom: 1.5rem;
+        }
+
+        .types-content {
+          overflow: auto;
+          height: 100%;
+          padding: 0.8rem 0;
+        }
+
+        .type-item {
+          display: flex;
+          padding: 0.8rem 1.6rem;
+          flex-direction: column;
+          position: relative;
+
+          .type-title {
             display: flex;
-            padding: 0.8rem 1.6rem;
-            flex-direction: column;
-            position: relative;
+            width: 100%;
+            margin-bottom: 0.4rem;
 
-            .type-title {
+            .type-label {
+              flex: 1;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              text-wrap: nowrap;
+              line-height: 2.2rem;
+              height: 2.2rem;
               display: flex;
-              width: 100%;
-              margin-bottom: .4rem;
+              align-items: center;
 
-              .type-label {
-                flex: 1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                text-wrap: nowrap;
-                line-height: 2.2rem;
-                height: 2.2rem;
-                display: flex;
-                align-items: center;
-
-                .spicon {
-                  color: var(--primary-color);
-                  margin-right: .6rem;
-                  font-size: 1.4rem;
-                }
-
-                svg.spicon {
-                  fill: var(--primary-color);
-                }
-
-                &.type-required::before {
-                  display: inline-block;
-                  margin-right: 4px;
-                  color: var(--danger-color);
-                  font-size: 14px;
-                  font-family: SimSun, sans-serif;
-                  line-height: 1;
-                  content: '*';
-                  position: absolute;
-                  left: 0.7rem;
-                  top: 1.25rem;
-                }
-
-                .type-label-display {
-                  font-size: 1.4rem;
-                  color: var(--text-color2);
-                }
-
-                .type-label-divider {
-                  margin: 0 .4rem;
-                }
-
-                .type-label-divider,
-                .type-label-name {
-                  font-size: 1.2rem;
-                  color: var(--text-color3);
-                }
+              .spicon {
+                color: var(--primary-color);
+                margin-right: 0.6rem;
+                font-size: 1.4rem;
               }
 
-              .operations {
-                display: none;
-
-                .spicon {
-                  margin-left: .6rem;
-                  color: var(--text-color2);
-                  font-size: 1.4rem;
-                }
+              svg.spicon {
+                fill: var(--primary-color);
               }
 
-              &:hover>.operations {
-                display: block;
+              &.type-required::before {
+                display: inline-block;
+                margin-right: 4px;
+                color: var(--danger-color);
+                font-size: 14px;
+                font-family: SimSun, sans-serif;
+                line-height: 1;
+                content: "*";
+                position: absolute;
+                left: 0.7rem;
+                top: 1.25rem;
               }
+
+              .type-label-display {
+                font-size: 1.4rem;
+                color: var(--text-color2);
+              }
+
+              .type-label-divider {
+                margin: 0 0.4rem;
+              }
+
+              .type-label-divider,
+              .type-label-name {
+                font-size: 1.2rem;
+                color: var(--text-color3);
+              }
+            }
+
+            .operations {
+              display: none;
+
+              .spicon {
+                margin-left: 0.6rem;
+                color: var(--text-color2);
+                font-size: 1.4rem;
+              }
+            }
+
+            &:hover > .operations {
+              display: block;
             }
           }
         }
