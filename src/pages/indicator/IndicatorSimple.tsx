@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Col, Divider, Flex, Form, Input, message, Modal, notification, Radio, Row, Select, Space, Typography, } from "antd";
-import { ExclamationCircleOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
+import { DeleteOutlined, ExclamationCircleOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import { capitalize, compact, filter, find, get, isArray, map } from "lodash";
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
 import { StoreState } from "@/store";
 import { getAdapterTypeHistory, getAdapterTypeList, getBuzProcess } from "@/actions/adapter";
-import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
+import { getCsv, getFuncResult } from "@/actions/indicator";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
 import { ConditionState, initialParams, setQueryParams } from "@/reducers/query";
 import { funcOptionsObj, optionLabelMap, optionSymbolMap, typeIconMap, typeMap } from '@/utils/common';
@@ -51,12 +51,13 @@ export default function SimpleIndicator(props: any) {
   const types = useSelector((state: StoreState) => state.type.data)
 
   const [open, setOpen] = useState(false);
-  const [typeList, setTypeList] = useState<TypeConfig[]>([]);
+  const [typeList, setTypeList] = useState<TypeConfig[]>([]);// 数据资产单选项
   const [processOptions, setProcessOptions] = useState([])
   const [buzProcessArr, setBuzProcessArr] = useState([])
-  const [dimension, setDimension] = useState<CsvAttr>()
-  const [funcOptions, setfuncOptions] = useState<string[]>()
-  const [originType, setOriginType] = useState<OriginType>()
+  const [dimension, setDimension] = useState<CsvAttr>()      // 指标度量
+  const [funcOptions, setfuncOptions] = useState<string[]>() // 统计算法选项
+  const [originType, setOriginType] = useState<OriginType>() // 选中的数据资产单数据
+  const [groupBy, setGroupBy] = useState<string[]>([''])       // 分组
   const [limit, setLimit] = useState(100)
   
   useEffect(() => {
@@ -211,7 +212,8 @@ export default function SimpleIndicator(props: any) {
     }
   }
 
-  const updateQueryParams = () => {
+  // 试计算
+  const updateQueryParams = ({ func }: any) => {
     const detail = originType?.data
     if (!detail) {
       message.warning('未找到相关的数据资产单')
@@ -226,14 +228,29 @@ export default function SimpleIndicator(props: any) {
       id: detail['x.type.name'],
       name: detail['x.type.label'],
     }]]
+    // 指标维度
     const csv = filter(originType.csv, ({attrId}) => columns.includes(attrId))
-    dispatch(setQueryParams({
+    dimension && csv.push(dimension)
+    const groups = filter(originType.csv, ({attrId}) => groupBy.includes(attrId))
+    const params = {
       graphId: routerParams.id || '',
       pql,
       csv: {
         header: csv
       }
-    }));
+    }
+    getFuncResult({
+      dimension: { name: dimension?.attrId, name_cn: dimension?.attrName },
+      func,
+      groupBy: map(groups, (attr: CsvAttr) => ({ name: attr.attrId, name_cn: attr.attrName})),
+      query: params
+    }, function(success: boolean, response: any) {
+      if (success) {
+        console.log('--- 试计算结果：', response)
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+    })
   }
 
   const onSubmit = () => {
@@ -266,7 +283,10 @@ export default function SimpleIndicator(props: any) {
   }
 
   const handleTryCompute = () => {
-    handleExcess()
+    form.validateFields().then(values => {
+      updateQueryParams(values)
+    })
+    // handleExcess()
   }
 
   return (
@@ -379,6 +399,73 @@ export default function SimpleIndicator(props: any) {
               )}
             />
           </Form.Item>
+          <Form.Item
+            labelCol={{ span: 3 }}
+            wrapperCol={{ span: 20 }}
+            label='Group by'
+            colon={false}
+            shouldUpdate
+          >
+            <Form.List
+              name="groupBy"
+              initialValue={groupBy}
+            >
+              {(fields, { add, remove }, { errors }) => (
+                <>
+                  {fields.map((field, index) => (
+                    <Form.Item
+                      label={''}
+                      required={false}
+                      key={field.key}
+                      style={{marginBottom: 12}}
+                    >
+                      <Form.Item
+                        {...field}
+                        noStyle
+                      >
+                        <Select
+                          placeholder='请选择'
+                          options={
+                            map(originType?.csv, (item) => ({
+                              label: item.attrName,
+                              value: item.attrId,
+                              disabled: form.getFieldValue('groupBy')?.includes(item.attrId) }))
+                          }
+                          onChange={(value) => {
+                            form.setFieldsValue({
+                              groupBy: form.getFieldValue('groupBy').map((item: any, i: number) => {
+                                if (i === index) {
+                                  return value
+                                }
+                                return item
+                              })
+                            })
+                          }}
+                          className="pdb-select-group-by"
+                        />
+                      </Form.Item>
+                      { fields.length > 1 && (
+                        <DeleteOutlined
+                          className="dynamic-delete-button"
+                          onClick={() => remove(field.name)}
+                          style={{ marginLeft: 8 }}
+                        />
+                      )}
+                    </Form.Item>
+                  ))}
+                  <Form.Item>
+                    {form.getFieldValue('groupBy')?.[fields.length - 1] && <Button block
+                      type="dashed"
+                      onClick={() => add()}
+                      style={{ width: '100%' }}
+                      icon={<PlusOutlined />}
+                    />}
+                    <Form.ErrorList errors={errors} />
+                  </Form.Item>
+                </>
+              )}
+            </Form.List>
+          </Form.Item>
         </Form>
         <Divider orientation="left" orientationMargin={16}>
           数据筛选
@@ -393,19 +480,6 @@ export default function SimpleIndicator(props: any) {
             />
           </Col>
         </Row>
-        <Divider orientation="left" orientationMargin={16}>
-          分组设置
-        </Divider>
-        <Form name="group">
-          <Form.Item
-            labelCol={{ span: 3 }}
-            wrapperCol={{ span: 20 }}
-            name={"groupBy"}
-            label="Group by"
-          >
-            <Select />
-          </Form.Item>
-        </Form>
       </div>
       <div className="pdb-indicator-simple-footer">
         <Button type="primary" onClick={handleTryCompute}>试计算</Button>
