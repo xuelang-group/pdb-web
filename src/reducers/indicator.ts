@@ -2,14 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
 import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
-
-const funcOptionsObj = {
-  'string': ["count", "most frequent"],
-  'int': ["sum", "avg", "median", "min", "max"],
-  'float': ["sum", "avg", "median", "min", "max"],
-  'datetime': ["最早", "最晚"],
-  'boolean': ["count", "占比"],
-}
+import { funcOptionsObj } from '@/utils/common';
 
 interface Record {
   [key: string]: any;

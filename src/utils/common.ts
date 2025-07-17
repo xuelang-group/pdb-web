@@ -70,6 +70,14 @@ export const typeLabelMap: any = {
   // 值列表: 'list',
 };
 
+export const typeIconMap: {[prop:string]: string} = {
+  int: 'shujuleixing-zhengshufudianshu',
+  float: 'shujuleixing-zhengshufudianshu',
+  string: 'shujuleixing-zifuchuan',
+  boolean: 'shujuleixing-buerzhi',
+  datetime: 'shujuleixing-riqishijian',
+}
+
 export const typeMap: any = {
   type: {
     int: '整数',
@@ -408,4 +416,13 @@ export function getHashParameterByName(name: string) {
     result = decodeURIComponent(result)
   }
   return result
+}
+
+// 指标设计 - 统计算法选项
+export const funcOptionsObj = {
+  'string': ["count", "most frequent"],
+  'int': ["sum", "avg", "median", "min", "max"],
+  'float': ["sum", "avg", "median", "min", "max"],
+  'datetime': ["最早", "最晚"],
+  'boolean': ["count", "占比"],
 }

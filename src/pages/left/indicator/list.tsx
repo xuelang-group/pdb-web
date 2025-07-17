@@ -300,7 +300,7 @@ export default function List(props: any) {
   const renderIndicatorTree = useCallback((type: string) => {
     let indList = JSON.parse(JSON.stringify(indicatorList));
     const draggable = location.pathname.endsWith('/indicator/advance');
-    console.log('--- draggable: ', draggable)
+    
     return (
       <div className='list-container'>
         <div className='list-header'>

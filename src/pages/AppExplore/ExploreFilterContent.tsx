@@ -180,7 +180,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                 disabled={readOnly}
               >
                 {_.get(conditionOptionMap, attrType, []).map((condition: string) => (
-                  <Select.Option value={condition}>{optionLabelMap[condition]}</Select.Option>
+                  <Select.Option key={condition} value={condition}>{optionLabelMap[condition]}</Select.Option>
                 ))}
               </Select>
             );
@@ -325,7 +325,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                 </div>
               }
               <Card
-                size="small"
+                size="small" key={index}
                 extra={getExtra(index, opt)}
                 title={title}
                 className={activePanelKey[0] !== index ? "no-body-card" : ""}
