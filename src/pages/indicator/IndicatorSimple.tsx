@@ -251,8 +251,6 @@ export default function SimpleIndicator(props: any) {
       }
     })
     const _originType = originTypes[0]
-
-    console.log('--- _originType: ', _originType)
     setOriginType(_originType)
   }
 

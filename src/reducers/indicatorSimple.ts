@@ -472,7 +472,6 @@ export const indicatorSimpleSlice = createSlice({
       state.readonly = false;
     },
     setCurrent: (state, action: PayloadAction<MetricItem | undefined>) => {
-      console.log('--- setCurrent: ', action.payload)
       state.current = action.payload && JSON.parse(JSON.stringify(action.payload));
     },
     setReadonly: (state, action: PayloadAction<boolean>) => {

@@ -3,7 +3,7 @@ import { Button, Form, InputRef, Select, message, Modal, Space } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { StoreState } from '@/store';
 import SaveModal from "./SaveModal";
 import UpdateModal from "./UpdateModal";
@@ -12,18 +12,15 @@ import { getMetrics } from "@/actions/indicator";
 import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
-import { createAutoRelation } from "@/actions/object";
 import Loading from "@/assets/images/loading-apng.png";
 import "./index.less";
-import { RelationConfig } from "@/reducers/relation";
 import { clearQuery } from "@/reducers/query";
-import { uuid } from "@/utils/common";
-import { initialParams, setQueryParams } from "@/reducers/query";
 import { getImgHref } from "@/actions/minioOperate";
 import { compact } from "lodash";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
+  const location = useLocation();
   const routerParams = useParams();
   const [modalLoading, setModalLoading] = useState(false);
   const [infoForm] = Form.useForm();
@@ -244,7 +241,8 @@ export default function Right(props: any) {
       dispatch(setIndicatorLoading(false));
     })
   }
-
+  
+  if (!location.pathname.endsWith('/indicator')) return null
   return (
     <div className='pdb-right-panel'>
       <PdbPanel title='指标配置' direction='right' canCollapsed={true} >

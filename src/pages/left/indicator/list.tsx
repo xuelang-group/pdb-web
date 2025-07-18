@@ -279,8 +279,8 @@ export default function List(props: any) {
       setCheckData(item)
     }
     if (['edit', 'check2'].includes(menu.key)) {
-      // if (!item.type) enterIndicatorProfession(item, menu.key)
-      // if (item.type === 1) 
+      if (!item.type) enterIndicatorProfession(item, menu.key)
+      if (item.type === 1) 
         enterIndicatorSimple(item, menu.key)
     }
     if (menu.key ==='version') {

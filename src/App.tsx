@@ -19,11 +19,15 @@ import TypeGraph from '@/pages/graph/type/index';
 import CommonHeader from '@/pages/header/index';
 import EditHeader from '@/pages/header/editHeader';
 import ObjectHeaderExtra from '@/pages/header/ObjectHeaderExtra';
-import Indicator from '@/pages/indicator/index';
 import PdbContent from '@/components/Content';
 
 import IndicatorLeft from '@/pages/left/indicator';
 import IndicatorRight from '@/pages/right/indicator';
+import IndicatorAdanceRight from '@/pages/right/indicator/Advance';
+import IndicatorIndex from './pages/indicator';
+import Indicator from '@/pages/indicator/Indicator';
+import IndicatorSimple from './pages/indicator/IndicatorSimple';
+import IndicatorAdvance from './pages/graph/indicator';
 
 import { StoreState } from '@/store';
 import { getFile, putFile } from '@/actions/minioOperate';
@@ -32,9 +36,6 @@ import { getSystemInfo } from '@/actions/system';
 import { PdbConfig } from '.';
 import './App.less';
 // import List from './pages/list';
-import IndicatorIndex from './pages/indicator';
-import IndicatorSimple from './pages/indicator/IndicatorSimple';
-import IndicatorAdvance from './pages/graph/indicator';
 import { getTypeList } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
@@ -279,8 +280,8 @@ function App(props: PdbConfig) {
               {/* 类型管理右侧列表 */}
               <Route path="/:id/edit" element={<CommonRight route='type' />} />
               {/* 指标设计右侧列表 */}
-              <Route path="/:id/indicator" element={<IndicatorRight />} />
-              <Route path="/:id/indicator/advance" element={<IndicatorRight />} />
+              <Route path="/:id/indicator/advance" element={<IndicatorAdanceRight />} />
+              <Route path="/:id/indicator/*" element={<IndicatorRight />} />
             </Routes>
           </PdbContent>
         </Content>
