@@ -27,17 +27,14 @@ export const getCsv = (query, callback) => {
 };
 
 // 执行计算
-export const getFuncResult = ({dimension, func, groupBy, query}, callback) => {
+export const getFuncResult = ({dimension, func, groupBy, pql_params}, callback) => {
   return axios.post(api['calc'], {
     "metric_params": {
       dimension,
       func,
       group_by: groupBy
     },
-    "pql_params": {
-      "api": "/pdb/api/v1/object/search/pql",
-      "params": query
-    }
+    "pql_params": pql_params
   }).then(({data}) => {
     // console.log(data)
     // callback && callback(data.success, data.success ? data.data: data);

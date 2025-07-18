@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface CsvHeaderState {
-
+export interface CsvHeaderState {
+  typeId: any; attrId: string; attrName: string; attrType: string; index: number;
+  [prop: string]: any
 }
 export interface CsvState {
   header: CsvHeaderState[]

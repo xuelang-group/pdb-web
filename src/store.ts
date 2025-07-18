@@ -7,6 +7,7 @@ import templateReducer from './reducers/template';
 import queryReducer from './reducers/query';
 import appReducer from './reducers/app';
 import indicatorReducer from './reducers/indicator';
+import indicatorSimpleReducer from './reducers/indicatorSimple';
 
 const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ const store = configureStore({
     template: templateReducer,
     query: queryReducer,
     app: appReducer,
-    indicator: indicatorReducer
+    indicator: indicatorReducer,
+    indicatorSimple: indicatorSimpleReducer,
   }
 });
 

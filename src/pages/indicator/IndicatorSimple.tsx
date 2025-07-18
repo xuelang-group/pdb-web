@@ -3,15 +3,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Col, Divider, Flex, Form, Input, message, Modal, notification, Radio, Row, Select, Space, Typography, } from "antd";
 import { DeleteOutlined, ExclamationCircleOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
-import { capitalize, compact, filter, find, get, isArray, map } from "lodash";
+import { capitalize, compact, filter, find, get, isArray, isEmpty, map } from "lodash";
+import dayjs from "dayjs";
+import moment from "moment";
 import ExploreFilterContent from "@/pages/AppExplore/ExploreFilterContent";
 import { StoreState } from "@/store";
 import { getAdapterTypeHistory, getAdapterTypeList, getBuzProcess } from "@/actions/adapter";
-import { getCsv, getFuncResult } from "@/actions/indicator";
+import { addMetric, getCsv, getFuncResult, getMetrics, updateMetric } from "@/actions/indicator";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
-import { ConditionState, initialParams, setQueryParams } from "@/reducers/query";
-import { funcOptionsObj, optionLabelMap, optionSymbolMap, typeIconMap, typeMap } from '@/utils/common';
+import { ConditionState, CsvHeaderState, initialParams, ParamsState, setQueryParams } from "@/reducers/query";
+import {  functionSymbolMap, funcOptionsObj, optionLabelMap, optionSymbolMap, typeIconMap, typeMap } from '@/utils/common';
 import { operators } from "../AppExplore/ExploreFilter";
+import { getImgHref } from "@/actions/minioOperate";
+import Loading from "@/assets/images/loading-apng.png";
+import { setMetrics } from "@/reducers/indicator";
+import { exit } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -20,15 +26,13 @@ const layout = {
   wrapperCol: { span: 16 },
 };
 
-interface CsvAttr { typeId: any; attrId: string; attrName: string; attrType: string; index: number }
-
 interface OriginType {
   label: string;
   value: string;
   key: string;
   type: string;
-  data: TypeConfig;
-  csv: CsvAttr[];
+  data?: TypeConfig;
+  csv: CsvHeaderState[];
   prevSearchTagType: string;
   config?: {
     conditions: any[];
@@ -38,32 +42,43 @@ interface OriginType {
   };
 }
 
+interface ConditionOption {
+  attr: { value: string; label: any; data: any; };
+  condition: { value: any; label: any; };
+  isNot: boolean | undefined;
+  keyword: any;
+  operator: string | undefined;
+}
+
 export default function SimpleIndicator(props: any) {
   const childRef = React.createRef();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const routerParams = useParams();
   const [form] = Form.useForm();
+  const [modal, contextHolder] = Modal.useModal();
 
-  const query = useSelector((state: StoreState) => state.query.params);
+  const current = useSelector((state: StoreState) => state.indicatorSimple.current);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
   const types = useSelector((state: StoreState) => state.type.data)
+  const typeMap = useSelector((state: StoreState) => state.editor.typeMap)
+  const api = useSelector((state: StoreState) => state.query.api);
 
   const [open, setOpen] = useState(false);
   const [typeList, setTypeList] = useState<TypeConfig[]>([]);// 数据资产单选项
   const [processOptions, setProcessOptions] = useState([])
   const [buzProcessArr, setBuzProcessArr] = useState([])
-  const [dimension, setDimension] = useState<CsvAttr>()      // 指标度量
+  const [dimension, setDimension] = useState<CsvHeaderState>()      // 指标度量
   const [funcOptions, setfuncOptions] = useState<string[]>() // 统计算法选项
   const [originType, setOriginType] = useState<OriginType>() // 选中的数据资产单数据
-  const [groupBy, setGroupBy] = useState<string[]>([''])       // 分组
   const [limit, setLimit] = useState(100)
   
   useEffect(() => {
-    if(requestId && query.pql?.length) {
+    const pql = get(current, 'pql_params.params.pql')
+    if(requestId && pql) {
       const strArr: string[] = []
-      query.pql.forEach((item: any) => {
+      pql.forEach((item: any) => {
         if(isArray(item)) {
           item.forEach((subItem: any) => {
             if(subItem.id) {
@@ -79,7 +94,7 @@ export default function SimpleIndicator(props: any) {
         }
       })
     }
-  }, [requestId, query])
+  }, [requestId, current?.pql_params])
   
   useEffect(() => {
     if (requestId) {
@@ -112,13 +127,133 @@ export default function SimpleIndicator(props: any) {
   }, [requestId]);
   
   useEffect(() => {
+    if (current) {
+      // 编辑初级指标
+      const { name, name_cn, unit, desc, metric_params, pql_params } = current
+      !isEmpty(types) && reverseParsing(pql_params.params)
+      const dimension = metric_params.dimension.name
+      const csvHeader = get(pql_params, 'params.csv.header', [])
+      const columns = map(csvHeader, 'attrId')
+      const index = columns.indexOf(dimension)
+      if (index > -1) {
+        columns.splice(index, 1)
+      }
+      const _dimension = find(csvHeader, {attrId: dimension})
+      setDimension(_dimension)
+      const attrType = get(_dimension, 'attrType', '')
+      const funcs = get(funcOptionsObj, attrType, [])
+      setfuncOptions(funcs)
+      const typeId = csvHeader[0].typeId
+      form.setFieldsValue({
+        name, name_cn, unit, desc,
+        dimension,
+        func: metric_params.func,
+        groupBy: map(metric_params.group_by, 'name'),
+        columns,
+        typeName: typeId,
+      })
+    } else {
+      // 创建初级指标
+      form.resetFields()
+      setDimension(undefined)
+    }
+
+  }, [current])
+  
+  useEffect(() => {
     if (!requestId) {
       setTypeList(types);
+    }
+    if (current && !isEmpty(types)) {
+      reverseParsing(current.pql_params.params)
     }
   }, [types]);
   
   const handleBack = () => {
+    dispatch(exit())
+    form.resetFields()
     navigate(`/${routerParams.id}/indicator/index`)
+  }
+
+  const reverseParsing = (queryParams: ParamsState) => {
+    const { pql, csv } = queryParams;
+    const typeId = get(csv.header[0], 'typeId')
+    const detail = find(types, {['x.type.name']: typeId})
+    if (!detail) {
+      message.warning('未找到相关的数据资产单')
+      return
+    }
+    const originTypes = map(pql[0], function ({ id, name, type, conditions, conditionRaw, ...other }: any, index) {
+      const conditionOptions: ConditionOption[] = [];
+      let conditionLabel = "";
+      const typeDetail = find(types, {['x.type.name']: id})
+      const attrs = compact(get(typeDetail, "x.type.attrs", []))
+      if (!isEmpty(conditionRaw) && typeDetail) {
+        let attrMap: any = {};
+        attrs.forEach((val: any) => {
+          Object.assign(attrMap, { [val?.name]: val });
+        });
+        conditions.forEach((val: ConditionState) => {
+          const attrName = val.name,
+            functionVal = functionSymbolMap[val.function],
+            attrLabel = get(attrMap[attrName], "display", ""),
+            attrData = attrMap[attrName] || {};
+          const attr = {
+            value: attrName,
+            label: attrLabel,
+            data: attrData
+          },
+            condition = {
+              value: functionVal,
+              label: get(optionLabelMap, functionVal)
+            },
+            isNot = val.not,
+            operator = val.connectives;
+
+          let keyword = val.value, keywordLabel = val.value;
+          if (attrData.type === "datetime") {
+            keywordLabel = moment(keyword).format(attrData.datetimeFormat);
+            keyword = dayjs(keywordLabel, attrData.datetimeFormat);
+          }
+
+          conditionOptions.push({
+            attr, condition, isNot, keyword, operator
+          });
+
+          if (functionVal === "has") {
+            conditionLabel += `存在属性 ${attrLabel}`;
+          } else {
+            const label = (functionVal === "anyofterms" || functionVal === "allofterms" ? optionLabelMap[functionVal] : optionSymbolMap[functionVal]) || ""
+            conditionLabel += `${val.not ? "NOT " : ""}${attrLabel} ${label} ${keywordLabel}`;
+          }
+        });
+      }
+      return {
+        key: typeId,
+        value: id,
+        type: type === "object" ? "type" : type,
+        prevSearchTagType: "",
+        label: name,
+        csv: map(attrs, ({ display, name, type }: AttrConfig) => ({
+          typeId: id,
+          attrId: name,
+          attrName: display,
+          attrType: type,
+          index: 0
+        })),
+        data: typeDetail,
+        config: {
+          conditions,
+          key: conditionRaw,
+          options: conditionOptions,
+          label: conditionLabel
+        }
+      }
+    })
+    const _originType = originTypes[0]
+
+    console.log('--- _originType: ', _originType)
+    setOriginType(_originType)
   }
 
   // 指标度量选择
@@ -212,50 +347,106 @@ export default function SimpleIndicator(props: any) {
     }
   }
 
-  // 试计算
-  const updateQueryParams = ({ func }: any) => {
-    const detail = originType?.data
-    if (!detail) {
-      message.warning('未找到相关的数据资产单')
-      return
-    }
+  const getPqlParams = () => {
     const columns = form.getFieldValue('columns')
     const config = getFilterConfig()
+    const detail = originType?.data
     const pql = [[{
       type: "object",
       conditionRaw: get(config, "key", ""),
       conditions: get(config, "conditions", []),
-      id: detail['x.type.name'],
-      name: detail['x.type.label'],
+      id: detail?.['x.type.name'],
+      name: detail?.['x.type.label'],
     }]]
     // 指标维度
-    const csv = filter(originType.csv, ({attrId}) => columns.includes(attrId))
+    const csv = filter(originType?.csv, ({attrId}) => columns.includes(attrId))
+    // 加入度量列
     dimension && csv.push(dimension)
-    const groups = filter(originType.csv, ({attrId}) => groupBy.includes(attrId))
-    const params = {
-      graphId: routerParams.id || '',
-      pql,
-      csv: {
-        header: csv
+    return {
+      api: api,
+      params: {
+        graphId: routerParams.id || '',
+        pql,
+        csv: {
+          header: csv
+        }
       }
     }
-    getFuncResult({
+  }
+
+  const getMetricParams = () => {
+    const func = form.getFieldValue('func')
+    const groupBy = form.getFieldValue('groupBy')
+    const groups = filter(originType?.csv, ({attrId}) => groupBy.includes(attrId))
+    return {
       dimension: { name: dimension?.attrId, name_cn: dimension?.attrName },
       func,
-      groupBy: map(groups, (attr: CsvAttr) => ({ name: attr.attrId, name_cn: attr.attrName})),
-      query: params
-    }, function(success: boolean, response: any) {
-      if (success) {
-        console.log('--- 试计算结果：', response)
+      groupBy: map(groups, (attr: CsvHeaderState) => ({ name: attr.attrId, name_cn: attr.attrName})),
+    }
+  }
+  
+  const updateList = (callback?: Function) => {
+    getMetrics(function (response: any) {
+      if (response) {
+        dispatch(setMetrics(response || []));
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+      callback && callback()
+    })
+  }
+
+  // 创建指标
+  const handleAdd = (data: any) => {    
+    const savingModal = modal.confirm({
+      className: "pdb-indicator-save-loading",
+      width: 164,
+      icon: (<img src={getImgHref(Loading)} />),
+      title: "指标保存中..."
+    });
+    addMetric(data, (success: boolean, res: any) => {
+      if (success) {
+        message.success('保存指标成功')
+        updateList()
+      } else {
+        message.error('保存指标失败：' + res.message || res.msg);
+        savingModal && savingModal.destroy();
       }
     })
   }
 
+  // 编辑指标
+  const handleUpdate = (data: any) => {
+    updateMetric(data, (success: boolean, res: any) => {
+      if (success) {
+        message.success('编辑指标成功');
+        updateList()
+      } else {
+        message.error('编辑指标失败：' + res.message || res.msg);
+      }
+    })
+  }
+
+  // 保存
   const onSubmit = () => {
     form.validateFields().then((values) => {
-      console.log("finish: ", values);
+      const params = {
+        name_cn: values.name_cn,
+        name: values.name,
+        unit: values.unit || '',
+        desc: values.desc || '',
+        type: 1,
+        metric_params: getMetricParams(),
+        pql_params: getPqlParams(),
+      }
+      !current ? handleAdd({
+        ...params,
+        requestId: requestId,
+        buzProcess: values.buzProcess,
+      }) : handleUpdate({
+        ...params,
+        id: current.id,
+      })
     })
   }
 
@@ -282,9 +473,25 @@ export default function SimpleIndicator(props: any) {
     })
   }
 
+  // 试计算
   const handleTryCompute = () => {
-    form.validateFields().then(values => {
-      updateQueryParams(values)
+    form.validateFields().then(values => {      
+      const detail = originType?.data
+      if (!detail) {
+        message.warning('未找到相关的数据资产单')
+        return
+      }
+      const metric_params = getMetricParams()
+      getFuncResult({
+        ...metric_params,
+        pql_params: getPqlParams()
+      }, function(success: boolean, response: any) {
+        if (success) {
+          console.log('--- 试计算结果：', response)
+        } else {
+          message.error('获取列表数据失败：' + response.message || response.msg);
+        }
+      })
     })
     // handleExcess()
   }
@@ -293,7 +500,7 @@ export default function SimpleIndicator(props: any) {
     <>
     <div className="pdb-indicator-title">
       <Button className="pdb-indicator-back" type="text" size="small" icon={<LeftOutlined />} onClick={handleBack} />
-      <Typography.Text>初级指标创建</Typography.Text>
+      <Typography.Text>初级指标{current ? '编辑' : '创建'}</Typography.Text>
     </div>
     <div className="pdb-indicator-simple">
       <div className="pdb-indicator-simple-body">
@@ -408,7 +615,6 @@ export default function SimpleIndicator(props: any) {
           >
             <Form.List
               name="groupBy"
-              initialValue={groupBy}
             >
               {(fields, { add, remove }, { errors }) => (
                 <>
@@ -470,7 +676,7 @@ export default function SimpleIndicator(props: any) {
         <Divider orientation="left" orientationMargin={16}>
           数据筛选
         </Divider>
-        <Row>
+        <Row style={{marginBottom: 16}}>
           <Col span={18} offset={3}>
             <ExploreFilterContent
               readOnly={false}

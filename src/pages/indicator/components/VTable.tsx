@@ -19,6 +19,7 @@ export default function VTable(props: {width: number, height: number}) {
 
   const vtable = useRef<any>(null);
 
+  const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const records = useSelector((state: StoreState) => state.indicator.records);
   const columns = useSelector((state: StoreState) => state.indicator.columns);
@@ -272,7 +273,15 @@ export default function VTable(props: {width: number, height: number}) {
   }, [columns])
 
   useEffect(() => {
-    func && getFuncResult({dimension: getDimensionObj(dimension), func, groupBy: getGroupByObj(compact(groupBy)), query}, function(success: boolean, response: any) {
+    func && getFuncResult({
+      dimension: getDimensionObj(dimension),
+      func,
+      groupBy: getGroupByObj(compact(groupBy)),
+      pql_params: {
+        api: api,
+        params: query
+      }
+    }, function(success: boolean, response: any) {
       if (success) {
         dispatch(setFuncResult(response));
       } else {

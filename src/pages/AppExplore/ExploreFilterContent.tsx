@@ -2,7 +2,7 @@ import { Button, Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Selec
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
-import { useEffect, useImperativeHandle, useState } from "react";
+import { Fragment, useEffect, useImperativeHandle, useState } from "react";
 
 import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
 import EmptyImage from "@/assets/images/empty.svg";
@@ -127,7 +127,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           <Form.Item name="operator" label="">
             <Radio.Group disabled={readOnly}>
               {Object.keys(operators).map(key => (
-                <Radio value={key}>{operators[key]}</Radio>
+                <Radio key={key} value={key}>{operators[key]}</Radio>
               ))}
             </Radio.Group>
           </Form.Item>
@@ -318,21 +318,21 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             title = `${opt.isNot ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
           }
           return (
-            <>
+            <Fragment key={index}>
               {index > 0 &&
                 <div className="pdb-explore-filter-connection">
                   <Tag color="volcano">{operators[opt.operator]}</Tag>
                 </div>
               }
               <Card
-                size="small" key={index}
+                size="small"
                 extra={getExtra(index, opt)}
                 title={title}
                 className={activePanelKey[0] !== index ? "no-body-card" : ""}
               >
                 {activePanelKey[0] === index ? renderPanelChildren() : null}
               </Card>
-            </>
+            </Fragment>
           )
         })}
         {filterOptions.length === 0 && !isNew &&

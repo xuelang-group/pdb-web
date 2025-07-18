@@ -14,6 +14,7 @@ import VersionRecord from './VersionRecord'
 import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
+import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
 
 export default function List(props: any) {
   const navigate = useNavigate();
@@ -246,46 +247,41 @@ export default function List(props: any) {
     setIndicatorList(indicators);
   }
 
+  const enterIndicatorSimple = (item: any, key: 'check2' | 'edit') => {
+    console.log('--- enter indicator simple: ', item)
+    dispatch(setCurrent(item))
+    dispatch(setReadonly(key === 'check2'))
+    navigate(`/${routerParams.id}/indicator/simple`)
+  }
+
+  const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
+    const dimensionStr = item.metric_params.dimension.name_cn
+    const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
+    key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));;
+    dispatch(setQueryParams(item.pql_params.params));
+    dispatch(setApi(item.pql_params.api));
+    dispatch(setNextShowConfiguration({
+      dimension: dimensionStr,
+      func: item.metric_params.func,
+      groupBy: groupByArr
+    }))
+    navigate(`/${routerParams.id}/indicator`)
+    // setTimeout(() => {
+    //   dispatch(setDimension(dimensionStr));
+    //   dispatch(setFunc(item.metric_params.func));
+    //   dispatch(setGroupBy(groupByArr));
+    // }, 500)
+  }
+
   const handleClickMenu = (item: any, menu: any) => {
     if (menu.key === 'check1') {
       setShowCheckDrawer(true)
       setCheckData(item)
     }
-    if (menu.key === 'check2') {
-      const dimensionStr = item.metric_params.dimension.name_cn
-      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
-      dispatch(setCheckId(item.id));
-      dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setApi(item.pql_params.api));
-      dispatch(setNextShowConfiguration({
-        dimension: dimensionStr,
-        func: item.metric_params.func,
-        groupBy: groupByArr
-      }))
-      navigate(`/${routerParams.id}/indicator`)
-      // setTimeout(() => {
-      //   dispatch(setDimension(dimensionStr));
-      //   dispatch(setFunc(item.metric_params.func));
-      //   dispatch(setGroupBy(groupByArr));
-      // }, 500)
-    }
-    if (menu.key === 'edit') {
-      const dimensionStr = item.metric_params.dimension.name_cn
-      const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
-      dispatch(setEditId(item.id));
-      dispatch(setQueryParams(item.pql_params.params));
-      dispatch(setApi(item.pql_params.api));
-      dispatch(setNextShowConfiguration({
-        dimension: dimensionStr,
-        func: item.metric_params.func,
-        groupBy: groupByArr
-      }))
-      navigate(`/${routerParams.id}/indicator`)
-      // setTimeout(() => {
-      //   dispatch(setDimension(dimensionStr));
-      //   dispatch(setFunc(item.metric_params.func));
-      //   dispatch(setGroupBy(groupByArr));
-      // }, 500)
+    if (['edit', 'check2'].includes(menu.key)) {
+      // if (!item.type) enterIndicatorProfession(item, menu.key)
+      // if (item.type === 1) 
+        enterIndicatorSimple(item, menu.key)
     }
     if (menu.key ==='version') {
       setVersionVisible(true)

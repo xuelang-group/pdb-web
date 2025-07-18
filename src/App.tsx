@@ -31,7 +31,10 @@ import { getSystemInfo } from '@/actions/system';
 
 import { PdbConfig } from '.';
 import './App.less';
-import List from './pages/list';
+// import List from './pages/list';
+import IndicatorIndex from './pages/indicator';
+import IndicatorSimple from './pages/indicator/IndicatorSimple';
+import IndicatorAdvance from './pages/graph/indicator';
 import { getTypeList } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
@@ -213,6 +216,17 @@ function App(props: PdbConfig) {
     )
   }
 
+  const renderIndicator = function() {
+    return (
+      <Routes>
+        <Route path="/:id/indicator/index" element={<IndicatorIndex />} />
+        <Route path="/:id/indicator/simple" element={<IndicatorSimple />} />
+        <Route path="/:id/indicator/advance" element={<IndicatorAdvance />} />
+        <Route path="/:id/indicator" element={<Indicator />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className='pdb'>
       {/* 隐藏列表页 */}
@@ -244,7 +258,8 @@ function App(props: PdbConfig) {
               }, {
                 key: "indicator",
                 label: "指标设计",
-                children: <Indicator />,
+                // children: <Indicator />,
+                children: renderIndicator(),
                 disabled: pageLoading || graphLoading
               }]}
               onChange={(activeKey: string) => {
