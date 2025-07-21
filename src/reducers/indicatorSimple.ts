@@ -330,8 +330,8 @@ const calc = {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorSimpleState = {
-  current: demoCurrent,
-  calc: calc,
+  current: undefined,
+  calc: undefined,
   readonly: false,
 };
 
@@ -351,9 +351,12 @@ export const indicatorSimpleSlice = createSlice({
     setReadonly: (state, action: PayloadAction<boolean>) => {
       state.readonly = action.payload;
     },
+    setCalc: (state, action: PayloadAction<any>) => {
+      state.calc = action.payload;
+    },
   },
 });
 
-export const { setCurrent, exit, setReadonly } = indicatorSimpleSlice.actions;
+export const { setCurrent, exit, setReadonly, setCalc } = indicatorSimpleSlice.actions;
 
 export default indicatorSimpleSlice.reducer;

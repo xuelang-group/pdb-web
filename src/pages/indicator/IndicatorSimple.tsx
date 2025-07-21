@@ -27,11 +27,9 @@ import {
   SmallDashOutlined,
 } from "@ant-design/icons";
 import {
-  capitalize,
   compact,
   filter,
   find,
-  forEach,
   get,
   isArray,
   isEmpty,
@@ -48,7 +46,6 @@ import {
 } from "@/actions/adapter";
 import {
   addMetric,
-  getCsv,
   getFuncResult,
   getMetrics,
   updateMetric,
@@ -57,9 +54,7 @@ import { AttrConfig, TypeConfig } from "@/reducers/type";
 import {
   ConditionState,
   CsvHeaderState,
-  initialParams,
   ParamsState,
-  setQueryParams,
 } from "@/reducers/query";
 import {
   functionSymbolMap,
@@ -67,13 +62,12 @@ import {
   optionLabelMap,
   optionSymbolMap,
   typeIconMap,
-  typeMap,
 } from "@/utils/common";
 import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { setMetrics } from "@/reducers/indicator";
-import { exit, setCurrent } from "@/reducers/indicatorSimple";
+import { exit, setCalc, setCurrent } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -376,6 +370,12 @@ export default function SimpleIndicator(props: any) {
       prevSearchTagType: "",
       csv,
     });
+    form.setFieldsValue({
+      dimension: '',
+      func: '',
+      columns: [],
+      groupBy: ['']
+    })
   };
 
   const handleFilterOptions = (filterOptions: any) => {
@@ -442,7 +442,7 @@ export default function SimpleIndicator(props: any) {
   const getFilterConfig = function () {
     const { filterOptions } = childRef.current as any;
     const config = handleFilterOptions(filterOptions);
-    console.log("--- get: ", config);
+    // console.log("--- get: ", config);
     return config;
   };
 
@@ -523,12 +523,13 @@ export default function SimpleIndicator(props: any) {
       title: "指标保存中...",
     });
     addMetric(data, (success: boolean, res: any) => {
+      savingModal && savingModal.destroy();
       if (success) {
         message.success("保存指标成功");
         updateList();
+        handleBack();
       } else {
         message.error("保存指标失败：" + res.message || res.msg);
-        savingModal && savingModal.destroy();
       }
     });
   };
@@ -539,6 +540,7 @@ export default function SimpleIndicator(props: any) {
       if (success) {
         message.success("编辑指标成功");
         updateList();
+        handleBack();
       } else {
         message.error("编辑指标失败：" + res.message || res.msg);
       }
@@ -610,29 +612,30 @@ export default function SimpleIndicator(props: any) {
         message.warning("未找到相关的数据资产单");
         return;
       }
-      setOpen(true);
-      // const metric_params = getMetricParams()
-      // const pql_params = getPqlParams()
-      // dispatch(setCurrent({
-      //   id: current?.id || undefined,
-      //   name_cn: values.name_cn,
-      //   name: values.name,
-      //   unit: values.unit || '',
-      //   desc: values.desc || '',
-      //   type: 1,
-      //   metric_params,
-      //   pql_params,
-      // }))
-      // getFuncResult({
-      //   metric_params,
-      //   pql_params,
-      // }, function(success: boolean, response: any) {
-      //   if (success) {
-      //     console.log('--- 试计算结果：', response)
-      //   } else {
-      //     message.error('获取列表数据失败：' + response.message || response.msg);
-      //   }
-      // })
+      const metric_params = getMetricParams()
+      const pql_params = getPqlParams()
+      dispatch(setCurrent({
+        id: current?.id || undefined,
+        name_cn: values.name_cn,
+        name: values.name,
+        unit: values.unit || '',
+        desc: values.desc || '',
+        type: 1,
+        metric_params,
+        pql_params,
+      }))
+      getFuncResult({
+        metric_params,
+        pql_params,
+      }, function(success: boolean, response: any) {
+        if (success) {
+          console.log('--- 试计算结果：', response)          
+          setOpen(true);
+          setCalc(response)
+        } else {
+          message.error('获取列表数据失败：' + response.message || response.msg);
+        }
+      })
     });
   };
 
@@ -706,7 +709,8 @@ export default function SimpleIndicator(props: any) {
 
   const renderResultColumns = () => {
     const label = originType?.label
-    const attrs = map(current?.pql_params.params.csv.header || [], item => ({...item, attrName: item.attrName.replace(`_${label}`, '')}));
+    const header = current?.pql_params.params.csv.header || []
+    const attrs = map(filter(header, ({attrId}) => attrId !== calc?.dimension.name), item => ({...item, attrName: item.attrName.replace(`_${label}`, '')}));
     const pql = get(current, "pql_params.params.pql", [[]]);
     const conditions: ConditionState[] = pql[0][0]?.conditions;
     const dimension = get(current, "metric_params.dimension");
@@ -723,7 +727,7 @@ export default function SimpleIndicator(props: any) {
     return (
       <>
         <Flex align="flex-end">
-          {attrs &&
+          {!isEmpty(attrs) &&
             attrs.slice(0, 3).map((item) => {
               return conditionMap[item.attrId] &&
                 conditionMap[item.attrId].length == 1 ? (
@@ -751,12 +755,12 @@ export default function SimpleIndicator(props: any) {
           <span className="unit">{current?.unit}</span>
         </Flex>
         <div className="pdb-indicator-result-filter">
-          {conditions.slice(0, 3).map((item: ConditionState, index: number) => {
+          {!isEmpty(conditions) && conditions.slice(0, 3).map((item: ConditionState, index: number) => {
             const label = attrMap[item.name]['attrName']
             const title = getConditionRaw(item, label)
             return (<Tag key={index}>{title}</Tag>)
           })}
-          {conditions.length > 3 && <Popover
+          {conditions?.length > 3 && <Popover
             content={renderPopConditions(conditions, attrMap)}
           >
             <Button type="text" size="small" icon={<SmallDashOutlined />} />
