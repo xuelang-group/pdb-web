@@ -883,7 +883,7 @@ export default function SimpleIndicator(props: any) {
               label="指标维度"
             >
               <Select
-                mode="tags"
+                mode="multiple"
                 allowClear
                 options={map(originType?.csv, (item) => ({
                   label: item.attrName,
