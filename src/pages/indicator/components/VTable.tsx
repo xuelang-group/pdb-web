@@ -274,9 +274,11 @@ export default function VTable(props: {width: number, height: number}) {
 
   useEffect(() => {
     func && getFuncResult({
-      dimension: getDimensionObj(dimension),
-      func,
-      groupBy: getGroupByObj(compact(groupBy)),
+      metric_params: {
+        dimension: getDimensionObj(dimension),
+        func,
+        group_by: getGroupByObj(compact(groupBy)),
+      },
       pql_params: {
         api: api,
         params: query
