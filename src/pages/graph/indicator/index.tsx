@@ -83,11 +83,15 @@ function registerNode() {
         attrs: {
           width: 100,
           height: 32,
-          fill: '#f5dfff',
-          stroke: '#b319f5',
+          fill: 'rgb(239, 227, 250)',
+          stroke: 'rgb(188, 149, 229)',
           radius: 4,
+          lineWidth: 0.6,
           cursor: 'pointer',
         },
+        anchorPoints: [
+          [0, 0.5],
+        ],
         name: 'node-rect'
       });
       group.addShape('text', {
@@ -107,7 +111,7 @@ function registerNode() {
         attrs: {
           x: 12,
           y: 16,
-          fill: '#9F11DC',
+          fill: 'rgba(172, 115, 233, 1)',
           textBaseline: 'middle', 
           fontFamily: 'iconfont',
           text: getIcon('PDB_2'),
@@ -125,11 +129,15 @@ function registerNode() {
         attrs: {
           width: 140,
           height: 32,
-          fill: '#E8F8FF',
-          stroke: '#0084FF',
+          fill: 'rgb(232, 243, 255)',
+          stroke: 'rgb(148, 191, 255)',
           radius: 4,
+          lineWidth: 0.6,
           cursor: 'pointer',
         },
+        anchorPoints: [
+          [1, 0.5],
+        ],
         name: 'node-rect'
       });
       group.addShape('text', {
@@ -149,7 +157,7 @@ function registerNode() {
         attrs: {
           x: 12,
           y: 16,
-          fill: 'rgb(38, 92, 255)',
+          fill: 'rgba(94, 158, 255, 1)',
           textBaseline: 'middle',
           fontFamily: 'iconfont',
           // textAlign: 'center',
@@ -167,18 +175,22 @@ function registerNode() {
       const keyShape = group.addShape('rect', {
         attrs: {
           width: 40,
-          height: 40,
-          fill: '#00B42A',
-          stroke: '#00B42A',
+          height: 32,
+          fill: 'rgb(166, 203, 71)',
+          stroke: 'rgb(166, 203, 71)',
           radius: 4,
           cursor: 'pointer',
         },
+        anchorPoints: [
+          [0, 0.5],
+          [1, 0.5],
+        ],
         name: 'node-rect'
       });
       group.addShape('text', {
         attrs: {
           x: 20,
-          y: 20,
+          y: 16,
           fill: '#fff',
           textBaseline: 'middle',
           textAlign: 'center',

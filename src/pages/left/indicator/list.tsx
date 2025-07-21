@@ -357,12 +357,12 @@ export default function List(props: any) {
                   >
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
-                      draggable={draggable}
+                      draggable={draggable && item.type !== 1}
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
                       <span className='item-name'>
                         <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
-                        {(<span className='type-item-label'>{label}</span>)}
+                        <span className='type-item-label'>{label}</span>
                       </span>
                       <span className='item-status'>
                         {checkId === item.id && <Tag color="blue" className='indicator-tag'>查看中</Tag>}
@@ -374,6 +374,32 @@ export default function List(props: any) {
                 );
               })}
             </div>
+          }
+          {
+            draggable && (
+              <>
+                <div
+                  className={`type-item indicator-item`}
+                  draggable={draggable}
+                  onDragStart={event => handleDragStart(event, {type: 'symbol'})}
+                >
+                  <span className='item-name'>
+                    <i className={'iconfont '} style={{ color: '#00B42A' }}></i>
+                    <span className='type-item-label'>运算符</span>
+                  </span>
+                </div>
+                <div
+                  className={`type-item indicator-item`}
+                  draggable={draggable}
+                  onDragStart={event => handleDragStart(event, {type: 'result'})}
+                >
+                  <span className='item-name'>
+                    <i className={'iconfont '} style={{ color: '#b319f5' }}></i>
+                    <span className='type-item-label'>结果</span>
+                  </span>
+                </div>
+              </>
+            )
           }
           {indList.length === 0 && !indicatorLoading && (
             isIndSearched ?
