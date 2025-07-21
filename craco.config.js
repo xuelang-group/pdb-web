@@ -68,7 +68,7 @@ module.exports = {
         // }
       },
       '/adapter': {
-        target: "http://120.195.198.50:21881",
+        target: "http://10.88.40.101:21881/",
         changeOrigin: true,
       }
     },
