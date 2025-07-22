@@ -18,6 +18,7 @@ import {
   setNowCheckVersion,
   setCheckId,
   setNextShowConfiguration,
+  setExtraColumns,
 } from "@/reducers/indicator";
 import { setQueryParams, setApi } from "@/reducers/query";
 import { clearQuery } from "@/reducers/query";
@@ -91,6 +92,7 @@ export default function Indicator(props: any) {
             (item: any) => item.name_cn
           );
           dispatch(setCheckId(res.id));
+          dispatch(setExtraColumns(res.metric_params.extra_columns))
           dispatch(setQueryParams(res.pql_params.params));
           dispatch(setApi(res.pql_params.api));
           dispatch(setNowCheckVersion(version));
@@ -122,6 +124,7 @@ export default function Indicator(props: any) {
             (item: any) => item.name_cn
           );
           dispatch(setCheckId(res.id));
+          dispatch(setExtraColumns(res.metric_params.extra_columns))
           dispatch(setQueryParams(res.pql_params.params));
           dispatch(setApi(res.pql_params.api));
           dispatch(setcheckVersionList(null));

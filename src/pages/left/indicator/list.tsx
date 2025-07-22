@@ -262,7 +262,8 @@ export default function List(props: any) {
   const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
     const dimensionStr = item.metric_params.dimension.name_cn
     const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
-    key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));;
+    key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));
+    dispatch(setExtraColumns(item.metric_params.extra_columns))
     dispatch(setQueryParams(item.pql_params.params));
     dispatch(setApi(item.pql_params.api));
     dispatch(setNextShowConfiguration({

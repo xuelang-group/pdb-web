@@ -359,6 +359,7 @@ export default function VTable(props: {width: number, height: number}) {
         dimension: getDimensionObj(dimension),
         func,
         group_by: getGroupByObj(compact(groupBy)),
+        extraColumns
       },
       pql_params: {
         api: api,
