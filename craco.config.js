@@ -60,14 +60,14 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        target: "http://pdb-dev.xuelangyun.com:30080/proxr/1000184/55211/81759ec00ea411f0b18cc98a310b2dc6/7000",
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
         changeOrigin: true,
         // pathRewrite: {
         //   '^/indicator': ''
         // }
       },
       '/adapter': {
-        target: "http://120.195.198.50:21881",
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
         changeOrigin: true,
       }
     },

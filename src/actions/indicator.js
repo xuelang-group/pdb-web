@@ -1,4 +1,5 @@
 import axios from '../utils/axios';
+import { api as queryApi } from './query';
 
 const apiPrefix = '/indicator';
 const api = {
@@ -16,11 +17,11 @@ const api = {
 // 获取模板列表
 export const getCsv = (query, extraColumns=[], callback) => {
   return axios.post(api['csv'], {
-    "pql_params": {
+    // "pql_params": {
       "api": queryApi['pql'],
       "params": query
-    },
-    "extra_columns": extraColumns
+    // },
+    // "extra_columns": extraColumns
   }).then(({ data }) => {
     // console.log(data)
     callback && callback(data.success, data.success ? data.data: data);
