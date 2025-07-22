@@ -165,7 +165,7 @@ export default function SimpleIndicator(props: any) {
       getAdapterTypeList({ requestId }, (success: boolean, response: any) => {
         if (success) {
           const typeList = get(response, "data", []);
-          if (typeList.length > 0) {
+          if (!isEmpty(typeList)) {
             setTypeList(compact(typeList));
           } else {
             getAdapterTypeHistory(
@@ -218,7 +218,7 @@ export default function SimpleIndicator(props: any) {
         desc,
         dimension,
         func: metric_params.func,
-        groupBy: map(metric_params.group_by, "name"),
+        groupBy: !isEmpty(metric_params.group_by) ? map(metric_params.group_by, "name") : [''],
         columns,
         typeName: typeId,
       });
@@ -524,6 +524,7 @@ export default function SimpleIndicator(props: any) {
     });
     addMetric(data, (success: boolean, res: any) => {
       savingModal && savingModal.destroy();
+      console.log('--- addMetric: ', res)
       if (success) {
         message.success("保存指标成功");
         updateList();

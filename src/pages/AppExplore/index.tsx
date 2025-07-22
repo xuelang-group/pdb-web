@@ -92,7 +92,7 @@ export default function AppExplore() {
       getAdapterTypeList({ requestId }, (success: boolean, response: any) => {
         if (success) {
           const typeList = _.get(response, "data", []);
-          if (typeList.length > 0) {
+          if (!isEmpty(typeList)) {
             setTypeList(compact(typeList));
           } else {
             getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {

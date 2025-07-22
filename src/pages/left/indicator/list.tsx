@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import _, { set } from 'lodash';
+import _, { isEmpty, set } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
   setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration, 
   setExtraColumns} from "@/reducers/indicator";
@@ -36,6 +36,7 @@ export default function List(props: any) {
   const searchRef = useRef<InputRef>(null);
   const dispatch = useDispatch();
   const [versionVisible, setVersionVisible] = useState(false);
+  const [draggable, setDraggable] = useState(false);
   const [versionId, setVersionId] = useState(null);
 
   const { Search } = Input;
@@ -53,6 +54,11 @@ export default function List(props: any) {
       updateList()
     }
   }, [requestId])
+
+  useEffect(() => {
+    // 高级指标，左侧指标列表可拖曳
+    setDraggable(location.pathname.endsWith('/indicator/advance'))
+  }, [location.pathname])
 
   useEffect(() => {
     setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
@@ -296,12 +302,12 @@ export default function List(props: any) {
   }
   
   const handleDragStart = function (event: any, type: any) {
-    event.dataTransfer.setData("drop_add", JSON.stringify(type));
+    const data = JSON.stringify(type)
+    event.dataTransfer.setData("drop_add", data);
   }
 
   const renderIndicatorTree = useCallback((type: string) => {
     let indList = JSON.parse(JSON.stringify(indicatorList));
-    const draggable = location.pathname.endsWith('/indicator/advance');
     
     return (
       <div className='list-container'>
@@ -364,10 +370,16 @@ export default function List(props: any) {
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
                       draggable={draggable && item.type !== 2}
-                      onDragStart={event => handleDragStart(event, item.data)}
+                      onDragStart={event => handleDragStart(event, {type: 'indicator', label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn}})}
                     >
                       <span className='item-name'>
-                        <i className={'iconfont icon-zhibiao'} style={{ color: '#265CFF' }}></i>
+                        {
+                          item.type !== 2 ? <i className={`iconfont icon-zhibiao`} style={{ color: '#265CFF' }}></i> :
+                          <svg className="svg-icon" aria-hidden="true">
+                            <use xlinkHref="#icon-gaojizhibiao">
+                            </use>
+                          </svg>
+                        }
                         <span className='type-item-label'>{label}</span>
                       </span>
                       <span className='item-status'>
@@ -382,25 +394,25 @@ export default function List(props: any) {
             </div>
           }
           {
-            draggable && (
+            draggable && !isEmpty(indList) && (
               <>
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'symbol'})}
+                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', label: '运算符'})}
                 >
                   <span className='item-name'>
-                    <i className={'iconfont '} style={{ color: '#00B42A' }}></i>
+                    <i className={'iconfont icon-yunsuanfu'} style={{ color: '#265CFF' }}></i>
                     <span className='type-item-label'>运算符</span>
                   </span>
                 </div>
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'result'})}
+                  onDragStart={event => handleDragStart(event, {type: 'advance', label: '结果'})}
                 >
                   <span className='item-name'>
-                    <i className={'iconfont '} style={{ color: '#b319f5' }}></i>
+                    <i className={'iconfont icon-jieguo'} style={{ color: '#265CFF' }}></i>
                     <span className='type-item-label'>结果</span>
                   </span>
                 </div>
@@ -420,7 +432,7 @@ export default function List(props: any) {
         </div>
       </div>
     );
-  }, [indicatorList, routerParams?.id, indicatorLoading, checkId, editId]);
+  }, [indicatorList, routerParams?.id, indicatorLoading, checkId, editId, draggable]);
 
   return (
     <div className='pdb-type-list'>

@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "45007812",
+      "name": "高级指标",
+      "font_class": "gaojizhibiao",
+      "unicode": "e88b",
+      "unicode_decimal": 59531
+    },
+    {
+      "icon_id": "45006792",
+      "name": "结果",
+      "font_class": "jieguo",
+      "unicode": "ea5d",
+      "unicode_decimal": 59997
+    },
+    {
+      "icon_id": "45006788",
+      "name": "运算符",
+      "font_class": "yunsuanfu",
+      "unicode": "e889",
+      "unicode_decimal": 59529
+    },
+    {
+      "icon_id": "43364897",
+      "name": "对象类型-开启版本管理",
+      "font_class": "duixiangleixing-kaiqibanbenguanli",
+      "unicode": "e825",
+      "unicode_decimal": 59429
+    },
+    {
       "icon_id": "42878357",
       "name": "修改节点实例展示文字",
       "font_class": "xiugaijiedianshilizhanshiwenzi",

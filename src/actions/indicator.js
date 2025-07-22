@@ -37,8 +37,8 @@ export const getFuncResult = ({metric_params, pql_params}, callback) => {
     "pql_params": pql_params
   }).then(({data}) => {
     // console.log(data)
-    // callback && callback(data.success, data.success ? data.data: data);
-    callback && callback(true, data);
+    callback && callback(data.success, data.success ? data.data: data);
+    // callback && callback(true, data);
   }, (err) => {
     callback && callback(false, err);
   });
@@ -56,7 +56,8 @@ export const getMetrics = (callback) => {
 // 新增metric
 export const addMetric = (params, callback) => {
   return axios.post(api['addMetric'], params).then(({ data }) => {
-    callback && callback(true, data);
+    // callback && callback(true, data);
+    callback && callback(data.success, data.success ? data.data: data);
   }, (err) => {
     callback && callback(false, err);
   });
@@ -65,7 +66,8 @@ export const addMetric = (params, callback) => {
 // 编辑metric
 export const updateMetric = (params, callback) => {
   return axios.post(`${api['updateMetric']}`, params).then(({ data }) => {
-    callback && callback(true, data);
+    // callback && callback(true, data);
+    callback && callback(data.success, data.success ? data.data: data);
   }, (err) => {
     callback && callback(false, err);
   });

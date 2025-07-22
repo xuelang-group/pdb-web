@@ -61,14 +61,14 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
+        target: "http://10.88.40.85:8088",
         changeOrigin: true,
         // pathRewrite: {
         //   '^/indicator': ''
         // }
       },
       '/adapter': {
-        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
+        target: "http://10.88.40.101:21881",
         changeOrigin: true,
       }
     },

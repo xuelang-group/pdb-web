@@ -1,11 +1,11 @@
-import G6, { IG6GraphEvent, IGroup, ModelConfig } from '@antv/g6';
+import G6, { Graph, IG6GraphEvent, IGroup, ModelConfig } from '@antv/g6';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useResizeDetector } from 'react-resize-detector';
 import { Button, Form, Modal, Radio, Typography } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
-import { isEmpty } from "lodash";
+import { get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
 import './index.less'
 import { getIcon } from '@/utils/common';
@@ -34,12 +34,12 @@ const data = {
     },
     {
       id: 'f1',
-      label: '加',
+      label: '＋',
       type: 'math-symbol',
     },
     {
       id: 'f3',
-      label: '乘',
+      label: '×',
       type: 'math-symbol',
     },
     {
@@ -114,7 +114,7 @@ function registerNode() {
           fill: 'rgba(172, 115, 233, 1)',
           textBaseline: 'middle', 
           fontFamily: 'iconfont',
-          text: getIcon('PDB_2'),
+          text: getIcon('jieguo'),
           fontSize: 18
         },
         name: 'node-icon'
@@ -171,7 +171,8 @@ function registerNode() {
   }, 'rect')
   G6.registerNode('math-symbol', {
     draw: function draw(cfg: ModelConfig, group: IGroup) {
-      const { id, label } = cfg;
+      const { id, label, data } = cfg;
+      const mathSym = get(cfg, 'data.symbol')
       const keyShape = group.addShape('rect', {
         attrs: {
           width: 40,
@@ -196,7 +197,7 @@ function registerNode() {
           textAlign: 'center',
           fontWeight: 500,
           fontSize: 18,
-          text: '+',
+          text: label,
         },
         name: 'node-icon'
       });
@@ -211,11 +212,15 @@ function registerNode() {
       };
     },
     onDrop: function (event: IG6GraphEvent) {
-      const { item, target, originalEvent } = event;
-      console.log('--- onDrop   item: ', item)
-      console.log('--- onDrop target: ', target)
-      const dropAdd = (originalEvent as any).dataTransfer.getData('drop_add');
-      console.log('--- onDrop dropAdd: ', dropAdd)
+      const { x, y, clientX, clientY, dataTransfer } = event.originalEvent as any;
+      console.log('--- originalEvent: ', event.originalEvent)
+      // console.log('--- event: ', event)
+      const dropAdd = dataTransfer.getData('drop_add');
+      const graph = this.graph as Graph;
+      const model = JSON.parse(dropAdd)
+      const point = graph.getPointByClient(clientX, clientY)
+      graph.addItem('node', {...model, ...point })
+      // graph.refresh()
     }
   })
 }
