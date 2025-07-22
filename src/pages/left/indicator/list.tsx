@@ -290,7 +290,7 @@ export default function List(props: any) {
   }
   
   const handleDragStart = function (event: any, type: any) {
-    event.dataTransfer.setData("object_drop_add", JSON.stringify(type));
+    event.dataTransfer.setData("drop_add", JSON.stringify(type));
   }
 
   const renderIndicatorTree = useCallback((type: string) => {
@@ -357,7 +357,7 @@ export default function List(props: any) {
                   >
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
-                      draggable={draggable && item.type !== 1}
+                      draggable={draggable && item.type !== 2}
                       onDragStart={event => handleDragStart(event, item.data)}
                     >
                       <span className='item-name'>

@@ -1,4 +1,4 @@
-import G6, { IGroup, ModelConfig } from '@antv/g6';
+import G6, { IG6GraphEvent, IGroup, ModelConfig } from '@antv/g6';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -203,6 +203,21 @@ function registerNode() {
       return keyShape;
     },
   }, 'rect')
+
+  G6.registerBehavior('drop-canvas', {
+    getEvents() {
+      return {
+        'canvas:drop': 'onDrop'
+      };
+    },
+    onDrop: function (event: IG6GraphEvent) {
+      const { item, target, originalEvent } = event;
+      console.log('--- onDrop   item: ', item)
+      console.log('--- onDrop target: ', target)
+      const dropAdd = (originalEvent as any).dataTransfer.getData('drop_add');
+      console.log('--- onDrop dropAdd: ', dropAdd)
+    }
+  })
 }
 
 export default function IndicatorAdvance() {

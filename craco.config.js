@@ -53,6 +53,7 @@ module.exports = {
     proxy: {
       '/pdb': {
         target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
+        // target: "http://pdb-pro.xuelangyun.com:30080/",
         changeOrigin: true,
         // onProxyReq(proxyReq) {
         //   // 设置Cookie
@@ -60,15 +61,16 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        // target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
-        target: "http://10.88.40.85:8088/",
+        target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
+        // target: "http://10.88.40.85:8088/",
         changeOrigin: true,
         // pathRewrite: {
         //   '^/indicator': ''
         // }
       },
       '/adapter': {
-        target: "http://10.88.40.101:21881/",
+        target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
+        // target: "http://10.88.40.101:21881/",
         changeOrigin: true,
       }
     },
