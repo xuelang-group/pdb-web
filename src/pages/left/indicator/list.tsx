@@ -7,7 +7,8 @@ import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator"
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import _, { set } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
-  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration } from "@/reducers/indicator";
+  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration, 
+  setExtraColumns} from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import VersionRecord from './VersionRecord'
@@ -105,6 +106,7 @@ export default function List(props: any) {
         const dimensionStr = tempObj.metric_params.dimension.name_cn
         const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         dispatch(setCheckId(tempObj.id));
+        dispatch(setExtraColumns(tempObj.metric_params.extra_columns))
         dispatch(setQueryParams(tempObj.pql_params.params));
         dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
@@ -126,6 +128,7 @@ export default function List(props: any) {
             const dimensionStr = res.metric_params.dimension.name_cn
             const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
             dispatch(setCheckId(res.id));
+            dispatch(setExtraColumns(res.metric_params.extra_columns))
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNeedCheckId(null));
@@ -156,6 +159,7 @@ export default function List(props: any) {
         getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
           dispatch(setEditId(tempObj.id));
           dispatch(setNeedEditId(null));
+          dispatch(setExtraColumns(tempObj.metric_params.extra_columns))
           dispatch(setQueryParams(tempObj.pql_params.params));
           dispatch(setApi(tempObj.pql_params.api));
           if (success) {
@@ -180,6 +184,7 @@ export default function List(props: any) {
             const dimensionStr = res.metric_params.dimension.name_cn
             const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
             dispatch(setEditId(res.id));
+            dispatch(setExtraColumns(res.metric_params.extra_columns))
             dispatch(setQueryParams(res.pql_params.params));
             dispatch(setApi(res.pql_params.api));
             dispatch(setNeedEditId(null));

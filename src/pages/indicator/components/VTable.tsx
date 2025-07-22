@@ -1,13 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useRef } from 'react'
-import { message, Space, Empty, Typography } from "antd";
+import { useEffect, useRef, useState } from 'react'
+import { message, Space, Empty, Typography, Modal, Form, Input } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
-import { isEmpty, compact, isString } from "lodash"
+import { isEmpty, compact, isString, findIndex, keys, values } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration } from "@/reducers/indicator";
+import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
@@ -29,7 +29,13 @@ export default function VTable(props: {width: number, height: number}) {
   const func = useSelector((state: StoreState) => state.indicator.func);
   const result = useSelector((state: StoreState) => state.indicator.result);
   const nextShowConfiguration = useSelector((state: StoreState) => state.indicator.nextShowConfiguration);
+  const extraColumns = useSelector((state: StoreState) => state.indicator.extraColumns);
+  const selectedColumns = useSelector((state: StoreState) => state.indicator.selectedColumns);
 
+  const [open, setOpen] = useState<boolean>(false)
+  const [form] = Form.useForm()
+  // console.log('columns: ', columns)
+  // console.log('records: ', records)
   const option: IOption = {
     widthMode: 'autoWidth',
     autoFillWidth: true,
@@ -40,7 +46,7 @@ export default function VTable(props: {width: number, height: number}) {
     rightFrozenColCount: 1,
     // frozenColCount: groupBy.length,
     select: {
-      disableSelect: true,
+      // disableSelect: true,
       blankAreaClickDeselect: false,
       outsideClickDeselect: false,
     },
@@ -204,57 +210,132 @@ export default function VTable(props: {width: number, height: number}) {
     }
   }
 
+  const handleExtraOk = () => {
+    form.validateFields().then(values => {
+      dispatch(updateExtraColumns(values))
+      dispatch(updateSelectedColumns(undefined))
+      setOpen(false)
+    })
+    .catch(err => {
+      console.log('handleExtraOk failed:', err);
+    })
+  }
+
   const onDropdownMenuClick = (args: any) => {
     if (args.menuKey === 'disabled') {
       // tableInstance.setDropDownMenuHighlight([args]);
       const { col } = args;
       dispatch(updateDisabledField({col, value: !columns[col].disabled}))
+    } else {
+      const keyArr = args.menuKey.split(':');
+      const cols = values(selectedColumns);
+      const col_0 = cols[0];
+      const col_1 = cols[1];
+      const key = keyArr[0];
+      let formula = ''
+      if (keyArr.length == 2 && keyArr[1] == '2') {
+        formula = '`' + col_1.field + '` ' + key + ' `' + col_0.field + '`'
+      } else {
+        formula = '`' + col_0.field + '` ' + key + ' `' + col_1.field + '`'
+      }
+      console.log(key, formula)
+      setOpen(true)
+      form.setFieldsValue({name: '', formula: formula})
     }
   }
 
   const onContextMenuCell = (args: any) => {
-    const { col, row } = args;
-    if(row == 0) {
+    const { col, row, field, targetIcon } = args;
+    if(row == 0 && !selectedColumns[col] && field !== dimension) {
       vtable.current?.showDropDownMenu(col, row, {
         content: [{
           text: columns[col].disabled ? '启用' : '禁用',
           menuKey: 'disabled',
         }],
       })
+      return
+    }
+    if (selectedColumns[col] && keys(selectedColumns).length == 2) {
+      const cols = values(selectedColumns);
+      const col_0 = cols[0];
+      const col_1 = cols[1];
+      vtable.current?.showDropDownMenu(col, row, {
+        content: [{
+          text: '加',
+          menuKey: '+',
+        }, {
+          text: '减',
+          menuKey: '-',
+          children: [
+            {
+              text: `${col_0.field} － ${col_1.field}`,
+              menuKey: '-:1'
+            },
+            {
+              text: `${col_1.field} － ${col_0.field}`,
+              menuKey: '-:2'
+            }
+          ]
+        }, {
+          text: '乘',
+          menuKey: '*',
+        }, {
+          text: '除',
+          menuKey: '/',
+          children: [
+            {
+              text: `${col_0.field} ÷ ${col_1.field}`,
+              menuKey: '/:1'
+            },
+            {
+              text: `${col_1.field} ÷ ${col_0.field}`,
+              menuKey: '/:2'
+            }
+          ]
+        }],
+        // position: {x: 10, y: 10}
+      })
     }
   }
 
   const onClickCell = (args: any) => {
-    const { col, row } = args;
-    console.log('click cell: ', col, row)
-    // if (!isEmpty(columns)) {
-    //   const colCount = columns.length - 1;
-    //   const rowCount = records.length;
-    //   vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
-    // }
+    const { col, row, event, field } = args;
+    if (isEmpty(columns)) return
+    if (event.ctrlKey) {
+      if (selectedColumns[col]) {
+        dispatch(updateSelectedColumns({col: col, value: undefined}))
+      } else if (keys(selectedColumns).length < 2) {
+        const index = findIndex(columns, {field: field})
+        if (index > -1 && ['int', 'float'].includes(columns[index].type)) {
+          dispatch(updateSelectedColumns({col: col, value: columns[index]}))
+        }
+      }
+    } else {
+      dispatch(updateSelectedColumns(undefined))
+    }
   }
 
   useEffect(() => {
     if (query.graphId) {
       dispatch(setLoading(true));
-      getCsv(query, function (success: boolean, response: any) {
-      if (success) {
+      getCsv(query, extraColumns, function (success: boolean, response: any) {
         dispatch(setLoading(false));
-        dispatch(setTableData(response.trim()));
-        if(nextShowConfiguration) {
-          dispatch(setDimension(nextShowConfiguration.dimension));
-          dispatch(setFunc(nextShowConfiguration.func));
-          dispatch(setGroupBy(nextShowConfiguration.groupBy));
-          dispatch(setNextShowConfiguration(null))
+        if (success) {
+          dispatch(setTableData(response.trim()));
+          if(nextShowConfiguration) {
+            dispatch(setDimension(nextShowConfiguration.dimension));
+            dispatch(setFunc(nextShowConfiguration.func));
+            dispatch(setGroupBy(nextShowConfiguration.groupBy));
+            dispatch(setNextShowConfiguration(null))
+          }
+        } else {
+          message.error('获取列表数据失败：' + response.message || response.msg);
         }
-      } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
-      }
-    })
-   } else {
-    dispatch(setTableData(""));
-   }
-  }, [query])
+      })
+    } else {
+      dispatch(setTableData(""));
+    }
+  }, [query, extraColumns])
 
   useEffect(() => {
     if (vtable.current) {
@@ -290,7 +371,19 @@ export default function VTable(props: {width: number, height: number}) {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
     })
-  }, [func, dimension, groupBy])
+  }, [func, dimension, groupBy, extraColumns])
+
+  useEffect(() => {
+    if (vtable.current) {
+      if (!isEmpty(selectedColumns)) {
+        const rowCount = records.length
+        const cells = Object.keys(selectedColumns).map(col => ({ start: { col: col, row: 0 }, end: { col: col, row: rowCount } }))
+        vtable.current.selectCells(cells);
+      } else {
+        vtable.current.clearSelected();
+      }
+    }
+  }, [selectedColumns])
 
   const getDimensionObj = (dimension: string) => {
     const header = query.csv.header
@@ -302,7 +395,10 @@ export default function VTable(props: {width: number, height: number}) {
         name_cn: attrName,
       }
     } else {
-      return dimension
+      return  {
+        name: dimension,
+        name_cn: dimension,
+      }
     }
   }
 
@@ -351,7 +447,7 @@ export default function VTable(props: {width: number, height: number}) {
           option={option}
           records={records}
           onReady={onReady}
-          // onClickCell={onClickCell}
+          onClickCell={onClickCell}
           onDropdownMenuClick={onDropdownMenuClick}
           onContextMenuCell={onContextMenuCell}
         />
@@ -368,6 +464,34 @@ export default function VTable(props: {width: number, height: number}) {
           </Space>
         </div>
       )}
+      <Modal
+        title="自定义列名" 
+        open={open}
+        onCancel={() => setOpen(false)}
+        okText="确认"
+        cancelText="取消"
+        onOk={handleExtraOk}
+      >
+        <Form form={form} labelCol={{ span: 4 }} wrapperCol={{ span: 18 }}>
+          <Form.Item label="列名" name="name" colon rules={[
+            {required: true, message: '请输入列名'},
+            {
+              validator: async (_, value) => {
+                const index = columns.findIndex(col => col.field == value);
+                if (index == -1) return;
+                if (index > -1) {
+                  throw new Error('列名重复，请重新输入');
+                }
+              }
+            }
+          ]}>
+            <Input placeholder="请输入" />
+          </Form.Item>
+          <Form.Item label="公式" name="formula" hidden>
+            <Input placeholder="请输入" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }

@@ -61,16 +61,14 @@ module.exports = {
         // },
       },  
       '/indicator': {
-        target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
-        // target: "http://10.88.40.85:8088/",
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
         changeOrigin: true,
         // pathRewrite: {
         //   '^/indicator': ''
         // }
       },
       '/adapter': {
-        target: "https://xlos.xuelangyun.com/proxr/shanglu/73454/5f47d560a57311ef87d89f2a63484c96/7000/",
-        // target: "http://10.88.40.101:21881/",
+        target: "http://pdb-pro.xuelangyun.com:30080/pdb",
         changeOrigin: true,
       }
     },

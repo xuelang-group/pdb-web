@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set } from 'lodash';
+import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set, findIndex } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 import { funcOptionsObj } from '@/utils/common';
 
@@ -13,6 +13,10 @@ interface MergeCell {
   row: number[];
 }
 
+interface ExtraCol {
+  name: string;
+  formula: string;
+}
 
 interface MetricParams {
   dimension: string;        // 指标度量
@@ -30,6 +34,8 @@ interface IndicatorState {
   csv: any[];               // csv数据获取后暂存
   records: Record[];        // 表格数据
   columns: Col[];           // 表头数据
+  extraColumns: ExtraCol[];
+  selectedColumns: {[key: number]: Col}; 
   disabledField: string[];  // 禁用列的field
   dimentionInitial: string; // 指标度量(数据初始化时的默认度量)
   dimension: string;        // 指标度量
@@ -60,6 +66,8 @@ const initialState: IndicatorState = {
   csv: [],
   records: [],
   columns: [],
+  extraColumns: [],
+  selectedColumns: {},
   disabledField: [],
   dimentionInitial: '',
   dimension: '',
@@ -195,6 +203,7 @@ export const indicatorSlice = createSlice({
       state.result = [];
       state.groupBy = [];
       state.funcOptions = [];
+      state.selectedColumns = {}
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
@@ -251,6 +260,32 @@ export const indicatorSlice = createSlice({
     },
     setMetrics: (state, action: PayloadAction<any>) => {
       state.list = action.payload;
+    },
+    updateExtraColumns: (state, action: PayloadAction<any>) => {
+      const { name, formula } = action.payload
+      const index = findIndex(state.extraColumns, {name: name})
+      if (index == -1) {
+        state.extraColumns = [...state.extraColumns, {name, formula}]
+      } else {
+        state.extraColumns = map(state.extraColumns, (item, i) => index === i ? ({...item, formula}) : {...item})
+      }
+    },
+    setExtraColumns: (state, action: PayloadAction<any>) => {
+      state.extraColumns = action.payload || []; 
+    },
+    updateSelectedColumns: (state, action: PayloadAction<any>) => {
+      if(!action.payload) {
+        state.selectedColumns = {}
+      } else {
+        const { col, value } = action.payload
+        const selectedCols: {[key:number]: Col} = { ...state.selectedColumns }
+        if (!value) {
+          delete selectedCols[col]
+        } else {
+          selectedCols[col] = value
+        }
+        state.selectedColumns = selectedCols
+      }
     },
     setGroupBy: (state, action: PayloadAction<any>) => {
       state.groupBy = action.payload; 
@@ -335,7 +370,7 @@ export const indicatorSlice = createSlice({
 
 export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
   setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
-  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, setNextShowConfiguration, exit 
+  setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, setNextShowConfiguration, exit, updateSelectedColumns, updateExtraColumns, setExtraColumns
 } = indicatorSlice.actions
 
 export default indicatorSlice.reducer
