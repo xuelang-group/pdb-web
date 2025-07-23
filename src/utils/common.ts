@@ -426,3 +426,11 @@ export const funcOptionsObj = {
   'datetime': ["最早", "最晚"],
   'boolean': ["count", "占比"],
 }
+
+// 指标设计 - 运算符
+export const inidcatorSymbolMap: {[key: string]: string} = {
+  'plus': '＋',
+  'minus': '－',
+  'multiply': '×',
+  'divide': '÷',
+}

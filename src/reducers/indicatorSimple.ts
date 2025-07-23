@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import papa from "papaparse";
 import { ParamsState } from "./query";
 
 interface MetricParams {

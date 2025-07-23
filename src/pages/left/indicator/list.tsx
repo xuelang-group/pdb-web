@@ -16,20 +16,7 @@ import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
-
-const mathSymbols = [{
-  label: '+',
-  value: 'addition'
-}, {
-  label: '-',
-  value: 'subtraction'
-}, {
-  label: '*',
-  value: 'multiplication'
-}, {
-  label: '/',
-  value: 'division'
-}]
+import { inidcatorSymbolMap } from '@/utils/common';
 
 export default function List(props: any) {
   const navigate = useNavigate();
@@ -410,24 +397,24 @@ export default function List(props: any) {
           {
             draggable && !isEmpty(indList) && (
               <>
-                {mathSymbols.map(item => (<div key={item.value}
+                {Object.keys(inidcatorSymbolMap).map(item => (<div key={item}
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', data: {value: item.value}})}
+                  onDragStart={event => handleDragStart(event, {type: 'symbol', label: item})}
                 >
                   <span className='item-name'>
                     <i className={'iconfont icon-yunsuanfu'} style={{ color: '#265CFF' }}></i>
-                    <span className='type-item-label'>运算符[ {item.label} ]</span>
+                    <span className='type-item-label'>运算符[ {inidcatorSymbolMap[item]} ]</span>
                   </span>
                 </div>))}
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, { label: '结果', id: 'end'})}
+                  onDragStart={event => handleDragStart(event, { label: '计算结果', id: 'end'})}
                 >
                   <span className='item-name'>
                     <i className={'iconfont icon-jieguo'} style={{ color: '#265CFF' }}></i>
-                    <span className='type-item-label'>结果</span>
+                    <span className='type-item-label'>计算结果</span>
                   </span>
                 </div>
               </>
