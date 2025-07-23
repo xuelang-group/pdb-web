@@ -1,4 +1,4 @@
-import { Button, Form, Modal, Space } from "antd";
+import { Button, Col, Flex, Form, Modal, Row, Space } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
@@ -26,9 +26,18 @@ export default function Advance(props: any) {
           style={{ margin: "auto 0 16px", padding: "0 17px" }}
           size={16}
         >
-          <Button block type="primary" onClick={() => {}}>
-            保存指标
-          </Button>
+          <Row gutter={8}>
+            <Col span={12}>
+              <Button block type="primary" onClick={() => {}}>
+                试计算
+              </Button>
+            </Col>
+            <Col span={12}>
+              <Button block type="primary" onClick={() => {}}>
+                保存指标
+              </Button>
+            </Col>
+          </Row>
           <Button
             block
             onClick={() => {

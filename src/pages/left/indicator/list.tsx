@@ -17,6 +17,20 @@ import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
 
+const mathSymbols = [{
+  label: '+',
+  value: 'addition'
+}, {
+  label: '-',
+  value: 'subtraction'
+}, {
+  label: '*',
+  value: 'multiplication'
+}, {
+  label: '/',
+  value: 'division'
+}]
+
 export default function List(props: any) {
   const navigate = useNavigate();
   const routerParams = useParams();
@@ -369,8 +383,8 @@ export default function List(props: any) {
                   >
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
-                      draggable={draggable && item.type !== 2}
-                      onDragStart={event => handleDragStart(event, {type: 'indicator', label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn}})}
+                      draggable={draggable}
+                      onDragStart={event => handleDragStart(event, { label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
                       <span className='item-name'>
                         {
@@ -396,16 +410,16 @@ export default function List(props: any) {
           {
             draggable && !isEmpty(indList) && (
               <>
-                <div
+                {mathSymbols.map(item => (<div key={item.value}
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', label: '＋'})}
+                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', data: {value: item.value}})}
                 >
                   <span className='item-name'>
                     <i className={'iconfont icon-yunsuanfu'} style={{ color: '#265CFF' }}></i>
-                    <span className='type-item-label'>运算符</span>
+                    <span className='type-item-label'>运算符[ {item.label} ]</span>
                   </span>
-                </div>
+                </div>))}
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}

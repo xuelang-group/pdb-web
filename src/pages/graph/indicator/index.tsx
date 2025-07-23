@@ -296,9 +296,15 @@ export default function IndicatorAdvance() {
             console.log('--- e.item: ', e.item)
             const targetNode = e.item as INode
             const model = targetNode?.getModel()
-            // 禁止自身相连；目标节点只能是运算符或结果
-            if (model?.id === source || !(model?.type === "math-symbol" || model?.id === 'end')) return false
+            const sourceNode = graph.findById(source)            
+            if (
+              model?.id === source ||                                             // 禁止自身相连
+              model?.type !== "math-symbol" && model?.id !== 'end' ||             // 目标节点只能是运算符或结果
+              sourceNode.getModel().type !== "math-symbol" && model?.id === 'end' // 指标不能直接与结果相连
+            ) return false
             const inEdges = targetNode.getInEdges()
+            // 目标节点最多连两条线
+            if (inEdges.length == 2) return false 
             const outEdges = targetNode.getOutEdges()
             const index = inEdges.findIndex(edg => source === edg.getModel().source)
             const outdex = outEdges.findIndex(edg => source === edg.getModel().target)
