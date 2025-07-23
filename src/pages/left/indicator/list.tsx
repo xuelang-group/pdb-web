@@ -399,7 +399,7 @@ export default function List(props: any) {
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', label: '运算符'})}
+                  onDragStart={event => handleDragStart(event, {type: 'math-symbol', label: '＋'})}
                 >
                   <span className='item-name'>
                     <i className={'iconfont icon-yunsuanfu'} style={{ color: '#265CFF' }}></i>
@@ -409,7 +409,7 @@ export default function List(props: any) {
                 <div
                   className={`type-item indicator-item`}
                   draggable={draggable}
-                  onDragStart={event => handleDragStart(event, {type: 'advance', label: '结果'})}
+                  onDragStart={event => handleDragStart(event, { label: '结果', id: 'end'})}
                 >
                   <span className='item-name'>
                     <i className={'iconfont icon-jieguo'} style={{ color: '#265CFF' }}></i>

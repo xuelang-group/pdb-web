@@ -1,10 +1,10 @@
 // @ts-ignore
-import G6, { EdgeConfig, Graph, IG6GraphEvent, IGroup, ModelConfig, NodeConfig } from '@antv/g6';
+import G6, { EdgeConfig, Graph, IG6GraphEvent, IGroup, INode, ModelConfig, NodeConfig } from '@antv/g6';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useResizeDetector } from 'react-resize-detector';
-import { Button, Form, Modal, Radio, Typography } from "antd";
+import { Button, Form, message, Modal, Radio, Typography } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import { get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
@@ -16,22 +16,22 @@ const data = {
     {
       id: '1',
       label: '指标A',
-      // type: 'indicator',
     },
     {
       id: '2',
       label: '指标B',
-      // type: 'indicator',
     },
     {
       id: '3',
       label: '指标C',
-      // type: 'indicator',
     },
     {
       id: '4',
       label: '指标D',
-      // type: 'indicator',
+    },
+    {
+      id: '5',
+      label: '指标E',
     },
     {
       id: 'f1',
@@ -39,14 +39,19 @@ const data = {
       type: 'math-symbol',
     },
     {
-      id: 'f3',
+      id: 'f2',
       label: '×',
       type: 'math-symbol',
     },
     {
-      id: '9',
+      id: 'f3',
+      label: '－',
+      type: 'math-symbol',
+    },
+    {
+      id: 'end',
       label: '结果',
-      data: {type: 2,}
+      result: true
     },
   ],
   edges: [
@@ -60,19 +65,27 @@ const data = {
     },
     {
       source: '3',
-      target: 'f3',
+      target: 'f2',
     },
     {
       source: '4',
+      target: 'f2',
+    },
+    {
+      source: '5',
       target: 'f3',
     },
     {
       source: 'f1',
-      target: '9',
+      target: 'f3',
+    },
+    {
+      source: 'f2',
+      target: 'f3',
     },
     {
       source: 'f3',
-      target: '9',
+      target: 'end',
     },
   ],
 };
@@ -88,11 +101,10 @@ function registerNode() {
       }
     },
     draw: function draw(cfg: ModelConfig, group: IGroup) {
-      const { id, label, data } = cfg;
-      const type = get(data, 'type')
-      const result = type === 2
-      const bg = type ? 'rgb(239, 227, 250)' : 'rgb(232, 243, 255)'
-      const border = type ? 'rgb(188, 149, 229)' : 'rgb(148, 191, 255)'
+      const { id, label } = cfg;
+      const result = id === 'end'
+      const bg = result ? 'rgb(239, 227, 250)' : 'rgb(232, 243, 255)'
+      const border = result ? 'rgb(188, 149, 229)' : 'rgb(148, 191, 255)'
       const iconColor = result ? 'rgba(172, 115, 233, 1)' : 'rgba(94, 158, 255, 1)'
       const icon = result ? 'jieguo' : 'zhibiao'
       const keyShape = group.addShape('rect', {
@@ -137,7 +149,7 @@ function registerNode() {
       return keyShape;
     },
     getAnchorPoints(cfg?: ModelConfig) {
-      return get(cfg, 'data.type') == 2 ? [[0, 0.5]] : [[1, 0.5]];
+      return cfg?.id == 'end' ? [[0, 0.5]] : [[1, 0.5]];
     },
   }, 'rect')
   G6.registerNode('math-symbol', {
@@ -206,6 +218,13 @@ function registerNode() {
       const dropAdd = dataTransfer.getData('drop_add');
       const graph = this.graph as Graph;
       const model = JSON.parse(dropAdd)
+      if (model.id == 'end') {
+        const end = graph.findById('end')
+        if (end) {
+          message.warning('一个高级指标中只能有一个结果')
+          return
+        }
+      }
       const point = graph.getPointByClient(clientX, clientY)
       graph.addItem('node', {...model, ...point })
       // graph.refresh()
@@ -261,7 +280,7 @@ export default function IndicatorAdvance() {
         controlPoints: true,
         align: undefined,
         nodesep: 6,
-        ranksepFunc: (d: ModelConfig) => get(d, 'data.type') == 2 ? 0 : 70,
+        ranksepFunc: (d: ModelConfig) => d.result ? 0 : 70,
       },
       modes: {
         default: ['drag-canvas', 'zoom-canvas', 'drop-canvas', 'drag-node', {
@@ -270,11 +289,22 @@ export default function IndicatorAdvance() {
             const event = e.originalEvent as MouseEvent
             if (!event.ctrlKey) return false
             const model = e.item?.getModel()
-            return model?.type === 'indicator' || model?.type === "math-symbol"
+            return model?.id !== 'end'
           },
-          shouldEnd: function (e: IG6GraphEvent) {
-            const model = e.item?.getModel()
-            return model?.type === "math-symbol" || model?.type === 'advance'
+          // @ts-ignore
+          shouldEnd: function (e: IG6GraphEvent, {source}) {
+            console.log('--- e.item: ', e.item)
+            const targetNode = e.item as INode
+            const model = targetNode?.getModel()
+            // 禁止自身相连；目标节点只能是运算符或结果
+            if (model?.id === source || !(model?.type === "math-symbol" || model?.id === 'end')) return false
+            const inEdges = targetNode.getInEdges()
+            const outEdges = targetNode.getOutEdges()
+            const index = inEdges.findIndex(edg => source === edg.getModel().source)
+            const outdex = outEdges.findIndex(edg => source === edg.getModel().target)
+            console.log('--- index: ', index)
+            // 两个节点之间只能连一条线
+            return index == -1 && outdex == -1
           },
         }]
       },
@@ -334,10 +364,26 @@ export default function IndicatorAdvance() {
         graph.clearItemStates(node);
       });
     });
+
+    graph.on('keyup', (e: IG6GraphEvent) => {
+      console.log('--- keyup: ', e.keyCode)
+      switch(e.keyCode) {
+        case 46:
+          // Delete
+          const nodes = graph.findAllByState('node', 'selected');          
+          if (nodes.length) {
+            for (let item of nodes) {
+              graph.removeItem(item)
+            }
+          }
+          break;
+        default:
+      }
+    })
   }, [])
 
   return (
-    <div className='pdb-indicator-graph-container'>
+    <div className='pdb-indicator-graph-container' onKeyDown={e => e.stopPropagation()}>
       <div ref={graphRef} className="graph" id="indicator-graph"></div>
     </div>
   )
