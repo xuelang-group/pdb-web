@@ -1,4 +1,5 @@
-import G6, { Graph, IG6GraphEvent, IGroup, ModelConfig } from '@antv/g6';
+// @ts-ignore
+import G6, { EdgeConfig, Graph, IG6GraphEvent, IGroup, ModelConfig, NodeConfig } from '@antv/g6';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,30 +8,30 @@ import { Button, Form, Modal, Radio, Typography } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import { get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
-import './index.less'
 import { getIcon } from '@/utils/common';
+import './index.less'
 
 const data = {
   nodes: [
     {
       id: '1',
       label: '指标A',
-      type: 'indicator',
+      // type: 'indicator',
     },
     {
       id: '2',
       label: '指标B',
-      type: 'indicator',
+      // type: 'indicator',
     },
     {
       id: '3',
       label: '指标C',
-      type: 'indicator',
+      // type: 'indicator',
     },
     {
       id: '4',
       label: '指标D',
-      type: 'indicator',
+      // type: 'indicator',
     },
     {
       id: 'f1',
@@ -45,7 +46,7 @@ const data = {
     {
       id: '9',
       label: '结果',
-      type: 'advance',
+      data: {type: 2,}
     },
   ],
   edges: [
@@ -76,68 +77,34 @@ const data = {
   ],
 };
 function registerNode() {
-  G6.registerNode('advance', {
-    draw: function draw(cfg: ModelConfig, group: IGroup) {
-      const { id, label } = cfg;
-      const keyShape = group.addShape('rect', {
-        attrs: {
-          width: 100,
-          height: 32,
-          fill: 'rgb(239, 227, 250)',
-          stroke: 'rgb(188, 149, 229)',
-          radius: 4,
-          lineWidth: 0.6,
-          cursor: 'pointer',
-        },
-        anchorPoints: [
-          [0, 0.5],
-        ],
-        name: 'node-rect'
-      });
-      group.addShape('text', {
-        attrs: {
-          text: label,
-          fill: '#1C2126',
-          textBaseline: 'middle',
-          fontSize: 14,
-          cursor: 'pointer',
-          x: 40,
-          y: 16,
-        },
-        name: 'node-text',
-        draggable: true
-      });
-      group.addShape('text', {
-        attrs: {
-          x: 12,
-          y: 16,
-          fill: 'rgba(172, 115, 233, 1)',
-          textBaseline: 'middle', 
-          fontFamily: 'iconfont',
-          text: getIcon('jieguo'),
-          fontSize: 18
-        },
-        name: 'node-icon'
-      });
-      return keyShape;
-    },
-  }, 'rect')
   G6.registerNode('indicator', {
+    options: {
+      stateStyles: {
+        selected: {
+          'node-rect': {
+            lineWidth: 2,
+          }
+        }
+      }
+    },
     draw: function draw(cfg: ModelConfig, group: IGroup) {
-      const { id, label } = cfg;
+      const { id, label, data } = cfg;
+      const type = get(data, 'type')
+      const result = type === 2
+      const bg = type ? 'rgb(239, 227, 250)' : 'rgb(232, 243, 255)'
+      const border = type ? 'rgb(188, 149, 229)' : 'rgb(148, 191, 255)'
+      const iconColor = result ? 'rgba(172, 115, 233, 1)' : 'rgba(94, 158, 255, 1)'
+      const icon = result ? 'jieguo' : 'zhibiao'
       const keyShape = group.addShape('rect', {
         attrs: {
           width: 140,
           height: 32,
-          fill: 'rgb(232, 243, 255)',
-          stroke: 'rgb(148, 191, 255)',
+          fill: bg,
+          stroke: border,
           radius: 4,
           lineWidth: 0.6,
           cursor: 'pointer',
         },
-        anchorPoints: [
-          [1, 0.5],
-        ],
         name: 'node-rect'
       });
       group.addShape('text', {
@@ -157,19 +124,33 @@ function registerNode() {
         attrs: {
           x: 12,
           y: 16,
-          fill: 'rgba(94, 158, 255, 1)',
+          fill: iconColor,
           textBaseline: 'middle',
           fontFamily: 'iconfont',
           // textAlign: 'center',
-          text: getIcon('zhibiao'),
+          text:  getIcon(icon),
           fontSize: 18
         },
-        name: 'node-icon'
+        name: 'node-icon',
+        draggable: true
       });
       return keyShape;
     },
+    getAnchorPoints(cfg?: ModelConfig) {
+      return get(cfg, 'data.type') == 2 ? [[0, 0.5]] : [[1, 0.5]];
+    },
   }, 'rect')
   G6.registerNode('math-symbol', {
+    options: {
+      stateStyles: {
+        selected: {
+          'node-rect': {
+            stroke: 'rgba(121, 168, 2, 1)',
+            lineWidth: 2,
+          }
+        }
+      }
+    },
     draw: function draw(cfg: ModelConfig, group: IGroup) {
       const { id, label, data } = cfg;
       const mathSym = get(cfg, 'data.symbol')
@@ -186,6 +167,10 @@ function registerNode() {
           [0, 0.5],
           [1, 0.5],
         ],
+        linkPoints: {
+          right: true,
+          left: true,
+        },
         name: 'node-rect'
       });
       group.addShape('text', {
@@ -199,9 +184,13 @@ function registerNode() {
           fontSize: 18,
           text: label,
         },
-        name: 'node-icon'
+        name: 'node-icon',
+        draggable: true
       });
       return keyShape;
+    },
+    getAnchorPoints(cfg?: ModelConfig) {
+      return [[0, 0.5], [1, 0.5]];
     },
   }, 'rect')
 
@@ -212,9 +201,8 @@ function registerNode() {
       };
     },
     onDrop: function (event: IG6GraphEvent) {
-      const { x, y, clientX, clientY, dataTransfer } = event.originalEvent as any;
-      console.log('--- originalEvent: ', event.originalEvent)
-      // console.log('--- event: ', event)
+      const { clientX, clientY, dataTransfer } = event.originalEvent as any;
+      if (!dataTransfer) return
       const dropAdd = dataTransfer.getData('drop_add');
       const graph = this.graph as Graph;
       const model = JSON.parse(dropAdd)
@@ -273,17 +261,30 @@ export default function IndicatorAdvance() {
         controlPoints: true,
         align: undefined,
         nodesep: 6,
-        // ranksep: 0,
-        // nodesepFunc: () => 1,
-        ranksepFunc: (d: ModelConfig) => {
-          return d.type == 'advance' ? 0 : 70
-        },
+        ranksepFunc: (d: ModelConfig) => get(d, 'data.type') == 2 ? 0 : 70,
       },
       modes: {
-        default: ['drag-canvas', 'zoom-canvas', 'drop-canvas', 'drag-node', 'create-edge']
+        default: ['drag-canvas', 'zoom-canvas', 'drop-canvas', 'drag-node', {
+          type: 'create-edge',
+          shouldBegin: (e: IG6GraphEvent) => {
+            const event = e.originalEvent as MouseEvent
+            if (!event.ctrlKey) return false
+            const model = e.item?.getModel()
+            return model?.type === 'indicator' || model?.type === "math-symbol"
+          },
+          shouldEnd: function (e: IG6GraphEvent) {
+            const model = e.item?.getModel()
+            return model?.type === "math-symbol" || model?.type === 'advance'
+          },
+        }]
+      },
+      defaultNode: {
+        type: 'indicator',
       },
       defaultEdge: {
         type: 'cubic-horizontal',
+        sourceAnchor: 1,
+        targetAnchor: 0,
         style: {
           stroke: '#c8ced5',
           lineWidth: 1,
@@ -294,9 +295,45 @@ export default function IndicatorAdvance() {
           }
         }
       },
+      edgeStateStyles: {
+        active: {
+          stroke: '#c8ced5',
+          lineWidth: 2,
+        },
+        selected: {
+          stroke: '#ff0',
+          lineWidth: 3,
+        },
+      },
     })
     graph.data(data);
     graph.render();
+
+
+    graph.on('node:click', (evt: IG6GraphEvent) => {
+      const { item } = evt;
+      graph.getNodes().forEach((node: any) => {
+        graph.clearItemStates(node);
+      });
+      graph.setItemState(item, 'selected', true);
+    });
+    graph.on('edge:mouseenter', (evt: IG6GraphEvent) => {
+      const { item } = evt;
+      graph.setItemState(item, 'active', true);
+    });
+
+    graph.on('edge:mouseleave', (evt: IG6GraphEvent) => {
+      const { item } = evt;
+      graph.setItemState(item, 'active', false);
+    });
+    graph.on('edge:dblclick', (e: IG6GraphEvent) => {
+      graph.removeItem(e.item)
+    });
+    graph.on('canvas:click', () => {
+      graph.getNodes().forEach((node: any) => {
+        graph.clearItemStates(node);
+      });
+    });
   }, [])
 
   return (
