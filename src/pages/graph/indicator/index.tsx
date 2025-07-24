@@ -14,99 +14,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useResizeDetector } from "react-resize-detector";
 import { Button, Form, message, Modal, Radio, Typography } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
-import { get, isEmpty } from "lodash";
+import { filter, get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
 import { getIcon, inidcatorSymbolMap } from "@/utils/common";
-import "./index.less";
 import { setSelected, setUpstreams } from "@/reducers/indicatorAdvance";
+import "./index.less";
 
-const data = {
-  nodes: [
-    {
-      id: "1",
-      label: "指标A",
-    },
-    {
-      id: "2",
-      label: "指标B",
-    },
-    {
-      id: "3",
-      label: "指标C",
-    },
-    {
-      id: "4",
-      label: "指标D",
-    },
-    {
-      id: "5",
-      label: "指标E",
-    },
-    {
-      id: "f1",
-      label: "plus",
-      type: "symbol",
-    },
-    {
-      id: "f2",
-      label: "multiply",
-      type: "symbol",
-    },
-    {
-      id: "f3",
-      label: "minus",
-      type: "symbol",
-    },
-    {
-      id: "f4",
-      label: "divide",
-      type: "symbol",
-    },
-    {
-      id: "end",
-      label: "结果",
-      result: true,
-    },
-  ],
-  edges: [
-    {
-      source: "1",
-      target: "f1",
-    },
-    {
-      source: "2",
-      target: "f1",
-    },
-    {
-      source: "3",
-      target: "f2",
-    },
-    {
-      source: "4",
-      target: "f2",
-    },
-    {
-      source: "5",
-      target: "f4",
-    },
-    {
-      source: "f1",
-      target: "f3",
-    },
-    {
-      source: "f2",
-      target: "f3",
-    },
-    {
-      source: "f3",
-      target: "f4",
-    },
-    {
-      source: "f4",
-      target: "end",
-    },
-  ],
-};
 function registerIndicator() {
   G6.registerNode(
     "indicator",
@@ -271,9 +184,8 @@ export default function IndicatorAdvance() {
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
   const query = useSelector((state: StoreState) => state.query.params);
-  const upstreams = useSelector(
-    (state: StoreState) => state.indicatorAdvance.upstreams
-  );
+  const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
+  const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
 
   let graph: any;
   let prevWidth: number | undefined = 0,
@@ -389,12 +301,25 @@ export default function IndicatorAdvance() {
         end: {
           stroke: "#999",
           lineWidth: 1,
+          lineDash: [5, 3]
         },
       },
     });
+    const data = JSON.parse(graph_data)
     graph.data(data);
     graph.render();
     (window as any).INDICATOR_GRAPH = graph;
+
+    graph.on('afterrender', (evt: IG6GraphEvent) => {
+      const edges = graph.getEdges()
+      const endEdges = filter(edges, (edg) => edg.getModel().end)
+      // 被除数、被减数
+      if (!isEmpty(endEdges)) {
+        endEdges.forEach(edg => {
+          graph.setItemState(edg, "end", true);
+        })
+      }
+    })
 
     graph.on("node:click", (evt: IG6GraphEvent) => {
       const item = evt.item as INode;
@@ -448,6 +373,8 @@ export default function IndicatorAdvance() {
       graph.getNodes().forEach((node: any) => {
         graph.clearItemStates(node);
       });
+      dispatch(setSelected(undefined));
+      dispatch(setUpstreams());
     });
 
     graph.on("keyup", (e: IG6GraphEvent) => {
@@ -472,6 +399,13 @@ export default function IndicatorAdvance() {
       (window as any).INDICATOR_GRAPH = null;
     }
   }, []);
+
+  useEffect(() => {
+    graph.clear()
+    const data = JSON.parse(graph_data)
+    graph.data(data);
+    graph.render()
+  }, [graph_data])
 
   return (
     <div
