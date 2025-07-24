@@ -336,7 +336,7 @@ export default function List(props: any) {
           {!indicatorLoading &&
             <div className='type-list'>
               {indList.map((item: any, index: number) => {
-                const label: any = item['name']
+                const label: any = item['name_cn']
                 const menus: any[] = [
                   {
                     label: '查看基础信息',
@@ -371,7 +371,7 @@ export default function List(props: any) {
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
                       draggable={draggable}
-                      onDragStart={event => handleDragStart(event, { label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
+                      onDragStart={event => handleDragStart(event, { label: item.name_cn, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
                       <span className='item-name'>
                         {

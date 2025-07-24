@@ -339,7 +339,7 @@
       }
     }
 
-    .pdb-ant-form-vertical .pdb-app-info .pdb-ant-form-item-label>label::after {
+    .pdb-ant-form-vertical .pdb-ant-form-item-label>label::after {
       visibility: visible;
     }
 
@@ -540,16 +540,16 @@
     }
   }
 
-  .type-item {
+  .pdb-ant-input-group-addon,
+  .pdb-ant-input-number-group-addon {
+    min-width: 7.2rem;
+    max-width: 7.2rem;
+    background-color: var(--fill-color4) !important;
+    font-size: 1.2rem;
+    color: var(--text-color3) !important;
+  }
 
-    .pdb-ant-input-group-addon,
-    .pdb-ant-input-number-group-addon {
-      min-width: 7.2rem;
-      max-width: 7.2rem;
-      background-color: var(--fill-color4) !important;
-      font-size: 1.2rem;
-      color: var(--text-color3) !important;
-    }
+  .type-item {
 
     &.item-active {
       background-color: var(--primary-selected-bg);

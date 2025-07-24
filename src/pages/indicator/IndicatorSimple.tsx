@@ -640,6 +640,7 @@ export default function SimpleIndicator(props: any) {
     });
   };
 
+  // 过滤条件
   const getConditionRaw = (item: ConditionState, label: string) => {
     const condition = functionSymbolMap[item.function]
     if (condition === "has") {

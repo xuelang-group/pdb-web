@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ParamsState } from "./query";
+import { MetricItem, MetricParams } from "./indicatorSimple";
 
 const graphData = {
   nodes: [
@@ -235,7 +236,7 @@ const calc = {
   ],
 };
 
-interface IndicatorAdvanceState {
+interface IndicatorAdvanceState extends MetricItem {
   graph_data: string;
   selected?: any;
   upstreams?: any[];
@@ -257,7 +258,199 @@ const initialState: IndicatorAdvanceState = {
   // graph_data: {nodes: [], edges: []},
   graph_data: JSON.stringify(graphData),
   selected: undefined,
+  upstreams: undefined,
   calc: undefined,
+  // 基本指标信息
+  name: '',
+  name_cn: '',
+  type: 2, // 指标类型 1-初级指标 2-高级指标 xx-前端自定义  
+  // metric_params: {
+  //   dimension: {
+  //     name: "",
+  //     name_cn: "",
+  //   },
+  //   func: "",
+  //   group_by: [],
+  // },
+  // pql_params: {
+  //   api: "/pdb/api/v1/object/search/pql",
+  //   params: {
+  //     graphId: "5001",
+  //     pql: [[]],
+  //     csv: {
+  //       header: [],
+  //     },
+  //   },
+  // },
+  metric_params: {
+    dimension: {
+      name: "id",
+      name_cn: "ID_BBOM-零部件",
+    },
+    func: "min",
+    group_by: [
+      {
+        name: "part_level",
+        name_cn: "零件层级_BBOM-零部件",
+      },
+      {
+        name: "part_type",
+        name_cn: "零件类型_BBOM-零部件",
+      },
+    ],
+  },
+  pql_params: {
+    api: "/pdb/api/v1/object/search/pql",
+    params: {
+      graphId: "5002",
+      pql: [
+        [
+          {
+            name: "BBOM-零部件",
+            type: "object",
+            conditionRaw:
+              "NOT part_level = '0' AND part_version = 'B' AND part_version = 'C'",
+            conditions: [
+              {
+                name: "part_level",
+                function: "=",
+                value: "0",
+                not: true,
+              },
+              {
+                connectives: "AND",
+                name: "part_version",
+                function: "=",
+                value: "B",
+              },
+              {
+                connectives: "AND",
+                name: "part_version",
+                function: "=",
+                value: "C",
+              },
+              {
+                connectives: "AND",
+                name: "part_version",
+                function: "=",
+                value: "D",
+              },
+            ],
+            id: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+          },
+        ],
+      ],
+      csv: {
+        header: [
+          {
+            attrName: "ID_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "id",
+            attrType: "int",
+            index: 0,
+          },
+          {
+            attrName: "零件层级_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_level",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "零件号_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_no",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "模块号_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "module_no",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "零件名称_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_name",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "零件版本_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_version",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "零件类型_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_type",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "零组件工程路径_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "part_path",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "架次_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "fly_no",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "机型_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "plane_type",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "制造单位_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "manu_dept",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "使用单位_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "use_dept",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "落实文件_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "imp_of_documents",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "展示字段_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "show_col",
+            attrType: "string",
+            index: 0,
+          },
+          {
+            attrName: "parent_id_BBOM-零部件",
+            typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+            attrId: "parent_id",
+            attrType: "string",
+            index: 0,
+          },
+        ],
+      },
+    },
+  },
 };
 
 export const indicatorAdvanceSlice = createSlice({

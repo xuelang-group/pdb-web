@@ -42,3 +42,63 @@
 .pdb-select-group-by {
   max-width: calc(100% - 22px);
 }
+
+.pdb-indicator-info {
+  padding: 1.6rem 1.6rem .4rem;
+  height: calc(100% - 96px);
+
+  .pdb-ant-form-item {
+    margin-bottom: 1.2rem;
+    line-height: 2rem;
+
+    .pdb-ant-input[readOnly] {
+      background: unset !important;
+      padding: .4rem 0;
+      font-size: 1.2rem;
+      color: var(--text-color3) !important;
+      text-overflow: ellipsis;
+
+      &:focus {
+        border: none;
+        box-shadow: none !important;
+      }
+    }
+
+    .pdb-ant-form-item-label{
+      padding-bottom: 0.4rem;
+      >label {
+        font-size: 1.2rem;
+        color: var(--text-color3);
+        margin: 0;
+        height: 2rem;
+      }
+    }
+  }
+}
+.pdb-indicator-advColumns {
+  margin-right: -1.2rem;
+  margin-left: -1.2rem;
+  max-height: calc(100vh - 50rem);
+  padding: 0 .6rem 0 1.2rem;
+  border-bottom: dashed 1px var(--border-color1);
+  overflow: auto;
+}
+.pdb-indicator-advCol {
+  margin: 1.2rem 0;
+  &:not(:last-child) {
+    padding-bottom: 1.2rem;
+    border-bottom: dashed 1px var(--border-color1);
+  }
+  &-title {
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    word-wrap: none;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+   
+  &-extra {
+    margin-top: 8px;
+  }
+}

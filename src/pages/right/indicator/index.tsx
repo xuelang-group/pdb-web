@@ -274,7 +274,7 @@ export default function Right(props: any) {
               <Form.Item label={''} >
                 <Select
                   value={func}
-                  placeholder='请选择指标度量'
+                  placeholder='请选择统计算法'
                   allowClear
                   options={funcOptions.map((item) => ({ label: item, value: item }))}
                   onChange={(value) => { dispatch(setFunc(value)) }}

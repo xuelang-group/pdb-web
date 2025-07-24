@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ParamsState } from "./query";
 
-interface MetricParams {
+export interface MetricParams {
   dimension: {
     name: string;
     name_cn: string;
@@ -13,7 +13,7 @@ interface MetricParams {
   }>;
 }
 
-interface MetricItem {
+export interface MetricItem {
   id?: number;
   name: string;
   name_cn: string;
