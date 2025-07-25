@@ -1,7 +1,9 @@
 import {
   Button,
+  Card,
   Checkbox,
   Col,
+  Empty,
   Flex,
   Form,
   Input,
@@ -15,18 +17,27 @@ import {
   Tag,
   Typography,
 } from "antd";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   DeleteOutlined,
-  ExclamationCircleOutlined,
-  FilterOutlined,
-  LeftOutlined,
+  EditOutlined,
+  EyeOutlined,
+  MinusCircleOutlined,
+  PlusCircleOutlined,
   PlusOutlined,
-  SmallDashOutlined,
 } from "@ant-design/icons";
-import { compact, find, forEach, get, isEmpty, keys, map } from "lodash";
+import {
+  compact,
+  filter,
+  find,
+  forEach,
+  get,
+  isEmpty,
+  keys,
+  map,
+} from "lodash";
 import PdbPanel from "@/components/Panel";
 import { StoreState } from "@/store";
 import {
@@ -40,18 +51,18 @@ import {
   typeIconMap,
 } from "@/utils/common";
 import { ConditionState, CsvHeaderState } from "@/reducers/query";
+import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { operators } from "@/pages/AppExplore/ExploreFilter";
+import ColumnConfigModal from "./ColumnConfig";
 
-interface ConditionsMap {
-  [typeId: string]: {
-    [attrId: string]: ConditionState;
-  };
-}
 
 export default function Advance(props: any) {
   const navigate = useNavigate();
   const location = useLocation();
   const routerParams = useParams();
+  const dispatch = useDispatch();
   const [form] = Form.useForm();
+  const [columnForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
   const requestId = useSelector(
     (state: StoreState) => state.indicator.requestId
@@ -59,7 +70,9 @@ export default function Advance(props: any) {
   const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
-  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  const allIndicators = useSelector(
+    (state: StoreState) => state.indicator.list
+  );
   const selected = useSelector(
     (state: StoreState) => state.indicatorAdvance.selected
   );
@@ -69,14 +82,27 @@ export default function Advance(props: any) {
   const params = useSelector(
     (state: StoreState) => state.indicatorAdvance.pql_params.params
   );
+  const column_config = useSelector(
+    (state: StoreState) => state.indicatorAdvance.column_config
+  );
   const metric_params = useSelector(
     (state: StoreState) => state.indicatorAdvance.metric_params
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
-  const [conditionsMap, setConditionsMap] = useState<ConditionsMap>({}); // 统计算法选项
-  const [columnsMap, setColumnsMap] = useState<{[id: string]: any}>({}); // 画布中指标节点的维度
-  const [open, setOpen] = useState<boolean>(false);  // 维度对齐弹窗
+  const [columnsMap, setColumnsMap] = useState<{
+    [metricId: string]: {
+      id: string;
+      name: string;
+      name_cn: string;
+      type: number;
+      columns: CsvHeaderState[];
+      [key: string]: any;
+    };
+  }>({}); // 画布中指标节点的维度
+  const [open, setOpen] = useState<boolean>(false); // 维度对齐弹窗
+  const [conditionOpen, setConditionOpen] = useState<boolean>(false); // 过滤条件编辑弹窗
+  const [conditionCfg, setConditionCfg] = useState<ColumnConfig>(); // 过滤条件编辑弹窗
 
   // 处理上游
   const handleChangeUpstream = (edgeId: string) => {
@@ -99,86 +125,178 @@ export default function Advance(props: any) {
     }
   }, [upstreams]);
 
-  useEffect(() => {
-    const pql = params.pql[0];
-    const cons: ConditionsMap = {};
-    forEach(pql, (item) => {
-      if (!cons[item.id]) cons[item.id] = {};
-      item.conditions.forEach((con) => {
-        cons[item.id][con.name] = con;
-      });
-    });
-    setConditionsMap(cons);
-  }, [params]);
-
   // 点击“维度对齐”按钮
   const handleClickAlign = () => {
     // 请求画布中所有指标详情获取他们的维度数据
     const graph = (window as any).INDICATOR_GRAPH;
-    const { nodes } = graph.save()
-    const obj: {[id: string]: any} = {}
-    const indicatorNodes = nodes.filter((n: any) => n.type !== 'symbol' && n.id !== 'end')
-    const indicators = compact(map(indicatorNodes, (n: any) => n.data))
+    const { nodes } = graph.save();
+    const obj: { [id: string]: any } = {};
+    const indicatorNodes = nodes.filter(
+      (n: any) => n.type !== "symbol" && n.id !== "end"
+    );
+    const indicators = compact(map(indicatorNodes, (n: any) => n.data));
     forEach(indicators, (data: any) => {
-      const metricDetail = find(allIndicators,  {id: data.id})
+      const metricDetail = find(allIndicators, { id: data.id });
       if (metricDetail) {
-        obj[data.id] = { ...data, columns: get(metricDetail, 'pql_params.params.csv.header', []) }
+        obj[data.id] = {
+          ...data,
+          columns: get(metricDetail, "pql_params.params.csv.header", []),
+        };
       }
-    })
-    setColumnsMap(obj)
-    setOpen(true)
+    });
+    setColumnsMap(obj);
+    setOpen(true);
+  };
+
+  // 维度设置- 过滤
+  const onEditCondition = (item: ColumnConfig) => {
+    setConditionOpen(true)
+    setConditionCfg(item)
+  }
+  
+  // 过滤条件
+  const getConditionRaw = (item: ConditionState, label: string) => {
+    const condition = functionSymbolMap[item.function]
+    if (condition === "has") {
+      return `${item.not ? "NOT " : ""}存在属性 ${label}`
+    } else {
+      let keyword = item.value;
+      if (typeof keyword === "object") {
+        keyword = keyword.format("YYYY-MM-DD");
+      }
+      const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
+      return `${item.not ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
+    }
   }
 
-  const renderCondition = (item: ConditionState, attr: CsvHeaderState) => {
-    let text = "--";
-    if (item) {
-      const condition = functionSymbolMap[item.function];
-      if (condition === "has") {
-        text = `${item.not ? "NOT " : ""}存在属性 ${attr.attrName}`;
-      } else {
-        const keyword =
-          typeof item.value === "object"
-            ? item.value.format("YYYY-MM-DD")
-            : item.value;
-        const conditionLabel =
-          (condition === "anyofterms" || condition === "allofterms"
-            ? optionLabelMap[condition]
-            : optionSymbolMap[condition]) || "";
-        text = `${item.not ? "NOT " : ""} ${conditionLabel} ${keyword}`;
-      }
-    }
-    const conditionOptions = get(conditionOptionMap, attr.attrType, ["eq"]);
-    const options = conditionOptions.map((condition: string) => ({
-      value: condition,
-      label: optionLabelMap[condition],
-    }));
+  const renderCondition = (conditions: ConditionState[], name: string) => {
+    const content = map(conditions, (item, index) => {
+      let text = getConditionRaw(item, name)
+      return (
+        <Fragment key={index}>
+          {item.connectives ? `${operators[item.connectives]} ` : ""}{" "}
+          <Tag>{text}</Tag>
+        </Fragment>
+      );
+    });
+    // const conditionOptions = get(conditionOptionMap, type, ["eq"]);
+    // const options = conditionOptions.map((condition: string) => ({
+    //   value: condition,
+    //   label: optionLabelMap[condition],
+    // }));
     return (
       <Popover
         title="过滤条件"
         content={
-          <Space direction="vertical" size="small">
-            <Space.Compact>
-              <Select
-                style={{ width: 100 }}
-                defaultValue={functionSymbolMap[item?.function] || "eq"}
-                options={options}
-              />
-              <Input style={{ width: 200 }} defaultValue={item?.value || ""} />
-            </Space.Compact>
-            <Form.Item label="不具备条件(NOT)">
-              <Switch defaultChecked={!!item?.not} />
-            </Form.Item>
-          </Space>
+          <Space>{content}</Space>
+          // <Space direction="vertical" size="small">
+          //   <Space.Compact>
+          //     <Select
+          //       style={{ width: 100 }}
+          //       defaultValue={functionSymbolMap[item?.function] || "eq"}
+          //       options={options}
+          //     />
+          //     <Input style={{ width: 200 }} defaultValue={item?.value || ""} />
+          //   </Space.Compact>
+          //   <Form.Item label="不具备条件(NOT)">
+          //     <Switch defaultChecked={!!item?.not} />
+          //   </Form.Item>
+          // </Space>
         }
       >
-        <Tag>{text}</Tag>
+        <Button type="link" size="small" icon={<EyeOutlined />} />
       </Popover>
     );
   };
-  console.log('columnsMap: ', columnsMap)
+
+  const renderConditionsConfig = () => {
+    if (!conditionCfg || isEmpty(conditionCfg.conditions)) {
+      return <Empty />
+    }
+    const { id, name, conditions } = conditionCfg
+    // return map(conditions, (condition: ConditionState, index) => {
+    //   return (
+    //     <Fragment key={index}>
+    //       <Card
+    //         size="small"
+    //         extra={getExtra(index, opt)}
+    //         title={getConditionRaw(condition, name)}
+    //         className={activePanelKey[0] !== index ? "no-body-card" : ""}
+    //       >
+    //         {activePanelKey[0] === index ? renderPanelChildren() : null}
+    //       </Card>
+    //     </Fragment>
+    //   )
+    // })
+  }
+
   return (
     <div className="pdb-right-panel">
       <PdbPanel title="指标配置" direction="right" canCollapsed={true}>
+        {selected?.type === "symbol" &&
+          ["divide", "minus"].includes(selected?.label) && (
+            <Form.Item style={{padding: '1.5rem 1.6rem 0'}}
+              label={`被${selected?.label === "divide" ? "除" : "减"}数`}
+            >
+              {upstreams && (
+                <Radio.Group
+                  value={upEnd}
+                  onChange={(e) => handleChangeUpstream(e.target.value)}
+                >
+                  {upstreams.map((item) => (
+                    <Radio key={item.edgeId} value={item.edgeId}>
+                      {inidcatorSymbolMap[item.label] || item.label}
+                    </Radio>
+                  ))}
+                </Radio.Group>
+              )}
+            </Form.Item>
+          )}
+        <Card size="small" title="维度设置" bordered={false} extra={
+          <Button onClick={handleClickAlign} size="small">
+            维度对齐
+          </Button>
+        }>
+          <Form className="pdb-indicator-advColumns" form={columnForm}>
+            {!isEmpty(column_config) &&
+              column_config.map((item) => {
+                return (
+                  <div className="pdb-indicator-advCol" key={item.id}>
+                    <div className="pdb-indicator-advCol-title">
+                      {item.cols[0].attrName}({item.cols[0].metric.name})
+                    </div>
+                    <Form.Item noStyle name={[item.id, 'name']}>
+                      <Input
+                        defaultValue={item.name}
+                        addonBefore={typeMap.type[item.cols[0].attrType]}
+                        placeholder="自定义维度名称"
+                      />
+                    </Form.Item>
+                    <Flex
+                      className="pdb-indicator-advCol-extra"
+                      gap={8}
+                      justify="space-between"
+                      align="center"
+                    >
+                      <Space>
+                        <Typography.Text>过滤:</Typography.Text>
+                        {renderCondition(item.conditions, item.name)}
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() => onEditCondition(item)}
+                        />
+                      </Space>
+                      <Form.Item noStyle name={[item.id, 'distinct']}>
+                        <Checkbox>distinct</Checkbox>
+                      </Form.Item>
+                    </Flex>
+                  </div>
+                );
+              })}
+          </Form>
+        </Card>
         <Form
           className="pdb-indicator-info"
           name="advance"
@@ -187,66 +305,8 @@ export default function Advance(props: any) {
           autoComplete="off"
           layout="vertical"
         >
-          {selected?.type === "symbol" &&
-            ["divide", "minus"].includes(selected?.label) && (
-              <Form.Item
-                label={`被${selected?.label === "divide" ? "除" : "减"}数`}
-              >
-                {upstreams && (
-                  <Radio.Group
-                    value={upEnd}
-                    onChange={(e) => handleChangeUpstream(e.target.value)}
-                  >
-                    {upstreams.map((item) => (
-                      <Radio key={item.edgeId} value={item.edgeId}>
-                        {inidcatorSymbolMap[item.label] || item.label}
-                      </Radio>
-                    ))}
-                  </Radio.Group>
-                )}
-              </Form.Item>
-            )}
           <Form.Item label="指标度量">
             <Input />
-          </Form.Item>
-          <Form.Item label="维度设置">
-            <Button block onClick={handleClickAlign}>维度对齐</Button>
-            <div className="pdb-indicator-advColumns">
-              {!isEmpty(params.csv.header) &&
-                params.csv.header.map((item) => {
-                  return (
-                    <div className="pdb-indicator-advCol" key={item.attrId}>
-                      <div className="pdb-indicator-advCol-title">
-                        {item.attrName}
-                      </div>
-                      <Form.Item noStyle>
-                        <Input
-                          addonBefore={typeMap.type[item.attrType]}
-                          placeholder="自定义维度名称"
-                        />
-                      </Form.Item>
-                      <Flex
-                        className="pdb-indicator-advCol-extra"
-                        gap={8}
-                        justify="space-between"
-                        align="center"
-                      >
-                        {/* <Button size="small" icon={<FilterOutlined />}>过滤</Button> */}
-                        <Typography.Text>
-                          过滤：
-                          {renderCondition(
-                            conditionsMap[item.typeId]?.[item.attrId],
-                            item
-                          )}
-                        </Typography.Text>
-                        <Form.Item noStyle>
-                          <Checkbox>distinct</Checkbox>
-                        </Form.Item>
-                      </Flex>
-                    </div>
-                  );
-                })}
-            </div>
           </Form.Item>
           <Form.Item name={"func"} label="统计算法">
             <Select
@@ -347,45 +407,14 @@ export default function Advance(props: any) {
           </Button>
         </Space>
       </PdbPanel>
-      <Modal title="维度对齐" open={open} width={800}
-        onCancel={() => setOpen(false)}
-      >
-        <div className="pdb-indicator-modal">
-          <div className="pdb-indicator-modal-fix">
-            <div className="pdb-indicator-modal-th"></div>
-            <div className="pdb-indicator-modal-td">
-              <Button size="small" icon={<PlusOutlined />} />
-            </div>
-          </div>
-          {
-            keys(columnsMap).map((id: string) => (
-              <div className="pdb-indicator-modal-col" key={id}>
-                <div className="pdb-indicator-modal-th">
-                  {
-                    columnsMap[id].type !== 2 ? <i className="iconfont icon-zhibiao" /> :
-                    <svg className="svg-icon" aria-hidden="true">
-                      <use xlinkHref="#icon-gaojizhibiao">
-                      </use>
-                    </svg>
-                  }
-                  <b>{columnsMap[id].name_cn}</b>
-                </div>
-                <div className="pdb-indicator-modal-td"></div>
-                <ul className="pdb-indicator-modal-list">
-                  {
-                    map(columnsMap[id]['columns'], (item: CsvHeaderState) => (
-                      <li key={item.attrId}>
-                        <i className={`attr-type-icon iconfont icon-${typeIconMap[item.attrType]}`} />
-                        {item.attrName}
-                      </li>
-                    ))
-                  }
-                </ul>
-              </div>
-            ))
-          }
-        </div>
+      <Modal title="设置过滤条件" open={conditionOpen} onCancel={() => setConditionOpen(false)}>
+        { renderConditionsConfig() }
       </Modal>
+      <ColumnConfigModal
+        visible={open}
+        columnsMap={columnsMap}
+        onCancel={() => setOpen(false)}
+      />
       {contextHolder}
     </div>
   );

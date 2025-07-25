@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ParamsState } from "./query";
+import { ConditionState, ParamsState } from "./query";
 import { MetricItem, MetricParams } from "./indicatorSimple";
 
 const graphData = {
@@ -236,6 +236,29 @@ const calc = {
   ],
 };
 
+export interface ColumnConfig {
+  // 对齐列
+  cols: Array<{
+    typeId: any;
+    attrId: string;
+    attrName: string;
+    attrType: string;
+    metric: {
+      id: string | number;
+      name: string;
+      name_cn: string;
+    }
+  }>;
+  // 筛选条件
+  conditions: ConditionState[];
+  distinct?: boolean;
+  // 数据类型，等同 attrType
+  // type: string;
+  // 别名
+  name: string;
+  id: number;
+}
+
 interface IndicatorAdvanceState extends MetricItem {
   graph_data: string;
   selected?: any;
@@ -250,7 +273,9 @@ interface IndicatorAdvanceState extends MetricItem {
       group_by: { [prop: string]: any }[];
       value: number;
     }>;
-  };
+  };  
+  // 对齐配置
+  column_config: Array<ColumnConfig>;
 }
 
 // 使用该类型定义初始 state
@@ -299,47 +324,136 @@ const initialState: IndicatorAdvanceState = {
       },
     ],
   },
+  column_config: [{
+    id: Date.now(),
+    name: '',
+    cols: [{
+      attrName: "ID",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "id",
+      attrType: "int",
+      metric: {
+        id: 32,
+        name: 'test_metric',
+        name_cn: 'test_METRIC'
+      }
+    },
+    {
+      attrName: "零件层级",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "part_level",
+      attrType: "string",
+      metric: {
+        id: 31,
+        name: 'test_qs',
+        name_cn: 'test_QS'
+      }
+    },
+    {
+      attrName: "零件号",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "part_no",
+      attrType: "string",
+      metric: {
+        id: 30,
+        name: 'test_qs2',
+        name_cn: 'test_QS2'
+      }
+    }],
+    conditions: [
+      {
+        name: "part_level",
+        function: "=",
+        value: "0",
+        not: true,
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "B",
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "C",
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "D",
+      },
+    ]
+  }, {
+    id: Date.now()+10,
+    name: '',
+    cols: [{
+      attrName: "零件层级",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "part_level",
+      attrType: "string",
+      metric: {
+        id: 31,
+        name: 'test_qs',
+        name_cn: 'test_QS'
+      }
+    },
+    {
+      attrName: "ID",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "id",
+      attrType: "int",
+      metric: {
+        id: 32,
+        name: 'test_metric',
+        name_cn: 'test_METRIC'
+      }
+    },
+    {
+      attrName: "零件号",
+      typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
+      attrId: "part_no",
+      attrType: "string",
+      metric: {
+        id: 30,
+        name: 'test_qs2',
+        name_cn: 'test_QS2'
+      }
+    }],
+    conditions: [
+      {
+        name: "part_level",
+        function: "=",
+        value: "0",
+        not: true,
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "B",
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "C",
+      },
+      {
+        connectives: "AND",
+        name: "part_version",
+        function: "=",
+        value: "D",
+      },
+    ]
+  }],
   pql_params: {
     api: "/pdb/api/v1/object/search/pql",
     params: {
       graphId: "5002",
-      pql: [
-        [
-          {
-            name: "BBOM-零部件",
-            type: "object",
-            conditionRaw:
-              "NOT part_level = '0' AND part_version = 'B' AND part_version = 'C'",
-            conditions: [
-              {
-                name: "part_level",
-                function: "=",
-                value: "0",
-                not: true,
-              },
-              {
-                connectives: "AND",
-                name: "part_version",
-                function: "=",
-                value: "B",
-              },
-              {
-                connectives: "AND",
-                name: "part_version",
-                function: "=",
-                value: "C",
-              },
-              {
-                connectives: "AND",
-                name: "part_version",
-                function: "=",
-                value: "D",
-              },
-            ],
-            id: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-          },
-        ],
-      ],
+      pql: [[]],
       csv: {
         header: [
           {
@@ -470,10 +584,13 @@ export const indicatorAdvanceSlice = createSlice({
     setCalc: (state, action: PayloadAction<any>) => {
       state.calc = action.payload;
     },
+    updateColumnConfig: (state, action: PayloadAction<ColumnConfig[]>) => {
+      state.column_config = action.payload;
+    },
   },
 });
 
-export const { setSelected, exit, setCalc, setUpstreams } =
+export const { setSelected, exit, setCalc, setUpstreams, updateColumnConfig } =
   indicatorAdvanceSlice.actions;
 
 export default indicatorAdvanceSlice.reducer;

@@ -44,8 +44,8 @@
 }
 
 .pdb-indicator-info {
-  padding: 1.6rem 1.6rem .4rem;
-  height: calc(100% - 96px);
+  padding: 0.8rem 1.6rem;
+  // height: calc(100% - 96px);
 
   .pdb-ant-form-item {
     margin-bottom: 1.2rem;
@@ -74,21 +74,28 @@
       }
     }
   }
+  .pdb-ant-card-head-title {
+    font-weight: normal;
+  }
+  .pdb-ant-card-body {
+    padding: .4rem;
+  }
 }
 .pdb-indicator-advColumns {
-  margin-right: -1.2rem;
-  margin-left: -1.2rem;
   max-height: calc(100vh - 50rem);
-  padding: 0 .6rem 0 1.2rem;
-  border-bottom: dashed 1px var(--border-color1);
+  // border-top: dashed 1px var(--border-color1);
+  // border-bottom: dashed 1px var(--border-color1);
   overflow: auto;
+  .pdb-ant-input-group-addon {
+    min-width: 6.4rem;
+  }
 }
 .pdb-indicator-advCol {
-  margin: 1.2rem 0;
-  &:not(:last-child) {
-    padding-bottom: 1.2rem;
-    border-bottom: dashed 1px var(--border-color1);
-  }
+  margin: 0.8rem 0;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  background-color: var(--fill-color4);
+  border: dashed 1px var(--border-color1);
   &-title {
     margin-bottom: 4px;
     font-size: 12px;
