@@ -49,11 +49,13 @@ import {
   optionSymbolMap,
   conditionOptionMap,
   typeIconMap,
+  getConditionRaw,
 } from "@/utils/common";
 import { ConditionState, CsvHeaderState } from "@/reducers/query";
 import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
+import ConditionsConfigModal from "./ConditionsConfig";
 
 
 export default function Advance(props: any) {
@@ -153,21 +155,8 @@ export default function Advance(props: any) {
     setConditionOpen(true)
     setConditionCfg(item)
   }
-  
-  // 过滤条件
-  const getConditionRaw = (item: ConditionState, label: string) => {
-    const condition = functionSymbolMap[item.function]
-    if (condition === "has") {
-      return `${item.not ? "NOT " : ""}存在属性 ${label}`
-    } else {
-      let keyword = item.value;
-      if (typeof keyword === "object") {
-        keyword = keyword.format("YYYY-MM-DD");
-      }
-      const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
-      return `${item.not ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
-    }
-  }
+
+  const onConditionSave = () => {}
 
   const renderCondition = (conditions: ConditionState[], name: string) => {
     const content = map(conditions, (item, index) => {
@@ -208,27 +197,6 @@ export default function Advance(props: any) {
       </Popover>
     );
   };
-
-  const renderConditionsConfig = () => {
-    if (!conditionCfg || isEmpty(conditionCfg.conditions)) {
-      return <Empty />
-    }
-    const { id, name, conditions } = conditionCfg
-    // return map(conditions, (condition: ConditionState, index) => {
-    //   return (
-    //     <Fragment key={index}>
-    //       <Card
-    //         size="small"
-    //         extra={getExtra(index, opt)}
-    //         title={getConditionRaw(condition, name)}
-    //         className={activePanelKey[0] !== index ? "no-body-card" : ""}
-    //       >
-    //         {activePanelKey[0] === index ? renderPanelChildren() : null}
-    //       </Card>
-    //     </Fragment>
-    //   )
-    // })
-  }
 
   return (
     <div className="pdb-right-panel">
@@ -407,9 +375,13 @@ export default function Advance(props: any) {
           </Button>
         </Space>
       </PdbPanel>
-      <Modal title="设置过滤条件" open={conditionOpen} onCancel={() => setConditionOpen(false)}>
-        { renderConditionsConfig() }
-      </Modal>
+      <ConditionsConfigModal
+        visible={conditionOpen}
+        column={conditionCfg}
+        onCancel={() => setConditionOpen(false)}
+        onSave={onConditionSave}
+      />
+
       <ColumnConfigModal
         visible={open}
         columnsMap={columnsMap}

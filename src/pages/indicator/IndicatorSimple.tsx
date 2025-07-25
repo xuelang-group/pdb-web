@@ -62,6 +62,7 @@ import {
   optionLabelMap,
   optionSymbolMap,
   typeIconMap,
+  getConditionRaw,
 } from "@/utils/common";
 import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
@@ -639,21 +640,6 @@ export default function SimpleIndicator(props: any) {
       })
     });
   };
-
-  // 过滤条件
-  const getConditionRaw = (item: ConditionState, label: string) => {
-    const condition = functionSymbolMap[item.function]
-    if (condition === "has") {
-      return `${item.not ? "NOT " : ""}存在属性 ${label}`
-    } else {
-      let keyword = item.value;
-      if (typeof keyword === "object") {
-        keyword = keyword.format("YYYY-MM-DD");
-      }
-      const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
-      return `${item.not ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
-    }
-  }
 
   const renderColumnItem = (condition: ConditionState, item: CsvHeaderState) => {
     if (condition.function == "=") {

@@ -1,6 +1,7 @@
 import _ from "lodash";
 import moment from "moment";
 import fonts from '@/assets/iconfont/pdb/iconfont.json';
+import { ConditionState } from "@/reducers/query";
 
 export const myDirId = 2;
 
@@ -433,4 +434,18 @@ export const inidcatorSymbolMap: {[key: string]: string} = {
   'minus': '－',
   'multiply': '×',
   'divide': '÷',
+}
+
+export function getConditionRaw(item: ConditionState, label: string) {
+  const condition = functionSymbolMap[item.function]
+  if (condition === "has") {
+    return `${item.not ? "NOT " : ""}存在属性 ${label}`
+  } else {
+    let keyword = item.value;
+    if (typeof keyword === "object") {
+      keyword = keyword.format("YYYY-MM-DD");
+    }
+    const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
+    return `${item.not ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
+  }
 }
