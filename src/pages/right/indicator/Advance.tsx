@@ -156,7 +156,16 @@ export default function Advance(props: any) {
     setConditionCfg(item)
   }
 
-  const onConditionSave = () => {}
+  // 维度设置- 自定义维度名称，更新Distinct
+  const handleChangeCondition = (id: string | number, key: string, value: any) => {
+    console.log(key, value)
+    const col_cfgs = map(column_config, (cfg) => (cfg.id !== id ? cfg : {...cfg, [key]: value}))
+    dispatch(updateColumnConfig(col_cfgs))
+  }
+
+  const onConditionSave = (id: number | string, conditions: ConditionState[]) => {
+    handleChangeCondition(id, 'conditions', conditions)
+  }
 
   const renderCondition = (conditions: ConditionState[], name: string) => {
     const content = map(conditions, (item, index) => {
@@ -168,30 +177,10 @@ export default function Advance(props: any) {
         </Fragment>
       );
     });
-    // const conditionOptions = get(conditionOptionMap, type, ["eq"]);
-    // const options = conditionOptions.map((condition: string) => ({
-    //   value: condition,
-    //   label: optionLabelMap[condition],
-    // }));
     return (
       <Popover
         title="过滤条件"
-        content={
-          <Space>{content}</Space>
-          // <Space direction="vertical" size="small">
-          //   <Space.Compact>
-          //     <Select
-          //       style={{ width: 100 }}
-          //       defaultValue={functionSymbolMap[item?.function] || "eq"}
-          //       options={options}
-          //     />
-          //     <Input style={{ width: 200 }} defaultValue={item?.value || ""} />
-          //   </Space.Compact>
-          //   <Form.Item label="不具备条件(NOT)">
-          //     <Switch defaultChecked={!!item?.not} />
-          //   </Form.Item>
-          // </Space>
-        }
+        content={ <Space>{content}</Space> }
       >
         <Button type="link" size="small" icon={<EyeOutlined />} />
       </Popover>
@@ -235,9 +224,9 @@ export default function Advance(props: any) {
                     </div>
                     <Form.Item noStyle name={[item.id, 'name']}>
                       <Input
-                        defaultValue={item.name}
                         addonBefore={typeMap.type[item.cols[0].attrType]}
                         placeholder="自定义维度名称"
+                        onBlur={(e) => e.target.value !== item.name && handleChangeCondition(item.id, 'name', e.target.value)}
                       />
                     </Form.Item>
                     <Flex
@@ -256,8 +245,8 @@ export default function Advance(props: any) {
                           onClick={() => onEditCondition(item)}
                         />
                       </Space>
-                      <Form.Item noStyle name={[item.id, 'distinct']}>
-                        <Checkbox>distinct</Checkbox>
+                      <Form.Item noStyle name={[item.id, 'distinct']} valuePropName="checked">
+                        <Checkbox onChange={(e) => handleChangeCondition(item.id, 'distinct', e.target.checked)}>distinct</Checkbox>
                       </Form.Item>
                     </Flex>
                   </div>

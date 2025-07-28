@@ -378,7 +378,6 @@ export default function IndicatorAdvance() {
     });
 
     graph.on("keyup", (e: IG6GraphEvent) => {
-      console.log("--- keyup: ", e.keyCode);
       switch (e.keyCode) {
         case 46:
           // Delete

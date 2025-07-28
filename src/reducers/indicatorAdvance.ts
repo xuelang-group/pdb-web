@@ -253,7 +253,7 @@ export interface ColumnConfig {
   conditions: ConditionState[];
   distinct?: boolean;
   // 数据类型，等同 attrType
-  // type: string;
+  type?: string;
   // 别名
   name: string;
   id: number;
@@ -325,7 +325,7 @@ const initialState: IndicatorAdvanceState = {
     ],
   },
   column_config: [{
-    id: Date.now(),
+    id: 12,
     name: '',
     cols: [{
       attrName: "ID",
@@ -372,22 +372,10 @@ const initialState: IndicatorAdvanceState = {
         name: "part_version",
         function: "=",
         value: "B",
-      },
-      {
-        connectives: "AND",
-        name: "part_version",
-        function: "=",
-        value: "C",
-      },
-      {
-        connectives: "AND",
-        name: "part_version",
-        function: "=",
-        value: "D",
       },
     ]
   }, {
-    id: Date.now()+10,
+    id: 20,
     name: '',
     cols: [{
       attrName: "零件层级",
@@ -424,19 +412,6 @@ const initialState: IndicatorAdvanceState = {
     }],
     conditions: [
       {
-        name: "part_level",
-        function: "=",
-        value: "0",
-        not: true,
-      },
-      {
-        connectives: "AND",
-        name: "part_version",
-        function: "=",
-        value: "B",
-      },
-      {
-        connectives: "AND",
         name: "part_version",
         function: "=",
         value: "C",
