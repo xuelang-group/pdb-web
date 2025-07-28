@@ -127,6 +127,15 @@ export default function Advance(props: any) {
     }
   }, [upstreams]);
 
+  // 指标度量选择
+  const handleDimensionChange = (value: string) => {
+    const dimension = find(column_config, { id: value });
+    console.log(value, dimension)
+    const attrType = get(dimension, "type", "");
+    const funcs = get(funcOptionsObj, attrType, []);
+    setfuncOptions(funcs);
+  };
+
   // 点击“维度对齐”按钮
   const handleClickAlign = () => {
     // 请求画布中所有指标详情获取他们的维度数据
@@ -158,7 +167,6 @@ export default function Advance(props: any) {
 
   // 维度设置- 自定义维度名称，更新Distinct
   const handleChangeCondition = (id: string | number, key: string, value: any) => {
-    console.log(key, value)
     const col_cfgs = map(column_config, (cfg) => (cfg.id !== id ? cfg : {...cfg, [key]: value}))
     dispatch(updateColumnConfig(col_cfgs))
   }
@@ -180,7 +188,7 @@ export default function Advance(props: any) {
     return (
       <Popover
         title="过滤条件"
-        content={ <Space>{content}</Space> }
+        content={ isEmpty(conditions) ? '无' : <Space>{content}</Space> }
       >
         <Button type="link" size="small" icon={<EyeOutlined />} />
       </Popover>
@@ -263,7 +271,25 @@ export default function Advance(props: any) {
           layout="vertical"
         >
           <Form.Item label="指标度量">
-            <Input />
+            {/* <Input /> */}
+            <Select
+              placeholder="指标度量"
+              allowClear
+              options={map(column_config, (item) => ({
+                label: item.name || compact(item.cols)[0].attrName,
+                value: item.id,
+                type: item.type,
+              }))}
+              optionRender={(opt) => (
+                <Space>
+                  <i
+                    className={`attr-type-icon iconfont icon-${typeIconMap[opt.data?.type || '']}`}
+                  />
+                  {opt.data.label}
+                </Space>
+              )}
+              onChange={handleDimensionChange}
+            />
           </Form.Item>
           <Form.Item name={"func"} label="统计算法">
             <Select

@@ -163,10 +163,10 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
   }
   
   const renderConditionsConfig = () => {
-    if (!column || isEmpty(column.conditions)) {
+    if (activePanelKey == -1 && isEmpty(conditions)) {
       return <Empty />
     }
-    const { name } = column
+    const name = get(column, 'name', '')
     return map(conditions, (condition: ConditionState, index: number) => {
       return (
         <Fragment key={index}>

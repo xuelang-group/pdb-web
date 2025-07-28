@@ -305,7 +305,7 @@ export default function IndicatorAdvance() {
         },
       },
     });
-    const data = JSON.parse(graph_data)
+    const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
     graph.data(data);
     graph.render();
     (window as any).INDICATOR_GRAPH = graph;
@@ -401,7 +401,7 @@ export default function IndicatorAdvance() {
 
   useEffect(() => {
     graph.clear()
-    const data = JSON.parse(graph_data)
+    const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
     graph.data(data);
     graph.render()
   }, [graph_data])

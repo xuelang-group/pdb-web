@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Modal, Space, Typography } from "antd";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { filter, isEmpty, keys, map } from "lodash";
+import { compact, filter, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { CsvHeaderState } from "@/reducers/query";
 import { StoreState } from "@/store";
@@ -76,7 +76,19 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
 
   // 维度对齐- 确认
   const handleOk = () => {
-    dispatch(updateColumnConfig(columnConfig))
+    const cfg = map(filter(columnConfig, item => !isEmpty(item.cols)), item => ({...item, type: compact(item.cols)[0].attrType}))
+    dispatch(updateColumnConfig(cfg))
+    handleCancel()
+  }
+
+  const handleCancel = () => {
+    setColumnConfig([{
+      cols: [],
+      conditions: [],
+      name: '',
+      id: Date.now()
+    }])
+    setFocusCell(undefined)
     onCancel()
   }
 
@@ -85,7 +97,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
         className="pdb-indicator-modal"
         title="维度对齐"
         open={visible} width={800}
-        onCancel={() => onCancel()}
+        onCancel={handleCancel}
         onOk={handleOk}
       >
         <div className="pdb-indicator-align">
@@ -96,8 +108,8 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                 <Typography.Text>{index + 1}</Typography.Text>
                 <div className="operator">
                   <Space>
-                    <PlusCircleOutlined className="icon-add" onClick={() => handleAddColCfg(index)} />
                     <MinusCircleOutlined  className="icon-del" onClick={() => handleDelColCfg(index)} />
+                    <PlusCircleOutlined className="icon-add" onClick={() => handleAddColCfg(index)} />
                   </Space>
                 </div>
               </div>
@@ -132,12 +144,17 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                 }) }
                 <ul className={focusCell?.[0] === colIndex ? 'list' : 'list disabled'}>
                   {
-                    map(columnsMap[id]['columns'], (item: CsvHeaderState) => (
-                      <li key={item.attrId} onClick={() => focusCell?.[0] === colIndex && handleDblClick({id, name: columnsMap[id].name, name_cn: columnsMap[id].name_cn}, item)}>
-                        <i className={`iconfont icon-${typeIconMap[item.attrType]}`} />
-                        {item.attrName}
-                      </li>
-                    ))
+                    map(columnsMap[id]['columns'], (item: CsvHeaderState) => {
+                      const cols = compact(focusCell ? columnConfig[focusCell?.[1]]?.cols : [])
+                      const type = cols[0]?.attrType
+                      const disabled = focusCell?.[0] !== colIndex || type && typeIconMap[type] !== typeIconMap[item?.attrType]
+                      return (
+                        <li key={item.attrId} className={disabled ? 'disabled' : ''} onClick={() => !disabled && handleDblClick({id, name: columnsMap[id].name, name_cn: columnsMap[id].name_cn}, item)}>
+                          <i className={`iconfont icon-${typeIconMap[item.attrType]}`} />
+                          {item.attrName}
+                        </li>
+                      )
+                    })
                   }
                 </ul>
               </div>
