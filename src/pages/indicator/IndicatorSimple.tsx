@@ -54,6 +54,7 @@ import {
 } from "@/actions/indicator";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
 import {
+  clearQuery,
   ConditionState,
   CsvHeaderState,
   ParamsState,
@@ -69,8 +70,8 @@ import {
 import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
-import { setMetrics } from "@/reducers/indicator";
-import { exit, MetricItem, setCalc, setCurrent } from "@/reducers/indicatorSimple";
+import { exit, setMetrics } from "@/reducers/indicator";
+import { MetricItem, setCalc, setCurrent } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -243,6 +244,7 @@ export default function SimpleIndicator(props: any) {
 
   const handleBack = () => {
     dispatch(exit());
+    dispatch(clearQuery())
     form.resetFields();
     navigate(`/${routerParams.id}/indicator/index`);
   };

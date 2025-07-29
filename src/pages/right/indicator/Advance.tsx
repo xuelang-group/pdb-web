@@ -116,6 +116,11 @@ export default function Advance(props: any) {
     })
   }, [metric_params])
 
+  useEffect(() => {
+    const values = getColumnFormInitialValues()
+    columnForm.setFieldsValue(values)
+  }, [column_config])
+
   // 处理上游
   const handleChangeUpstream = (edgeId: string) => {
     const graph = (window as any).INDICATOR_GRAPH;

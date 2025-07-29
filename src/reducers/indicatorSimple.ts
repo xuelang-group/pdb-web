@@ -247,14 +247,11 @@ export const indicatorSimpleSlice = createSlice({
   name: "indicatorSimple",
   initialState,
   reducers: {
-    exit: (state) => {
-      state.current = undefined;
-      state.calc = undefined;
-      state.readonly = false;
-    },
     setCurrent: (state, action: PayloadAction<MetricItem | undefined>) => {
       state.current =
         action.payload && JSON.parse(JSON.stringify(action.payload));
+      state.calc = undefined;
+      state.readonly = false;
     },
     setReadonly: (state, action: PayloadAction<boolean>) => {
       state.readonly = action.payload;
@@ -265,6 +262,6 @@ export const indicatorSimpleSlice = createSlice({
   },
 });
 
-export const { setCurrent, exit, setReadonly, setCalc } = indicatorSimpleSlice.actions;
+export const { setCurrent, setReadonly, setCalc } = indicatorSimpleSlice.actions;
 
 export default indicatorSimpleSlice.reducer;
