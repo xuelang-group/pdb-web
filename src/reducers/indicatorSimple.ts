@@ -24,6 +24,8 @@ export interface MetricBasicInfo {
   ori_id?: number;
   online?: boolean;
   unit?: string;
+  requestId?: string | null;
+  buzProcess?: string | null;
   type: number; // 指标类型 1-初级指标 2-高级指标 xx-前端自定义
 }
 
@@ -232,102 +234,6 @@ const demoCurrent = {
       },
     },
   },
-};
-
-const calc = {
-  dimension: {
-    name: "id",
-    name_cn: "ID_EBOM-零部件",
-  },
-  group_by_name_dict: {
-    part_type: "零件类型_EBOM-零部件",
-    part_version: "零件版本_EBOM-零部件",
-  },
-  result: [
-    {
-      group_by: [],
-      value: 324,
-    },
-    {
-      group_by: [
-        {
-          part_level: "0",
-        },
-      ],
-      value: 324,
-    },
-    {
-      group_by: [
-        {
-          part_level: "1",
-        },
-      ],
-      value: 331,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-      ],
-      value: 325,
-    },
-    {
-      group_by: [
-        {
-          part_level: "0",
-        },
-        {
-          part_type: "0",
-        },
-      ],
-      value: 324,
-    },
-    {
-      group_by: [
-        {
-          part_level: "1",
-        },
-        {
-          part_type: "DDM",
-        },
-      ],
-      value: 331,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "型材件",
-        },
-      ],
-      value: 335,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "机加件",
-        },
-      ],
-      value: 332,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "钣金件",
-        },
-      ],
-      value: 325,
-    },
-  ],
 };
 
 // 使用该类型定义初始 state

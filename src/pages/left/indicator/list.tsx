@@ -264,7 +264,6 @@ export default function List(props: any) {
     dispatch(setMetricInfo(item))
     dispatch(setGraphData(item.graph_data))
     dispatch(setMetricParams(item.metric_params || {}))
-      console.log("---- item.column_config: ", item.column_config)
     dispatch(updateColumnConfig(item.column_config || []))
     dispatch(setPqlParams(item.pql_params))
     if (!location.pathname.endsWith("/indicator/advance")) {
@@ -281,7 +280,6 @@ export default function List(props: any) {
   const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
     const dimensionStr = item.metric_params.dimension.name_cn
     const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
-    key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));
     dispatch(setExtraColumns(item.metric_params.extra_columns))
     dispatch(setQueryParams(item.pql_params.params));
     dispatch(setApi(item.pql_params.api));
@@ -304,6 +302,7 @@ export default function List(props: any) {
       setCheckData(item)
     }
     if (['edit', 'check2'].includes(menu.key)) {
+      menu.key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));
       if (item.type === 2) 
         enterIndicatorAdvance(item)
       if (item.type === 1) 

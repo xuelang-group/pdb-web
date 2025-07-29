@@ -43,14 +43,15 @@ import {
   typeIconMap,
   getConditionRaw,
 } from "@/utils/common";
-import { ConditionState, CsvHeaderState } from "@/reducers/query";
+import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
 import { ColumnConfig, setCalc, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
 import { addMetric, getFuncResult, getMetrics, updateMetric } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
-import { setMetrics } from "@/reducers/indicator";
+import { exit, setMetrics } from "@/reducers/indicator";
+import UpdateModal from "./UpdateModal";
 
 
 export default function Advance(props: any) {
@@ -84,8 +85,8 @@ export default function Advance(props: any) {
   const pql_params = useSelector(
     (state: StoreState) => state.indicatorAdvance.pql_params
   );
-  const editId = useSelector(
-    (state: StoreState) => state.indicatorAdvance.basic_info?.id
+  const basic_info = useSelector(
+    (state: StoreState) => state.indicatorAdvance.basic_info
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
@@ -105,6 +106,7 @@ export default function Advance(props: any) {
   // 保存弹窗
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [modalLoading, setModalLoading] = useState<boolean>(false)
+  const [updateModalVisible, setUpdateModalVisible] = useState<boolean>(false)
 
   useEffect(() => {
     form.setFieldsValue({
@@ -211,9 +213,26 @@ export default function Advance(props: any) {
       edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
     }
     setModalLoading(true)
-    editId ? updateMetric({
+    // editId ? updateMetric({
+    //   ...values,
+    //   id: editId,
+    //   type: 2,
+    //   graph_data,
+    //   column_config,
+    //   metric_params,
+    //   pql_params
+    // }, (success: boolean, res: any) => {
+    //   if (success) {
+    //     message.success("编辑指标成功");
+    //     updateList();
+    //     dispatch(setMetricInfo(values))
+    //     setModalVisible(false)
+    //   } else {
+    //     message.error("编辑指标失败：" + res.message || res.msg);
+    //   }
+    // }) : 
+    addMetric({
       ...values,
-      id: editId,
       type: 2,
       graph_data,
       column_config,
@@ -221,31 +240,26 @@ export default function Advance(props: any) {
       pql_params
     }, (success: boolean, res: any) => {
       if (success) {
-        message.success("编辑指标成功");
+        message.success(`${basic_info?.id ? '更新' : '保存'}指标成功`);
         updateList();
         dispatch(setMetricInfo(values))
-        setModalVisible(false)
+        basic_info?.id ? setUpdateModalVisible(false) : setModalVisible(false)
       } else {
-        message.error("编辑指标失败：" + res.message || res.msg);
-      }
-    }) : addMetric({
-      ...values,
-      type: 2,
-      graph_data,
-      column_config,
-      metric_params,
-      pql_params
-    }, (success: boolean, res: any) => {
-      if (success) {
-        message.success("保存指标成功");
-        updateList();
-        dispatch(setMetricInfo(values))
-        setModalVisible(false)
-      } else {
-        message.error("保存指标失败：" + res.message || res.msg);
+        message.error(`${basic_info?.id ? '更新' : '保存'}指标失败：${res.message || res.msg}`);
       }
       setModalLoading(false)
     });
+  }
+
+  const onAddVersion = ({version, ori_id}: any) => {
+    onSave({
+      name_cn: basic_info?.name_cn,
+      name: basic_info?.name,
+      unit: basic_info?.unit || '',
+      desc: basic_info?.desc || '',
+      ori_id: ori_id,
+      version: version,
+    })
   }
 
   // 保存指标
@@ -282,7 +296,7 @@ export default function Advance(props: any) {
           },
         }
       }
-      setModalVisible(true)
+      basic_info?.id ? setUpdateModalVisible(true) : setModalVisible(true)
       dispatch(setMetricParams(metric_params))
       dispatch(setPqlParams(pql_params))
     })
@@ -297,6 +311,10 @@ export default function Advance(props: any) {
       return
     }
     form.validateFields().then(values => {
+      const graph_data = {
+        nodes: map(nodes, n => ({id: n.id, type: n.type, label: n.label, x: n.x, y: n.y, data: n.data})),
+        edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
+      }
       const metric_params = {
         dimension: { name: values.dimension, name_cn: values.dimension },
         func: values.func,
@@ -321,7 +339,11 @@ export default function Advance(props: any) {
       dispatch(setMetricParams(metric_params))
       dispatch(setPqlParams(pql_params))
       getFuncResult({
+        cal_type: 2,
+        graph_data,
         metric_params,
+        metric_type: 2,
+        column_config,
         pql_params,
       }, function(success: boolean, response: any) {
         if (success) {
@@ -555,13 +577,15 @@ export default function Advance(props: any) {
             </Col>
             <Col span={12}>
               <Button block type="primary" onClick={handleSave}>
-                保存指标
+                {basic_info?.id ? "更新指标" : "保存指标"}
               </Button>
             </Col>
           </Row>
           <Button
             block
             onClick={() => {
+              dispatch(exit())
+              dispatch(clearQuery())
               navigate(`/${systemInfo.graphId}/indicator/index`);
             }}
           >
@@ -583,9 +607,16 @@ export default function Advance(props: any) {
       />
       <SaveModal
         visible={modalVisible}
-        editId={editId}
+        editId={basic_info?.id}
         onCancel={() => setModalVisible(false)}
         onOk={onSave}
+        modalLoading={modalLoading}
+      />
+      <UpdateModal
+        visible={updateModalVisible}
+        editId={basic_info?.id}
+        onCancel={() => setUpdateModalVisible(false) }
+        onOk={onAddVersion}
         modalLoading={modalLoading}
       />
       {contextHolder}

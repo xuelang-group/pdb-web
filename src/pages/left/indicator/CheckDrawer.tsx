@@ -1,11 +1,14 @@
 import { Drawer, Form, Input, Button, message } from "antd";
 import { useEffect, useState } from "react";
 import { StoreState } from '@/store';
-import { useSelector } from 'react-redux';
-import { updateMetric } from "@/actions/indicator";
+import { useDispatch, useSelector } from 'react-redux';
+import { getMetrics, updateMetric } from "@/actions/indicator";
 import './index.less';
+import { setMetrics } from "@/reducers/indicator";
+import { setIndicatorLoading } from "@/reducers/editor";
 
 export default function SaveModal(props: any) {
+  const dispatch = useDispatch();
   const [infoForm] = Form.useForm();
   const [isEdit, setIsEdit] = useState(false);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
@@ -42,6 +45,17 @@ export default function SaveModal(props: any) {
       updateMetric(postObj, (success: boolean, res: any) => {
         if (success) {
           message.success("编辑成功");
+          if (props.data.name !== values.name || props.data.name_cn !== values.name_cn) {    
+            dispatch(setIndicatorLoading(true));        
+            getMetrics(function (response: any) {
+              if (response) {
+                dispatch(setMetrics(response || []));
+              } else {
+                message.error('获取列表数据失败：' + response.message || response.msg);
+              }
+              dispatch(setIndicatorLoading(false));
+            })
+          }
           onCancel()
         } else {
           message.error('编辑指标失败：' + res.message || res.msg);

@@ -383,12 +383,8 @@ export default function Right(props: any) {
         </Space>
       </PdbPanel>
       <SaveModal visible={modalVisible} editId={editId} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
-      <UpdateModal visible={updateModalVisible} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
+      <UpdateModal visible={updateModalVisible} editId={editId} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
       {contextHolder}
     </div>
   )
-}
-
-function dispatch(arg0: { payload: import("@/reducers/query").ParamsState; type: "query/setQueryParams"; }) {
-  throw new Error("Function not implemented.");
 }

@@ -46,7 +46,9 @@ import {
 } from "@/actions/adapter";
 import {
   addMetric,
+  checkVersion,
   getFuncResult,
+  getMetricDetail2,
   getMetrics,
   updateMetric,
 } from "@/actions/indicator";
@@ -68,7 +70,7 @@ import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { setMetrics } from "@/reducers/indicator";
-import { exit, setCalc, setCurrent } from "@/reducers/indicatorSimple";
+import { exit, MetricItem, setCalc, setCurrent } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -552,25 +554,22 @@ export default function SimpleIndicator(props: any) {
   // 保存
   const onSubmit = () => {
     form.validateFields().then((values) => {
-      const params = {
+      const params: MetricItem = {
         name_cn: values.name_cn,
         name: values.name,
         unit: values.unit || "",
         desc: values.desc || "",
+        version: values.version,
+        requestId: requestId,
+        buzProcess: values.buzProcess,
         type: 1,
         metric_params: getMetricParams(),
         pql_params: getPqlParams(),
       };
-      !current
-        ? handleAdd({
-            ...params,
-            requestId: requestId,
-            buzProcess: values.buzProcess,
-          })
-        : handleUpdate({
-            ...params,
-            id: current.id,
-          });
+      if (current?.id) {
+        params.ori_id = current.id
+      }
+      handleAdd(params)
     });
   };
 
@@ -800,6 +799,43 @@ export default function SimpleIndicator(props: any) {
               <Form.Item label="相关业务过程">---</Form.Item>
               <Form.Item label="指标描述" name={"desc"}>
                 <Input.TextArea placeholder="请输入指标描述" rows={3} />
+              </Form.Item>
+              <Form.Item
+                label="版本号"
+                name={'version'}
+                rules={[
+                  { required: true, message: '请输入版本号' },
+                  {
+                    validateTrigger: 'onBlur',
+                    validator: async (_, value) =>
+                    {
+                      if(current?.id) {
+                        const resD = await getMetricDetail2({id: current?.id})
+                        if(resD.data) {
+                          const res = await checkVersion({new_version: value, ori_id: resD.data?.ori_id})
+                          if(res.data?.success) {
+                            return Promise.resolve()
+                          } else {
+                            return Promise.reject(new Error(res.data?.message))
+                          }
+                        } else {
+                          return Promise.reject(new Error(resD.data?.message))
+                        }
+                      } else {
+                        const res = await checkVersion({new_version: value})
+                        if(res.data?.success) {
+                          return Promise.resolve()
+                        } else {
+                          return Promise.reject(new Error(res.data?.message))
+                        }
+                      }
+                    }
+                  },
+                ]}
+                tooltip="1.格式X.X.X，仅允许使用数字和.作为分隔符，不支持字母、特殊字符等。
+                  2.不允许前导l零，如00.01.02是无效的，应改为0.1.2。"
+              >
+                <Input addonBefore="V" placeholder="仅允许数字以.为分隔符，例:1.0.0" />
               </Form.Item>
             </Flex>
             <Divider orientation="left" orientationMargin={16}>

@@ -397,10 +397,8 @@ export default function IndicatorAdvance() {
       graph?.destroy();
       graph = null;
       (window as any).INDICATOR_GRAPH = null;
-      console.log('---- graph: ', graph)
     }
   }, [location.pathname]);
-      console.log('>>> pathname: ', location.pathname)
 
   useEffect(() => {
     if (graph) {
@@ -408,9 +406,6 @@ export default function IndicatorAdvance() {
       const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
       graph.data(data);
       graph.render()
-    } else {
-      const g = (window as any).INDICATOR_GRAPH;
-      console.log('---- g: ', g)
     }
   }, [graph_data])
 

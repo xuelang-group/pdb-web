@@ -7,19 +7,18 @@ import { getMetricDetail2, getMetricDetail,checkVersion } from "@/actions/indica
 export default function UpdateModal(props: any) {
   const [infoForm] = Form.useForm()
   const [initVersion, setInitVersion] = useState('')
-  const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
 
   useEffect(() => {
-    const metric = allIndicators.find((item: any) => item.id === editId)
+    const metric = allIndicators.find((item: any) => item.id === props.editId)
     if(metric) {
       setInitVersion(metric.version)
     }
-  }, [editId, allIndicators])
+  }, [props.editId, allIndicators])
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
-      getMetricDetail({id: editId}, (success: boolean, res: any) => {
+      getMetricDetail({id: props.editId}, (success: boolean, res: any) => {
         if (success) {
           const newValues = {
            ...res,
@@ -67,8 +66,8 @@ export default function UpdateModal(props: any) {
                 validateTrigger: 'onBlur',
                 validator: async (_, value) =>
                 {
-                  if(editId) {
-                    const resD = await getMetricDetail2({id: editId})
+                  if(props.editId) {
+                    const resD = await getMetricDetail2({id: props.editId})
                     if(resD.data) {
                       const res = await checkVersion({new_version: value, ori_id: resD.data?.ori_id})
                       if(res.data?.success) {

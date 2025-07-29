@@ -31,10 +31,11 @@ export const getCsv = (query, extraColumns=[], callback) => {
 };
 
 // 执行计算
-export const getFuncResult = ({metric_params, pql_params}, callback) => {
+export const getFuncResult = ({metric_params, pql_params, ...others}, callback) => {
   return axios.post(api['calc'], {
     "metric_params": metric_params,
-    "pql_params": pql_params
+    "pql_params": pql_params,
+    ...others
   }).then(({data}) => {
     // console.log(data)
     callback && callback(data.success, data.success ? data.data: data);
