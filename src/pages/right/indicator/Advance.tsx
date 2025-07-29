@@ -396,6 +396,7 @@ export default function Advance(props: any) {
   return (
     <div className="pdb-right-panel">
       <PdbPanel title="指标配置" direction="right" canCollapsed={true}>
+        <div style={{maxHeight: 'calc(100vh - 21rem', overflow: 'auto'}}>
         {selected?.type === "symbol" &&
           ["divide", "minus"].includes(selected?.label) && (
             <Form.Item style={{padding: '1.5rem 1.6rem 0'}}
@@ -507,7 +508,7 @@ export default function Advance(props: any) {
               }))}
             />
           </Form.Item>
-          <Form.Item label="Group by">
+          <Form.Item label="Group by" style={{margin: 0}}>
             <Form.List name="groupBy">
               {(fields, { add, remove }, { errors }) => (
                 <>
@@ -569,6 +570,7 @@ export default function Advance(props: any) {
             </Form.List>
           </Form.Item>
         </Form>
+        </div>
         <Space
           direction="vertical"
           style={{ margin: "auto 0 16px", padding: "0 17px" }}
