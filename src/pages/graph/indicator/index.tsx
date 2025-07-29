@@ -10,7 +10,7 @@ import G6, {
 } from "@antv/g6";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useResizeDetector } from "react-resize-detector";
 import { Button, Form, message, Modal, Radio, Typography } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
@@ -176,9 +176,11 @@ function registerIndicator() {
   });
 }
 
+let graph: any;
 export default function IndicatorAdvance() {
   const navigate = useNavigate();
   const routerParams = useParams();
+  const location = useLocation();
   const dispatch = useDispatch();
   const graphRef = useRef<HTMLDivElement | null>(null);
   const [form] = Form.useForm();
@@ -187,7 +189,6 @@ export default function IndicatorAdvance() {
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
 
-  let graph: any;
   let prevWidth: number | undefined = 0,
     prevHeight: number | undefined = 0;
   const onResize = useCallback(
@@ -315,7 +316,6 @@ export default function IndicatorAdvance() {
       const endEdges = filter(edges, (edg) => edg.getModel().end)
       // 被除数、被减数
       if (!isEmpty(endEdges)) {
-        console.log('-- endEdges: ', endEdges)
         endEdges.forEach(edg => {
           graph.setItemState(edg, "end", true);
         })
@@ -397,14 +397,21 @@ export default function IndicatorAdvance() {
       graph?.destroy();
       graph = null;
       (window as any).INDICATOR_GRAPH = null;
+      console.log('---- graph: ', graph)
     }
-  }, []);
+  }, [location.pathname]);
+      console.log('>>> pathname: ', location.pathname)
 
   useEffect(() => {
-    graph.clear()
-    const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
-    graph.data(data);
-    graph.render()
+    if (graph) {
+      graph.clear()
+      const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
+      graph.data(data);
+      graph.render()
+    } else {
+      const g = (window as any).INDICATOR_GRAPH;
+      console.log('---- g: ', g)
+    }
   }, [graph_data])
 
   return (

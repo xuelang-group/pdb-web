@@ -3,7 +3,6 @@ import {
   Card,
   Checkbox,
   Col,
-  Empty,
   Flex,
   Form,
   Input,
@@ -14,31 +13,25 @@ import {
   Row,
   Select,
   Space,
-  Switch,
   Tag,
   Typography,
 } from "antd";
-import React, { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  MinusCircleOutlined,
-  PlusCircleOutlined,
   PlusOutlined,
   VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 import {
   compact,
-  filter,
   find,
   forEach,
   get,
-  groupBy,
   isEmpty,
-  keys,
   map,
 } from "lodash";
 import PdbPanel from "@/components/Panel";
@@ -47,20 +40,17 @@ import {
   inidcatorSymbolMap,
   funcOptionsObj,
   typeMap,
-  functionSymbolMap,
-  optionLabelMap,
-  optionSymbolMap,
-  conditionOptionMap,
   typeIconMap,
   getConditionRaw,
 } from "@/utils/common";
 import { ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setCalc, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
-import { addMetric } from "@/actions/indicator";
+import { addMetric, getFuncResult, getMetrics, updateMetric } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
+import { setMetrics } from "@/reducers/indicator";
 
 
 export default function Advance(props: any) {
@@ -95,7 +85,7 @@ export default function Advance(props: any) {
     (state: StoreState) => state.indicatorAdvance.pql_params
   );
   const editId = useSelector(
-    (state: StoreState) => state.indicatorAdvance.basic_info.id
+    (state: StoreState) => state.indicatorAdvance.basic_info?.id
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
@@ -115,6 +105,14 @@ export default function Advance(props: any) {
   // 保存弹窗
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [modalLoading, setModalLoading] = useState<boolean>(false)
+
+  useEffect(() => {
+    form.setFieldsValue({
+      dimension: get(metric_params, 'dimension.name', ''),
+      func: get(metric_params, 'func', ''),
+      groupBy: map(get(metric_params, 'group_by', []), 'name'),
+    })
+  }, [metric_params])
 
   // 处理上游
   const handleChangeUpstream = (edgeId: string) => {
@@ -189,9 +187,21 @@ export default function Advance(props: any) {
     dispatch(updateColumnConfig(col_cfgs))
   }
 
+  // 维度设置- 保存数据过滤条件
   const onConditionSave = (id: number | string, conditions: ConditionState[]) => {
     handleChangeCondition(id, 'conditions', conditions)
   }
+
+  const updateList = (callback?: Function) => {
+    getMetrics(function (response: any) {
+      if (response) {
+        dispatch(setMetrics(response || []));
+      } else {
+        message.error("获取列表数据失败：" + response.message || response.msg);
+      }
+      callback && callback();
+    });
+  };
 
   const onSave = (values: any) => {
     const graph = (window as any).INDICATOR_GRAPH;
@@ -200,9 +210,25 @@ export default function Advance(props: any) {
       nodes: map(nodes, n => ({id: n.id, type: n.type, label: n.label, x: n.x, y: n.y, data: n.data})),
       edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
     }
-    console.log('--- values: ', values)
     setModalLoading(true)
-    addMetric({
+    editId ? updateMetric({
+      ...values,
+      id: editId,
+      type: 2,
+      graph_data,
+      column_config,
+      metric_params,
+      pql_params
+    }, (success: boolean, res: any) => {
+      if (success) {
+        message.success("编辑指标成功");
+        updateList();
+        dispatch(setMetricInfo(values))
+        setModalVisible(false)
+      } else {
+        message.error("编辑指标失败：" + res.message || res.msg);
+      }
+    }) : addMetric({
       ...values,
       type: 2,
       graph_data,
@@ -210,11 +236,11 @@ export default function Advance(props: any) {
       metric_params,
       pql_params
     }, (success: boolean, res: any) => {
-      console.log('--- addMetric: ', res)
       if (success) {
         message.success("保存指标成功");
         updateList();
         dispatch(setMetricInfo(values))
+        setModalVisible(false)
       } else {
         message.error("保存指标失败：" + res.message || res.msg);
       }
@@ -264,7 +290,49 @@ export default function Advance(props: any) {
 
   // 试计算
   const handleCalc = () => {
-
+    const graph = (window as any).INDICATOR_GRAPH;
+    const { nodes, edges } = graph.save();
+    if (isEmpty(nodes)) {
+      message.warning('画布空白内容，不能计算')
+      return
+    }
+    form.validateFields().then(values => {
+      const metric_params = {
+        dimension: { name: values.dimension, name_cn: values.dimension },
+        func: values.func,
+        group_by: map(values.groupBy, item => ({name: item, name_cn: item}))
+      }
+      const pql_params = {
+        api: api,
+        params: {
+          graphId: routerParams.id || "",
+          pql: [[]],
+          csv: {
+            header: map(column_config, cfg => ({
+              attrName: cfg.name,
+              attrType: cfg.type || compact(cfg.cols)[0].attrName,
+              attrId: cfg.id,
+              index: 0,
+              typeId: ''
+            })),
+          },
+        }
+      }
+      dispatch(setMetricParams(metric_params))
+      dispatch(setPqlParams(pql_params))
+      getFuncResult({
+        metric_params,
+        pql_params,
+      }, function(success: boolean, response: any) {
+        if (success) {
+          console.log('--- 试计算结果：', response)          
+          // setOpen(true);
+          setCalc(response)
+        } else {
+          message.error('获取列表数据失败：' + response.message || response.msg);
+        }
+      })
+    })
   }
 
   const renderCondition = (conditions: ConditionState[], name: string) => {
@@ -481,7 +549,7 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={12}>
-              <Button block type="primary" disabled={!column_config.length} onClick={handleCalc}>
+              <Button block type="primary" disabled={isEmpty(column_config)} onClick={handleCalc}>
                 试计算
               </Button>
             </Col>
@@ -524,7 +592,3 @@ export default function Advance(props: any) {
     </div>
   );
 }
-function updateList() {
-  throw new Error("Function not implemented.");
-}
-

@@ -17,6 +17,7 @@ import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
 import { inidcatorSymbolMap } from '@/utils/common';
+import { setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from '@/reducers/indicatorAdvance';
 
 export default function List(props: any) {
   const navigate = useNavigate();
@@ -259,11 +260,22 @@ export default function List(props: any) {
     setIndicatorList(indicators);
   }
 
+  const enterIndicatorAdvance = (item: any) => {
+    dispatch(setMetricInfo(item))
+    dispatch(setGraphData(item.graph_data))
+    dispatch(setMetricParams(item.metric_params || {}))
+      console.log("---- item.column_config: ", item.column_config)
+    dispatch(updateColumnConfig(item.column_config || []))
+    dispatch(setPqlParams(item.pql_params))
+    if (!location.pathname.endsWith("/indicator/advance")) {
+      navigate(`/${routerParams.id}/indicator/advance`)
+    }
+  }
+
   const enterIndicatorSimple = (item: any, key: 'check2' | 'edit') => {
-    console.log('--- enter indicator simple: ', item)
     dispatch(setCurrent(item))
     dispatch(setReadonly(key === 'check2'))
-    navigate(`/${routerParams.id}/indicator/simple`)
+    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple`)
   }
 
   const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
@@ -292,9 +304,11 @@ export default function List(props: any) {
       setCheckData(item)
     }
     if (['edit', 'check2'].includes(menu.key)) {
-      // if (!item.type) enterIndicatorProfession(item, menu.key)
-      // if (item.type === 1) 
+      if (item.type === 2) 
+        enterIndicatorAdvance(item)
+      if (item.type === 1) 
         enterIndicatorSimple(item, menu.key)
+      if (!item.type) enterIndicatorProfession(item, menu.key)
     }
     if (menu.key ==='version') {
       setVersionVisible(true)
@@ -336,7 +350,7 @@ export default function List(props: any) {
           {!indicatorLoading &&
             <div className='type-list'>
               {indList.map((item: any, index: number) => {
-                const label: any = item['name_cn']
+                const label: any = item['name']
                 const menus: any[] = [
                   {
                     label: '查看基础信息',
@@ -371,7 +385,7 @@ export default function List(props: any) {
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
                       draggable={draggable}
-                      onDragStart={event => handleDragStart(event, { label: item.name_cn, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
+                      onDragStart={event => handleDragStart(event, { label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
                       <span className='item-name'>
                         {

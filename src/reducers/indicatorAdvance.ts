@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ConditionState, ParamsState } from "./query";
 import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
+import { isEmpty } from "lodash";
 
 const demo = {
     "name": "test",
@@ -273,7 +274,7 @@ export interface ColumnConfig {
 }
 
 interface IndicatorAdvanceState {
-  basic_info: MetricBasicInfo;
+  basic_info?: MetricBasicInfo;
   graph_data: string;
   selected?: any;
   upstreams?: any[];
@@ -299,7 +300,7 @@ interface IndicatorAdvanceState {
 
 // 使用该类型定义初始 state
 const initialState: IndicatorAdvanceState = {
-  graph_data: JSON.stringify(demo.graph_data),
+  graph_data: "",
   selected: undefined,
   upstreams: undefined,
   calc: undefined,
@@ -309,15 +310,15 @@ const initialState: IndicatorAdvanceState = {
     name_cn: '',
     type: 2, // 指标类型 1-初级指标 2-高级指标 xx-前端自定义  
   },
-  metric_params: demo.metric_params || {
+  metric_params: {
     dimension: {
       name: "",
       name_cn: "",
     },
     func: "",
-    group_by: [],
+    group_by: [{name: '', name_cn: ''}],
   },
-  pql_params: demo.pql_params || {
+  pql_params: {
     api: "/pdb/api/v1/object/search/pql",
     params: {
       graphId: "5001",
@@ -327,7 +328,7 @@ const initialState: IndicatorAdvanceState = {
       },
     },
   },
-  column_config: demo.column_config || []
+  column_config: []
 };
 
 export const indicatorAdvanceSlice = createSlice({
@@ -336,7 +337,11 @@ export const indicatorAdvanceSlice = createSlice({
   reducers: {
     exit: (state) => {
       state.selected = undefined;
+      state.upstreams = undefined;
       state.calc = undefined;
+      state.column_config = [];
+      state.basic_info = undefined;
+      state.graph_data = "";
     },
     setSelected: (state, action: PayloadAction<any>) => {
       state.selected = action.payload;
@@ -356,6 +361,9 @@ export const indicatorAdvanceSlice = createSlice({
     setMetricParams: (state, action: PayloadAction<MetricParams>) => {
       state.metric_params = action.payload;
     },
+    setGraphData: (state, action: PayloadAction<any>) => {
+      state.graph_data = isEmpty(action.payload) ? "" : JSON.stringify(action.payload);
+    },
     setPqlParams: (state, action: PayloadAction<{
       api: string;
       params: ParamsState;
@@ -365,7 +373,7 @@ export const indicatorAdvanceSlice = createSlice({
   },
 });
 
-export const { setSelected, exit, setCalc, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams } =
+export const { setSelected, exit, setCalc, setGraphData, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams } =
   indicatorAdvanceSlice.actions;
 
 export default indicatorAdvanceSlice.reducer;
