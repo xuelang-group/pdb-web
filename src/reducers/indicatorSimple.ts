@@ -13,7 +13,7 @@ export interface MetricParams {
   }>;
 }
 
-export interface MetricItem {
+export interface MetricBasicInfo {  
   id?: number;
   name: string;
   name_cn: string;
@@ -25,6 +25,9 @@ export interface MetricItem {
   online?: boolean;
   unit?: string;
   type: number; // 指标类型 1-初级指标 2-高级指标 xx-前端自定义
+}
+
+export interface MetricItem extends MetricBasicInfo {
   metric_params: MetricParams;
   pql_params: {
     api: string;

@@ -1,240 +1,253 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ConditionState, ParamsState } from "./query";
-import { MetricItem, MetricParams } from "./indicatorSimple";
+import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
 
-const graphData = {
-  nodes: [
-    {
-      id: "3",
-      label: "指标C",
-      x: 90,
-      y: 142,
-      type: "indicator",
+const demo = {
+    "name": "test",
+    "name_cn": "test",
+    "version": "1.0.0",
+    "type": 2,
+    "graph_data": {
+        "nodes": [
+            {
+                "id": "node-0.167900026479815721753754685088",
+                "type": "indicator",
+                "label": "测试-QS2",
+                "x": 92,
+                "y": 224.3333282470703,
+                "data": {
+                    "id": 31,
+                    "ori_id": 31,
+                    "name": "test-qs2",
+                    "name_cn": "测试-QS2",
+                    "type": 1
+                }
+            },
+            {
+                "id": "node-0.29620202161630871753754686973",
+                "type": "indicator",
+                "label": "测试-QS",
+                "x": 98,
+                "y": 327.3333282470703,
+                "data": {
+                    "id": 2,
+                    "ori_id": 2,
+                    "name": "test-qs",
+                    "name_cn": "测试-QS",
+                    "type": 1
+                }
+            },
+            {
+                "id": "node-0.4296978782659041753754688436",
+                "type": "symbol",
+                "label": "plus",
+                "x": 345,
+                "y": 284.3333282470703
+            },
+            {
+                "id": "node-0.62465069648404391753754701726",
+                "type": "indicator",
+                "label": "0714",
+                "x": 289,
+                "y": 161.3333282470703,
+                "data": {
+                    "id": 30,
+                    "ori_id": 30,
+                    "name": "test_metric",
+                    "name_cn": "0714",
+                    "type": null
+                }
+            },
+            {
+                "id": "node-0.491355805076706061753754713331",
+                "type": "symbol",
+                "label": "minus",
+                "x": 471,
+                "y": 247.3333282470703
+            },
+            {
+                "id": "end",
+                "type": "indicator",
+                "label": "计算结果",
+                "x": 624,
+                "y": 246.3333282470703
+            }
+        ],
+        "edges": [
+            {
+                "id": "edge-0.39466193358345791753754694016",
+                "source": "node-0.167900026479815721753754685088",
+                "target": "node-0.4296978782659041753754688436"
+            },
+            {
+                "id": "edge-0.181776302635393571753754695699",
+                "source": "node-0.29620202161630871753754686973",
+                "target": "node-0.4296978782659041753754688436"
+            },
+            {
+                "id": "edge-0.4737113539245471753754719327",
+                "source": "node-0.4296978782659041753754688436",
+                "target": "node-0.491355805076706061753754713331",
+                "end": true
+            },
+            {
+                "id": "edge-0.63899751338077841753754722273",
+                "source": "node-0.62465069648404391753754701726",
+                "target": "node-0.491355805076706061753754713331",
+            },
+            {
+                "id": "edge-0.072140906311319641753754724016",
+                "source": "node-0.491355805076706061753754713331",
+                "target": "end"
+            }
+        ]
     },
-    {
-      id: "4",
-      label: "指标D",
-      x: 90,
-      y: 200,
-      type: "indicator",
-    },
-    {
-      id: "5",
-      label: "指标E",
-      x: 550,
-      y: 55,
-      type: "indicator",
-    },
-    {
-      id: "f1",
-      label: "plus",
-      x: 320,
-      y: 55,
-      type: "symbol",
-    },
-    {
-      id: "f2",
-      label: "multiply",
-      x: 320,
-      y: 171,
-      type: "symbol",
-    },
-    {
-      id: "f3",
-      label: "minus",
-      x: 550,
-      y: 113,
-      type: "symbol",
-    },
-    {
-      id: "f4",
-      label: "divide",
-      x: 780,
-      y: 84,
-      type: "symbol",
-    },
-    {
-      id: "end",
-      label: "结果",
-      x: 940,
-      y: 84,
-      type: "indicator",
-    },
-    {
-      id: "node-0.60029239173750181753321045627",
-      label: "test_metric",
-      x: 89.70000000000002,
-      y: 75.80600930688212,
-      type: "indicator",
-      data: {
-        id: 32,
-        ori_id: 1,
-        name: "test_metric",
-        name_cn: "0714",
-        type: null,
-      },
-    },
-    {
-      id: "node-0.69062023797067681753321047892",
-      label: "test-qs2",
-      x: 91.02433155080212,
-      y: 20.184084173192247,
-      type: "indicator",
-      data: {
-        id: 31,
-        ori_id: 31,
-        name: "test-qs2",
-        name_cn: "测试-QS2",
-        type: 1,
-      },
-    },
-  ],
-  edges: [
-    {
-      id: "edge-0.458387604288243541753322858250",
-      source: "3",
-      target: "f2",
-    },
-    {
-      id: "edge-0.83719847530918731753322858250",
-      source: "4",
-      target: "f2",
-    },
-    {
-      id: "edge-0.54975821809584291753322858250",
-      source: "5",
-      target: "f4",
-      end: true,
-    },
-    {
-      id: "edge-0.58682725430882391753322858250",
-      source: "f1",
-      target: "f3",
-      end: true,
-    },
-    {
-      id: "edge-0.88740205469810941753322858250",
-      source: "f2",
-      target: "f3",
-    },
-    {
-      id: "edge-0.470166689385981941753322858250",
-      source: "f3",
-      target: "f4",
-    },
-    {
-      id: "edge-0.041954108422625481753322858250",
-      source: "f4",
-      target: "end",
-    },
-    {
-      id: "edge-0.93984955664310591753322858251",
-      source: "node-0.69062023797067681753321047892",
-      target: "f1",
-    },
-    {
-      id: "edge-0.96441186069515841753322858251",
-      source: "node-0.60029239173750181753321045627",
-      target: "f1",
-    },
-  ],
-};
-
-const calc = {
-  dimension: {
-    name: "id",
-    name_cn: "ID_EBOM-零部件",
-  },
-  group_by_name_dict: {
-    part_type: "零件类型_EBOM-零部件",
-    part_version: "零件版本_EBOM-零部件",
-  },
-  result: [
-    {
-      group_by: [],
-      value: 324,
-    },
-    {
-      group_by: [
+    "column_config": [
         {
-          part_level: "0",
-        },
-      ],
-      value: 324,
-    },
-    {
-      group_by: [
-        {
-          part_level: "1",
-        },
-      ],
-      value: 331,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-      ],
-      value: 325,
-    },
-    {
-      group_by: [
-        {
-          part_level: "0",
+            "cols": [
+                {
+                    "attrId": "part_level",
+                    "index": 0,
+                    "typeId": "Type.Ov9n4bERTaIAjcbk8Ha1730272613256",
+                    "attrName": "零件层级",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "2",
+                        "name": "test-qs",
+                        "name_cn": "测试-QS"
+                    }
+                },
+                {
+                    "attrId": "batch_number",
+                    "index": 0,
+                    "typeId": "Type.a",
+                    "attrName": "批号",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "30",
+                        "name": "test_metric",
+                        "name_cn": "0714"
+                    }
+                },
+                {
+                    "attrId": "allocation_group",
+                    "index": 0,
+                    "typeId": "Type.c",
+                    "attrName": "来源分配组",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "31",
+                        "name": "test-qs2",
+                        "name_cn": "测试-QS2"
+                    }
+                }
+            ],
+            "conditions": [
+                {
+                    "name": "TEST01",
+                    "function": "=",
+                    "value": "0",
+                    "not": true
+                }
+            ],
+            "name": "TEST01",
+            "id": "1753754681354",
+            "type": "string"
         },
         {
-          part_type: "0",
+            "cols": [
+                {
+                    "attrId": "part_name",
+                    "index": 0,
+                    "typeId": "Type.Ov9n4bERTaIAjcbk8Ha1730272613256",
+                    "attrName": "零件名称",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "2",
+                        "name": "test-qs",
+                        "name_cn": "测试-QS"
+                    }
+                },
+                {
+                    "attrId": "product_name",
+                    "index": 0,
+                    "typeId": "Type.a",
+                    "attrName": "产品名称",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "30",
+                        "name": "test_metric",
+                        "name_cn": "0714"
+                    }
+                },
+                {
+                    "attrId": "source_department",
+                    "index": 0,
+                    "typeId": "Type.c",
+                    "attrName": "来源部门",
+                    "attrType": "string",
+                    "metric": {
+                        "id": "31",
+                        "name": "test-qs2",
+                        "name_cn": "测试-QS2"
+                    }
+                }
+            ],
+            "conditions": [
+                {
+                    "name": "TEST02",
+                    "function": "ANYOFTERMS",
+                    "value": "a",
+                    "not": false
+                }
+            ],
+            "name": "TEST02",
+            "id": "1753754765923",
+            "type": "string",
+            "distinct": true
+        }
+    ],
+    "metric_params": {
+        "dimension": {
+          "name": "1753754681354",
+          "name_cn": "1753754681354",
         },
-      ],
-      value: 324,
+        "func": "count",
+        "group_by": [
+            {
+                "name": "1753754765923",
+                "name_cn": "1753754765923"
+            }
+        ]
     },
-    {
-      group_by: [
-        {
-          part_level: "1",
-        },
-        {
-          part_type: "DDM",
-        },
-      ],
-      value: 331,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "型材件",
-        },
-      ],
-      value: 335,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "机加件",
-        },
-      ],
-      value: 332,
-    },
-    {
-      group_by: [
-        {
-          part_level: "2",
-        },
-        {
-          part_type: "钣金件",
-        },
-      ],
-      value: 325,
-    },
-  ],
-};
+    "pql_params": {
+        "api": "/pdb/api/v1/object/search/pql",
+        "params": {
+            "graphId": "5001",
+            "pql": [
+                []
+            ],
+            "csv": {
+                "header": [
+                    {
+                        "attrName": "TEST01",
+                        "attrType": "string",
+                        "attrId": "1753754681354",
+                        "typeId": "",
+                        "index": 0
+                    },
+                    {
+                        "attrName": "TEST02",
+                        "attrType": "string",
+                        "attrId": "1753754765923",
+                        "typeId": "",
+                        "index": 0
+                    }
+                ]
+            }
+        }
+    }
+}
 
 export interface ColumnConfig {
   // 对齐列
@@ -256,10 +269,11 @@ export interface ColumnConfig {
   type?: string;
   // 别名
   name: string;
-  id: number;
+  id: string;
 }
 
-interface IndicatorAdvanceState extends MetricItem {
+interface IndicatorAdvanceState {
+  basic_info: MetricBasicInfo;
   graph_data: string;
   selected?: any;
   upstreams?: any[];
@@ -273,23 +287,29 @@ interface IndicatorAdvanceState extends MetricItem {
       group_by: { [prop: string]: any }[];
       value: number;
     }>;
-  };  
+  };
+  metric_params: MetricParams;
+  pql_params: {
+    api: string;
+    params: ParamsState;
+  };
   // 对齐配置
   column_config: Array<ColumnConfig>;
 }
 
 // 使用该类型定义初始 state
 const initialState: IndicatorAdvanceState = {
-  graph_data: "",
-  // graph_data: JSON.stringify(graphData),
+  graph_data: JSON.stringify(demo.graph_data),
   selected: undefined,
   upstreams: undefined,
   calc: undefined,
   // 基本指标信息
-  name: '',
-  name_cn: '',
-  type: 2, // 指标类型 1-初级指标 2-高级指标 xx-前端自定义  
-  metric_params: {
+  basic_info: {
+    name: '',
+    name_cn: '',
+    type: 2, // 指标类型 1-初级指标 2-高级指标 xx-前端自定义  
+  },
+  metric_params: demo.metric_params || {
     dimension: {
       name: "",
       name_cn: "",
@@ -297,7 +317,7 @@ const initialState: IndicatorAdvanceState = {
     func: "",
     group_by: [],
   },
-  pql_params: {
+  pql_params: demo.pql_params || {
     api: "/pdb/api/v1/object/search/pql",
     params: {
       graphId: "5001",
@@ -307,242 +327,7 @@ const initialState: IndicatorAdvanceState = {
       },
     },
   },
-  column_config: []
-  // metric_params: {
-  //   dimension: {
-  //     name: "id",
-  //     name_cn: "ID_BBOM-零部件",
-  //   },
-  //   func: "min",
-  //   group_by: [
-  //     {
-  //       name: "part_level",
-  //       name_cn: "零件层级_BBOM-零部件",
-  //     },
-  //     {
-  //       name: "part_type",
-  //       name_cn: "零件类型_BBOM-零部件",
-  //     },
-  //   ],
-  // },
-  // column_config: [
-  //   {
-  //     id: 12,
-  //     name: '',
-  //     cols: [{
-  //       attrName: "ID",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "id",
-  //       attrType: "int",
-  //       metric: {
-  //         id: 32,
-  //         name: 'test_metric',
-  //         name_cn: 'test_METRIC'
-  //       }
-  //     },
-  //     {
-  //       attrName: "零件层级",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "part_level",
-  //       attrType: "string",
-  //       metric: {
-  //         id: 31,
-  //         name: 'test_qs',
-  //         name_cn: 'test_QS'
-  //       }
-  //     },
-  //     {
-  //       attrName: "零件号",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "part_no",
-  //       attrType: "string",
-  //       metric: {
-  //         id: 30,
-  //         name: 'test_qs2',
-  //         name_cn: 'test_QS2'
-  //       }
-  //     }],
-  //     conditions: [
-  //       {
-  //         name: "part_level",
-  //         function: "=",
-  //         value: "0",
-  //         not: true,
-  //       },
-  //       {
-  //         connectives: "AND",
-  //         name: "part_version",
-  //         function: "=",
-  //         value: "B",
-  //       },
-  //     ]
-  //   }, {
-  //     id: 20,
-  //     name: '',
-  //     cols: [{
-  //       attrName: "零件层级",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "part_level",
-  //       attrType: "string",
-  //       metric: {
-  //         id: 31,
-  //         name: 'test_qs',
-  //         name_cn: 'test_QS'
-  //       }
-  //     },
-  //     {
-  //       attrName: "ID",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "id",
-  //       attrType: "int",
-  //       metric: {
-  //         id: 32,
-  //         name: 'test_metric',
-  //         name_cn: 'test_METRIC'
-  //       }
-  //     },
-  //     {
-  //       attrName: "零件号",
-  //       typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //       attrId: "part_no",
-  //       attrType: "string",
-  //       metric: {
-  //         id: 30,
-  //         name: 'test_qs2',
-  //         name_cn: 'test_QS2'
-  //       }
-  //     }],
-  //     conditions: [
-  //       {
-  //         name: "part_version",
-  //         function: "=",
-  //         value: "C",
-  //       },
-  //       {
-  //         connectives: "AND",
-  //         name: "part_version",
-  //         function: "=",
-  //         value: "D",
-  //       },
-  //     ]
-  //   }
-  // ],
-  // pql_params: {
-  //   api: "/pdb/api/v1/object/search/pql",
-  //   params: {
-  //     graphId: "5002",
-  //     pql: [[]],
-  //     csv: {
-  //       header: [
-  //         {
-  //           attrName: "ID_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "id",
-  //           attrType: "int",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零件层级_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_level",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零件号_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_no",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "模块号_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "module_no",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零件名称_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_name",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零件版本_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_version",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零件类型_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_type",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "零组件工程路径_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "part_path",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "架次_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "fly_no",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "机型_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "plane_type",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "制造单位_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "manu_dept",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "使用单位_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "use_dept",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "落实文件_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "imp_of_documents",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "展示字段_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "show_col",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //         {
-  //           attrName: "parent_id_BBOM-零部件",
-  //           typeId: "Type.pio4QvFpgfLNbL1sTto1730272621312",
-  //           attrId: "parent_id",
-  //           attrType: "string",
-  //           index: 0,
-  //         },
-  //       ],
-  //     },
-  //   },
-  // },
+  column_config: demo.column_config || []
 };
 
 export const indicatorAdvanceSlice = createSlice({
@@ -565,10 +350,22 @@ export const indicatorAdvanceSlice = createSlice({
     updateColumnConfig: (state, action: PayloadAction<ColumnConfig[]>) => {
       state.column_config = action.payload;
     },
+    setMetricInfo: (state, action: PayloadAction<MetricBasicInfo>) => {
+      state.basic_info = action.payload
+    },
+    setMetricParams: (state, action: PayloadAction<MetricParams>) => {
+      state.metric_params = action.payload;
+    },
+    setPqlParams: (state, action: PayloadAction<{
+      api: string;
+      params: ParamsState;
+    }>) => {
+      state.pql_params = action.payload;
+    },
   },
 });
 
-export const { setSelected, exit, setCalc, setUpstreams, updateColumnConfig } =
+export const { setSelected, exit, setCalc, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams } =
   indicatorAdvanceSlice.actions;
 
 export default indicatorAdvanceSlice.reducer;

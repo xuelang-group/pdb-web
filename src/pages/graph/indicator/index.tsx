@@ -315,6 +315,7 @@ export default function IndicatorAdvance() {
       const endEdges = filter(edges, (edg) => edg.getModel().end)
       // 被除数、被减数
       if (!isEmpty(endEdges)) {
+        console.log('-- endEdges: ', endEdges)
         endEdges.forEach(edg => {
           graph.setItemState(edg, "end", true);
         })

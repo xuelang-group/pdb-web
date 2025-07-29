@@ -37,7 +37,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       cols: [],
       conditions: [],
       name: '',
-      id: Date.now()
+      id: `${Date.now()}`
     }] : column_config
     setColumnConfig(cfg)
   }, [column_config]);
@@ -49,7 +49,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       cols: [],
       conditions: [],
       name: '',
-      id: Date.now()
+      id: `${Date.now()}`
     })
     setColumnConfig(cfg)
   }
@@ -86,7 +86,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       cols: [],
       conditions: [],
       name: '',
-      id: Date.now()
+      id: `${Date.now()}`
     }])
     setFocusCell(undefined)
     onCancel()

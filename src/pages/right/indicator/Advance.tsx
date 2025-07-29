@@ -7,6 +7,7 @@ import {
   Flex,
   Form,
   Input,
+  message,
   Modal,
   Popover,
   Radio,
@@ -27,6 +28,7 @@ import {
   MinusCircleOutlined,
   PlusCircleOutlined,
   PlusOutlined,
+  VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 import {
   compact,
@@ -34,6 +36,7 @@ import {
   find,
   forEach,
   get,
+  groupBy,
   isEmpty,
   keys,
   map,
@@ -52,10 +55,12 @@ import {
   getConditionRaw,
 } from "@/utils/common";
 import { ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
+import { addMetric } from "@/actions/indicator";
+import SaveModal from "./SaveModal";
 
 
 export default function Advance(props: any) {
@@ -70,7 +75,6 @@ export default function Advance(props: any) {
     (state: StoreState) => state.indicator.requestId
   );
   const api = useSelector((state: StoreState) => state.query.api);
-  const query = useSelector((state: StoreState) => state.query.params);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   const allIndicators = useSelector(
     (state: StoreState) => state.indicator.list
@@ -81,14 +85,17 @@ export default function Advance(props: any) {
   const upstreams = useSelector(
     (state: StoreState) => state.indicatorAdvance.upstreams
   );
-  const params = useSelector(
-    (state: StoreState) => state.indicatorAdvance.pql_params.params
-  );
   const column_config = useSelector(
     (state: StoreState) => state.indicatorAdvance.column_config
   );
   const metric_params = useSelector(
     (state: StoreState) => state.indicatorAdvance.metric_params
+  );
+  const pql_params = useSelector(
+    (state: StoreState) => state.indicatorAdvance.pql_params
+  );
+  const editId = useSelector(
+    (state: StoreState) => state.indicatorAdvance.basic_info.id
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
@@ -105,6 +112,9 @@ export default function Advance(props: any) {
   const [open, setOpen] = useState<boolean>(false); // 维度对齐弹窗
   const [conditionOpen, setConditionOpen] = useState<boolean>(false); // 过滤条件编辑弹窗
   const [conditionCfg, setConditionCfg] = useState<ColumnConfig>(); // 过滤条件编辑弹窗
+  // 保存弹窗
+  const [modalVisible, setModalVisible] = useState<boolean>(false)
+  const [modalLoading, setModalLoading] = useState<boolean>(false)
 
   // 处理上游
   const handleChangeUpstream = (edgeId: string) => {
@@ -141,10 +151,18 @@ export default function Advance(props: any) {
     // 请求画布中所有指标详情获取他们的维度数据
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes } = graph.save();
+    if (isEmpty(nodes)) {
+      message.warning('没有可以对齐的源指标！')
+      return
+    }
     const obj: { [id: string]: any } = {};
     const indicatorNodes = nodes.filter(
       (n: any) => n.type !== "symbol" && n.id !== "end"
     );
+    if (isEmpty(indicatorNodes)) {
+      message.warning('没有可以对齐的源指标！')
+      return
+    }
     const indicators = compact(map(indicatorNodes, (n: any) => n.data));
     forEach(indicators, (data: any) => {
       const metricDetail = find(allIndicators, { id: data.id });
@@ -175,6 +193,80 @@ export default function Advance(props: any) {
     handleChangeCondition(id, 'conditions', conditions)
   }
 
+  const onSave = (values: any) => {
+    const graph = (window as any).INDICATOR_GRAPH;
+    const { nodes, edges } = graph.save();
+    const graph_data = {
+      nodes: map(nodes, n => ({id: n.id, type: n.type, label: n.label, x: n.x, y: n.y, data: n.data})),
+      edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
+    }
+    console.log('--- values: ', values)
+    setModalLoading(true)
+    addMetric({
+      ...values,
+      type: 2,
+      graph_data,
+      column_config,
+      metric_params,
+      pql_params
+    }, (success: boolean, res: any) => {
+      console.log('--- addMetric: ', res)
+      if (success) {
+        message.success("保存指标成功");
+        updateList();
+        dispatch(setMetricInfo(values))
+      } else {
+        message.error("保存指标失败：" + res.message || res.msg);
+      }
+      setModalLoading(false)
+    });
+  }
+
+  // 保存指标
+  const handleSave = () => {
+    const graph = (window as any).INDICATOR_GRAPH;
+    const { nodes, edges } = graph.save();
+    if (isEmpty(nodes)) {
+      message.warning('画布空白内容，不能保存')
+      return
+    }
+    if (isEmpty(column_config)) {
+      message.warning('请先对进行 “维度对齐” !')
+      return
+    }
+    form.validateFields().then(values => {
+      const metric_params = {
+        dimension: { name: values.dimension, name_cn: values.dimension },
+        func: values.func,
+        group_by: map(values.groupBy, item => ({name: item, name_cn: item}))
+      }
+      const pql_params = {
+        api: api,
+        params: {
+          graphId: routerParams.id || "",
+          pql: [[]],
+          csv: {
+            header: map(column_config, cfg => ({
+              attrName: cfg.name,
+              attrType: cfg.type || compact(cfg.cols)[0].attrName,
+              attrId: cfg.id,
+              index: 0,
+              typeId: ''
+            })),
+          },
+        }
+      }
+      setModalVisible(true)
+      dispatch(setMetricParams(metric_params))
+      dispatch(setPqlParams(pql_params))
+    })
+  }
+
+  // 试计算
+  const handleCalc = () => {
+
+  }
+
   const renderCondition = (conditions: ConditionState[], name: string) => {
     const content = map(conditions, (item, index) => {
       let text = getConditionRaw(item, name)
@@ -194,6 +286,17 @@ export default function Advance(props: any) {
       </Popover>
     );
   };
+
+  const getColumnFormInitialValues = () => {
+    const values: {[id: string]: {name: string; distinct: boolean; }} = {}
+    forEach(column_config, cfg => {
+      values[cfg.id] = {
+        name: cfg.name,
+        distinct: !!cfg.distinct
+      }
+    })
+    return values
+  }
 
   return (
     <div className="pdb-right-panel">
@@ -217,12 +320,15 @@ export default function Advance(props: any) {
               )}
             </Form.Item>
           )}
-        <Card size="small" title="维度设置" bordered={false} extra={
-          <Button onClick={handleClickAlign} size="small">
+        <Card className={`pdb-indicator-advCard${isEmpty(column_config) ? ' no-body': ''}`} title="维度设置" bordered={false} extra={
+          <Button type="primary" onClick={handleClickAlign} size="small" icon={<VerticalAlignTopOutlined />}>
             维度对齐
           </Button>
         }>
-          <Form className="pdb-indicator-advColumns" form={columnForm}>
+          <Form className="pdb-indicator-advColumns"
+            form={columnForm}
+            initialValues={getColumnFormInitialValues()}
+          >
             {!isEmpty(column_config) &&
               column_config.map((item) => {
                 return (
@@ -269,8 +375,13 @@ export default function Advance(props: any) {
           style={{ maxWidth: 600 }}
           autoComplete="off"
           layout="vertical"
+          initialValues={{
+            dimension: metric_params.dimension.name || '',
+            func: metric_params.func || '',
+            groupBy: map(metric_params.group_by, 'name') || ['']
+          }}
         >
-          <Form.Item label="指标度量">
+          <Form.Item label="指标度量" name="dimension">
             {/* <Input /> */}
             <Select
               placeholder="指标度量"
@@ -315,12 +426,12 @@ export default function Advance(props: any) {
                       <Form.Item {...field} noStyle>
                         <Select
                           placeholder="请选择"
-                          options={map(params.csv.header, (item) => ({
-                            label: item.attrName,
-                            value: item.attrId,
+                          options={map(column_config, (item) => ({
+                            label: item.name || compact(item.cols)[0].attrName,
+                            value: item.id,
                             disabled: form
                               .getFieldValue("groupBy")
-                              ?.includes(item.attrId),
+                              ?.includes(item.id),
                           }))}
                           onChange={(value) => {
                             form.setFieldsValue({
@@ -370,12 +481,12 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={12}>
-              <Button block type="primary" onClick={() => {}}>
+              <Button block type="primary" disabled={!column_config.length} onClick={handleCalc}>
                 试计算
               </Button>
             </Col>
             <Col span={12}>
-              <Button block type="primary" onClick={() => {}}>
+              <Button block type="primary" onClick={handleSave}>
                 保存指标
               </Button>
             </Col>
@@ -402,7 +513,18 @@ export default function Advance(props: any) {
         columnsMap={columnsMap}
         onCancel={() => setOpen(false)}
       />
+      <SaveModal
+        visible={modalVisible}
+        editId={editId}
+        onCancel={() => setModalVisible(false)}
+        onOk={onSave}
+        modalLoading={modalLoading}
+      />
       {contextHolder}
     </div>
   );
 }
+function updateList() {
+  throw new Error("Function not implemented.");
+}
+

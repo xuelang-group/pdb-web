@@ -382,7 +382,7 @@ export default function Right(props: any) {
           </Button>
         </Space>
       </PdbPanel>
-      <SaveModal visible={modalVisible} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
+      <SaveModal visible={modalVisible} editId={editId} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
       <UpdateModal visible={updateModalVisible} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
       {contextHolder}
     </div>

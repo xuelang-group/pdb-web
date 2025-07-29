@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { isArray } from "lodash";
 
 export default function SaveModal(props: any) {
+  const { editId } = props
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([])
   const [buzProcessArr, setBuzProcessArr] = useState([])
-  const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);

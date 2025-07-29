@@ -21,6 +21,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
   const [activePanelKey, setActivePanelKey] = useState<number>(-1);
   
   const attrType = column?.type || column?.cols[0].attrType || '';
+  const name = column?.name || column?.id || ''
   const conditionOptions = get(conditionOptionMap, attrType, ['eq']);
 
   useEffect(() => {
@@ -90,14 +91,14 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
 
   const handleEdit = (index: number, condition: ConditionState) => {
     setActivePanelKey(index)
-    const { name, value, not, connectives } = condition
-    configForm.setFieldsValue({ name, function: functionSymbolMap[condition.function], value, not, connectives });
+    const { value, not, connectives } = condition
+    configForm.setFieldsValue({ name: condition.name || name, function: functionSymbolMap[condition.function], value, not, connectives });
   }
 
   const add = () => {
     const index = conditions.length || 0
     setActivePanelKey(index)
-    const initialValue: ConditionState = {name: '', function: functionSymbolMap['='], value: '', not: false}
+    const initialValue: ConditionState = {name, function: functionSymbolMap['='], value: '', not: false}
     if (conditions.length > 0) initialValue.connectives = 'AND'
     configForm.setFieldsValue(initialValue);
   }
@@ -166,7 +167,6 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
     if (activePanelKey == -1 && isEmpty(conditions)) {
       return <Empty />
     }
-    const name = get(column, 'name', '')
     return map(conditions, (condition: ConditionState, index: number) => {
       return (
         <Fragment key={index}>
@@ -176,7 +176,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
           <Card  key={index}
             size="small"
             extra={activePanelKey === index ? null : getExtra(index, condition)}
-            title={getConditionRaw(condition, name)}
+            title={getConditionRaw(condition, get(column, 'name', ''))}
             className={activePanelKey !== index ? "no-body-card" : ""}
           >
             {activePanelKey === index ? renderPanelChildren() : null}
