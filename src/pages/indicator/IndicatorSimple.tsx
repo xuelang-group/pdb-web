@@ -399,13 +399,9 @@ export default function SimpleIndicator(props: any) {
         const condition = get(opt, "condition.value", ""),
           attrLabel = get(opt, "attr.label"),
           attrValue = get(opt, "attr.value");
-        let keyword = get(opt, "keyword", ""),
-          keywordValue = keyword;
+        let keyword = get(opt, "keyword", "");
         if (typeof keyword === "object") {
-          keyword = keyword.format(
-            get(opt, "attr.data.datetimeFormat", "YYYY-MM-DD")
-          );
-          keywordValue = new Date(keyword);
+          keyword = keyword.format("YYYY-MM-DD")
         }
         let conditionDetail = {};
         if (index > 0) {
@@ -425,13 +421,13 @@ export default function SimpleIndicator(props: any) {
               ? optionLabelMap[condition]
               : optionSymbolMap[condition]) || "";
           filterLabel += `${opt.isNot ? "NOT " : ""}${attrLabel} ${conditionLabel} ${keyword}`;
-          raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof get(opt, "keyword", "") === "string" ? `'${keywordValue}'` : keywordValue}`;
+          raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof get(opt, "keyword", "") === "string" ? `'${keyword}'` : keyword}`;
         }
         Object.assign(conditionDetail, {
           // raw,
           name: attrValue,
           function: optionSymbolMap[condition] || "",
-          value: keywordValue,
+          value: keyword,
           not: opt.isNot,
         });
         conditions.push(conditionDetail);
@@ -638,27 +634,14 @@ export default function SimpleIndicator(props: any) {
         cal_type: 2,
         metric_type: 1,
       }, function(success: boolean, response: any) {
-        if (success) {
-          console.log('--- 试计算结果：', response)          
+        if (success) {       
           setOpen(true);
-          setCalc(response)
+          dispatch(setCalc(response))
         } else {
           message.error('获取列表数据失败：' + response.message || response.msg);
         }
       })
       .catch(err => {})
-      // dispatch(setCurrent({
-      //   id: current?.id || undefined,
-      //   name_cn: values.name_cn,
-      //   name: values.name,
-      //   unit: values.unit || '',
-      //   desc: values.desc || '',
-      //   version: values.version || '',
-      //   ori_id: current?.ori_id,
-      //   type: 1,
-      //   metric_params,
-      //   pql_params,
-      // }))
     });
   };
 
@@ -763,8 +746,8 @@ export default function SimpleIndicator(props: any) {
           <h4 className="result">{result?.value}</h4>
           <span className="unit">{current?.unit}</span>
         </Flex>
-        <div className="pdb-indicator-result-filter">
-          {!isEmpty(conditions) && conditions.slice(0, 3).map((item: ConditionState, index: number) => {
+        {!isEmpty(conditions) && <div className="pdb-indicator-result-filter">
+          {conditions.slice(0, 3).map((item: ConditionState, index: number) => {
             const label = attrMap[item.name]['attrName']
             const title = getConditionRaw(item, label)
             return (<Tag key={index}>{title}</Tag>)
@@ -774,7 +757,7 @@ export default function SimpleIndicator(props: any) {
           >
             <Button type="text" size="small" icon={<SmallDashOutlined />} />
           </Popover>}
-        </div>
+        </div>}
       </>
     );
   };
@@ -866,7 +849,7 @@ export default function SimpleIndicator(props: any) {
           <Divider orientation="left" orientationMargin={16}>
             指标定义
           </Divider>
-          <Form name="simple" {...layout} form={metricForm}>
+          <Form name="metric_params" {...layout} form={metricForm}>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 name={"typeName"}
