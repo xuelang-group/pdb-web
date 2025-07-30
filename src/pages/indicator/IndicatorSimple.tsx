@@ -34,6 +34,7 @@ import {
   isArray,
   isEmpty,
   map,
+  toNumber,
 } from "lodash";
 import dayjs from "dayjs";
 import moment from "moment";
@@ -71,7 +72,7 @@ import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { exit, setMetrics } from "@/reducers/indicator";
-import { MetricItem, setCalc, setCurrent } from "@/reducers/indicatorSimple";
+import { MetricItem, MetricParams, setCalc, setCurrent } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -133,7 +134,6 @@ export default function SimpleIndicator(props: any) {
   const [dimension, setDimension] = useState<CsvHeaderState>(); // 指标度量
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
   const [originType, setOriginType] = useState<OriginType>(); // 选中的数据资产单数据
-  const [limit, setLimit] = useState(100);
 
   useEffect(() => {
     const pql = get(current, "pql_params.params.pql");
@@ -587,33 +587,42 @@ export default function SimpleIndicator(props: any) {
   };
 
   // 数据过量
-  const handleExcess = () => {
+  const [formExcess] = Form.useForm()
+  const handleCalc = (total: number, params: any) => {
+    const excess = total > 1000
+    const options = [{value: -1, label: '全量'}, {value: 1000, label: '1000条'}, {value: 500, label: '500条'}, {value: 100, label: '100条'}]
     confirm({
       icon: <ExclamationCircleOutlined />,
       title: "提示",
+      okText: "计算",
       content: (
         <>
-          <Typography.Text type="warning">
-            系统检测到数据量过大，可能会影响体验
+          <Typography.Text type={excess ? "warning" : 'secondary'}>
+            系统检测到数据量 {total} 条，{ total > 100 ? '可能会影响体验' : '是否开始计算？'}
           </Typography.Text>
-          <Form.Item
-            style={{ marginTop: 8 }}
-            layout="vertical"
-            label="请选择数据量："
-          >
-            <Radio.Group
-              defaultValue={limit}
-              onChange={(e) => setLimit(e.target.value)}
-            >
-              <Radio value={-1}>全量</Radio>
-              <Radio value={500}>500条</Radio>
-              <Radio value={100}>100条</Radio>
-            </Radio.Group>
-          </Form.Item>
+          { excess && <Form form={formExcess} initialValues={{limit: 100}} style={{ marginTop: 16,  marginBottom: 16 }} name="excess" layout="vertical">
+            <Form.Item label="请选择数据量：" name="limit">
+              <Radio.Group
+                options={options}
+              />
+            </Form.Item>
+          </Form>}
         </>
       ),
       onOk() {
-        console.log("--- 最大数据量：", limit);
+        const limit = formExcess.getFieldValue('limit')
+        if (excess && limit > 0 ) {
+          Object.assign(params, {limit})
+        }
+        return getFuncResult(params, function(success: boolean, response: any) {
+          if (success) {
+            setOpen(true);
+            dispatch(setCalc(response))
+          } else {
+            message.error('获取列表数据失败：' + response.message || response.msg);
+          }
+          formExcess.resetFields()
+        })
       },
     });
   };
@@ -634,9 +643,13 @@ export default function SimpleIndicator(props: any) {
         cal_type: 2,
         metric_type: 1,
       }, function(success: boolean, response: any) {
-        if (success) {       
-          setOpen(true);
-          dispatch(setCalc(response))
+        if (success) {
+          handleCalc(toNumber(response.total), {
+            metric_params,
+            pql_params,
+            cal_type: 1,
+            metric_type: 1,
+          })
         } else {
           message.error('获取列表数据失败：' + response.message || response.msg);
         }

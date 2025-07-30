@@ -21,7 +21,6 @@ import { compact } from "lodash";
 export default function Right(props: any) {
   const navigate = useNavigate();
   const location = useLocation();
-  const routerParams = useParams();
   const [modalLoading, setModalLoading] = useState(false);
   const [infoForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
@@ -40,7 +39,6 @@ export default function Right(props: any) {
   const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
-  const inputRef = useRef<InputRef>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, Col, Modal, Row, Space, Typography } from "antd";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { compact, filter, isEmpty, keys, map } from "lodash";
+import { compact, filter, find, forEach, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, setCodeMode, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { CsvHeaderState } from "@/reducers/query";
 import { StoreState } from "@/store";
@@ -17,8 +17,23 @@ export default function AdvanceCodeMode() {
 
   const [open, setOpen] = useState(false)
 
+  const parseGraph2Code = () => {
+    const graph = (window as any).INDICATOR_GRAPH;
+    const { nodes, edges } = graph.save();
+    const arr = []
+    const lastEdges = filter(edges, {target: 'end'})
+    forEach(lastEdges, (edg) => {
+      const node = find(nodes, {id: edg.source})
+      const data = node.type === 'indicator' && node.data
+      if (edg.end)
+      arr.unshift({id: node.id, type: node.type, data})
+    })
+  }
+
   useEffect(() => {
     setOpen(codeMode)
+    if (codeMode) {
+    }
   }, [codeMode])
 
   const handleCancel = () => {
