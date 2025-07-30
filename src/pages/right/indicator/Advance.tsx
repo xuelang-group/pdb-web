@@ -29,6 +29,7 @@ import {
 import {
   compact,
   find,
+  findIndex,
   forEach,
   get,
   isEmpty,
@@ -119,6 +120,17 @@ export default function Advance(props: any) {
   useEffect(() => {
     const values = getColumnFormInitialValues()
     columnForm.setFieldsValue(values)
+    // 维度对齐修改后，如果指标度量、groupBy已经不在新的维度中，则清空
+    const dimension = form.getFieldValue('dimension')
+    const groupBy = form.getFieldValue('groupBy')
+    const removedIndex = findIndex(groupBy, (gp: string) => !values[gp])
+    if (removedIndex > -1) {
+      form.setFieldValue('groupBy', [''])
+    }
+    if (!values[dimension]) {
+      form.setFieldValue('dimension', '')
+      form.setFieldValue('func', '')
+    }
   }, [column_config])
 
   // 处理上游
@@ -145,10 +157,10 @@ export default function Advance(props: any) {
   // 指标度量选择
   const handleDimensionChange = (value: string) => {
     const dimension = find(column_config, { id: value });
-    console.log(value, dimension)
     const attrType = get(dimension, "type", "");
     const funcs = get(funcOptionsObj, attrType, []);
     setfuncOptions(funcs);
+    form.setFieldsValue({func: ''})
   };
 
   // 点击“维度对齐”按钮
@@ -481,7 +493,6 @@ export default function Advance(props: any) {
             {/* <Input /> */}
             <Select
               placeholder="指标度量"
-              allowClear
               options={map(column_config, (item) => ({
                 label: item.name || compact(item.cols)[0].attrName,
                 value: item.id,
