@@ -20,6 +20,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
+  CodeOutlined,
   DeleteOutlined,
   EditOutlined,
   EyeOutlined,
@@ -45,7 +46,7 @@ import {
   getConditionRaw,
 } from "@/utils/common";
 import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, setCalc, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setCalc, setCodeMode, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
@@ -53,6 +54,7 @@ import { addMetric, getFuncResult, getMetrics, updateMetric } from "@/actions/in
 import SaveModal from "./SaveModal";
 import { exit, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
+import AdvanceCodeMode from "./AdvanceCodeMode";
 
 
 export default function Advance(props: any) {
@@ -588,15 +590,18 @@ export default function Advance(props: any) {
           size={16}
         >
           <Row gutter={8}>
-            <Col span={12}>
+            <Col span={10}>
               <Button block type="primary" disabled={isEmpty(column_config)} onClick={handleCalc}>
                 试计算
               </Button>
             </Col>
-            <Col span={12}>
+            <Col span={10}>
               <Button block type="primary" onClick={handleSave}>
                 {basic_info?.id ? "更新指标" : "保存指标"}
               </Button>
+            </Col>
+            <Col span={4}>
+              <Button icon={<CodeOutlined />} onClick={() => dispatch(setCodeMode(true))} />
             </Col>
           </Row>
           <Button
@@ -637,6 +642,7 @@ export default function Advance(props: any) {
         onOk={onAddVersion}
         modalLoading={modalLoading}
       />
+      <AdvanceCodeMode />
       {contextHolder}
     </div>
   );

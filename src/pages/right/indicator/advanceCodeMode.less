@@ -1,0 +1,53 @@
+.pdb-indicator-codemode {
+  .pdb-ant-card-head {
+    font-weight: normal;
+    background-color: var(--fill-color4);
+  }
+  .pdb-ant-card-body {
+    padding: 4px;
+  }
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 320px;
+  overflow: auto;
+  .svg-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  >li {
+    padding: 4px 1.2rem;
+    border-radius: 3px;
+    cursor: pointer;
+    &:hover {
+      background-color: var(--primary-selected-bg);
+    }
+  }
+  .item {
+    &-icon {
+      margin-right: 8px;
+      color: #265CFF;
+      font-size: 1.8rem;
+    }
+    &-label {
+      font-size: 1.6rem;
+      color: var(--text-color1);
+    }
+    &-label2 {
+      margin-left: 4px;
+      font-size: 1.2rem;
+      color: var(--text-color3);
+      &::before {
+        content: '/ ';
+      }
+    }
+  }
+  >li {
+    vertical-align: middle;
+  }
+}

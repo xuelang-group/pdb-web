@@ -110,6 +110,7 @@ export default function SimpleIndicator(props: any) {
   const navigate = useNavigate();
   const routerParams = useParams();
   const [form] = Form.useForm();
+  const [metricForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
 
   const current = useSelector(
@@ -200,7 +201,7 @@ export default function SimpleIndicator(props: any) {
   useEffect(() => {
     if (current) {
       // 编辑初级指标
-      const { name, name_cn, unit, desc, metric_params, pql_params } = current;
+      const { name, name_cn, unit, desc, version, metric_params, pql_params } = current;
       !isEmpty(types) && reverseParsing(pql_params.params);
       const dimension = metric_params.dimension.name;
       const csvHeader = get(pql_params, "params.csv.header", []);
@@ -220,6 +221,9 @@ export default function SimpleIndicator(props: any) {
         name_cn,
         unit,
         desc,
+        version,
+      });
+      metricForm.setFieldsValue({
         dimension,
         func: metric_params.func,
         groupBy: !isEmpty(metric_params.group_by) ? map(metric_params.group_by, "name") : [''],
@@ -229,6 +233,7 @@ export default function SimpleIndicator(props: any) {
     } else {
       // 创建初级指标
       form.resetFields();
+      metricForm.resetFields();
       setDimension(undefined);
     }
   }, [current]);
@@ -246,6 +251,7 @@ export default function SimpleIndicator(props: any) {
     dispatch(exit());
     dispatch(clearQuery())
     form.resetFields();
+    metricForm.resetFields();
     navigate(`/${routerParams.id}/indicator/index`);
   };
 
@@ -366,6 +372,7 @@ export default function SimpleIndicator(props: any) {
       attrType: type,
       index: 0,
     }));
+    console.log('--- detail: ', detail)
     setOriginType({
       label: detail["x.type.label"],
       value: detail["x.type.name"],
@@ -375,7 +382,7 @@ export default function SimpleIndicator(props: any) {
       prevSearchTagType: "",
       csv,
     });
-    form.setFieldsValue({
+    metricForm.setFieldsValue({
       dimension: '',
       func: '',
       columns: [],
@@ -457,7 +464,7 @@ export default function SimpleIndicator(props: any) {
   // }
 
   const getPqlParams = () => {
-    const columns = form.getFieldValue("columns");
+    const columns = metricForm.getFieldValue("columns");
     const config = getFilterConfig();
     const detail = originType?.data;
     const pql = [
@@ -490,8 +497,8 @@ export default function SimpleIndicator(props: any) {
   };
 
   const getMetricParams = () => {
-    const func = form.getFieldValue("func");
-    const groupBy = form.getFieldValue("groupBy");
+    const func = metricForm.getFieldValue("func");
+    const groupBy = metricForm.getFieldValue("groupBy");
     const groups = compact(
       filter(originType?.csv, ({ attrId }) => groupBy.includes(attrId))
     );
@@ -556,23 +563,31 @@ export default function SimpleIndicator(props: any) {
   // 保存
   const onSubmit = () => {
     form.validateFields().then((values) => {
-      const params: MetricItem = {
-        name_cn: values.name_cn,
-        name: values.name,
-        unit: values.unit || "",
-        desc: values.desc || "",
-        version: values.version,
-        requestId: requestId,
-        buzProcess: values.buzProcess,
-        type: 1,
-        metric_params: getMetricParams(),
-        pql_params: getPqlParams(),
-      };
-      if (current?.id) {
-        params.ori_id = current.id
-      }
-      handleAdd(params)
-    });
+      metricForm.validateFields().then(() => {
+        const params: MetricItem = {
+          name_cn: values.name_cn,
+          name: values.name,
+          unit: values.unit || "",
+          desc: values.desc || "",
+          version: values.version,
+          requestId: requestId,
+          buzProcess: values.buzProcess,
+          type: 1,
+          metric_params: getMetricParams(),
+          pql_params: getPqlParams(),
+        };
+        if (current?.id) {
+          params.ori_id = current.ori_id
+        }
+        handleAdd(params)
+      })
+      .catch(err => {
+        console.log('--- err: ', err)
+      })
+    })
+    .catch(err => {
+      console.log('--- err: ', err)
+    })
   };
 
   // 数据过量
@@ -609,27 +624,19 @@ export default function SimpleIndicator(props: any) {
 
   // 试计算
   const handleTryCompute = () => {
-    form.validateFields().then((values) => {
-      const detail = originType?.data;
-      if (!detail) {
-        message.warning("未找到相关的数据资产单");
-        return;
-      }
+    const detail = originType?.data;
+    if (!detail) {
+      message.warning("未找到相关的数据资产单");
+      return;
+    }
+    metricForm.validateFields().then((values) => {      
       const metric_params = getMetricParams()
-      const pql_params = getPqlParams()
-      dispatch(setCurrent({
-        id: current?.id || undefined,
-        name_cn: values.name_cn,
-        name: values.name,
-        unit: values.unit || '',
-        desc: values.desc || '',
-        type: 1,
-        metric_params,
-        pql_params,
-      }))
+      const pql_params = getPqlParams()    
       getFuncResult({
         metric_params,
         pql_params,
+        cal_type: 2,
+        metric_type: 1,
       }, function(success: boolean, response: any) {
         if (success) {
           console.log('--- 试计算结果：', response)          
@@ -639,6 +646,19 @@ export default function SimpleIndicator(props: any) {
           message.error('获取列表数据失败：' + response.message || response.msg);
         }
       })
+      .catch(err => {})
+      // dispatch(setCurrent({
+      //   id: current?.id || undefined,
+      //   name_cn: values.name_cn,
+      //   name: values.name,
+      //   unit: values.unit || '',
+      //   desc: values.desc || '',
+      //   version: values.version || '',
+      //   ori_id: current?.ori_id,
+      //   type: 1,
+      //   metric_params,
+      //   pql_params,
+      // }))
     });
   };
 
@@ -773,10 +793,10 @@ export default function SimpleIndicator(props: any) {
       </div>
       <div className="pdb-indicator-simple">
         <div className="pdb-indicator-simple-body">
+          <Divider orientation="left" orientationMargin={16}>
+            基础信息
+          </Divider>
           <Form name="simple" {...layout} form={form}>
-            <Divider orientation="left" orientationMargin={16}>
-              基础信息
-            </Divider>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 label="中文名称"
@@ -804,13 +824,15 @@ export default function SimpleIndicator(props: any) {
               </Form.Item>
               <Form.Item
                 label="版本号"
-                name={'version'}
+                name={"version"}
                 rules={[
                   { required: true, message: '请输入版本号' },
                   {
                     validateTrigger: 'onBlur',
                     validator: async (_, value) =>
                     {
+                      console.log('--- version', value)
+                      if (!value) return Promise.reject(new Error("请输入版本号"))
                       if(current?.id) {
                         const resD = await getMetricDetail2({id: current?.id})
                         if(resD.data) {
@@ -840,9 +862,11 @@ export default function SimpleIndicator(props: any) {
                 <Input addonBefore="V" placeholder="仅允许数字以.为分隔符，例:1.0.0" />
               </Form.Item>
             </Flex>
-            <Divider orientation="left" orientationMargin={16}>
-              指标定义
-            </Divider>
+          </Form>
+          <Divider orientation="left" orientationMargin={16}>
+            指标定义
+          </Divider>
+          <Form name="simple" {...layout} form={metricForm}>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 name={"typeName"}
@@ -951,13 +975,13 @@ export default function SimpleIndicator(props: any) {
                             options={map(originType?.csv, (item) => ({
                               label: item.attrName,
                               value: item.attrId,
-                              disabled: form
+                              disabled: metricForm
                                 .getFieldValue("groupBy")
                                 ?.includes(item.attrId),
                             }))}
                             onChange={(value) => {
-                              form.setFieldsValue({
-                                groupBy: form
+                              metricForm.setFieldsValue({
+                                groupBy: metricForm
                                   .getFieldValue("groupBy")
                                   .map((item: any, i: number) => {
                                     if (i === index) {
@@ -980,7 +1004,7 @@ export default function SimpleIndicator(props: any) {
                       </Form.Item>
                     ))}
                     <Form.Item>
-                      {form.getFieldValue("groupBy")?.[fields.length - 1] && (
+                      {metricForm.getFieldValue("groupBy")?.[fields.length - 1] && (
                         <Button
                           block
                           type="dashed"
