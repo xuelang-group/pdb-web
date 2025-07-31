@@ -95,9 +95,27 @@ export default function AdvanceCodeMode() {
   const handleClick = (item: any) => {
 
   }
+
+  const handleChange = (e: any) => {
+    console.log('--- handleChange: ', e.target)
+  }
   
   const handleKeydown = (e: any) => {
     console.log('--- key down: ', e)
+    const regex = /^[a-z0-9]+$/;
+    if (regex.test(e.key) && !(e.ctrlKey && e.key === 'z')) {
+      e.preventDefault()
+      message.warning('请从下面列表中点选指标和运算符')
+    }
+    // if (e.key === ')' || e.key === '(') {
+      
+    // }
+    // // 32: 空格; 37: 向左; 39: 向右; 40: 向下; 38: 向上
+    // // 8: "Backspace"; 46: "Delete"; 
+    // // 16: Shift; 17: Control; 18: Alt; 
+    // if (![32, 37, 39, 38, 40, 8, 46].includes(e.keyCode) && !(e.ctrlKey && e.key === 'z')) {
+
+    // }
   }
 
   const renderCode = (data: Array<any>, parentId?:number | string) => {
@@ -113,7 +131,7 @@ export default function AdvanceCodeMode() {
         )
       } else {
         const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
-        return <span className={item.type} id={item.id}>{name}</span>
+        return <span className={item.type} id={item.id} contentEditable={false}>{name}</span>
       }
     })
   }
@@ -128,7 +146,7 @@ export default function AdvanceCodeMode() {
     >
       <Card title="计算结果 =" size="small" className="pdb-indicator-codemode">
         {/* <Input value={code} /> */}
-        <div className="code-wrap" contentEditable onKeyDown={handleKeydown}>
+        <div className="code-wrap" contentEditable onKeyDown={handleKeydown} onChange={handleChange}>
           {renderCode(source)}
         </div>
       </Card>
