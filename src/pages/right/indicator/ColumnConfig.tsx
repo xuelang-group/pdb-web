@@ -33,14 +33,16 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
   const [focusCell, setFocusCell] = useState<[number, number]>()
   
   useEffect(() => {
-    const cfg = isEmpty(column_config) ? [{
-      cols: [],
-      conditions: [],
-      name: '',
-      id: `${Date.now()}`
-    }] : column_config
-    setColumnConfig(cfg)
-  }, [column_config]);
+    if (visible) {
+      const cfg = isEmpty(column_config) ? [{
+        cols: [],
+        conditions: [],
+        name: '',
+        id: `${Date.now()}`
+      }] : column_config
+      setColumnConfig(cfg)
+    }
+  }, [visible]);
   
   // 维度对齐- 增加一行
   const handleAddColCfg = (index: number) => {
@@ -91,6 +93,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
     setFocusCell(undefined)
     onCancel()
   }
+    console.log('--- columnConfig', columnConfig)
 
   return (
       <Modal
@@ -129,7 +132,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                       </use>
                     </svg>
                   }
-                  <b>{columnsMap[id].name_cn}</b>
+                  <b>{columnsMap[id].name}</b>
                 </div>
                 { map(columnConfig, (item, rowIndex) => {
                   const attrs = filter(item.cols, item => item?.metric.id === id)

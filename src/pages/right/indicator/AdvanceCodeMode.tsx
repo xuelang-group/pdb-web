@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, Col, Modal, Row, Space, Typography } from "antd";
+import { Card, Col, Input, message, Modal, Row, Space, Tag, Typography } from "antd";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { compact, filter, find, forEach, isEmpty, keys, map } from "lodash";
+import { compact, filter, find, forEach, isArray, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, setCodeMode, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { CsvHeaderState } from "@/reducers/query";
 import { StoreState } from "@/store";
 import { inidcatorSymbolMap } from "@/utils/common";
 import { MetricItem } from "@/reducers/indicatorSimple";
 import './advanceCodeMode.less'
+import { INode, Node } from "@antv/g6";
 
 export default function AdvanceCodeMode() {
   const dispatch = useDispatch();
@@ -16,25 +17,74 @@ export default function AdvanceCodeMode() {
   const codeMode = useSelector((state: StoreState) => state.indicatorAdvance.codeMode);
 
   const [open, setOpen] = useState(false)
-
-  const parseGraph2Code = () => {
-    const graph = (window as any).INDICATOR_GRAPH;
-    const { nodes, edges } = graph.save();
-    const arr = []
-    const lastEdges = filter(edges, {target: 'end'})
-    forEach(lastEdges, (edg) => {
-      const node = find(nodes, {id: edg.source})
-      const data = node.type === 'indicator' && node.data
-      if (edg.end)
-      arr.unshift({id: node.id, type: node.type, data})
-    })
-  }
+  const [code, setCode] = useState('')
+  const [source, setSource] = useState<Array<any>>([])
+  const [selectedMetrics, setSelectedMetrics] = useState<{[id: string | number]: string | number}>({})
 
   useEffect(() => {
     setOpen(codeMode)
     if (codeMode) {
+      parseGraph2Code()
     }
-  }, [codeMode])
+  }, [codeMode]) 
+
+  const getCode = (data: Array<any>) => {
+    const arr: string[] = []
+    forEach(data, item => {
+      if (isArray(item)) {
+        const str = getCode(item)
+        arr.push(`( ${str} )`)
+      } else {
+        const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
+        arr.push(name)
+      }
+    })
+    return arr.join(' ')
+  }
+
+  const getInArray = (node: INode) => {
+    const inEdges = node.getInEdges()
+    const nodeModel = node.getModel()
+    const arr: any[] = []
+    inEdges.forEach(edg => {
+      const model = edg.getModel()
+      const source = edg.getSource()
+      const sourceModel = source.getModel()
+      if (sourceModel.type === 'symbol') {
+        const prevArr = getInArray(source)
+        model.end ? arr.unshift(prevArr) : arr.push(prevArr)
+      } else {
+        const item = {id: sourceModel.id, type: sourceModel.type, data: sourceModel.data}
+        model.end ? arr.unshift(item) : arr.push(item)
+      }
+    })
+    arr.splice(1, 0, {id: nodeModel.id, type: nodeModel.type, data: nodeModel.type == 'indicator' ? nodeModel.data : {name: nodeModel.label}})
+    return arr
+  }
+
+  const parseGraph2Code = () => {
+    const graph = (window as any).INDICATOR_GRAPH;
+    const endNode = graph.findById('end')
+    if (!endNode) {
+      message.warning('数据中缺少“计算结果”')
+      return
+    }
+    const nodes = map(graph.getNodes(), item => {
+      const model = item.getModel()
+      if (model.type === 'indicator') return model.data
+      return undefined
+    })
+    const symbol = endNode.getNeighbors('source')[0]
+    const data = getInArray(symbol)
+    const _code = getCode(data)
+    const metrics: {[id: string | number]: string | number} = {}
+    forEach(compact(nodes), item => {
+      metrics[item.id] = item.ori_id
+    })
+    setSelectedMetrics(metrics)
+    setCode(_code)
+    setSource(data)
+  }
 
   const handleCancel = () => {
     dispatch(setCodeMode(false))
@@ -56,25 +106,32 @@ export default function AdvanceCodeMode() {
       onCancel={handleCancel}
       onOk={handleOk}
     >
-      <Card title="计算结果 =" size="small" className="pdb-indicator-codemode"></Card>
+      <Card title="计算结果 =" size="small" className="pdb-indicator-codemode">
+        <Input value={code} />
+      </Card>
       <Row gutter={8} style={{marginTop: 8}}>
         <Col span={16}>
           <Card title="选择指标" size="small" className="pdb-indicator-codemode">
             <ul className="list list-indicator">
               {
-                map(allIndicators, (item: MetricItem) => (
-                  <li key={item.id}>
-                    {
-                      item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
-                      <svg className="svg-icon" aria-hidden="true">
-                        <use xlinkHref="#icon-gaojizhibiao">
-                        </use>
-                      </svg>
-                    }
-                    <span className='item-label'>{item.name}</span>
-                    <span className='item-label2'>{item.name_cn}</span>
-                  </li>
-                ))
+                map(allIndicators, (item: MetricItem) => {
+                  const curr = item.id && selectedMetrics[item.id]
+                  const ori = item.ori_id && selectedMetrics[item.ori_id]
+                  return (
+                    <li key={item.id} className={curr || ori ? 'selected' : ''}>
+                      {
+                        item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
+                        <svg className="svg-icon" aria-hidden="true">
+                          <use xlinkHref="#icon-gaojizhibiao">
+                          </use>
+                        </svg>
+                      }
+                      <span className='item-label'>{item.name}</span>
+                      <span className='item-label2'>{item.name_cn}</span>
+                      {/* {!curr && ori && <Tag style={{float: 'right'}}>历史版本</Tag>} */}
+                    </li>
+                  )
+                })
               }
             </ul>
           </Card>

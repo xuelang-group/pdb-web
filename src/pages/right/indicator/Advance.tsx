@@ -50,7 +50,7 @@ import { ColumnConfig, setCalc, setCodeMode, setMetricInfo, setMetricParams, set
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
-import { addMetric, getFuncResult, getMetrics, updateMetric } from "@/actions/indicator";
+import { addMetric, getFuncResult, getMetricDetail2, getMetrics, updateMetric } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
 import { exit, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
@@ -70,9 +70,6 @@ export default function Advance(props: any) {
   );
   const api = useSelector((state: StoreState) => state.query.api);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
-  const allIndicators = useSelector(
-    (state: StoreState) => state.indicator.list
-  );
   const selected = useSelector(
     (state: StoreState) => state.indicatorAdvance.selected
   );
@@ -166,7 +163,7 @@ export default function Advance(props: any) {
   };
 
   // 点击“维度对齐”按钮
-  const handleClickAlign = () => {
+  const handleClickAlign = async () => {
     // 请求画布中所有指标详情获取他们的维度数据
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes } = graph.save();
@@ -174,7 +171,6 @@ export default function Advance(props: any) {
       message.warning('没有可以对齐的源指标！')
       return
     }
-    const obj: { [id: string]: any } = {};
     const indicatorNodes = nodes.filter(
       (n: any) => n.type !== "symbol" && n.id !== "end"
     );
@@ -183,15 +179,16 @@ export default function Advance(props: any) {
       return
     }
     const indicators = compact(map(indicatorNodes, (n: any) => n.data));
-    forEach(indicators, (data: any) => {
-      const metricDetail = find(allIndicators, { id: data.id });
-      if (metricDetail) {
+    const obj: { [id: string]: any } = {};
+    for(let data of indicators) {
+      const res = await getMetricDetail2({ id: data.id });
+      if (res.status == 200 && !isEmpty(res.data)) {
         obj[data.id] = {
           ...data,
-          columns: get(metricDetail, "pql_params.params.csv.header", []),
+          columns: get(res.data, "pql_params.params.csv.header", []),
         };
       }
-    });
+    }
     setColumnsMap(obj);
     setOpen(true);
   };

@@ -186,6 +186,7 @@ export default function IndicatorAdvance() {
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
   const query = useSelector((state: StoreState) => state.query.params);
+  const basic_info = useSelector((state: StoreState) => state.indicatorAdvance.basic_info);
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
 
@@ -250,7 +251,6 @@ export default function IndicatorAdvance() {
             },
             // @ts-ignore
             shouldEnd: function (e: IG6GraphEvent, { source }) {
-              console.log("--- e.item: ", e.item);
               const targetNode = e.item as INode;
               const model = targetNode?.getModel();
               const sourceNode = graph.findById(source);
@@ -270,7 +270,6 @@ export default function IndicatorAdvance() {
               const outdex = outEdges.findIndex(
                 (edg) => source === edg.getModel().target
               );
-              console.log("--- index: ", index);
               // 两个节点之间只能连一条线
               return index == -1 && outdex == -1;
             },
@@ -329,7 +328,6 @@ export default function IndicatorAdvance() {
       });
       graph.setItemState(item, "selected", true);
       const model = item?.getModel();
-      console.log('--- model: ', model)
       dispatch(
         setSelected({
           id: model.id,
@@ -407,7 +405,7 @@ export default function IndicatorAdvance() {
       graph.data(data);
       graph.render()
     }
-  }, [graph_data])
+  }, [graph_data, basic_info])
 
   return (
     <div
