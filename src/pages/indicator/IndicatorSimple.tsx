@@ -72,7 +72,7 @@ import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { exit, setMetrics } from "@/reducers/indicator";
-import { MetricItem, MetricParams, setCalc, setCurrent } from "@/reducers/indicatorSimple";
+import { MetricItem, setCalc } from "@/reducers/indicatorSimple";
 
 const { confirm } = Modal;
 
@@ -1059,6 +1059,7 @@ export default function SimpleIndicator(props: any) {
         </Flex>
         {renderResultColumns()}
       </Modal>
+      { contextHolder }
     </>
   );
 }

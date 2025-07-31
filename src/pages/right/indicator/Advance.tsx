@@ -18,7 +18,7 @@ import {
 } from "antd";
 import { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   CodeOutlined,
   DeleteOutlined,
@@ -50,7 +50,7 @@ import { ColumnConfig, setCalc, setCodeMode, setMetricInfo, setMetricParams, set
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
-import { addMetric, getFuncResult, getMetricDetail2, getMetrics, updateMetric } from "@/actions/indicator";
+import { addMetric, getFuncResult, getMetricDetail2, getMetrics } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
 import { exit, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
@@ -59,15 +59,14 @@ import AdvanceCodeMode from "./AdvanceCodeMode";
 
 export default function Advance(props: any) {
   const navigate = useNavigate();
-  const location = useLocation();
   const routerParams = useParams();
   const dispatch = useDispatch();
   const [form] = Form.useForm();
   const [columnForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
-  const requestId = useSelector(
-    (state: StoreState) => state.indicator.requestId
-  );
+  // const requestId = useSelector(
+  //   (state: StoreState) => state.indicator.requestId
+  // );
   const api = useSelector((state: StoreState) => state.query.api);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   const selected = useSelector(

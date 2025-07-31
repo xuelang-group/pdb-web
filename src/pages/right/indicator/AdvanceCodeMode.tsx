@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, Col, Input, message, Modal, Row, Space, Tag, Typography } from "antd";
-import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { compact, filter, find, forEach, isArray, isEmpty, keys, map } from "lodash";
-import { ColumnConfig, setCodeMode, updateColumnConfig } from "@/reducers/indicatorAdvance";
-import { CsvHeaderState } from "@/reducers/query";
+import { Card, Col, Input, message, Modal, Row } from "antd";
+import { compact, forEach, isArray, map } from "lodash";
+import { INode } from "@antv/g6";
+import { setCodeMode } from "@/reducers/indicatorAdvance";
 import { StoreState } from "@/store";
 import { inidcatorSymbolMap } from "@/utils/common";
 import { MetricItem } from "@/reducers/indicatorSimple";
-import './advanceCodeMode.less'
-import { INode, Node } from "@antv/g6";
+import './advanceCodeMode.less';
 
 export default function AdvanceCodeMode() {
   const dispatch = useDispatch();
@@ -58,7 +56,7 @@ export default function AdvanceCodeMode() {
         model.end ? arr.unshift(item) : arr.push(item)
       }
     })
-    arr.splice(1, 0, {id: nodeModel.id, type: nodeModel.type, data: nodeModel.type == 'indicator' ? nodeModel.data : {name: nodeModel.label}})
+    arr.splice(1, 0, {id: nodeModel.id, type: nodeModel.type, data: nodeModel.type === 'indicator' ? nodeModel.data : {name: nodeModel.label}})
     return arr
   }
 
@@ -98,6 +96,28 @@ export default function AdvanceCodeMode() {
 
   }
   
+  const handleKeydown = (e: any) => {
+    console.log('--- key down: ', e)
+  }
+
+  const renderCode = (data: Array<any>, parentId?:number | string) => {
+    return map(data, (item, index) => {
+      if (isArray(item)) {
+        const arr: any[] = renderCode(item, parentId)
+        return (
+          <>
+          <span className="kuo" id={`${parentId}-${index}-l`}>(</span>
+            {arr}
+          <span className="kuo"id={`${parentId}-${index}-r`}>)</span>
+          </>
+        )
+      } else {
+        const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
+        return <span className={item.type} id={item.id}>{name}</span>
+      }
+    })
+  }
+  
   return (
     <Modal
       className="pdb-indicator-modal"
@@ -107,7 +127,10 @@ export default function AdvanceCodeMode() {
       onOk={handleOk}
     >
       <Card title="计算结果 =" size="small" className="pdb-indicator-codemode">
-        <Input value={code} />
+        {/* <Input value={code} /> */}
+        <div className="code-wrap" contentEditable onKeyDown={handleKeydown}>
+          {renderCode(source)}
+        </div>
       </Card>
       <Row gutter={8} style={{marginTop: 8}}>
         <Col span={16}>

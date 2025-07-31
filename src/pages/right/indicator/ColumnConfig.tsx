@@ -61,7 +61,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
     const cfg = JSON.parse(JSON.stringify(columnConfig))
     cfg.splice(index, 1)
     setColumnConfig(cfg)
-    if (focusCell && focusCell[1] == index) {
+    if (focusCell && focusCell[1] === index) {
       setFocusCell(undefined)
     }
   }
@@ -93,7 +93,6 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
     setFocusCell(undefined)
     onCancel()
   }
-    console.log('--- columnConfig', columnConfig)
 
   return (
       <Modal
@@ -136,7 +135,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                 </div>
                 { map(columnConfig, (item, rowIndex) => {
                   const attrs = filter(item.cols, item => item?.metric.id === id)
-                  const focus = focusCell?.[0] === colIndex && focusCell?.[1] == rowIndex
+                  const focus = focusCell?.[0] === colIndex && focusCell?.[1] === rowIndex
                   return (
                     <div className="td" key={item.id}>
                       <div className={`cell ${focus ? 'focus' : ''}`} onClick={() => setFocusCell(focus ? undefined : [colIndex, rowIndex])}>
@@ -150,7 +149,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                     map(columnsMap[id]['columns'], (item: CsvHeaderState) => {
                       const cols = compact(focusCell ? columnConfig[focusCell?.[1]]?.cols : [])
                       const type = cols[0]?.attrType
-                      const disabled = focusCell?.[0] !== colIndex || type && typeIconMap[type] !== typeIconMap[item?.attrType]
+                      const disabled = focusCell?.[0] !== colIndex || (type && typeIconMap[type] !== typeIconMap[item?.attrType])
                       return (
                         <li key={item.attrId} className={disabled ? 'disabled' : ''} onClick={() => !disabled && handleDblClick({id, name: columnsMap[id].name, name_cn: columnsMap[id].name_cn}, item)}>
                           <i className={`iconfont icon-${typeIconMap[item.attrType]}`} />

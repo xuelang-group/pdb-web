@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ParamsState } from "./query";
-import { ColumnConfig } from "./indicatorAdvance";
 
 export interface MetricParams {
   dimension: {

@@ -1,19 +1,16 @@
 // @ts-ignore
 import G6, {
-  EdgeConfig,
   Graph,
   IG6GraphEvent,
   IGroup,
   INode,
   ModelConfig,
-  NodeConfig,
 } from "@antv/g6";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useResizeDetector } from "react-resize-detector";
-import { Button, Form, message, Modal, Radio, Typography } from "antd";
-import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
+import { message } from "antd";
 import { filter, get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
 import { getIcon, inidcatorSymbolMap } from "@/utils/common";
@@ -84,7 +81,7 @@ function registerIndicator() {
         return keyShape;
       },
       getAnchorPoints(cfg?: ModelConfig) {
-        return cfg?.id == "end" ? [[0, 0.5]] : [[1, 0.5]];
+        return cfg?.id === "end" ? [[0, 0.5]] : [[1, 0.5]];
       },
     },
     "rect"
@@ -162,7 +159,7 @@ function registerIndicator() {
       const dropAdd = dataTransfer.getData("drop_add");
       const graph = this.graph as Graph;
       const model = JSON.parse(dropAdd);
-      if (model.id == "end") {
+      if (model.id === "end") {
         const end = graph.findById("end");
         if (end) {
           message.warning("一个高级指标中只能有一个结果");
@@ -178,14 +175,12 @@ function registerIndicator() {
 
 let graph: any;
 export default function IndicatorAdvance() {
-  const navigate = useNavigate();
-  const routerParams = useParams();
+  // const navigate = useNavigate();
+  // const routerParams = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
   const graphRef = useRef<HTMLDivElement | null>(null);
-  const [form] = Form.useForm();
-  const [open, setOpen] = useState(false);
-  const query = useSelector((state: StoreState) => state.query.params);
+  // const query = useSelector((state: StoreState) => state.query.params);
   const basic_info = useSelector((state: StoreState) => state.indicatorAdvance.basic_info);
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
@@ -262,7 +257,7 @@ export default function IndicatorAdvance() {
                 return false;
               const inEdges = targetNode.getInEdges();
               // 目标节点最多连两条线
-              if (inEdges.length == 2) return false;
+              if (inEdges.length === 2) return false;
               const outEdges = targetNode.getOutEdges();
               const index = inEdges.findIndex(
                 (edg) => source === edg.getModel().source
@@ -271,7 +266,7 @@ export default function IndicatorAdvance() {
                 (edg) => source === edg.getModel().target
               );
               // 两个节点之间只能连一条线
-              return index == -1 && outdex == -1;
+              return index === -1 && outdex === -1;
             },
           },
         ],

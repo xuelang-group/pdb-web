@@ -8,11 +8,28 @@
   }
 }
 
+.code-wrap {
+  height: 100px;
+  padding: 8px;
+  border: solid 1px transparent;
+  &:focus {
+    outline: none;
+    border-color: var(--input-active-border-inner);
+    // box-shadow: 0 0 0 3px var(--input-active-border-outer);
+  }
+  span {
+    padding: 0 4px;
+  }
+  .indicator {
+    background-color: cornsilk;
+  }
+}
+
 .list {
   margin: 0;
   padding: 0;
   list-style: none;
-  max-height: 320px;
+  max-height: 260px;
   overflow: auto;
   .svg-icon {
     width: 1.8rem;
