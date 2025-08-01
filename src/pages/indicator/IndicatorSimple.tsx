@@ -50,6 +50,7 @@ import {
   checkVersion,
   getFuncResult,
   getMetricDetail2,
+  getMetricReference,
   getMetrics,
   updateMetric,
 } from "@/actions/indicator";
@@ -523,16 +524,28 @@ export default function SimpleIndicator(props: any) {
   };
 
   // 创建指标
-  const handleAdd = (data: any) => {
+  const handleAdd = (values: any) => {
     const savingModal = modal.confirm({
       className: "pdb-indicator-save-loading",
       width: 164,
       icon: <img src={getImgHref(Loading)} />,
       title: "指标保存中...",
     });
-    addMetric(data, (success: boolean, res: any) => {
+    const params: MetricItem = {
+      name_cn: values.name_cn,
+      name: values.name,
+      unit: values.unit || "",
+      desc: values.desc || "",
+      version: values.version,
+      requestId: requestId,
+      buzProcess: values.buzProcess,
+      type: 1,
+      ori_id: current?.ori_id,
+      metric_params: getMetricParams(),
+      pql_params: getPqlParams(),
+    };
+    addMetric(params, (success: boolean, res: any) => {
       savingModal && savingModal.destroy();
-      console.log('--- addMetric: ', res)
       if (success) {
         message.success("保存指标成功");
         updateList();
@@ -559,23 +572,22 @@ export default function SimpleIndicator(props: any) {
   // 保存
   const onSubmit = () => {
     form.validateFields().then((values) => {
-      metricForm.validateFields().then(() => {
-        const params: MetricItem = {
-          name_cn: values.name_cn,
-          name: values.name,
-          unit: values.unit || "",
-          desc: values.desc || "",
-          version: values.version,
-          requestId: requestId,
-          buzProcess: values.buzProcess,
-          type: 1,
-          metric_params: getMetricParams(),
-          pql_params: getPqlParams(),
-        };
-        if (current?.id) {
-          params.ori_id = current.ori_id
+      metricForm.validateFields().then(async() => {
+        if (current?.ori_id) {
+          const { data } = await getMetricReference(current?.ori_id)
+          if (data.success && !isEmpty(data.data)) {
+            const names = map(data.data, 'name')
+            confirm({
+              title: '提示',
+              content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
+              onOk: function() {
+                handleAdd(values)
+              }
+            })
+            return
+          }
         }
-        handleAdd(params)
+        handleAdd(values)
       })
       .catch(err => {
         console.log('--- err: ', err)

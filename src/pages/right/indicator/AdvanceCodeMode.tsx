@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Card, Col, Input, message, Modal, Row } from "antd";
+import { Card, Col, message, Modal, Row } from "antd";
 import { compact, forEach, isArray, map } from "lodash";
 import { INode } from "@antv/g6";
 import { setCodeMode } from "@/reducers/indicatorAdvance";
@@ -123,15 +123,15 @@ export default function AdvanceCodeMode() {
       if (isArray(item)) {
         const arr: any[] = renderCode(item, parentId)
         return (
-          <>
+          <Fragment key={`${parentId}-${index}`}>
           <span className="kuo" id={`${parentId}-${index}-l`}>(</span>
             {arr}
           <span className="kuo"id={`${parentId}-${index}-r`}>)</span>
-          </>
+          </Fragment>
         )
       } else {
         const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
-        return <span className={item.type} id={item.id} contentEditable={false}>{name}</span>
+        return <span key={item.id} className={item.type} id={item.id} contentEditable={false}>{name}</span>
       }
     })
   }
@@ -146,7 +146,7 @@ export default function AdvanceCodeMode() {
     >
       <Card title="计算结果 =" size="small" className="pdb-indicator-codemode">
         {/* <Input value={code} /> */}
-        <div className="code-wrap" contentEditable onKeyDown={handleKeydown} onChange={handleChange}>
+        <div className="code-wrap" contentEditable onKeyDown={handleKeydown} suppressContentEditableWarning={true}>
           {renderCode(source)}
         </div>
       </Card>

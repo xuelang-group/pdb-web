@@ -12,6 +12,7 @@ const api = {
   getMetricDetail: apiPrefix + '/metric',    // 获取metric详情
   rollbackMetric: apiPrefix + '/rollback_metric',   // 回滚某个metric
   checkVersion: apiPrefix + '/check_version',   // 检查版本
+  reference: apiPrefix + '/reference_metric',   // 获取引用指标列表 用于判断指标是否被引用
 };
 
 // 获取模板列表
@@ -109,5 +110,10 @@ export const checkVersion = (params) => {
 // 获取metric详情
 export const getMetricDetail2 = (params) => {
   return axios.get(`${api['getMetricDetail']}`, params)
+};
+
+// 判断指标是否被引用
+export const getMetricReference = (ori_id) => {
+  return axios.get(`${api['reference']}`, {ori_id})
 };
 
