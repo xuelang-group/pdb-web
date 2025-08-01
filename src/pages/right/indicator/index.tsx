@@ -8,7 +8,7 @@ import { StoreState } from '@/store';
 import SaveModal from "./SaveModal";
 import UpdateModal from "./UpdateModal";
 import { setIndicatorLoading } from '@/reducers/editor';
-import { getMetrics } from "@/actions/indicator";
+import { getMetricReference, getMetrics } from "@/actions/indicator";
 import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
@@ -16,7 +16,7 @@ import Loading from "@/assets/images/loading-apng.png";
 import "./index.less";
 import { clearQuery } from "@/reducers/query";
 import { getImgHref } from "@/actions/minioOperate";
-import { compact } from "lodash";
+import { compact, isEmpty, map } from "lodash";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -131,7 +131,7 @@ export default function Right(props: any) {
     return groupByObj
   }
 
-  const onAddVersion = (values: any) => {
+  const handleAdd = (values: any) => {
     const postObj: any = {
       name_cn: values.name_cn,
       name: values.name,
@@ -170,6 +170,21 @@ export default function Right(props: any) {
         savingModal && savingModal.destroy();
       }
     })
+  }
+
+  const onAddVersion = async (values: any) => {
+    const { data } = await getMetricReference(values.ori_id)
+    if (data.success && !isEmpty(data.data)) {
+      const names = map(data.data, 'name')
+      modal.confirm({
+        title: '提示',
+        content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
+        onOk: function() {
+          handleAdd(values)
+        }
+      })
+      return
+    }
   }
 
   const createPDBRelation = function () {
