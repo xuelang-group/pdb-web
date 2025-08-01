@@ -23,6 +23,7 @@ import {
   CodeOutlined,
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
   EyeOutlined,
   PlusOutlined,
   VerticalAlignTopOutlined,
@@ -35,6 +36,7 @@ import {
   get,
   isEmpty,
   map,
+  toNumber,
 } from "lodash";
 import PdbPanel from "@/components/Panel";
 import { StoreState } from "@/store";
@@ -321,8 +323,49 @@ export default function Advance(props: any) {
     })
   }
 
+  // 数据过量
+  const [formExcess] = Form.useForm()
+  const handleCalc = (total: number, params: any) => {
+    const excess = total > 1000
+    const options = [{value: -1, label: '全量'}, {value: 1000, label: '1000条'}, {value: 500, label: '500条'}, {value: 100, label: '100条'}]
+    modal.confirm({
+      icon: <ExclamationCircleOutlined />,
+      title: "提示",
+      okText: "计算",
+      content: (
+        <>
+          <Typography.Text type={excess ? "warning" : 'secondary'}>
+            系统检测到数据量 {total} 条，{ total > 100 ? '可能会影响体验' : '是否开始计算？'}
+          </Typography.Text>
+          { excess && <Form form={formExcess} initialValues={{limit: 100}} style={{ marginTop: 16,  marginBottom: 16 }} name="excess" layout="vertical">
+            <Form.Item label="请选择数据量：" name="limit">
+              <Radio.Group
+                options={options}
+              />
+            </Form.Item>
+          </Form>}
+        </>
+      ),
+      onOk() {
+        const limit = formExcess.getFieldValue('limit')
+        if (excess && limit > 0 ) {
+          Object.assign(params, {limit})
+        }
+        return getFuncResult(params, function(success: boolean, response: any) {
+          if (success) {
+            setOpen(true);
+            dispatch(setCalc(response))
+          } else {
+            message.error('获取列表数据失败：' + response.message || response.msg);
+          }
+          formExcess.resetFields()
+        })
+      },
+    });
+  };
+
   // 试计算
-  const handleCalc = () => {
+  const handleTryCompute = () => {
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes, edges } = graph.save();
     if (isEmpty(nodes)) {
@@ -366,9 +409,15 @@ export default function Advance(props: any) {
         pql_params,
       }, function(success: boolean, response: any) {
         if (success) {
-          console.log('--- 试计算结果：', response)          
-          // setOpen(true);
-          setCalc(response)
+          console.log('--- 试计算结果：', response)
+          handleCalc(toNumber(response.total), {
+            cal_type: 1,
+            graph_data,
+            metric_params,
+            metric_type: 2,
+            column_config,
+            pql_params,
+          })
         } else {
           message.error('获取列表数据失败：' + response.message || response.msg);
         }
@@ -431,7 +480,7 @@ export default function Advance(props: any) {
             </Form.Item>
           )}
         <Card className={`pdb-indicator-advCard${isEmpty(column_config) ? ' no-body': ''}`} title="维度设置" bordered={false} extra={
-          <Button type="primary" onClick={handleClickAlign} size="small" icon={<VerticalAlignTopOutlined />}>
+          <Button type="primary" disabled={readonly} onClick={handleClickAlign} size="small" icon={<VerticalAlignTopOutlined />}>
             维度对齐
           </Button>
         }>
@@ -592,7 +641,7 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={10}>
-              <Button block type="primary" disabled={readonly} onClick={handleCalc}>
+              <Button block type="primary" disabled={readonly} onClick={handleTryCompute}>
                 试计算
               </Button>
             </Col>
