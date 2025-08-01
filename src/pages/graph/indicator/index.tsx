@@ -185,6 +185,7 @@ export default function IndicatorAdvance() {
   const basic_info = useSelector((state: StoreState) => state.indicatorAdvance.basic_info);
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
+  const readonly = useSelector((state: StoreState) => state.indicatorAdvance.readonly);
   const checkVersionList = useSelector(
     (state: StoreState) => state.indicator.checkVersionList
   );
@@ -274,6 +275,7 @@ export default function IndicatorAdvance() {
             },
           },
         ],
+        readonly: ["drag-canvas", "zoom-canvas"],
       },
       defaultNode: {
         type: "indicator",
@@ -365,7 +367,7 @@ export default function IndicatorAdvance() {
       graph.setItemState(item, "active", false);
     });
     graph.on("edge:dblclick", (e: IG6GraphEvent) => {
-      graph.removeItem(e.item);
+      !readonly && graph.removeItem(e.item);
     });
     graph.on("canvas:click", () => {
       graph.getNodes().forEach((node: any) => {
@@ -405,6 +407,12 @@ export default function IndicatorAdvance() {
       graph.render()
     }
   }, [graph_data, basic_info])
+
+  useEffect(() => {
+    if (graph) {
+      graph.setMode( readonly ? 'readonly' : 'default')
+    }
+  }, [readonly])
 
   return (
     <div

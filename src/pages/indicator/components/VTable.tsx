@@ -317,9 +317,16 @@ export default function VTable(props: {width: number, height: number}) {
 
   useEffect(() => {
     if (query.graphId) {
-      console.log('---- getCsv: ')
       dispatch(setLoading(true));
-      getCsv(query, extraColumns, function (success: boolean, response: any) {
+      getCsv({
+        "limit": 100,
+        "offset": 0,
+        "pql_params": {
+          "api": api,
+          "params": query
+        },
+        "extra_columns": extraColumns || []
+      }, function (success: boolean, response: any) {
         dispatch(setLoading(false));
         if (success) {
           dispatch(setTableData(response.trim()));
