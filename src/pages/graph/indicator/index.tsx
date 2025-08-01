@@ -16,6 +16,7 @@ import { StoreState } from "@/store";
 import { getIcon, inidcatorSymbolMap } from "@/utils/common";
 import { setSelected, setUpstreams } from "@/reducers/indicatorAdvance";
 import "./index.less";
+import VersionHeader from "@/pages/indicator/components/VersionHeader";
 
 function registerIndicator() {
   G6.registerNode(
@@ -184,6 +185,9 @@ export default function IndicatorAdvance() {
   const basic_info = useSelector((state: StoreState) => state.indicatorAdvance.basic_info);
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
+  const checkVersionList = useSelector(
+    (state: StoreState) => state.indicator.checkVersionList
+  );
 
   let prevWidth: number | undefined = 0,
     prevHeight: number | undefined = 0;
@@ -405,8 +409,10 @@ export default function IndicatorAdvance() {
   return (
     <div
       className="pdb-indicator-graph-container"
-      onKeyDown={(e) => e.stopPropagation()}
     >
+      { !isEmpty(checkVersionList) && (
+        <div className="version"><VersionHeader /></div>
+      ) }
       <div ref={graphRef} className="graph" id="indicator-graph"></div>
     </div>
   );

@@ -46,13 +46,13 @@ import {
   getConditionRaw,
 } from "@/utils/common";
 import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, setCalc, setCodeMode, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setAdvReadonly, setCalc, setCodeMode, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
 import { addMetric, getFuncResult, getMetricDetail2, getMetrics } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
-import { exit, setMetrics } from "@/reducers/indicator";
+import { exit, setEditId, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
 import AdvanceCodeMode from "./AdvanceCodeMode";
 
@@ -69,6 +69,7 @@ export default function Advance(props: any) {
   // );
   const api = useSelector((state: StoreState) => state.query.api);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+  const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const selected = useSelector(
     (state: StoreState) => state.indicatorAdvance.selected
   );
@@ -86,6 +87,9 @@ export default function Advance(props: any) {
   );
   const basic_info = useSelector(
     (state: StoreState) => state.indicatorAdvance.basic_info
+  );
+  const readonly = useSelector(
+    (state: StoreState) => state.indicatorAdvance.readonly
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
@@ -432,7 +436,7 @@ export default function Advance(props: any) {
           </Button>
         }>
           <Form className="pdb-indicator-advColumns"
-            form={columnForm}
+            form={columnForm} disabled={readonly}
             initialValues={getColumnFormInitialValues()}
           >
             {!isEmpty(column_config) &&
@@ -478,6 +482,7 @@ export default function Advance(props: any) {
           className="pdb-indicator-info"
           name="advance"
           form={form}
+          disabled={readonly}
           style={{ maxWidth: 600 }}
           autoComplete="off"
           layout="vertical"
@@ -587,17 +592,21 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={10}>
-              <Button block type="primary" disabled={isEmpty(column_config)} onClick={handleCalc}>
+              <Button block type="primary" disabled={readonly} onClick={handleCalc}>
                 试计算
               </Button>
             </Col>
             <Col span={10}>
-              <Button block type="primary" onClick={handleSave}>
-                {basic_info?.id ? "更新指标" : "保存指标"}
-              </Button>
+              { readonly
+                ? <Button block type="primary" onClick={() => {
+                  dispatch(setAdvReadonly(false))
+                  dispatch(setEditId(checkId))
+                }}>编辑指标</Button>
+                : <Button block type="primary" onClick={handleSave}>{basic_info?.id ? "更新指标" : "保存指标"}</Button>
+              }
             </Col>
             <Col span={4}>
-              <Button icon={<CodeOutlined />} onClick={() => dispatch(setCodeMode(true))} />
+              <Button icon={<CodeOutlined />} disabled={readonly} onClick={() => dispatch(setCodeMode(true))} />
             </Col>
           </Row>
           <Button

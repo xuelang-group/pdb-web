@@ -298,6 +298,7 @@ interface IndicatorAdvanceState {
   column_config: Array<ColumnConfig>;
   // 代码编辑
   codeMode: boolean;
+  readonly: boolean;
 }
 
 // 使用该类型定义初始 state
@@ -331,7 +332,8 @@ const initialState: IndicatorAdvanceState = {
     },
   },
   column_config: [],
-  codeMode: false
+  codeMode: false,
+  readonly: false
 };
 
 export const indicatorAdvanceSlice = createSlice({
@@ -376,10 +378,13 @@ export const indicatorAdvanceSlice = createSlice({
     setCodeMode: (state, action: PayloadAction<boolean>) => {
       state.codeMode = action.payload;
     },
+    setAdvReadonly: (state, action: PayloadAction<boolean>) => {
+      state.readonly = action.payload;
+    },
   },
 });
 
-export const { setSelected, exit, setCalc, setGraphData, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams, setCodeMode } =
+export const { setSelected, exit, setCalc, setGraphData, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams, setCodeMode, setAdvReadonly } =
   indicatorAdvanceSlice.actions;
 
 export default indicatorAdvanceSlice.reducer;

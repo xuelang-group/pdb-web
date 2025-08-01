@@ -1,18 +1,20 @@
-import { Modal, Form, Input, Tag, Spin, Table } from "antd";
-import { StoreState } from '@/store';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useState } from "react";
+import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Modal, Tag, Table } from "antd";
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
-import { setCheckId, setGroupBy, setDimension,setFunc, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
-import { useEffect, useState } from "react";
+import { setCheckId, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
+import { setCurrent, setReadonly } from "@/reducers/indicatorSimple";
+import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 
 
 export default function VersionRecord(props: any) {
-  const [verData, setVerData] = useState([])
   const navigate = useNavigate();
+  const location = useLocation();
   const routerParams = useParams();
   const dispatch = useDispatch();
+  const [verData, setVerData] = useState([])
 
   useEffect(() => {
     if (props.versionId) {
@@ -28,29 +30,51 @@ export default function VersionRecord(props: any) {
     props.onClose()
   }
 
+  const enterIndicatorAdvance = (item: any) => {
+    dispatch(setAdvReadonly(true))
+    dispatch(setMetricInfo(item))
+    dispatch(setGraphData(item.graph_data))
+    dispatch(setMetricParams(item.metric_params || {}))
+    dispatch(updateColumnConfig(item.column_config || []))
+    dispatch(setPqlParams(item.pql_params))
+    if (!location.pathname.endsWith("/indicator/advance")) {
+      navigate(`/${routerParams.id}/indicator/advance`)
+    }
+  }
+
+  const enterIndicatorSimple = (item: any) => {
+    dispatch(setCurrent(item))
+    dispatch(setReadonly(true))
+    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple`)
+  }
+
+  const enterIndicatorProfession = (item: any) => {
+    const dimensionStr = item.metric_params.dimension.name_cn
+    const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
+    dispatch(setExtraColumns(item.metric_params.extra_columns))
+    dispatch(setQueryParams(item.pql_params.params));
+    dispatch(setApi(item.pql_params.api));
+    dispatch(setNextShowConfiguration({
+      dimension: dimensionStr,
+      func: item.metric_params.func,
+      groupBy: groupByArr
+    }))
+    !location.pathname.endsWith("/indicator") && navigate(`/${routerParams.id}/indicator`)
+  }
+
   const onCheck = (record: any) => {
     getMetricDetail({id: record.id}, (success: boolean, res: any) => {
       if (success) {
-        const dimensionStr = res.metric_params.dimension.name_cn
-        const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
-        navigate(`/${routerParams.id}/indicator`)
-        dispatch(setCheckId(res.id));
-        dispatch(setExtraColumns(res.metric_params.extra_columns))
-        dispatch(setQueryParams(res.pql_params.params));
-        dispatch(setApi(res.pql_params.api));
+        if (res.type === 2) {
+          enterIndicatorAdvance(res)
+        } else if (res.type === 1) {
+          enterIndicatorSimple(res)
+        } else {
+          enterIndicatorProfession(res)
+        }
         dispatch(setcheckVersionList(verData))
         dispatch(setNowCheckVersion(record.version))
         onCancel()
-        dispatch(setNextShowConfiguration({
-          dimension: dimensionStr,
-          func: res.metric_params.func,
-          groupBy: groupByArr
-        }))
-        // setTimeout(() => {
-        //   dispatch(setDimension(dimensionStr));
-        //   dispatch(setFunc(res.metric_params.func));
-        //   dispatch(setGroupBy(groupByArr));
-        // }, 500)
       }
     })
   }
@@ -64,7 +88,7 @@ export default function VersionRecord(props: any) {
       width={960}
       maskClosable={false}
     >
-      <Table 
+      <Table rowKey="id"
         columns={[
           {
             title: '版本号',

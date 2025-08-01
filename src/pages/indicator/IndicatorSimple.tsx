@@ -72,8 +72,9 @@ import {
 import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
-import { exit, setMetrics } from "@/reducers/indicator";
-import { MetricItem, setCalc } from "@/reducers/indicatorSimple";
+import { exit, setMetrics, setEditId } from "@/reducers/indicator";
+import { MetricItem, setCalc, setReadonly } from "@/reducers/indicatorSimple";
+import VersionHeader from "./components/VersionHeader";
 
 const { confirm } = Modal;
 
@@ -114,11 +115,16 @@ export default function SimpleIndicator(props: any) {
   const [form] = Form.useForm();
   const [metricForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
-
+  
+  const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const current = useSelector(
     (state: StoreState) => state.indicatorSimple.current
   );
+  const checkVersionList = useSelector(
+    (state: StoreState) => state.indicator.checkVersionList
+  );
   const calc = useSelector((state: StoreState) => state.indicatorSimple.calc);
+  const readonly = useSelector((state: StoreState) => state.indicatorSimple.readonly);
   const requestId = useSelector(
     (state: StoreState) => state.indicator.requestId
   );
@@ -787,24 +793,28 @@ export default function SimpleIndicator(props: any) {
     );
   };
 
+  const isVersion = !isEmpty(checkVersionList)
   return (
     <>
-      <div className="pdb-indicator-title">
-        <Button
-          className="pdb-indicator-back"
-          type="text"
-          size="small"
-          icon={<LeftOutlined />}
-          onClick={handleBack}
-        />
-        <Typography.Text>初级指标{current ? "编辑" : "创建"}</Typography.Text>
-      </div>
-      <div className="pdb-indicator-simple">
+      { !isVersion ?
+        <div className="pdb-indicator-title">
+          <Button
+            className="pdb-indicator-back"
+            type="text"
+            size="small"
+            icon={<LeftOutlined />}
+            onClick={handleBack}
+          />
+          <Typography.Text>初级指标{current ? "编辑" : "创建"}</Typography.Text>
+        </div> :
+        <div style={{padding: '12px 24px 0', borderBottom: 'solid 1px var(--border-color2)'}}><VersionHeader /></div>
+      }
+      <div className="pdb-indicator-simple" style={{height: `calc(100% - ${isVersion ? 56 : 40}px)`}}>
         <div className="pdb-indicator-simple-body">
           <Divider orientation="left" orientationMargin={16}>
             基础信息
           </Divider>
-          <Form name="simple" {...layout} form={form}>
+          <Form name="simple" {...layout} form={form} disabled={readonly}>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 label="中文名称"
@@ -874,7 +884,7 @@ export default function SimpleIndicator(props: any) {
           <Divider orientation="left" orientationMargin={16}>
             指标定义
           </Divider>
-          <Form name="metric_params" {...layout} form={metricForm}>
+          <Form name="metric_params" {...layout} form={metricForm} disabled={readonly}>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 name={"typeName"}
@@ -1034,7 +1044,7 @@ export default function SimpleIndicator(props: any) {
           <Row style={{ marginBottom: 16 }}>
             <Col span={18} offset={3}>
               <ExploreFilterContent
-                readOnly={false}
+                readOnly={readonly}
                 visible={true}
                 onRef={childRef}
                 originType={originType}
@@ -1044,14 +1054,19 @@ export default function SimpleIndicator(props: any) {
           </Row>
         </div>
         <div className="pdb-indicator-simple-footer">
-          <Button type="primary" onClick={handleTryCompute}>
+          <Button type="primary" disabled={readonly} onClick={handleTryCompute}>
             试计算
           </Button>
           <Space size={16}>
             <Button onClick={handleBack}>关闭</Button>
-            <Button type="primary" onClick={onSubmit}>
-              保存
-            </Button>
+            {
+              readonly
+              ? <Button block type="primary" onClick={() => {
+                dispatch(setReadonly(false))
+                dispatch(setEditId(checkId))
+              }}>编辑指标</Button>
+              : <Button type="primary" disabled={readonly} onClick={onSubmit}>{ current ? '更新指标' : '保存指标'}</Button>
+            }
           </Space>
         </div>
       </div>

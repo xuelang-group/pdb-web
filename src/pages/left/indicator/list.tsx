@@ -17,7 +17,7 @@ import './index.less';
 import { initialParams, setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
 import { inidcatorSymbolMap } from '@/utils/common';
-import { setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from '@/reducers/indicatorAdvance';
+import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from '@/reducers/indicatorAdvance';
 
 export default function List(props: any) {
   const navigate = useNavigate();
@@ -260,12 +260,13 @@ export default function List(props: any) {
     setIndicatorList(indicators);
   }
 
-  const enterIndicatorAdvance = (item: any) => {
+  const enterIndicatorAdvance = (item: any, key: 'check2' | 'edit') => {
     dispatch(setMetricInfo(item))
     dispatch(setGraphData(item.graph_data))
     dispatch(setMetricParams(item.metric_params || {}))
     dispatch(updateColumnConfig(item.column_config || []))
     dispatch(setPqlParams(item.pql_params))
+    dispatch(setAdvReadonly(key === 'check2'))
     if (!location.pathname.endsWith("/indicator/advance")) {
       navigate(`/${routerParams.id}/indicator/advance`)
     }
@@ -304,7 +305,7 @@ export default function List(props: any) {
     if (['edit', 'check2'].includes(menu.key)) {
       menu.key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));
       if (item.type === 2) 
-        enterIndicatorAdvance(item)
+        enterIndicatorAdvance(item, menu.key)
       if (item.type === 1) 
         enterIndicatorSimple(item, menu.key)
       if (!item.type) enterIndicatorProfession(item, menu.key)
@@ -312,6 +313,7 @@ export default function List(props: any) {
     if (menu.key ==='version') {
       setVersionVisible(true)
       setVersionId(item.ori_id)
+      dispatch(setCheckId(item.id))
     }
   }
   
@@ -322,7 +324,6 @@ export default function List(props: any) {
 
   const renderIndicatorTree = useCallback((type: string) => {
     let indList = JSON.parse(JSON.stringify(indicatorList));
-    
     return (
       <div className='list-container'>
         <div className='list-header'>
