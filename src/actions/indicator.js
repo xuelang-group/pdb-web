@@ -25,7 +25,7 @@ export const getCsv = (query, extraColumns=[], callback) => {
     "extra_columns": extraColumns
   }).then(({ data }) => {
     // console.log(data)
-    callback && callback(data.success, data.success ? data.data.data: data.data);
+    callback && callback(data.success, data.success ? data.data.data: data);
   }, (err) => {
     callback && callback(false, err);
   });
