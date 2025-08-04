@@ -224,6 +224,9 @@ export const indicatorSlice = createSlice({
         state.funcOptions = updateFuncOptions(columns, dimension);
       }
     },
+    addRecords: (state, action: PayloadAction<any>) => {
+      console.log('--- addRecords: ', action.payload)
+    },
     updateDisabledField: (state, action: PayloadAction<any>) => {
       const { col, value } = action.payload;
       let disabledField: string[] = [];

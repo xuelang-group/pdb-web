@@ -30,6 +30,7 @@ import {
 } from "@ant-design/icons";
 import {
   compact,
+  filter,
   find,
   findIndex,
   forEach,
@@ -94,7 +95,6 @@ export default function Advance(props: any) {
     (state: StoreState) => state.indicatorAdvance.readonly
   );
   const [upEnd, setUpEnd] = useState(""); // 减法、除法符号节点，选择被减数或被除数
-  const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
   const [columnsMap, setColumnsMap] = useState<{
     [metricId: string]: {
       id: string;
@@ -114,10 +114,13 @@ export default function Advance(props: any) {
   const [updateModalVisible, setUpdateModalVisible] = useState<boolean>(false)
 
   useEffect(() => {
+    const dimension = get(metric_params, 'dimension.name', '')
+    const func = get(metric_params, 'func', '')
+    const groupBy = map(get(metric_params, 'group_by', []), 'name')
     form.setFieldsValue({
-      dimension: get(metric_params, 'dimension.name', ''),
-      func: get(metric_params, 'func', ''),
-      groupBy: map(get(metric_params, 'group_by', []), 'name'),
+      dimension,
+      func,
+      groupBy,
     })
   }, [metric_params])
 
@@ -125,16 +128,12 @@ export default function Advance(props: any) {
     const values = getColumnFormInitialValues()
     columnForm.setFieldsValue(values)
     // 维度对齐修改后，如果指标度量、groupBy已经不在新的维度中，则清空
-    const dimension = form.getFieldValue('dimension')
-    const groupBy = form.getFieldValue('groupBy')
-    const removedIndex = findIndex(groupBy, (gp: string) => !values[gp])
-    if (removedIndex > -1) {
-      form.setFieldValue('groupBy', [''])
-    }
-    if (!values[dimension]) {
-      form.setFieldValue('dimension', '')
-      form.setFieldValue('func', '')
-    }
+    // const groupBy = form.getFieldValue('groupBy')
+    // const names = map(column_config, 'name')
+    // const removedIndex = findIndex(groupBy, (gp: string) => !names.includes(gp))
+    // if (removedIndex > -1) {
+    //   form.setFieldValue('groupBy', [''])
+    // }
   }, [column_config])
 
   // 处理上游
@@ -157,15 +156,6 @@ export default function Advance(props: any) {
       setUpEnd(end?.edgeId || "");
     }
   }, [upstreams]);
-
-  // 指标度量选择
-  const handleDimensionChange = (value: string) => {
-    const dimension = find(column_config, { id: value });
-    const attrType = get(dimension, "type", "");
-    const funcs = get(funcOptionsObj, attrType, []);
-    setfuncOptions(funcs);
-    form.setFieldsValue({func: ''})
-  };
 
   // 点击“维度对齐”按钮
   const handleClickAlign = async () => {
@@ -264,6 +254,8 @@ export default function Advance(props: any) {
         message.success(`${basic_info?.id ? '更新' : '保存'}指标成功`);
         updateList();
         dispatch(setMetricInfo(values))
+        console.log('--- add ', res)
+        dispatch(setEditId(res))
         basic_info?.id ? setUpdateModalVisible(false) : setModalVisible(false)
       } else {
         message.error(`${basic_info?.id ? '更新' : '保存'}指标失败：${res.message || res.msg}`);
@@ -299,7 +291,7 @@ export default function Advance(props: any) {
       const metric_params = {
         dimension: { name: values.dimension, name_cn: values.dimension },
         func: values.func,
-        group_by: map(values.groupBy, item => ({name: item, name_cn: item}))
+        group_by: map(filter(values.groupBy, item => !!item), item => ({name: item, name_cn: item}))
       }
       const pql_params = {
         api: api,
@@ -541,9 +533,9 @@ export default function Advance(props: any) {
             groupBy: map(metric_params.group_by, 'name') || ['']
           }}
         >
-          <Form.Item label="指标度量" name="dimension">
-            {/* <Input /> */}
-            <Select
+          <Form.Item label="度量别名" name={"dimension"}>
+            <Input />
+            {/* <Select
               placeholder="指标度量"
               options={map(column_config, (item) => ({
                 label: item.name || compact(item.cols)[0].attrName,
@@ -559,13 +551,13 @@ export default function Advance(props: any) {
                 </Space>
               )}
               onChange={handleDimensionChange}
-            />
+            /> */}
           </Form.Item>
           <Form.Item name={"func"} label="统计算法">
             <Select
               placeholder="统计算法"
               allowClear
-              options={map(funcOptions, (item) => ({
+              options={map(funcOptionsObj['int'], (item) => ({
                 label: item,
                 value: item,
               }))}
@@ -585,13 +577,13 @@ export default function Advance(props: any) {
                       <Form.Item {...field} noStyle>
                         <Select
                           placeholder="请选择"
-                          options={map(column_config, (item) => ({
-                            label: item.name || compact(item.cols)[0].attrName,
-                            value: item.id,
+                          options={map(filter(column_config, item => !!item.name), (item) => ({
+                            label: item.name,
+                            value: item.name,
                             disabled: form
                               .getFieldValue("groupBy")
-                              ?.includes(item.id),
-                          }))}
+                              ?.includes(item.name),
+                          }))}                          
                           onChange={(value) => {
                             form.setFieldsValue({
                               groupBy: form
@@ -607,13 +599,19 @@ export default function Advance(props: any) {
                           className="pdb-select-group-by"
                         />
                       </Form.Item>
-                      {fields.length > 1 && (
-                        <DeleteOutlined
-                          className="dynamic-delete-button"
-                          onClick={() => remove(field.name)}
-                          style={{ marginLeft: 8 }}
-                        />
-                      )}
+                      <DeleteOutlined
+                        className="dynamic-delete-button"
+                        onClick={() => {
+                          if (index === 0 && fields.length === 1) {
+                            form.setFieldsValue({
+                              groupBy: ['']
+                            })
+                          } else {
+                            remove(field.name)
+                          }
+                        }}
+                        style={{ marginLeft: 8 }}
+                      />
                     </Form.Item>
                   ))}
                   <Form.Item>

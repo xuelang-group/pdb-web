@@ -297,7 +297,7 @@ export default function VTable(props: {width: number, height: number}) {
       })
     }
   }
-
+ 
   const onClickCell = (args: any) => {
     const { col, row, event, field } = args;
     if (isEmpty(columns)) return
@@ -313,6 +313,25 @@ export default function VTable(props: {width: number, height: number}) {
     } else {
       dispatch(updateSelectedColumns(undefined))
     }
+  }
+
+  const onScrollVerticalEnd = (args: any) => {
+    console.log('--- scroll vertical end: ', args)
+    getCsv({
+      "limit": 100,
+      "offset": records.length,
+      "pql_params": {
+        "api": api,
+        "params": query
+      },
+      "extra_columns": extraColumns || []
+    }, function (success: boolean, response: any) {
+      if (success) {
+        console.log('--- getCsv: ', response)
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+    })
   }
 
   useEffect(() => {
@@ -459,6 +478,7 @@ export default function VTable(props: {width: number, height: number}) {
           onClickCell={onClickCell}
           onDropdownMenuClick={onDropdownMenuClick}
           onContextMenuCell={onContextMenuCell}
+          onScrollVerticalEnd={onScrollVerticalEnd}
         />
       </div>
       {showFoot && (
