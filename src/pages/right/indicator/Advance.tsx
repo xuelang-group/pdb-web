@@ -58,6 +58,7 @@ import SaveModal from "./SaveModal";
 import { exit, setEditId, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
 import AdvanceCodeMode from "./AdvanceCodeMode";
+import AdvanceCalc from "@/pages/indicator/AdvanceCalc";
 
 
 export default function Advance(props: any) {
@@ -112,6 +113,7 @@ export default function Advance(props: any) {
   const [modalVisible, setModalVisible] = useState<boolean>(false)
   const [modalLoading, setModalLoading] = useState<boolean>(false)
   const [updateModalVisible, setUpdateModalVisible] = useState<boolean>(false)
+  const [calcModalOpen, setCalcModalOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const dimension = get(metric_params, 'dimension.name', '')
@@ -358,6 +360,7 @@ export default function Advance(props: any) {
 
   // 试计算
   const handleTryCompute = () => {
+    // setCalcModalOpen(true)
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes, edges } = graph.save();
     if (isEmpty(nodes)) {
@@ -691,6 +694,7 @@ export default function Advance(props: any) {
         modalLoading={modalLoading}
       />
       <AdvanceCodeMode />
+      <AdvanceCalc open={calcModalOpen} onClose={() => setCalcModalOpen(false)} />      
       {contextHolder}
     </div>
   );

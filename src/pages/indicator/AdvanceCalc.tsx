@@ -1,46 +1,33 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from 'react'
-import { message, Space, Empty, Typography, Spin } from "antd";
+import { Modal } from "antd";
 import { ListTable } from '@visactor/react-vtable'
-import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { StoreState } from "@/store";
 import { map } from "lodash";
 
-export default function AdvanceCalc(props: any) {
-  const dispatch = useDispatch()
+export default function AdvanceCalc(props: {open: boolean; onClose: Function;}) {
   const vtable = useRef<any>(null);
   const calc = useSelector((state: StoreState) => state.indicatorAdvance.calc);
+
   const option: IOption = {
     widthMode: 'autoWidth',
     autoFillWidth: true,
     autoWrapText: true,
     defaultRowHeight: 42,
     defaultColWidth: 165,
-    // rightFrozenColCount: 1,
-    // frozenColCount: groupBy.length,
     select: {
-      // disableSelect: true,
-      blankAreaClickDeselect: false,
-      outsideClickDeselect: false,
+      disableSelect: true,
     },
     hover: {
-      highlightMode: 'cross'
+      highlightMode: 'row'
     },
     theme: {
       underlayBackgroundColor: 'transparent',
-      // 冻结列效果
-      frozenColumnLine: {
-        shadow: {
-          width: 10,
-          startColor: 'rgba(0, 29, 77, 0.12)',
-          endColor: 'rgba(0, 29, 77, 0)'
-        }
-      },
       frameStyle: {
         borderColor: '#DCDEE1',
-        borderLineWidth: 0,
-        cornerRadius: 0,
+        borderLineWidth: 0.2,
+        cornerRadius: 3,
       },
       defaultStyle: {
         color: '#4C5A67',
@@ -54,13 +41,7 @@ export default function AdvanceCalc(props: any) {
           inlineRowBgColor: 'rgba(0,0,0,0.02)',
           inlineColumnBgColor: 'rgba(0,0,0,0.02)',
         },
-        select: {
-          inlineRowBgColor: '#F1F8FF',
-          inlineColumnBgColor: '#F1F8FF'
-        }
       },
-      // bodyStyle: {
-      // },
       headerStyle: {
         color: '#1C2126',
         bgColor: '#F9FBFC',
@@ -91,12 +72,10 @@ export default function AdvanceCalc(props: any) {
   }
 
   const onReady = (tableInstance: any, isFirst: Boolean) => {
-    // console.log('on ready ', isFirst)
     if (isFirst) {
       vtable.current = tableInstance
     }
   }
-
   
   useEffect(() => {
     if (vtable.current && calc?.result) {
@@ -113,22 +92,25 @@ export default function AdvanceCalc(props: any) {
           return item
         }),
       });
-      // vtable.current.clearSelected();
-      // if (!isEmpty(columns)) {
-      //   const colCount = columns.length - 1;
-      //   const rowCount = records.length;
-      //   vtable.current.selectCells([{ start: { col: colCount, row: 0 }, end: { col: colCount, row: rowCount } }]);
-      // }
     }
   }, [calc])
 
-
-  return calc?.result ? (
-    <div className="pdb-indicator-advcalc">
-        <ListTable
-          option={option}
-          onReady={onReady}
-        />
-    </div>
-  ) : null
+  return (
+    <Modal
+      title="计算结果"
+      width={800}
+      open={props.open}
+      onCancel={() => props.onClose()}
+      onOk={() => props.onClose()}
+    >
+      { calc?.result ? (
+        <div className="pdb-indicator-advcalc">
+          <ListTable
+            option={option}
+            onReady={onReady}
+          />
+        </div>
+      ) : null }
+    </Modal>
+  )
 }

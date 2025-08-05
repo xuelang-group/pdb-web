@@ -16,9 +16,8 @@ import { StoreState } from "@/store";
 import { getIcon, inidcatorSymbolMap } from "@/utils/common";
 import { setSelected, setUpstreams } from "@/reducers/indicatorAdvance";
 import VersionHeader from "@/pages/indicator/components/VersionHeader";
-import AdvanceCalc from "@/pages/indicator/AdvanceCalc";
-import "./index.less";
 import { fittingString } from "@/utils/objectGraph";
+import "./index.less";
 
 function registerIndicator() {
   G6.registerNode(
@@ -189,7 +188,6 @@ export default function IndicatorAdvance() {
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
   const readonly = useSelector((state: StoreState) => state.indicatorAdvance.readonly);
-  const calc = useSelector((state: StoreState) => state.indicatorAdvance.calc);
   const checkVersionList = useSelector(
     (state: StoreState) => state.indicator.checkVersionList
   );
@@ -414,16 +412,6 @@ export default function IndicatorAdvance() {
 
   useEffect(() => {
     if (graph) {
-      const container: any = graphRef.current;
-      if (!container) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight || 500;
-      graph.changeSize(width, height);
-    }
-  }, [calc?.result])
-
-  useEffect(() => {
-    if (graph) {
       graph.setMode( readonly ? 'readonly' : 'default')
     }
   }, [readonly])
@@ -435,8 +423,7 @@ export default function IndicatorAdvance() {
       { !isEmpty(checkVersionList) && (
         <div className="version"><VersionHeader /></div>
       ) }
-      <div ref={graphRef} style={{height: calc?.result ? '50%' : '100%'}} className="graph" id="indicator-graph"></div>
-      <AdvanceCalc />
+      <div ref={graphRef} className="graph" id="indicator-graph"></div>
     </div>
   );
 }
