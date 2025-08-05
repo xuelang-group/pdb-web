@@ -94,15 +94,19 @@ export default function AdvanceCodeMode() {
   }
 
   const parseCode2Source = () => {
-    const arr = []
+    const arr: {[key: string]: any} = {}
+    let key = ''
     console.log('--- code: ', code)
-    forEach(code, (item, index) => {
-      if (item.type === 'kuo') {
-        if (item.name === '(') {
-          arr.push([])
-        }
-      }
-    })}
+    // forEach(code, (item, index) => {
+    //   if (item.type === 'kuo') {
+    //     if (item.name === '(') {
+    //       arr.push([])
+    //     }
+    //   } else {
+    //     arr[`${index}`] = item
+    //   }
+    // })
+  }
 
   const handleOk = () => {
     // 验证括号

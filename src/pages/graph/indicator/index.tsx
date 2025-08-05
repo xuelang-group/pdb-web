@@ -15,8 +15,10 @@ import { filter, get, isEmpty } from "lodash";
 import { StoreState } from "@/store";
 import { getIcon, inidcatorSymbolMap } from "@/utils/common";
 import { setSelected, setUpstreams } from "@/reducers/indicatorAdvance";
-import "./index.less";
 import VersionHeader from "@/pages/indicator/components/VersionHeader";
+import AdvanceCalc from "@/pages/indicator/AdvanceCalc";
+import "./index.less";
+import { fittingString } from "@/utils/objectGraph";
 
 function registerIndicator() {
   G6.registerNode(
@@ -52,14 +54,15 @@ function registerIndicator() {
           },
           name: "node-rect",
         });
+        const { text }= fittingString(label as string, 90)
         group.addShape("text", {
           attrs: {
-            text: label,
+            text,
             fill: "#1C2126",
             textBaseline: "middle",
             fontSize: 14,
             cursor: "pointer",
-            x: 40,
+            x: 32,
             y: 16,
           },
           name: "node-text",
@@ -67,14 +70,14 @@ function registerIndicator() {
         });
         group.addShape("text", {
           attrs: {
-            x: 12,
+            x: 10,
             y: 16,
             fill: iconColor,
             textBaseline: "middle",
             fontFamily: "iconfont",
             // textAlign: 'center',
             text: getIcon(icon),
-            fontSize: 18,
+            fontSize: 16,
           },
           name: "node-icon",
           draggable: true,
@@ -186,6 +189,7 @@ export default function IndicatorAdvance() {
   const graph_data = useSelector((state: StoreState) => state.indicatorAdvance.graph_data);
   const upstreams = useSelector((state: StoreState) => state.indicatorAdvance.upstreams);
   const readonly = useSelector((state: StoreState) => state.indicatorAdvance.readonly);
+  const calc = useSelector((state: StoreState) => state.indicatorAdvance.calc);
   const checkVersionList = useSelector(
     (state: StoreState) => state.indicator.checkVersionList
   );
@@ -410,6 +414,16 @@ export default function IndicatorAdvance() {
 
   useEffect(() => {
     if (graph) {
+      const container: any = graphRef.current;
+      if (!container) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight || 500;
+      graph.changeSize(width, height);
+    }
+  }, [calc?.result])
+
+  useEffect(() => {
+    if (graph) {
       graph.setMode( readonly ? 'readonly' : 'default')
     }
   }, [readonly])
@@ -421,7 +435,8 @@ export default function IndicatorAdvance() {
       { !isEmpty(checkVersionList) && (
         <div className="version"><VersionHeader /></div>
       ) }
-      <div ref={graphRef} className="graph" id="indicator-graph"></div>
+      <div ref={graphRef} style={{height: calc?.result ? '50%' : '100%'}} className="graph" id="indicator-graph"></div>
+      <AdvanceCalc />
     </div>
   );
 }

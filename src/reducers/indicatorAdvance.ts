@@ -1,253 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import papa from 'papaparse';
+import { isEmpty } from "lodash";
 import { ConditionState, ParamsState } from "./query";
 import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
-import { isEmpty } from "lodash";
 
-// const demo = {
-//     "name": "test",
-//     "name_cn": "test",
-//     "version": "1.0.0",
-//     "type": 2,
-//     "graph_data": {
-//         "nodes": [
-//             {
-//                 "id": "node-0.167900026479815721753754685088",
-//                 "type": "indicator",
-//                 "label": "测试-QS2",
-//                 "x": 92,
-//                 "y": 224.3333282470703,
-//                 "data": {
-//                     "id": 31,
-//                     "ori_id": 31,
-//                     "name": "test-qs2",
-//                     "name_cn": "测试-QS2",
-//                     "type": 1
-//                 }
-//             },
-//             {
-//                 "id": "node-0.29620202161630871753754686973",
-//                 "type": "indicator",
-//                 "label": "测试-QS",
-//                 "x": 98,
-//                 "y": 327.3333282470703,
-//                 "data": {
-//                     "id": 2,
-//                     "ori_id": 2,
-//                     "name": "test-qs",
-//                     "name_cn": "测试-QS",
-//                     "type": 1
-//                 }
-//             },
-//             {
-//                 "id": "node-0.4296978782659041753754688436",
-//                 "type": "symbol",
-//                 "label": "plus",
-//                 "x": 345,
-//                 "y": 284.3333282470703
-//             },
-//             {
-//                 "id": "node-0.62465069648404391753754701726",
-//                 "type": "indicator",
-//                 "label": "0714",
-//                 "x": 289,
-//                 "y": 161.3333282470703,
-//                 "data": {
-//                     "id": 30,
-//                     "ori_id": 30,
-//                     "name": "test_metric",
-//                     "name_cn": "0714",
-//                     "type": null
-//                 }
-//             },
-//             {
-//                 "id": "node-0.491355805076706061753754713331",
-//                 "type": "symbol",
-//                 "label": "minus",
-//                 "x": 471,
-//                 "y": 247.3333282470703
-//             },
-//             {
-//                 "id": "end",
-//                 "type": "indicator",
-//                 "label": "计算结果",
-//                 "x": 624,
-//                 "y": 246.3333282470703
-//             }
-//         ],
-//         "edges": [
-//             {
-//                 "id": "edge-0.39466193358345791753754694016",
-//                 "source": "node-0.167900026479815721753754685088",
-//                 "target": "node-0.4296978782659041753754688436"
-//             },
-//             {
-//                 "id": "edge-0.181776302635393571753754695699",
-//                 "source": "node-0.29620202161630871753754686973",
-//                 "target": "node-0.4296978782659041753754688436"
-//             },
-//             {
-//                 "id": "edge-0.4737113539245471753754719327",
-//                 "source": "node-0.4296978782659041753754688436",
-//                 "target": "node-0.491355805076706061753754713331",
-//                 "end": true
-//             },
-//             {
-//                 "id": "edge-0.63899751338077841753754722273",
-//                 "source": "node-0.62465069648404391753754701726",
-//                 "target": "node-0.491355805076706061753754713331",
-//             },
-//             {
-//                 "id": "edge-0.072140906311319641753754724016",
-//                 "source": "node-0.491355805076706061753754713331",
-//                 "target": "end"
-//             }
-//         ]
-//     },
-//     "column_config": [
-//         {
-//             "cols": [
-//                 {
-//                     "attrId": "part_level",
-//                     "index": 0,
-//                     "typeId": "Type.Ov9n4bERTaIAjcbk8Ha1730272613256",
-//                     "attrName": "零件层级",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "2",
-//                         "name": "test-qs",
-//                         "name_cn": "测试-QS"
-//                     }
-//                 },
-//                 {
-//                     "attrId": "batch_number",
-//                     "index": 0,
-//                     "typeId": "Type.a",
-//                     "attrName": "批号",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "30",
-//                         "name": "test_metric",
-//                         "name_cn": "0714"
-//                     }
-//                 },
-//                 {
-//                     "attrId": "allocation_group",
-//                     "index": 0,
-//                     "typeId": "Type.c",
-//                     "attrName": "来源分配组",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "31",
-//                         "name": "test-qs2",
-//                         "name_cn": "测试-QS2"
-//                     }
-//                 }
-//             ],
-//             "conditions": [
-//                 {
-//                     "name": "TEST01",
-//                     "function": "=",
-//                     "value": "0",
-//                     "not": true
-//                 }
-//             ],
-//             "name": "TEST01",
-//             "id": "1753754681354",
-//             "type": "string"
-//         },
-//         {
-//             "cols": [
-//                 {
-//                     "attrId": "part_name",
-//                     "index": 0,
-//                     "typeId": "Type.Ov9n4bERTaIAjcbk8Ha1730272613256",
-//                     "attrName": "零件名称",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "2",
-//                         "name": "test-qs",
-//                         "name_cn": "测试-QS"
-//                     }
-//                 },
-//                 {
-//                     "attrId": "product_name",
-//                     "index": 0,
-//                     "typeId": "Type.a",
-//                     "attrName": "产品名称",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "30",
-//                         "name": "test_metric",
-//                         "name_cn": "0714"
-//                     }
-//                 },
-//                 {
-//                     "attrId": "source_department",
-//                     "index": 0,
-//                     "typeId": "Type.c",
-//                     "attrName": "来源部门",
-//                     "attrType": "string",
-//                     "metric": {
-//                         "id": "31",
-//                         "name": "test-qs2",
-//                         "name_cn": "测试-QS2"
-//                     }
-//                 }
-//             ],
-//             "conditions": [
-//                 {
-//                     "name": "TEST02",
-//                     "function": "ANYOFTERMS",
-//                     "value": "a",
-//                     "not": false
-//                 }
-//             ],
-//             "name": "TEST02",
-//             "id": "1753754765923",
-//             "type": "string",
-//         }
-//     ],
-//     "metric_params": {
-//         "dimension": {
-//           "name": "1753754681354",
-//           "name_cn": "1753754681354",
-//         },
-//         "func": "count",
-//         "group_by": [
-//             {
-//                 "name": "1753754765923",
-//                 "name_cn": "1753754765923"
-//             }
-//         ]
-//     },
-//     "pql_params": {
-//         "api": "/pdb/api/v1/object/search/pql",
-//         "params": {
-//             "graphId": "5001",
-//             "pql": [
-//                 []
-//             ],
-//             "csv": {
-//                 "header": [
-//                     {
-//                         "attrName": "TEST01",
-//                         "attrType": "string",
-//                         "attrId": "1753754681354",
-//                         "typeId": "",
-//                         "index": 0
-//                     },
-//                     {
-//                         "attrName": "TEST02",
-//                         "attrType": "string",
-//                         "attrId": "1753754765923",
-//                         "typeId": "",
-//                         "index": 0
-//                     }
-//                 ]
-//             }
-//         }
-//     }
-// }
 
 export interface ColumnConfig {
   // 对齐列
@@ -271,6 +27,8 @@ export interface ColumnConfig {
   id: string;
 }
 
+const result = 'product,batch,submission_month,supplier,计算结果\r\nC919,001,2025.05,哈飞,1\r\nC919,001,2025.06,哈飞,1\r\nC919,002,2025.06,哈飞,1\r\nC919,003,2025.06,成飞,1\r\nC919,003,2025.06,成飞,1\r\nC919,003,2025.06,成飞,1\r\nC919,003,2025.06,成飞,1'
+
 interface IndicatorAdvanceState {
   basic_info?: MetricBasicInfo;
   graph_data: string;
@@ -282,10 +40,11 @@ interface IndicatorAdvanceState {
       part_type: string;
       part_version: string;
     };
-    result: Array<{
-      group_by: { [prop: string]: any }[];
-      value: number;
-    }>;
+    result: Array<string[]>
+    // result: Array<{
+    //   group_by: { [prop: string]: any }[];
+    //   value: number;
+    // }>;
   };
   metric_params: MetricParams;
   pql_params: {
@@ -360,6 +119,15 @@ export const indicatorAdvanceSlice = createSlice({
     },
     setMetricInfo: (state, action: PayloadAction<MetricBasicInfo>) => {
       state.basic_info = action.payload
+      const {data} = papa.parse<any[]>(result);
+      state.calc = { 
+        dimension: { name: '', name_cn: '' },
+        group_by_name_dict: {
+          part_type: 'string',
+          part_version: 'product',
+        },
+        result: data
+      }
     },
     setMetricParams: (state, action: PayloadAction<MetricParams>) => {
       state.metric_params = action.payload;
