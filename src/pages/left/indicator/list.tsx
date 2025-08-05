@@ -5,10 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StoreState } from '@/store';
 import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import _, { isEmpty, set } from 'lodash';
+import _, { isEmpty } from 'lodash';
 import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
   setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration, 
-  setExtraColumns} from "@/reducers/indicator";
+  setExtraColumns } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
 import VersionRecord from './VersionRecord'
@@ -286,7 +286,7 @@ export default function List(props: any) {
     dispatch(setApi(item.pql_params.api));
     dispatch(setNextShowConfiguration({
       dimension: dimensionStr,
-      func: item.metric_params.func,
+      func: item.metric_params.func || '',
       groupBy: groupByArr
     }))
     navigate(`/${routerParams.id}/indicator`)

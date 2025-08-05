@@ -349,7 +349,7 @@ export default function VTable(props: {width: number, height: number}) {
         dispatch(setLoading(false));
         if (success) {
           dispatch(setTableData(response.trim()));
-          if(nextShowConfiguration) {
+          if (nextShowConfiguration) {
             dispatch(setDimension(nextShowConfiguration.dimension));
             dispatch(setFunc(nextShowConfiguration.func));
             dispatch(setGroupBy(nextShowConfiguration.groupBy));
@@ -360,7 +360,6 @@ export default function VTable(props: {width: number, height: number}) {
         }
       })
     } else {
-      console.log('--- clear')
       dispatch(setTableData(""));
     }
   }, [query, extraColumns])
@@ -400,7 +399,7 @@ export default function VTable(props: {width: number, height: number}) {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
     })
-  }, [func, dimension, groupBy, extraColumns])
+  }, [func, dimension, groupBy])
 
   useEffect(() => {
     if (vtable.current) {
@@ -487,8 +486,8 @@ export default function VTable(props: {width: number, height: number}) {
           <Space>
             <span>合计 | </span> 
             {
-              result.map(item => (
-                <span key={item.index}>{func} : {item.value}</span>
+              result.map((item, index) => (
+                <span key={index}>{func} : {item.value}</span>
               ))
             }
           </Space>
