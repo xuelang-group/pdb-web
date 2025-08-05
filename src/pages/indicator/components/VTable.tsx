@@ -7,7 +7,7 @@ import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { isEmpty, compact, isString, findIndex, keys, values } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
-import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns } from "@/reducers/indicator";
+import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns, addRecords } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
@@ -316,7 +316,7 @@ export default function VTable(props: {width: number, height: number}) {
   }
 
   const onScrollVerticalEnd = (args: any) => {
-    console.log('--- scroll vertical end: ', args)
+    if (!query.graphId || args.scrollTop < args.viewHeight || records.length < 100 || records.length % 100 > 0) return
     getCsv({
       "limit": 100,
       "offset": records.length,
@@ -327,7 +327,7 @@ export default function VTable(props: {width: number, height: number}) {
       "extra_columns": extraColumns || []
     }, function (success: boolean, response: any) {
       if (success) {
-        console.log('--- getCsv: ', response)
+        dispatch(addRecords(response.trim()))
       } else {
         message.error('获取列表数据失败：' + response.message || response.msg);
       }
@@ -360,6 +360,7 @@ export default function VTable(props: {width: number, height: number}) {
         }
       })
     } else {
+      console.log('--- clear')
       dispatch(setTableData(""));
     }
   }, [query, extraColumns])

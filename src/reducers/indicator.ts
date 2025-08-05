@@ -207,7 +207,6 @@ export const indicatorSlice = createSlice({
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
-
         // 数据初始化，默认将整数或浮点数类型作为度量列，若无则最后一列做为度量列
         const index = findLastIndex(state.csv[1], (type: string) => ['int', 'float', 'number'].includes(type));
         const endIndex = state.csv[0].length - 1;
@@ -225,7 +224,15 @@ export const indicatorSlice = createSlice({
       }
     },
     addRecords: (state, action: PayloadAction<any>) => {
-      console.log('--- addRecords: ', action.payload)
+      const result = papa.parse<any[]>(action.payload);
+      const data = result.data.slice(2);
+      state.csv = state.csv.concat(data);
+
+      const { dimension, func, groupBy, groupByResult, disabledField } = state;
+      const { records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
+
+      state.mergeCell = mergeCell;
+      state.records = records;
     },
     updateDisabledField: (state, action: PayloadAction<any>) => {
       const { col, value } = action.payload;
@@ -371,7 +378,7 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setLoading, setTableData, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
+export const { setLoading, setTableData, addRecords, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
   setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
   setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, setNextShowConfiguration, exit, updateSelectedColumns, updateExtraColumns, setExtraColumns
 } = indicatorSlice.actions

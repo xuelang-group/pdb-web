@@ -1195,13 +1195,13 @@ export default function AppExplore() {
       setSearchTags([[]]);
       setSearchTagMap([{}]);
       setCurrentFocusIndex(0);
+      dispatch(setQueryParams(initialParams));
       const graph = (window as any).PDB_GRAPH;
       if (!graph || !graphDataMap['main']) return;
       dispatch(setCurrentGraphTab("main"));
       graph.data(JSON.parse(JSON.stringify(graphDataMap['main'])));
       graph.render();
       graph.zoom(1);
-      dispatch(setQueryParams(initialParams));
     }
   }
   
