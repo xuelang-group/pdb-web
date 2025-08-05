@@ -194,7 +194,7 @@ export default function Advance(props: any) {
     setConditionCfg(item)
   }
 
-  // 维度设置- 自定义维度名称，更新Distinct
+  // 维度设置- 自定义维度名称
   const handleChangeCondition = (id: string | number, key: string, value: any) => {
     const col_cfgs = map(column_config, (cfg) => (cfg.id !== id ? cfg : {...cfg, [key]: value}))
     dispatch(updateColumnConfig(col_cfgs))
@@ -438,11 +438,10 @@ export default function Advance(props: any) {
   };
 
   const getColumnFormInitialValues = () => {
-    const values: {[id: string]: {name: string; distinct: boolean; }} = {}
+    const values: {[id: string]: {name: string}} = {}
     forEach(column_config, cfg => {
       values[cfg.id] = {
         name: cfg.name,
-        distinct: !!cfg.distinct
       }
     })
     return values
@@ -510,9 +509,6 @@ export default function Advance(props: any) {
                           onClick={() => onEditCondition(item)}
                         />
                       </Space>
-                      <Form.Item noStyle name={[item.id, 'distinct']} valuePropName="checked">
-                        <Checkbox onChange={(e) => handleChangeCondition(item.id, 'distinct', e.target.checked)}>distinct</Checkbox>
-                      </Form.Item>
                     </Flex>
                   </div>
                 );

@@ -205,7 +205,6 @@ import { isEmpty } from "lodash";
 //             "name": "TEST02",
 //             "id": "1753754765923",
 //             "type": "string",
-//             "distinct": true
 //         }
 //     ],
 //     "metric_params": {
@@ -265,7 +264,6 @@ export interface ColumnConfig {
   }>;
   // 筛选条件
   conditions: ConditionState[];
-  distinct?: boolean;
   // 数据类型，等同 attrType
   type?: string;
   // 别名
