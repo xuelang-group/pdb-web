@@ -19,10 +19,6 @@ export default function Indicator(props: any) {
   
   const onCreate = (mode: string) => {
     if (mode == 'indicator') {
-      /**
-       * 专业模式即用户所需要的“先计算后定义”，这部分和原来已实现的，变化不大
-       * 只是在过滤处增加 “distinct”选项。在每个字段的右方，只有当该字段给勾选了，才可选“distinct”
-       */
       dispatch(setShowSearch(true));
     }
     navigate(`/${routerParams.id}/${mode}`)

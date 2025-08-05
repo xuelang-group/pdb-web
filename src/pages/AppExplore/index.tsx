@@ -192,7 +192,6 @@ export default function AppExplore() {
           }
         });
       }
-
       Object.assign(_tagsMap, {
         [_id]: {
           key: typeId,
@@ -200,6 +199,7 @@ export default function AppExplore() {
           type: type === "object" ? "type" : type,
           prevSearchTagType: index === 0 ? "" : (type === "object" ? "relation" : "type"),
           label: name,
+          distinct: !!other.distinct,
           config: {
             conditions,
             key: conditionRaw,
@@ -850,6 +850,7 @@ export default function AppExplore() {
               type,
               conditionRaw: _.get(detail, "config.key", ""),
               conditions: _.get(detail, "config.conditions", []),
+              distinct: detail.distinct,
               id: optionKey
             });
 
@@ -1284,9 +1285,9 @@ export default function AppExplore() {
                     close={() => {
                       setFilterPanelOpenKey(null);
                     }}
-                    saveConfig={(config: any, csv: any, bindType: string) => {
+                    saveConfig={(config: any, csv: any, bindType: string, distinct: boolean) => {
                       const newSearchTagsMap = JSON.parse(JSON.stringify(searchTagMap));
-                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv, bindType } });
+                      Object.assign(newSearchTagsMap[index], { [filterPanelOpenKey]: { ...searchTagMap[index][filterPanelOpenKey], config, csv, bindType, distinct } });
                       setSearchTagMap(newSearchTagsMap);
                       setFilterPanelOpenKey(null);
                     }}
