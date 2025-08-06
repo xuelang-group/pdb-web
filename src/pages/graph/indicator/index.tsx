@@ -408,7 +408,7 @@ export default function IndicatorAdvance() {
       graph.data(data);
       graph.render()
     }
-  }, [graph_data, basic_info])
+  }, [graph_data])
 
   useEffect(() => {
     if (graph) {

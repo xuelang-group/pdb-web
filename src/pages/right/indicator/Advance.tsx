@@ -49,7 +49,7 @@ import {
   getConditionRaw,
 } from "@/utils/common";
 import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, setAdvReadonly, setCalc, setCodeMode, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setAdvReadonly, setCalc, setCodeMode, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
@@ -148,6 +148,8 @@ export default function Advance(props: any) {
     forEach(upstreams, (item) => {
       if (item.edgeId !== edgeId) {
         graph.setItemState(item.edgeId, "end", false);
+        const md = graph.findById(item.edgeId).getModel();
+        graph.updateItem(item.edgeId, { ...md, end: false });
       }
     });
   };
@@ -256,7 +258,7 @@ export default function Advance(props: any) {
         message.success(`${basic_info?.id ? '更新' : '保存'}指标成功`);
         updateList();
         dispatch(setMetricInfo(values))
-        console.log('--- add ', res)
+        dispatch(setGraphData(graph_data))
         dispatch(setEditId(res))
         basic_info?.id ? setUpdateModalVisible(false) : setModalVisible(false)
       } else {
@@ -460,7 +462,7 @@ export default function Advance(props: any) {
               label={`被${selected?.label === "divide" ? "除" : "减"}数`}
             >
               {upstreams && (
-                <Radio.Group
+                <Radio.Group disabled={readonly}
                   value={upEnd}
                   onChange={(e) => handleChangeUpstream(e.target.value)}
                 >
