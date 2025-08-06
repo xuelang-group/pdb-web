@@ -1,13 +1,15 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Card, Col, message, Modal, Row, Space } from "antd";
-import { compact, filter, forEach, isArray, map, sortBy, values } from "lodash";
+import { find, findLast, forEach, isArray, map } from "lodash";
 import { INode } from "@antv/g6";
-import { setCodeMode } from "@/reducers/indicatorAdvance";
+import { setCodeMode, setGraphData } from "@/reducers/indicatorAdvance";
 import { StoreState } from "@/store";
 import { inidcatorSymbolMap } from "@/utils/common";
 import { MetricItem } from "@/reducers/indicatorSimple";
 import './advanceCodeMode.less';
+
+interface CodeItem {key: string; id: string; type: string; name: string; data?: {[key:string]: any};}
 
 export default function AdvanceCodeMode() {
   const dispatch = useDispatch();
@@ -16,7 +18,7 @@ export default function AdvanceCodeMode() {
   const codeMode = useSelector((state: StoreState) => state.indicatorAdvance.codeMode);
 
   const [open, setOpen] = useState(false)
-  const [code, setCode] = useState<{key: string; name: string; type?: string; [prop: string]: any}[]>([])
+  const [code, setCode] = useState<CodeItem[]>([])
   const [insertIndex, setInsertIndex] = useState(-1)
   const [source, setSource] = useState<Array<any>>([])
   const [selectedMetrics, setSelectedMetrics] = useState<{[id: string | number]: string | number}>({})
@@ -28,6 +30,7 @@ export default function AdvanceCodeMode() {
     }
   }, [codeMode]) 
 
+  // 根据嵌套的数组source数据获得展开的数组code数据
   const getCode = (data: Array<any>, parentKey?: string) => {
     const arr: any[] = []
     forEach(data, (item, index) => {
@@ -38,14 +41,14 @@ export default function AdvanceCodeMode() {
         arr.push(...children)
         arr.push({id: `${key}-r`, key, name: ')', type: 'kuo'})
       } else {
-        const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
-        arr.push({id: item.id, key, metricId: item.data.id, name, type: item.type})
+        arr.push({id: item.id, key, name: item.label, type: item.type, data: item.data})
       }
     })
     return arr
   }
 
-  const getInArray = (node: INode) => {
+  // 根据graph的节点，向上游查询，获得Source数据
+  const getSource = (node: INode) => {
     const inEdges = node.getInEdges()
     const nodeModel = node.getModel()
     const arr: any[] = []
@@ -54,58 +57,103 @@ export default function AdvanceCodeMode() {
       const source = edg.getSource()
       const sourceModel = source.getModel()
       if (sourceModel.type === 'symbol') {
-        const prevArr = getInArray(source)
+        const prevArr = getSource(source)
         model.end ? arr.unshift(prevArr) : arr.push(prevArr)
       } else {
-        const item = {id: sourceModel.id, type: sourceModel.type, data: sourceModel.data}
+        const item = {id: sourceModel.id, label: sourceModel.label, type: sourceModel.type, data: sourceModel.data}
         model.end ? arr.unshift(item) : arr.push(item)
       }
     })
-    arr.splice(1, 0, {id: nodeModel.id, type: nodeModel.type, data: nodeModel.type === 'indicator' ? nodeModel.data : {name: nodeModel.label}})
+    arr.splice(1, 0, {
+      id: nodeModel.id,
+      type: nodeModel.type,
+      label: nodeModel.label,
+      data: nodeModel.type === 'indicator' ? nodeModel.data : undefined})
     return arr
   }
 
+  // 将graph数据解析为公式的code
   const parseGraph2Code = () => {
     const graph = (window as any).INDICATOR_GRAPH;
+    if (!graph) return
     const endNode = graph.findById('end')
-    if (!endNode) {
-      message.warning('数据中缺少“计算结果”')
-      return
+    if (endNode) {
+      const symbol = endNode.getNeighbors('source')[0]
+      const data = getSource(symbol)
+      const _code = getCode(data)
+      const metrics: {[id: string | number]: string | number} = {}
+      forEach(_code, item => {
+        if (item.data) {
+          const { id, ori_id } = item.data
+          metrics[id] = ori_id
+        }
+      })
+      setSelectedMetrics(metrics)
+      setCode(_code)
+      setSource(data)
     }
-    const nodes = map(graph.getNodes(), item => {
-      const model = item.getModel()
-      if (model.type === 'indicator') return model.data
-      return undefined
-    })
-    const symbol = endNode.getNeighbors('source')[0]
-    const data = getInArray(symbol)
-    const _code = getCode(data)
-    const metrics: {[id: string | number]: string | number} = {}
-    forEach(compact(nodes), item => {
-      metrics[item.id] = item.ori_id
-    })
-    setSelectedMetrics(metrics)
-    setCode(_code)
-    setSource(data)
   }
 
   const handleCancel = () => {
     dispatch(setCodeMode(false))
   }
 
+  // 将展开的数组code数据转换为嵌套的Soure
   const parseCode2Source = () => {
-    const arr: {[key: string]: any} = {}
-    let key = ''
-    console.log('--- code: ', code)
-    // forEach(code, (item, index) => {
-    //   if (item.type === 'kuo') {
-    //     if (item.name === '(') {
-    //       arr.push([])
-    //     }
-    //   } else {
-    //     arr[`${index}`] = item
-    //   }
-    // })
+    const arr: any[] = []
+    let parent = arr
+    let parentKeys = []
+    for (let i=0; i < code.length; i++) {
+      const item = code[i]
+      if (item.type === 'kuo') {
+        if (item.name === '(') {
+          parent.push([])
+          parent = parent[parent.length - 1]
+          parentKeys.push(0)
+        } else if (item.name === ')') {
+          parentKeys.pop()
+          parent = arr
+          parentKeys.map((key: number) => {
+            parent = parent[key]
+          })
+        }
+      } else if (item.type === 'symbol') {
+        parent.push({id: item.id, label: item.name, type: item.type})
+      } else if (item.type === 'indicator') {
+        parent.push({id: item.id, label: item.name, type: item.type, data: item.data})
+      }
+    }
+    return arr
+  }
+
+  // 根据source获得画布中的nodes和edges
+  const parseSource2GraphData = (arr: any[]) => {
+    const nodes: any[] = []
+    const edges: any[] = []
+    arr.forEach((item, index: number) => {
+      if (isArray(item)) {
+        const children = parseSource2GraphData(item)
+        nodes.push(...children.nodes)
+        edges.push(...children.edges)
+      } else {
+        nodes.push(item)
+      }
+      if (index) {
+        const prevSibling = arr[index - 1]
+        const prevId = isArray(prevSibling) ? findLast(prevSibling, {type: 'symbol'})?.id : prevSibling.id
+        if (item.type === 'symbol') {
+          const edge = find(edges, {source: prevId})
+          const source = edge ? edge.target : prevId
+          const edg: {source: string; target: string; end?: boolean} = { source: source, target: item.id }
+          if (['minus', 'divide'].includes(item.label)) edg.end = true
+          edges.push(edg)
+        } else {
+          const id = isArray(item) ? findLast(item, {type: 'symbol'})?.id : item.id
+          edges.push({source: id, target: prevId})
+        }
+      }
+    })
+    return {nodes, edges}
   }
 
   const handleOk = () => {
@@ -126,28 +174,56 @@ export default function AdvanceCodeMode() {
       return
     }
     const arr = parseCode2Source()
+    const { nodes, edges } = parseSource2GraphData(arr)
+    nodes.push({id: 'end', label: '计算结果'})
+    const lastSymbol = findLast(arr, {type: 'symbol'})
+    if (lastSymbol) {
+      edges.push({source: lastSymbol.id, target: 'end'})
+    }
+    dispatch(setGraphData({nodes, edges}))
+    handleCancel()
   }
 
-  const handleClick = ({type, name, metricId}: any) => {
+  const handleClick = (type: string, name: string, data?: {[key: string]: any}) => {
     const children = codeRef.current?.childNodes
     const len = children?.length ? children?.length : 0
     const index = (insertIndex < 0 || insertIndex > len) ? len : insertIndex
     const _code = JSON.parse(JSON.stringify(code))
-    const item: {id: string; type: string; name: string; [prop: string]: any} = {id: `${Date.now()}`, type, name }
-    if (metricId) item.metricId = metricId
+    let id = `${Date.now()}`
+    if (type === 'kuo') {
+      const dir = name === '(' ? 'l' : 'r'
+      id += `-${dir}`
+    }
+    const item: CodeItem = {key: '', id, type, name, data }
     _code.splice(index, 0, item)
     setCode(_code)
     setInsertIndex(index+1)
+    if (type === 'indicator' && data) {
+      setSelectedMetrics({...selectedMetrics, [data.id]: data.ori_id})
+    }
+  }
+
+  const handleReset = () => {
+    const _code = getCode(source)
+    const metrics: {[id: string | number]: string | number} = {}
+    forEach(_code, item => {
+      if (item.data) {
+        const { id, ori_id } = item.data
+        metrics[id] = ori_id
+      }
+    })
+    setSelectedMetrics(metrics)
+    setCode(_code)
   }
 
   const handleClear = () => {
-    console.log('--- handleChange: ', code)
+    setCode([])
+    setSelectedMetrics({})
   }
 
-  const handleBlur = () => {
+  const handleInsert = () => {
     const range = window.getSelection()?.getRangeAt(0)
     range && setInsertIndex(range?.startOffset)
-    console.log('--- handleBlur: ', range?.startOffset)
   }
   
   const handleKeydown = (e: any) => {
@@ -155,11 +231,17 @@ export default function AdvanceCodeMode() {
       e.preventDefault()
       const _code = JSON.parse(JSON.stringify(code))
       const index = e.key === "Backspace" ? insertIndex - 1 : insertIndex
-      _code.splice(index, 1)
+      const [removedItem] = _code.splice(index, 1)
       setCode(_code)
       setInsertIndex(index)
+      if (removedItem.type === 'indicator') {
+        const { id } = removedItem.data
+        const selected = JSON.parse(JSON.stringify(selectedMetrics))
+        delete selected[id]
+        setSelectedMetrics(selected)
+      }
     } else if (["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.key)) {
-      handleBlur()
+      handleInsert()
     } else {
       e.preventDefault()
       message.warning('请从下面列表中点选指标和运算符')
@@ -193,18 +275,30 @@ export default function AdvanceCodeMode() {
       onCancel={handleCancel}
       onOk={handleOk}
     >
-      <Card title="计算结果 =" size="small" className="pdb-indicator-codemode" extra={<Button size="small" onClick={handleClear}>清理</Button>}>
-        {/* <Input value={code} /> */}
+      <Card
+        title="计算结果 ="
+        size="small"
+        className="pdb-indicator-codemode"
+        extra={
+          <Space>
+            <Button size="small" onClick={handleReset}>重置</Button>
+            <Button size="small" onClick={handleClear}>清理</Button>
+          </Space>
+        }
+      >
         <div
           className="code-wrap"
           ref={codeRef}
           contentEditable
-          onBlur={handleBlur}
+          onBlur={handleInsert}
           onKeyDown={handleKeydown}
+          onMouseUp={handleInsert}
           suppressContentEditableWarning={true}
           // dangerouslySetInnerHTML={{ __html: value }}
         >
-          { map(code, (item, index) => (<span key={item.id} className={item.type} data-index={item.key} contentEditable={false}>{item.name}</span>)) }
+          { map(code, (item, index) => (
+            <span key={item.id} className={item.type} data-index={item.key} contentEditable={false}>{item.type === 'symbol' ? inidcatorSymbolMap[item.name] : item.name}</span>
+          )) }
           {/* {open && renderCode(source, 0)} */}
         </div>
       </Card>
@@ -218,7 +312,7 @@ export default function AdvanceCodeMode() {
                   const ori = item.ori_id && selectedMetrics[item.ori_id]
                   return (
                     <li key={item.id} className={curr || ori ? 'selected' : ''}
-                      onClick={() => handleClick({type: 'indicator', name: item.name, metricId: item.id})}
+                      onClick={() => handleClick('indicator', item.name, {id: item.id, name: item.name, name_cn: item.name_cn, type: item.type, ori_id: item.ori_id})}
                     >
                       {
                         item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
@@ -240,10 +334,10 @@ export default function AdvanceCodeMode() {
         <Col span={8}>
           <Row gutter={8} style={{marginBottom: 8}}>
             <Col span={12}>
-              <Button block onClick={() => handleClick({type: 'kuo', name: '('})}>（</Button>
+              <Button block onClick={() => handleClick('kuo', '(')}>（</Button>
             </Col>
             <Col span={12}>
-              <Button block onClick={() => handleClick({type: 'kuo', name: ')'})}>）</Button>
+              <Button block onClick={() => handleClick('kuo', ')')}>）</Button>
             </Col>
           </Row>
           <Card title="运算符" size="small" className="pdb-indicator-codemode">
@@ -251,7 +345,7 @@ export default function AdvanceCodeMode() {
             {
               Object.keys(inidcatorSymbolMap).map(item => (
                 <li key={item}
-                  onClick={() => handleClick({type: 'symbol', name: inidcatorSymbolMap[item]})}
+                  onClick={() => handleClick('symbol', item)}
                 >
                   <i className={'item-icon iconfont icon-yunsuanfu'}></i>
                   <span className='item-label'>运算符[ {inidcatorSymbolMap[item]} ]</span>

@@ -360,7 +360,7 @@ export default function Advance(props: any) {
 
   // 试计算
   const handleTryCompute = () => {
-    // setCalcModalOpen(true)
+    setCalcModalOpen(true)
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes, edges } = graph.save();
     if (isEmpty(nodes)) {
@@ -435,7 +435,7 @@ export default function Advance(props: any) {
         title="过滤条件"
         content={ isEmpty(conditions) ? '无' : <Space>{content}</Space> }
       >
-        <Button type="link" size="small" icon={<EyeOutlined />} />
+        <Button type="text" size="small" icon={<EyeOutlined />} />
       </Popover>
     );
   };
@@ -506,7 +506,7 @@ export default function Advance(props: any) {
                         <Typography.Text>过滤:</Typography.Text>
                         {renderCondition(item.conditions, item.name)}
                         <Button
-                          type="link"
+                          type="text"
                           size="small"
                           icon={<EditOutlined />}
                           onClick={() => onEditCondition(item)}
