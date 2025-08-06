@@ -46,8 +46,8 @@ interface IndicatorAdvanceState {
     //   value: number;
     // }>;
   };
-  metric_params: MetricParams;
-  pql_params: {
+  metric_params?: MetricParams;
+  pql_params?: {
     api: string;
     params: ParamsState;
   };
@@ -78,16 +78,7 @@ const initialState: IndicatorAdvanceState = {
     func: "",
     group_by: [{name: '', name_cn: ''}],
   },
-  pql_params: {
-    api: "/pdb/api/v1/object/search/pql",
-    params: {
-      graphId: "5001",
-      pql: [[]],
-      csv: {
-        header: [],
-      },
-    },
-  },
+  pql_params: undefined,
   column_config: [],
   codeMode: false,
   readonly: false
@@ -97,13 +88,17 @@ export const indicatorAdvanceSlice = createSlice({
   name: "indicatorAdvance",
   initialState,
   reducers: {
-    exit: (state) => {
+    exitAdv: (state) => {
       state.selected = undefined;
       state.upstreams = undefined;
       state.calc = undefined;
       state.column_config = [];
       state.basic_info = undefined;
+      state.metric_params = undefined;
+      state.pql_params = undefined;
       state.graph_data = "";
+      state.readonly = false;
+      state.codeMode = false;
     },
     setSelected: (state, action: PayloadAction<any>) => {
       state.selected = action.payload;
@@ -150,7 +145,7 @@ export const indicatorAdvanceSlice = createSlice({
   },
 });
 
-export const { setSelected, exit, setCalc, setGraphData, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams, setCodeMode, setAdvReadonly } =
+export const { setSelected, exitAdv, setCalc, setGraphData, setMetricInfo, setUpstreams, updateColumnConfig, setMetricParams, setPqlParams, setCodeMode, setAdvReadonly } =
   indicatorAdvanceSlice.actions;
 
 export default indicatorAdvanceSlice.reducer;

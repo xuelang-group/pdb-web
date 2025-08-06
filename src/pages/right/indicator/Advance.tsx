@@ -49,7 +49,7 @@ import {
   getConditionRaw,
 } from "@/utils/common";
 import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
-import { ColumnConfig, setAdvReadonly, setCalc, setCodeMode, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { ColumnConfig, setAdvReadonly, setCalc, setCodeMode, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig, exitAdv } from "@/reducers/indicatorAdvance";
 import { operators } from "@/pages/AppExplore/ExploreFilter";
 import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
@@ -118,7 +118,7 @@ export default function Advance(props: any) {
   useEffect(() => {
     const dimension = get(metric_params, 'dimension.name', '')
     const func = get(metric_params, 'func', '')
-    const groupBy = map(get(metric_params, 'group_by', []), 'name')
+    const groupBy = !isEmpty(metric_params?.group_by) ? map(get(metric_params, 'group_by', []), 'name') : ['']
     form.setFieldsValue({
       dimension,
       func,
@@ -529,9 +529,9 @@ export default function Advance(props: any) {
           autoComplete="off"
           layout="vertical"
           initialValues={{
-            dimension: metric_params.dimension.name || '',
-            func: metric_params.func || '',
-            groupBy: map(metric_params.group_by, 'name') || ['']
+            dimension: get(metric_params, 'dimension.name', ''),
+            func: get(metric_params, 'func', ''),
+            groupBy: metric_params?.group_by ? map(metric_params?.group_by, 'name') : ['']
           }}
         >
           <Form.Item label="度量别名" name={"dimension"}>
@@ -662,6 +662,7 @@ export default function Advance(props: any) {
             onClick={() => {
               dispatch(exit())
               dispatch(clearQuery())
+              dispatch(exitAdv())
               navigate(`/${systemInfo.graphId}/indicator/index`);
             }}
           >

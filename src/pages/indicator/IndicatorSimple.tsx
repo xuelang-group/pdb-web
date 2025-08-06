@@ -73,7 +73,7 @@ import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { exit, setMetrics, setEditId } from "@/reducers/indicator";
-import { MetricItem, setCalc, setReadonly } from "@/reducers/indicatorSimple";
+import { exitSimple, MetricItem, setCalc, setReadonly } from "@/reducers/indicatorSimple";
 import VersionHeader from "./components/VersionHeader";
 
 const { confirm } = Modal;
@@ -257,6 +257,7 @@ export default function SimpleIndicator(props: any) {
   const handleBack = () => {
     dispatch(exit());
     dispatch(clearQuery())
+    dispatch(exitSimple())
     form.resetFields();
     metricForm.resetFields();
     navigate(`/${routerParams.id}/indicator/index`);

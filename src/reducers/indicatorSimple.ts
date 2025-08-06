@@ -77,9 +77,14 @@ export const indicatorSimpleSlice = createSlice({
     setCalc: (state, action: PayloadAction<any>) => {
       state.calc = JSON.parse(JSON.stringify(action.payload));
     },
+    exitSimple: (state) => {
+      state.current = undefined
+      state.calc = undefined
+      state.readonly = false
+    }
   },
 });
 
-export const { setCurrent, setReadonly, setCalc } = indicatorSimpleSlice.actions;
+export const { setCurrent, exitSimple, setReadonly, setCalc } = indicatorSimpleSlice.actions;
 
 export default indicatorSimpleSlice.reducer;
