@@ -228,7 +228,9 @@ export default function Right(props: any) {
       okText: "立即退出",
       cancelText: "留在此页",
       onOk: function () {
-        navigate(`/${systemInfo.graphId}`);
+        dispatch(exit())
+        dispatch(clearQuery())
+        navigate(`/${systemInfo.graphId}/indicator/index`);
         savingModal = null;
         timeout && clearTimeout(timeout);
       },
