@@ -1,7 +1,6 @@
 import {
   Button,
   Card,
-  Checkbox,
   Col,
   Flex,
   Form,
@@ -32,7 +31,6 @@ import {
   compact,
   filter,
   find,
-  findIndex,
   forEach,
   get,
   isEmpty,
@@ -45,7 +43,6 @@ import {
   inidcatorSymbolMap,
   funcOptionsObj,
   typeMap,
-  typeIconMap,
   getConditionRaw,
 } from "@/utils/common";
 import { clearQuery, ConditionState, CsvHeaderState } from "@/reducers/query";
@@ -185,7 +182,7 @@ export default function Advance(props: any) {
     const missingInidators = []
     for(let data of indicators) {
       const res = await getMetricDetail2({ id: data.id });
-      if (res.status == 200 && !isEmpty(res.data)) {
+      if (res.status === 200 && !isEmpty(res.data)) {
         obj[data.id] = {
           ...data,
           columns: get(res.data, "pql_params.params.csv.header", []),
@@ -319,13 +316,13 @@ export default function Advance(props: any) {
   // 保存指标
   const handleSave = () => {
     const graph = (window as any).INDICATOR_GRAPH;
-    const { nodes, edges } = graph.save();
+    const { nodes } = graph.save();
     if (isEmpty(nodes)) {
-      message.warning('画布空白内容，不能保存')
+      message.warning('画布内容空白！')
       return
     }
     if (isEmpty(column_config)) {
-      message.warning('请先对进行 “维度对齐” !')
+      message.warning('请先对进行 “维度对齐” ！')
       return
     }
     form.validateFields().then(values => {

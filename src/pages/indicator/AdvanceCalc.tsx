@@ -1,11 +1,11 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useRef, useState } from 'react'
+import { useSelector } from "react-redux";
+import { useEffect, useRef } from 'react'
 import { Button, Flex, Modal, Space, Typography } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { StoreState } from "@/store";
-import { isEmpty, map } from "lodash";
+import { isEmpty } from "lodash";
 import { Col } from "./components/CONSTS";
 
 const getColumns = (cols: Col[]) => {

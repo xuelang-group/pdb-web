@@ -113,7 +113,7 @@ export default function AdvanceCodeMode() {
         } else if (item.name === ')') {
           parentKeys.pop()
           parent = arr
-          parentKeys.map((key: number) => {
+          parentKeys.forEach((key: number) => {
             parent = parent[key]
           })
         }
@@ -248,24 +248,6 @@ export default function AdvanceCodeMode() {
     }
 
   }
-
-  const renderCode = (data: Array<any>, parentIndex:number) => {
-    return map(data, (item, index) => {
-      if (isArray(item)) {
-        const arr: any[] = renderCode(item, parentIndex)
-        return (
-          <Fragment key={`${parentIndex}-${index}`}>
-          <span className="kuo" id={`${parentIndex}-${index}-l`} contentEditable={false}>(</span>
-            {arr}
-          <span className="kuo"id={`${parentIndex}-${index}-r`} contentEditable={false}>)</span>
-          </Fragment>
-        )
-      } else {
-        const name = item.type === 'symbol' ? inidcatorSymbolMap[item.data.name] : item.data.name;
-        return <span key={item.id} className={item.type} id={item.id} data-index={`${parentIndex}-${index}`} contentEditable={false}>{name}</span>
-      }
-    })
-  }
   
   return (
     <Modal
@@ -299,7 +281,6 @@ export default function AdvanceCodeMode() {
           { map(code, (item, index) => (
             <span key={item.id} className={item.type} data-index={item.key} contentEditable={false}>{item.type === 'symbol' ? inidcatorSymbolMap[item.name] : item.name}</span>
           )) }
-          {/* {open && renderCode(source, 0)} */}
         </div>
       </Card>
       <Row gutter={8} style={{marginTop: 8}}>

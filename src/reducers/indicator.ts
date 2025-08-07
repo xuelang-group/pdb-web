@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import papa from 'papaparse';
-import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set, findIndex } from 'lodash';
+import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, findIndex } from 'lodash';
 import { Col } from '@/pages/indicator/components/CONSTS'
 import { funcOptionsObj } from '@/utils/common';
 
@@ -156,7 +156,7 @@ export const updateData = (data: any[], metricParams: MetricParams, groupByResul
         })
       })
       const index = findLastIndex(records, (row: any) => {
-        const count = filter(keys, (gb) => row[gb] == record[gb])
+        const count = filter(keys, (gb) => row[gb] === record[gb])
         return count.length === keys.length
       })
       records.splice(index + 1, 0, record)
@@ -244,7 +244,7 @@ export const indicatorSlice = createSlice({
         disabledField = [...state.disabledField, field]
       } else {
         // 启用
-        disabledField = filter(state.disabledField, item => item != field)
+        disabledField = filter(state.disabledField, item => item !== field)
       }
       state.disabledField = disabledField;
       state.columns = map(state.columns, (item, i) => ({
@@ -275,7 +275,7 @@ export const indicatorSlice = createSlice({
     updateExtraColumns: (state, action: PayloadAction<any>) => {
       const { name, formula } = action.payload
       const index = findIndex(state.extraColumns, {name: name})
-      if (index == -1) {
+      if (index === -1) {
         state.extraColumns = [...state.extraColumns, {name, formula}]
       } else {
         state.extraColumns = map(state.extraColumns, (item, i) => index === i ? ({...item, formula}) : {...item})
