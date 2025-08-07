@@ -4,11 +4,11 @@ import { isEmpty, orderBy, remove, findLastIndex, map, filter, forEach, set, fin
 import { Col } from '@/pages/indicator/components/CONSTS'
 import { funcOptionsObj } from '@/utils/common';
 
-interface Record {
+export interface Record {
   [key: string]: any;
 }
 
-interface MergeCell {
+export interface MergeCell {
   col: number[];
   row: number[];
 }
@@ -44,6 +44,7 @@ interface IndicatorState {
   result: Record[];         // 总计的计算结果
   groupBy: string[];        // Group By
   mergeCell: MergeCell;     // 分组的计算结果在表格中合并单元格
+  groupByNameDict: Record;
   funcOptions: string[]; // 统计算法选项
   list: any[];
   modalVisible: boolean;
@@ -77,6 +78,7 @@ const initialState: IndicatorState = {
   groupBy: [],
   funcOptions: [],
   mergeCell: { col: [], row: [] },
+  groupByNameDict: {},
   list: [],
   modalVisible: false,
   updateModalVisible: false,
@@ -86,9 +88,7 @@ const initialState: IndicatorState = {
   nextShowConfiguration: null,
 }
 
-let groupByNameDict: Record = {}
-
-const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], disabledField: string[]) => {
+export const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], groupByNameDict: Record, disabledField: string[] =[]) => {
   const cols: string[] = data[0];  // CSV的第一行：表头
   const types: string[] = data[1]; // CSV的第二行：数据类型
   const rows = data.slice(2);
@@ -202,6 +202,7 @@ export const indicatorSlice = createSlice({
       state.groupByResult = [];
       state.result = [];
       state.groupBy = [];
+      state.groupByNameDict = {};
       state.funcOptions = [];
       state.selectedColumns = {}
       if (action.payload) {
@@ -214,8 +215,8 @@ export const indicatorSlice = createSlice({
         state.dimentionInitial = dimension;
         state.dimension = dimension;
         
-        const { func, groupBy, groupByResult, disabledField } = state;
-        const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
+        const { func, groupBy, groupByResult, groupByNameDict, disabledField } = state;
+        const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, groupByNameDict, disabledField);
 
         state.mergeCell = mergeCell;
         state.records = records;
@@ -228,8 +229,8 @@ export const indicatorSlice = createSlice({
       const data = result.data.slice(2);
       state.csv = state.csv.concat(data);
 
-      const { dimension, func, groupBy, groupByResult, disabledField } = state;
-      const { records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
+      const { dimension, func, groupBy, groupByResult, groupByNameDict, disabledField } = state;
+      const { records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, groupByNameDict, disabledField);
 
       state.mergeCell = mergeCell;
       state.records = records;
@@ -254,14 +255,14 @@ export const indicatorSlice = createSlice({
     setFuncResult: (state, action: PayloadAction<any>) => {
       const { result, group_by_name_dict } = action.payload;
       // const { name, name_cn } = action.payload.dimension;
-      groupByNameDict = group_by_name_dict;
+      state.groupByNameDict = group_by_name_dict;
       // 使用解构赋值
       const [first, ...group_by_result] = result;
       state.groupByResult = group_by_result;
       state.result = [first];
 
-      const { func, groupBy, groupByResult, disabledField, dimension } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, groupByNameDict, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, groupByNameDict, disabledField);
 
       state.mergeCell = mergeCell;
       state.records = records;
@@ -302,8 +303,8 @@ export const indicatorSlice = createSlice({
       
       if (isEmpty(state.csv)) return
 
-      const { func, groupBy, groupByResult, disabledField, dimension } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, groupByNameDict, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, {dimension, func, groupBy}, groupByResult, groupByNameDict, disabledField);
     
       state.mergeCell = mergeCell;
       state.records = records;
@@ -318,8 +319,8 @@ export const indicatorSlice = createSlice({
       
       if (isEmpty(state.csv)) return
 
-      const { func, groupBy, groupByResult, disabledField, dimension } = state;
-      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, disabledField);
+      const { func, groupBy, groupByResult, groupByNameDict, disabledField, dimension } = state;
+      const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, groupByNameDict, disabledField);
       
       state.mergeCell = mergeCell;
       state.records = records;

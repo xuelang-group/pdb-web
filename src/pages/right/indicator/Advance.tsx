@@ -114,6 +114,7 @@ export default function Advance(props: any) {
   const [modalLoading, setModalLoading] = useState<boolean>(false)
   const [updateModalVisible, setUpdateModalVisible] = useState<boolean>(false)
   const [calcModalOpen, setCalcModalOpen] = useState<boolean>(false)
+  const [calculating, setCalculating] = useState<boolean>(false)
   const [alignLoading, setAlignLoading] = useState<boolean>(false)
 
   useEffect(() => {
@@ -385,11 +386,12 @@ export default function Advance(props: any) {
         }
         return getFuncResult(params, function(success: boolean, response: any) {
           if (success) {
-            setOpen(true);
             dispatch(setCalc(response))
+            setCalcModalOpen(true)
           } else {
             message.error('获取列表数据失败：' + response.message || response.msg);
           }
+          setCalculating(false)
           formExcess.resetFields()
         })
       },
@@ -398,7 +400,6 @@ export default function Advance(props: any) {
 
   // 试计算
   const handleTryCompute = () => {
-    setCalcModalOpen(true)
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes, edges } = graph.save();
     if (isEmpty(nodes)) {
@@ -433,6 +434,9 @@ export default function Advance(props: any) {
       }
       dispatch(setMetricParams(metric_params))
       dispatch(setPqlParams(pql_params))
+
+      setCalculating(true)
+      // setCalcModalOpen(true)
       getFuncResult({
         cal_type: 2,
         graph_data,
@@ -452,6 +456,7 @@ export default function Advance(props: any) {
             pql_params,
           })
         } else {
+          setCalculating(false)
           message.error('获取列表数据失败：' + response.message || response.msg);
         }
       })
@@ -572,23 +577,6 @@ export default function Advance(props: any) {
         >
           <Form.Item label="度量别名" name={"dimension"}>
             <Input />
-            {/* <Select
-              placeholder="指标度量"
-              options={map(column_config, (item) => ({
-                label: item.name || compact(item.cols)[0].attrName,
-                value: item.id,
-                type: item.type,
-              }))}
-              optionRender={(opt) => (
-                <Space>
-                  <i
-                    className={`attr-type-icon iconfont icon-${typeIconMap[opt.data?.type || '']}`}
-                  />
-                  {opt.data.label}
-                </Space>
-              )}
-              onChange={handleDimensionChange}
-            /> */}
           </Form.Item>
           <Form.Item name={"func"} label="统计算法">
             <Select
@@ -676,7 +664,7 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={10}>
-              <Button block type="primary" disabled={readonly} onClick={handleTryCompute}>
+              <Button block loading={calculating} type="primary" disabled={readonly} onClick={handleTryCompute}>
                 试计算
               </Button>
             </Col>
