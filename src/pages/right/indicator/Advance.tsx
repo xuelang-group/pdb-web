@@ -114,6 +114,7 @@ export default function Advance(props: any) {
   const [modalLoading, setModalLoading] = useState<boolean>(false)
   const [updateModalVisible, setUpdateModalVisible] = useState<boolean>(false)
   const [calcModalOpen, setCalcModalOpen] = useState<boolean>(false)
+  const [alignLoading, setAlignLoading] = useState<boolean>(false)
 
   useEffect(() => {
     const dimension = get(metric_params, 'dimension.name', '')
@@ -177,8 +178,10 @@ export default function Advance(props: any) {
       message.warning('没有可以对齐的源指标！')
       return
     }
+    setAlignLoading(true)
     const indicators = compact(map(indicatorNodes, (n: any) => n.data));
     const obj: { [id: string]: any } = {};
+    const missingInidators = []
     for(let data of indicators) {
       const res = await getMetricDetail2({ id: data.id });
       if (res.status == 200 && !isEmpty(res.data)) {
@@ -186,10 +189,43 @@ export default function Advance(props: any) {
           ...data,
           columns: get(res.data, "pql_params.params.csv.header", []),
         };
+      } else {
+        missingInidators.push(data)
       }
     }
     setColumnsMap(obj);
-    setOpen(true);
+    if (!isEmpty(missingInidators)) {
+      modal.warning({        
+        icon: <ExclamationCircleOutlined />,
+        title: "数据丢失",
+        content: (
+          <>
+            <div style={{marginTop: 8, marginBottom: 8}}>以下指标的数据已经找不到了</div>
+            <ul className="list">{
+              map(missingInidators, item => (
+              <li key={item.id}>
+                {
+                  item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
+                  <svg className="svg-icon" aria-hidden="true">
+                    <use xlinkHref="#icon-gaojizhibiao">
+                    </use>
+                  </svg>
+                }
+                <span className='item-label'>{item.name}</span><span className="item-label2">{item.name_cn}</span>
+              </li>
+            ))
+            }</ul>
+          </>
+        ),
+        onOk: () => {
+          setAlignLoading(false)
+          setOpen(true);
+        }
+      })
+    } else {
+      setAlignLoading(false)
+      setOpen(true);
+    }
   };
 
   // 维度设置- 过滤
@@ -476,7 +512,7 @@ export default function Advance(props: any) {
             </Form.Item>
           )}
         <Card className={`pdb-indicator-advCard${isEmpty(column_config) ? ' no-body': ''}`} title="维度设置" bordered={false} extra={
-          <Button type="primary" disabled={readonly} onClick={handleClickAlign} size="small" icon={<VerticalAlignTopOutlined />}>
+          <Button type="primary" loading={alignLoading} disabled={readonly} onClick={handleClickAlign} size="small" icon={<VerticalAlignTopOutlined />}>
             维度对齐
           </Button>
         }>

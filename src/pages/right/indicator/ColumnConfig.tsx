@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Modal, Space, Typography } from "antd";
+import { Empty, Modal, Space, Typography } from "antd";
 import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { compact, filter, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
@@ -34,12 +34,16 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
   
   useEffect(() => {
     if (visible) {
-      const cfg = isEmpty(column_config) ? [{
+      const _cfg = filter(column_config, item => {
+        const cols = filter(item.cols, col => !isEmpty(columnsMap[col.metric.id]))
+        return !isEmpty(cols)
+      })
+      const cfg = isEmpty(_cfg) ? [{
         cols: [],
         conditions: [],
         name: '',
         id: `${Date.now()}`
-      }] : column_config
+      }] : _cfg
       setColumnConfig(cfg)
     }
   }, [visible]);
@@ -78,8 +82,10 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
 
   // 维度对齐- 确认
   const handleOk = () => {
-    const cfg = map(filter(columnConfig, item => !isEmpty(item.cols)), item => ({...item, type: compact(item.cols)[0].attrType}))
-    dispatch(updateColumnConfig(cfg))
+    if(!isEmpty(columnsMap)) {
+      const cfg = map(filter(columnConfig, item => !isEmpty(item.cols)), item => ({...item, type: compact(item.cols)[0].attrType}))
+      dispatch(updateColumnConfig(cfg))
+    }
     handleCancel()
   }
 
@@ -102,67 +108,74 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
         onCancel={handleCancel}
         onOk={handleOk}
       >
-        <div className="pdb-indicator-align">
-          <div className="pdb-indicator-align-fix">
-            <div className="th"></div>            
-            { map(columnConfig, (item, index) => (
-              <div className="td " key={item.id}>
-                <Typography.Text>{index + 1}</Typography.Text>
-                <div className="operator">
-                  <Space>
-                    <MinusCircleOutlined  className="icon-del" onClick={() => handleDelColCfg(index)} />
-                    <PlusCircleOutlined className="icon-add" onClick={() => handleAddColCfg(index)} />
-                  </Space>
-                </div>
-              </div>
-              )) }
-            <div className="td">
-              {/* <Button size="small" shape="circle" icon={<PlusOutlined />} /> */}
-            </div>
-          </div>
-          {
-            keys(columnsMap).map((id: string, colIndex: number) => (
-              <div className="col" key={id}>
-                <div className="th">
-                  {
-                    columnsMap[id].type !== 2 ? <i className="iconfont icon-zhibiao" /> :
-                    <svg className="svg-icon" aria-hidden="true">
-                      <use xlinkHref="#icon-gaojizhibiao">
-                      </use>
-                    </svg>
-                  }
-                  <b>{columnsMap[id].name}</b>
-                </div>
-                { map(columnConfig, (item, rowIndex) => {
-                  const attrs = filter(item.cols, item => item?.metric.id === id)
-                  const focus = focusCell?.[0] === colIndex && focusCell?.[1] === rowIndex
-                  return (
-                    <div className="td" key={item.id}>
-                      <div className={`cell ${focus ? 'focus' : ''}`} onClick={() => setFocusCell(focus ? undefined : [colIndex, rowIndex])}>
-                      { isEmpty(attrs) ? null : attrs.map(attr => (<span key={attr.attrId}>{attr.attrName}</span>)) }
-                      </div>
+        { isEmpty(columnsMap) ? (
+          <Empty description="没有找到子指标的数据！" />
+          ) :
+          (
+            <div className="pdb-indicator-align">
+              <div className="pdb-indicator-align-fix">
+                <div className="th"></div>            
+                { map(columnConfig, (item, index) => (
+                  <div className="td " key={item.id}>
+                    <Typography.Text>{index + 1}</Typography.Text>
+                    <div className="operator">
+                      <Space>
+                        <MinusCircleOutlined  className="icon-del" onClick={() => handleDelColCfg(index)} />
+                        <PlusCircleOutlined className="icon-add" onClick={() => handleAddColCfg(index)} />
+                      </Space>
                     </div>
-                  )
-                }) }
-                <ul className={focusCell?.[0] === colIndex ? 'list' : 'list disabled'}>
-                  {
-                    map(columnsMap[id]['columns'], (item: CsvHeaderState) => {
-                      const cols = compact(focusCell ? columnConfig[focusCell?.[1]]?.cols : [])
-                      const type = cols[0]?.attrType
-                      const disabled = focusCell?.[0] !== colIndex || (type && typeIconMap[type] !== typeIconMap[item?.attrType])
-                      return (
-                        <li key={item.attrId} className={disabled ? 'disabled' : ''} onClick={() => !disabled && handleDblClick({id, name: columnsMap[id].name, name_cn: columnsMap[id].name_cn}, item)}>
-                          <i className={`iconfont icon-${typeIconMap[item.attrType]}`} />
-                          {item.attrName}
-                        </li>
-                      )
-                    })
-                  }
-                </ul>
+                  </div>
+                  )) }
+                <div className="td">
+                  {/* <Button size="small" shape="circle" icon={<PlusOutlined />} /> */}
+                </div>
               </div>
-            ))
-          }
-        </div>
+              {
+                keys(columnsMap).map((id: string, colIndex: number) => (
+                  <div className="col" key={id}>
+                    <div className="th">
+                      {
+                        columnsMap[id].type !== 2 ? <i className="iconfont icon-zhibiao" /> :
+                        <svg className="svg-icon" aria-hidden="true">
+                          <use xlinkHref="#icon-gaojizhibiao">
+                          </use>
+                        </svg>
+                      }
+                      <b>{columnsMap[id].name}</b>
+                    </div>
+                    { map(columnConfig, (item, rowIndex) => {
+                      const attrs = filter(item.cols, item => item?.metric.id === id)
+                      const disabled = !columnsMap[id]['columns']
+                      const focus = focusCell?.[0] === colIndex && focusCell?.[1] === rowIndex
+                      return (
+                        <div className="td" key={item.id}>
+                          <div className={`cell ${focus ? 'focus' : ''} ${disabled ? 'disabled' : ''}`} onClick={() => !disabled && setFocusCell(focus ? undefined : [colIndex, rowIndex])}>
+                          { isEmpty(attrs) ? null : attrs.map(attr => (<span key={attr.attrId}>{attr.attrName}</span>)) }
+                          </div>
+                        </div>
+                      )
+                    }) }
+                    <ul className={focusCell?.[0] === colIndex ? 'list' : 'list disabled'}>
+                      {
+                        map(columnsMap[id]['columns'], (item: CsvHeaderState) => {
+                          const cols = compact(focusCell ? columnConfig[focusCell?.[1]]?.cols : [])
+                          const type = cols[0]?.attrType
+                          const disabled = focusCell?.[0] !== colIndex || (type && typeIconMap[type] !== typeIconMap[item?.attrType])
+                          return (
+                            <li key={item.attrId} className={disabled ? 'disabled' : ''} onClick={() => !disabled && handleDblClick({id, name: columnsMap[id].name, name_cn: columnsMap[id].name_cn}, item)}>
+                              <i className={`iconfont icon-${typeIconMap[item.attrType]}`} />
+                              {item.attrName}
+                            </li>
+                          )
+                        })
+                      }
+                    </ul>
+                  </div>
+                ))
+              }
+            </div>
+          )
+        }
       </Modal>
     )
 }

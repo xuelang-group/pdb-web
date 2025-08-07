@@ -238,6 +238,12 @@
         border-color: var(--input-active-border-inner);
         box-shadow: 0 0 0 3px var(--input-active-border-outer);
       }
+      &.disabled {
+        border: solid 1px var(--disabled-border);
+        background-color: var(--disabled-bg);
+        color: var(--disabled-color);
+        cursor: not-allowed;
+      }
     }
   }
   .th {
@@ -296,6 +302,12 @@
         color: var(--disabled-color);
         cursor: not-allowed;
       }
+    }
+    &-empty {
+      margin: 8px;
+      padding: 16px;
+      border-radius: 3px;
+      border: solid 1px var(--border-color2);
     }
   }
 }

@@ -531,7 +531,7 @@
         background-color: var(--primary-color);
       }
 
-      &:hover {
+      &:not([disabled]):hover {
         border: unset;
         color: #fff !important;
         background-color: var(--primary-hover) !important;
@@ -977,7 +977,7 @@
     color: var(--text-color2);
   }
 
-  .pdb-ant-modal .pdb-ant-modal {
+  .pdb-ant-modal .pdb-ant-modal:not(.pdb-ant-modal-confirm-confirm) {
     &-header {
       background-color: var(--modal-bg);
       // height: 5.6rem;

@@ -344,7 +344,7 @@ export default function AdvanceCodeMode() {
             <ul className="list list-symbol">
             {
               Object.keys(inidcatorSymbolMap).map(item => (
-                <li key={item}
+                <li className="item" key={item}
                   onClick={() => handleClick('symbol', item)}
                 >
                   <i className={'item-icon iconfont icon-yunsuanfu'}></i>

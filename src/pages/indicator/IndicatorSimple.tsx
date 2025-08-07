@@ -649,7 +649,7 @@ export default function SimpleIndicator(props: any) {
   // 试计算
   const handleTryCompute = () => {
     const detail = originType?.data;
-    if (!detail) {
+    if (current && !detail) {
       message.warning("未找到相关的数据资产单");
       return;
     }
@@ -673,8 +673,8 @@ export default function SimpleIndicator(props: any) {
           message.error('获取列表数据失败：' + response.message || response.msg);
         }
       })
-      .catch(err => {})
-    });
+    })
+    .catch(err => {});
   };
 
   const renderColumnItem = (condition: ConditionState, item: CsvHeaderState) => {
