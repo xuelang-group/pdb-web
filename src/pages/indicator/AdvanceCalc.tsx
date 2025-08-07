@@ -14,9 +14,6 @@ const getColumns = (cols: Col[]) => {
     "title": field,
     "dimensionKey": field,
     "mergeCell": mergeCell,
-    "defaultStyle": {
-      bgColor: "#8BD3FF"
-    }
   }))
 }
 
