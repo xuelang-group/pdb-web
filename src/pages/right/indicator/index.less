@@ -163,44 +163,23 @@
 }
 .pdb-indicator-align {
   display: flex;
-  height: 100%;
+  height: 420px;
   overflow: auto;
   &-fix {
-    flex: 0 0 48px;
-    width: 48px;
-    
-    .operator {
-      position: absolute;
-      width: 48px;
-      height: 24px;
-      top: 0;
-      left: 100%;
-      background-color: #fff;
-      padding: 8px 0;
-      transition: left .2s;
-      .icon-add {
-        font-size: 16px;
-        color: var(--primary-color);
-        cursor: pointer;
-      }
-      .icon-del {
-        font-size: 16px;
-        color: var(--danger-color);
-        cursor: pointer;
-      }
+    flex: 0 0 72px;
+    width: 72px;
+    .xuhao {
+      display: inline-block;
+      width: 32px;
+      color: var(--text-color1);
     }
     .td {
-      position: relative;
-      padding: 0 .8rem;
+      display: flex;
+      align-items: center;
+      padding-left: 0;
       overflow: hidden;
-      text-align: center;
-      &:last-child {
-        border-color: transparent;
-      }
-      &:hover {
-        .operator {
-          left: 0
-        }
+      .pdb-ant-btn:last-child {
+        margin-left: 8px;
       }
     }
   }

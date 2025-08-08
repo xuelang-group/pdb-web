@@ -329,7 +329,7 @@ export default function VTable(props: {width: number, height: number}) {
       if (success) {
         dispatch(addRecords(response.trim()))
       } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
+        message.error('获取数据失败：' + response.message || response.msg);
       }
     })
   }
@@ -356,7 +356,7 @@ export default function VTable(props: {width: number, height: number}) {
             dispatch(setNextShowConfiguration(null))
           }
         } else {
-          message.error('获取列表数据失败：' + response.message || response.msg);
+          message.error('获取数据失败：' + response.message || response.msg);
         }
       })
     } else {
@@ -396,7 +396,7 @@ export default function VTable(props: {width: number, height: number}) {
       if (success) {
         dispatch(setFuncResult(response));
       } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
+        message.error(response.message || response.msg);
       }
     })
   }, [func, dimension, groupBy])

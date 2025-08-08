@@ -183,9 +183,11 @@ export default function Advance(props: any) {
     for(let data of indicators) {
       const res = await getMetricDetail2({ id: data.id });
       if (res.status === 200 && !isEmpty(res.data)) {
+        const cols = get(res.data, "pql_params.params.csv.header", []);
+        const dimensionName = get(res.data, "metric_params.dimension.name");
         obj[data.id] = {
           ...data,
-          columns: get(res.data, "pql_params.params.csv.header", []),
+          columns: dimensionName ? filter(cols, item => item.attrId !== dimensionName) : cols,
         };
       } else {
         missingInidators.push(data)
@@ -386,7 +388,7 @@ export default function Advance(props: any) {
             dispatch(setCalc(response))
             setCalcModalOpen(true)
           } else {
-            message.error('获取列表数据失败：' + response.message || response.msg);
+            message.error(response.message || response.msg);
           }
           setCalculating(false)
           formExcess.resetFields()
@@ -433,7 +435,6 @@ export default function Advance(props: any) {
       dispatch(setPqlParams(pql_params))
 
       setCalculating(true)
-      // setCalcModalOpen(true)
       getFuncResult({
         cal_type: 2,
         graph_data,
@@ -443,18 +444,27 @@ export default function Advance(props: any) {
         pql_params,
       }, function(success: boolean, response: any) {
         if (success) {
-          console.log('--- 试计算结果：', response)
-          handleCalc(toNumber(response.total), {
+          const total = toNumber(response.total)
+          const params = {
             cal_type: 1,
             graph_data,
             metric_params,
             metric_type: 2,
             column_config,
             pql_params,
+          }
+          total > 100 ? handleCalc(total, params) : getFuncResult(params, function(success: boolean, response: any) {
+            if (success) {
+              dispatch(setCalc(response))
+              setCalcModalOpen(true)
+            } else {
+              message.error(response.message || response.msg);
+            }
+            setCalculating(false)
           })
         } else {
           setCalculating(false)
-          message.error('获取列表数据失败：' + response.message || response.msg);
+          message.error(response.message || response.msg);
         }
       })
     })

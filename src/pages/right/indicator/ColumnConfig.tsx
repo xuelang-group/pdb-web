@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Empty, Modal, Space, Typography } from "antd";
-import { MinusCircleOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { Button, Empty, Modal, Space, Typography } from "antd";
+import { MinusCircleOutlined, MinusOutlined, PlusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { compact, filter, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { CsvHeaderState } from "@/reducers/query";
@@ -105,7 +105,6 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
 
   return (
       <Modal
-        className="pdb-indicator-modal"
         title="维度对齐"
         open={visible} width={800}
         onCancel={handleCancel}
@@ -120,13 +119,9 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                 <div className="th"></div>            
                 { map(columnConfig, (item, index) => (
                   <div className="td " key={item.id}>
-                    <Typography.Text>{index + 1}</Typography.Text>
-                    <div className="operator">
-                      <Space>
-                        <MinusCircleOutlined  className="icon-del" onClick={() => handleDelColCfg(index)} />
-                        <PlusCircleOutlined className="icon-add" onClick={() => handleAddColCfg(index)} />
-                      </Space>
-                    </div>
+                    {/* <span className="xuhao">{index + 1}</span> */}
+                    <Button size="small" shape="circle" icon={<MinusOutlined />} type="dashed" danger onClick={() => handleDelColCfg(index)} />
+                    <Button size="small" shape="circle" icon={<PlusOutlined />} type="dashed" onClick={() => handleAddColCfg(index)} />
                   </div>
                   )) }
                 <div className="td">

@@ -638,7 +638,7 @@ export default function SimpleIndicator(props: any) {
             setOpen(true);
             dispatch(setCalc(response))
           } else {
-            message.error('获取列表数据失败：' + response.message || response.msg);
+            message.error(response.message || response.msg);
           }
           formExcess.resetFields()
         })
@@ -664,14 +664,23 @@ export default function SimpleIndicator(props: any) {
         metric_type: 1,
       }, function(success: boolean, response: any) {
         if (success) {
-          handleCalc(toNumber(response.total), {
+          const total = toNumber(response.total)
+          const params = {
             metric_params,
             pql_params,
             cal_type: 1,
             metric_type: 1,
+          }
+          total > 100 ? handleCalc(total, params) : getFuncResult(params, function(success: boolean, response: any) {
+            if (success) {
+              setOpen(true);
+              dispatch(setCalc(response))
+            } else {
+              message.error(response.message || response.msg);
+            }
           })
         } else {
-          message.error('获取列表数据失败：' + response.message || response.msg);
+          message.error(response.message || response.msg);
         }
       })
     })
