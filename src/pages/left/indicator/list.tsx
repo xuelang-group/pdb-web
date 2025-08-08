@@ -6,8 +6,8 @@ import { StoreState } from '@/store';
 import { getMetrics, getMetricDetail, metricHistory } from "@/actions/indicator";
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import _, { isEmpty } from 'lodash';
-import { setMetrics, setCheckId, setEditId, setGroupBy, setDimension, setcheckVersionList, setNowCheckVersion,
-  setFunc, setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration, 
+import { setMetrics, setCheckId, setEditId, resetData, setcheckVersionList, setNowCheckVersion,
+  setNeedCheckId, setNeedEditId, setCurrentBuzProcess, setNextShowConfiguration, 
   setExtraColumns } from "@/reducers/indicator";
 import { setIndicatorLoading } from '@/reducers/editor';
 import ChechDrawer from './CheckDrawer'
@@ -281,6 +281,7 @@ export default function List(props: any) {
   const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
     const dimensionStr = item.metric_params.dimension.name_cn
     const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
+    dispatch(resetData())
     dispatch(setExtraColumns(item.metric_params.extra_columns))
     dispatch(setQueryParams(item.pql_params.params));
     dispatch(setApi(item.pql_params.api));

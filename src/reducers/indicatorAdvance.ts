@@ -129,15 +129,8 @@ export const indicatorAdvanceSlice = createSlice({
       state.upstreams = action.payload;
     },
     setCalc: (state, action: PayloadAction<any>) => {
-      state.calc = action.payload;
-    },
-    updateColumnConfig: (state, action: PayloadAction<ColumnConfig[]>) => {
-      state.column_config = action.payload;
-    },
-    setMetricInfo: (state, action: PayloadAction<MetricBasicInfo>) => {
-      state.basic_info = action.payload;
-      if (calc) {
-        const { csv, result, dimension, group_by_name_dict } = calc;
+      if (action.payload) {
+        const { csv, result, dimension, group_by_name_dict } = action.payload;
         const { data } = papa.parse<any[]>(csv.trim());
         const groupBy = keys(group_by_name_dict);
         const [first, ...group_by_result] = result;
@@ -159,7 +152,15 @@ export const indicatorAdvanceSlice = createSlice({
         console.log('--- columns: ', columns)
         console.log('--- mergeCell: ', mergeCell)
         console.log('--- records: ', records)
+      } else {
+        state.calc = undefined;
       }
+    },
+    updateColumnConfig: (state, action: PayloadAction<ColumnConfig[]>) => {
+      state.column_config = action.payload;
+    },
+    setMetricInfo: (state, action: PayloadAction<MetricBasicInfo>) => {
+      state.basic_info = action.payload;
     },
     setMetricParams: (state, action: PayloadAction<MetricParams>) => {
       state.metric_params = action.payload;

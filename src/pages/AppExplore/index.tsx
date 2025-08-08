@@ -234,7 +234,12 @@ export default function AppExplore() {
 
   useEffect(() => {
     // 反向解析
-    if ((indicatorCheckId || indicatorEditId) && !_.isEmpty(queryParams.graphId) && !_.isEmpty(typeMap)) {
+    if (
+      (indicatorCheckId || indicatorEditId)
+      && location.pathname.endsWith('/indicator')  // 专业模式下
+      && !_.isEmpty(queryParams.graphId)
+      && !_.isEmpty(typeMap)
+    ) {
       reverseParsing();
     }
 

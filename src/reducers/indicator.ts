@@ -190,7 +190,7 @@ export const indicatorSlice = createSlice({
     setLoading: (state, action: PayloadAction<any>) => {
       state.loading = action.payload;
     },
-    setTableData: (state, action: PayloadAction<any>) => {
+    resetData: (state) => {
       state.csv = [];
       state.mergeCell = { col: [], row: [] };
       state.records = [];
@@ -205,6 +205,8 @@ export const indicatorSlice = createSlice({
       state.groupByNameDict = {};
       state.funcOptions = [];
       state.selectedColumns = {}
+    },
+    setTableData: (state, action: PayloadAction<any>) => {
       if (action.payload) {
         const result = papa.parse<any[]>(action.payload);
         state.csv = result.data;
@@ -379,7 +381,7 @@ export const indicatorSlice = createSlice({
   }
 })
 
-export const { setLoading, setTableData, addRecords, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
+export const { setLoading, resetData, setTableData, addRecords, updateDisabledField, setFuncResult, setMetrics, setGroupBy, setDimension, 
   setFunc, setCheckId, setEditId, setModalVisible, setRequestId, setNeedCheckId, setNeedEditId, setCurrentBuzProcess,
   setUpdateModalVisible, setcheckVersionList, setNowCheckVersion, setNeedVersionId, setNextShowConfiguration, exit, updateSelectedColumns, updateExtraColumns, setExtraColumns
 } = indicatorSlice.actions

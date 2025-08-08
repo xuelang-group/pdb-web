@@ -9,7 +9,7 @@ import SaveModal from "./SaveModal";
 import UpdateModal from "./UpdateModal";
 import { setIndicatorLoading } from '@/reducers/editor';
 import { getMetricReference, getMetrics } from "@/actions/indicator";
-import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible } from "@/reducers/indicator";
+import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible, resetData } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
 import Loading from "@/assets/images/loading-apng.png";
@@ -229,6 +229,7 @@ export default function Right(props: any) {
       cancelText: "留在此页",
       onOk: function () {
         dispatch(exit())
+        dispatch(resetData())
         dispatch(clearQuery())
         navigate(`/${systemInfo.graphId}/indicator/index`);
         savingModal = null;
@@ -389,6 +390,7 @@ export default function Right(props: any) {
           <Button block
             onClick={() => {
               dispatch(exit())
+              dispatch(resetData())
               dispatch(clearQuery())
               navigate(`/${systemInfo.graphId}/indicator/index`);
             }}
