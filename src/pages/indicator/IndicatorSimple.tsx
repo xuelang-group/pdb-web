@@ -73,7 +73,7 @@ import { operators } from "../AppExplore/ExploreFilter";
 import { getImgHref } from "@/actions/minioOperate";
 import Loading from "@/assets/images/loading-apng.png";
 import { exit, setMetrics, setEditId } from "@/reducers/indicator";
-import { exitSimple, MetricItem, setCalc, setReadonly } from "@/reducers/indicatorSimple";
+import { exitSimple, MetricItem, setCalc, setReadonly, updateCurrent } from "@/reducers/indicatorSimple";
 import VersionHeader from "./components/VersionHeader";
 
 const { confirm } = Modal;
@@ -243,7 +243,7 @@ export default function SimpleIndicator(props: any) {
       metricForm.resetFields();
       setDimension(undefined);
     }
-  }, [current]);
+  }, [current?.id]);
 
   useEffect(() => {
     if (!requestId) {
@@ -655,7 +655,8 @@ export default function SimpleIndicator(props: any) {
     }
     metricForm.validateFields().then((values) => {      
       const metric_params = getMetricParams()
-      const pql_params = getPqlParams()    
+      const pql_params = getPqlParams()
+      dispatch(updateCurrent({metric_params, pql_params}))
       getFuncResult({
         metric_params,
         pql_params,
@@ -766,12 +767,17 @@ export default function SimpleIndicator(props: any) {
               );
             })}
           <Space>
-            <Popover
-              content={renderPopColumns(attrs, conditionMap)}
-            >
-              <Button type="text" size="small" icon={<SmallDashOutlined />} />
-            </Popover>
-            <span>的 “{dimension && dimension.name_cn}” 为</span>
+            {
+              !isEmpty(attrs) && (<>
+                <Popover
+                  content={renderPopColumns(attrs, conditionMap)}
+                >
+                  <Button type="text" size="small" icon={<SmallDashOutlined />} />
+                </Popover>
+                <span>的</span>
+              </>)
+            }
+            <span>“{dimension && dimension.name_cn}” 为</span>
           </Space>
         </Flex>
         <Flex align="flex-end" className="pdb-indicator-result">
@@ -1013,13 +1019,19 @@ export default function SimpleIndicator(props: any) {
                             className="pdb-select-group-by"
                           />
                         </Form.Item>
-                        {fields.length > 1 && (
-                          <DeleteOutlined
-                            className="dynamic-delete-button"
-                            onClick={() => remove(field.name)}
-                            style={{ marginLeft: 8 }}
-                          />
-                        )}
+                        <DeleteOutlined
+                          className="dynamic-delete-button"
+                          onClick={() => {
+                            if (index === 0 && fields.length === 1) {
+                              metricForm.setFieldsValue({
+                                groupBy: ['']
+                              })
+                            } else {
+                              remove(field.name)
+                            }
+                          }}
+                          style={{ marginLeft: 8 }}
+                        />
                       </Form.Item>
                     ))}
                     <Form.Item>

@@ -71,6 +71,9 @@ export const indicatorSimpleSlice = createSlice({
       state.calc = undefined;
       state.readonly = false;
     },
+    updateCurrent: (state, action: PayloadAction<any>) => {
+      state.current = Object.assign({}, state.current, action.payload)
+    },
     setReadonly: (state, action: PayloadAction<boolean>) => {
       state.readonly = action.payload;
     },
@@ -85,6 +88,6 @@ export const indicatorSimpleSlice = createSlice({
   },
 });
 
-export const { setCurrent, exitSimple, setReadonly, setCalc } = indicatorSimpleSlice.actions;
+export const { setCurrent, updateCurrent, exitSimple, setReadonly, setCalc } = indicatorSimpleSlice.actions;
 
 export default indicatorSimpleSlice.reducer;
