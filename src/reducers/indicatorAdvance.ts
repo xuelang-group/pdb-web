@@ -1,36 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import papa from "papaparse";
-import { isEmpty, keys, map } from "lodash";
+import { isEmpty, map } from "lodash";
 import { ConditionState, ParamsState } from "./query";
 import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
 import { Col } from "@/pages/indicator/components/CONSTS";
 import { updateData, Record, MergeCell } from "./indicator";
-
-const calc = {
-  group_by_name_dict: {
-    "产品": "产品",
-  },
-  csv: "产品,架次,送检,计算结果\r\nstring,string,string,string\r\nC919,001,2025.05,哈飞\r\nC919,001,2025.06,哈飞\r\nC919,002,2025.06,哈飞\r\nC919,003,2025.06,成飞\r\nC919,003,2025.06,成飞\r\nC919,003,2025.06,成飞\r\nC919,003,2025.06,成飞\r\n",
-  result: [
-    {
-      group_by: [],
-      value: 32.0,
-    },
-    {
-      group_by: [
-        {
-          产品: "C919",
-        },
-      ],
-      value: 32.0,
-    },
-  ],
-  success: true,
-  dimension: {
-    name: "计算结果",
-    name_cn: "计算结果",
-  },
-};
 
 export interface ColumnConfig {
   // 对齐列

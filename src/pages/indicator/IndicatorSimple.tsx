@@ -229,6 +229,7 @@ export default function SimpleIndicator(props: any) {
         unit,
         desc,
         version,
+        buzProcess: currentBuzProcess?.id,
       });
       metricForm.setFieldsValue({
         dimension,
@@ -538,6 +539,12 @@ export default function SimpleIndicator(props: any) {
       icon: <img src={getImgHref(Loading)} />,
       title: "指标保存中...",
     });
+    if(values.buzProcess) {
+      const buzProcess = buzProcessArr.find((item: any) => item.id === values.buzProcess)
+      if(buzProcess) {
+        values.buzProcess = buzProcess
+      }
+    }
     const params: MetricItem = {
       name_cn: values.name_cn,
       name: values.name,

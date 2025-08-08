@@ -14,7 +14,7 @@ import ChechDrawer from './CheckDrawer'
 import VersionRecord from './VersionRecord'
 import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
-import { initialParams, setQueryParams, setApi } from '@/reducers/query';
+import { setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
 import { inidcatorSymbolMap } from '@/utils/common';
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from '@/reducers/indicatorAdvance';

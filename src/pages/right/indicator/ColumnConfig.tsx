@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Empty, Modal, Space, Typography } from "antd";
-import { MinusCircleOutlined, MinusOutlined, PlusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Empty, Modal } from "antd";
+import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import { compact, filter, isEmpty, keys, map } from "lodash";
 import { ColumnConfig, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { CsvHeaderState } from "@/reducers/query";
