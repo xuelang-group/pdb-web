@@ -572,7 +572,7 @@ export default function Advance(props: any) {
           className="pdb-indicator-info"
           name="advance"
           form={form}
-          disabled={readonly}
+          disabled={readonly || isEmpty(column_config)}
           style={{ maxWidth: 600 }}
           autoComplete="off"
           layout="vertical"
