@@ -132,7 +132,7 @@ export const indicatorAdvanceSlice = createSlice({
       if (action.payload) {
         const { csv, result, dimension, group_by_name_dict } = action.payload;
         const { data } = papa.parse<any[]>(csv.trim());
-        const groupBy = keys(group_by_name_dict);
+        const groupBy = map(state.metric_params?.group_by, 'name');
         const [first, ...group_by_result] = result;
         const { columns, records, mergeCell } = updateData(
           data,
@@ -149,9 +149,6 @@ export const indicatorAdvanceSlice = createSlice({
           dimension: dimension.name,
           value: first.value,
         };
-        console.log('--- columns: ', columns)
-        console.log('--- mergeCell: ', mergeCell)
-        console.log('--- records: ', records)
       } else {
         state.calc = undefined;
       }

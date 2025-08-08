@@ -83,7 +83,10 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
   // 维度对齐- 确认
   const handleOk = () => {
     if(!isEmpty(columnsMap)) {
-      const cfg = map(filter(columnConfig, item => !isEmpty(item.cols)), item => ({...item, type: compact(item.cols)[0].attrType}))
+      const cfg = map(filter(columnConfig, item => !isEmpty(compact(item.cols))), item => {
+        const firstCol = compact(item.cols)[0]
+        return {...item, type: firstCol.attrType, name: item.name || firstCol.attrName}
+      })
       dispatch(updateColumnConfig(cfg))
     }
     handleCancel()
