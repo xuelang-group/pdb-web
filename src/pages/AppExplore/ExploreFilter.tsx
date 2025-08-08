@@ -1,4 +1,4 @@
-import { Alert, Button, Checkbox, Segmented, Typography } from "antd";
+import { Alert, Button, Checkbox, Flex, Segmented, Typography } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
 import React, { useEffect, useState } from "react";
@@ -40,10 +40,10 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     [checkedList, setCheckedList] = useState<string[]>([]),
     [indeterminate, setIndeterminate] = useState(false),
     [checkAll, setCheckAll] = useState(true),
-    [distinct, setDistinct] = useState(false),
     [segmentedOpt, setSegmentedOpt] = useState<{ label: string, value: string }[]>([]);
 
   const [joinType, setJoinType] = useState("innerjoin"),
+    [distinct, setDistinct] = useState(false),
     [leftSelected, setLeftSelected] = useState(true),
     [rightSelected, setRightSelected] = useState(true),
     [ovalSelected, setOvalSelected] = useState(true);
@@ -80,6 +80,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           setOvalSelected(false);
           break;
       }
+      setDistinct(!!originType.distinct)
     }
 
     const _segmentedOpt = [];
@@ -109,7 +110,6 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     setCheckAll(defaultCheckedList.length === tagTypeAttr.length);
     setAllCheckedList(tagTypeAttr.map(({ name, display, type }: AttrConfig) => (`${name}|${display}|${type}`)));
     setSegmentedOpt(_segmentedOpt);
-    setDistinct(!!originType.distinct)
   }, [originType]);
 
   const save = function () {
@@ -202,10 +202,6 @@ export default function ExploreFilter(props: ExploreFilterProps) {
     setCheckAll(e.target.checked);
   };
 
-  const onDistinctChange = (e: any) => {
-    setDistinct(e.target.checked)
-  }
-
   // 字段选择
   const renderColumnSelect = function () {
     const tagType: string = _.get(originType, 'type', ''),
@@ -219,7 +215,6 @@ export default function ExploreFilter(props: ExploreFilterProps) {
             <span>/</span>
             <span>{tagTypeAttr.length}项</span>
           </Checkbox>
-          <Checkbox onChange={onDistinctChange} checked={distinct} disabled={readOnly}>distinct</Checkbox>
         </div>
         <CheckboxGroup
           options={tagTypeAttr.map(({ display, name, type }: AttrConfig) => ({
@@ -282,9 +277,12 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       <div className="pdb-explore-group">
         <div className="pdb-explore-group-item">
           <div className="pdb-explore-group-item-header">
-            <span></span>
-            <span>计算方式 - {joinType ? joinTypes[joinType] : "?"}</span>
-            <span>(请单击图形更改联接类型)</span>
+            <Flex align="center">
+              <span className="decorate"></span>
+              <span className="title">计算方式 - {joinType ? joinTypes[joinType] : "?"}</span>
+              <span className="tip">(请单击图形更改联接类型)</span>
+            </Flex>            
+            <Checkbox onChange={(e) => setDistinct(e.target.checked)} checked={distinct} disabled={readOnly}>distinct</Checkbox>
           </div>
           <div className="pdb-explore-group-item-content">
             {/* <Radio.Group value={groupMethod} onChange={e => { setGroupMethod(e.target.value); }}>

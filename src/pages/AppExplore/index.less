@@ -455,9 +455,10 @@
       &-header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         margin-bottom: 1.2rem;
 
-        span:nth-child(1) {
+        .decorate {
           width: 5px;
           background: var(--primary-color);
           display: block;
@@ -465,12 +466,12 @@
           margin-right: .8rem;
         }
 
-        span:nth-child(2) {
+        .title {
           font-weight: 600;
           color: var(--text-color1);
         }
 
-        span:nth-child(3) {
+        .tip {
           color: var(--text-color3);
           font-weight: normal;
           font-size: 1.2rem;

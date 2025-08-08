@@ -236,11 +236,17 @@ export default function AppExplore() {
     // 反向解析
     if (
       (indicatorCheckId || indicatorEditId)
-      && location.pathname.endsWith('/indicator')  // 专业模式下
       && !_.isEmpty(queryParams.graphId)
       && !_.isEmpty(typeMap)
     ) {
-      reverseParsing();
+      if (location.pathname.endsWith('/indicator')) {
+        // 专业模式下
+        reverseParsing();
+      } else {
+        setSearchTags([[]]);
+        setSearchTagMap([{}]);
+        setCurrentFocusIndex(0);
+      }
     }
 
     if (isEmpty(queryParams.graphId) && searchTags && !isEmpty(searchTags)) {

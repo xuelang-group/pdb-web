@@ -14,7 +14,7 @@ import {
   exit,
   setcheckVersionList,
   setNowCheckVersion,
-  setCheckId,
+  resetData,
   setNextShowConfiguration,
   setExtraColumns,
 } from "@/reducers/indicator";
@@ -72,6 +72,7 @@ export default function Indicator(props: any) {
   const enterIndicatorProfession = (item: any) => {
     const dimensionStr = item.metric_params.dimension.name_cn
     const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
+    dispatch(resetData())
     dispatch(setExtraColumns(item.metric_params.extra_columns))
     dispatch(setQueryParams(item.pql_params.params));
     dispatch(setApi(item.pql_params.api));

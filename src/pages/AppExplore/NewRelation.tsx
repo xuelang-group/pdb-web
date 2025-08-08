@@ -1,6 +1,6 @@
 import { AttrConfig } from "@/reducers/type";
 import { StoreState } from "@/store";
-import { Button, Divider, Form, Input, Radio, Select } from "antd";
+import { Button, Checkbox, Divider, Flex, Form, Input, Radio, Select } from "antd";
 import 'dayjs/locale/zh-cn';
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
@@ -33,6 +33,7 @@ export default function NewRelation(props: ExploreFilterProps) {
     [leftSelected, setLeftSelected] = useState(false),
     [rightSelected, setRightSelected] = useState(false),
     [ovalSelected, setOvalSelected] = useState(true),
+    [distinct, setDistinct] = useState(false),
     [currTargetTag, setCurrTargetTag] = useState(targetTag);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function NewRelation(props: ExploreFilterProps) {
           break;
       }
       setJoinType(bindType);
+      setDistinct(!!initialValue.distinct)
     }
   }, [initialValue]);
 
@@ -73,6 +75,7 @@ export default function NewRelation(props: ExploreFilterProps) {
         label: values['r.type.label'],
         data: values,
         bindType: joinType,
+        distinct: distinct,
         binds
       }, currTargetTag);
       close();
@@ -225,9 +228,11 @@ export default function NewRelation(props: ExploreFilterProps) {
           <Divider />
           <div className="pdb-explore-group-item">
             <div className="pdb-explore-group-item-header">
-              <span style={{ display: "none" }}></span>
-              <span>计算方式 - {joinType ? joinTypes[joinType] : "?"}</span>
-              <span>(请单击图形更改联接类型)</span>
+              <Flex align="center">
+                <span className="title">计算方式 - {joinType ? joinTypes[joinType] : "?"}</span>
+                <span className="tip">(请单击图形更改联接类型)</span>
+              </Flex>              
+              <Checkbox onChange={(e) => setDistinct(e.target.checked)} checked={distinct} disabled={readOnly}>distinct</Checkbox>
             </div>
             <div className="pdb-explore-group-item-content">
               {/* <Form.Item name="group" label="">
