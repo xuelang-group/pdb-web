@@ -600,7 +600,7 @@ export default function Advance(props: any) {
               {(fields, { add, remove }, { errors }) => (
                 <>
                   {fields.map((field, index) => (
-                    <Form.Item className="pdb-group-by-item"
+                    <Form.Item 
                       label={""}
                       required={false}
                       key={field.key}

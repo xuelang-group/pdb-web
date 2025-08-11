@@ -314,47 +314,45 @@ export default function Right(props: any) {
                         label={''}
                         required={false}
                         key={field.key}
+                        style={{ marginBottom: 12 }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Form.Item
-                            {...field}
-                            noStyle
-                          >
-                            <Select
-                              placeholder='请选择'
-                              options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field, disabled: infoForm.getFieldValue('names')?.includes(item.field) }))}
-                              onChange={(value) => {
-                                infoForm.setFieldsValue({
-                                  names: infoForm.getFieldValue('names').map((item: any, i: number) => {
-                                    if (i === index) {
-                                      return value
-                                    }
-                                    return item
-                                  })
+                        <Form.Item
+                          {...field}
+                          noStyle
+                        >
+                          <Select
+                            placeholder='请选择'
+                            options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field, disabled: infoForm.getFieldValue('names')?.includes(item.field) }))}
+                            onChange={(value) => {
+                              infoForm.setFieldsValue({
+                                names: infoForm.getFieldValue('names').map((item: any, i: number) => {
+                                  if (i === index) {
+                                    return value
+                                  }
+                                  return item
                                 })
-                                onGroupByChange()
-                              }}
-                              disabled={!!checkId}
-                              className="pdb-select-group-by"
-                            />
-                          </Form.Item>
-                          {((fields.length > 1 || infoForm.getFieldValue('names')?.[0]) && !checkId) ? (
-                            <DeleteOutlined
-                              className="dynamic-delete-button"
-                              onClick={() => {
-                                if (index === 0 && fields.length === 1) {
-                                  infoForm.setFieldsValue({
-                                    names: []
-                                  })
-                                } else {
-                                  remove(field.name)
-                                }
-                                onGroupByChange()
-                              }}
-                              style={{ marginLeft: 8 }}
-                            />
-                          ) : null}
-                        </div>
+                              })
+                              onGroupByChange()
+                            }}
+                            disabled={!!checkId}
+                            className="pdb-select-group-by"
+                          />
+                        </Form.Item>
+                        {((fields.length > 1 || infoForm.getFieldValue('names')?.[0]) && !checkId) ? (
+                          <Button icon={<DeleteOutlined />} type="text"
+                            className="dynamic-delete-button"
+                            onClick={() => {
+                              if (index === 0 && fields.length === 1) {
+                                infoForm.setFieldsValue({
+                                  names: []
+                                })
+                              } else {
+                                remove(field.name)
+                              }
+                              onGroupByChange()
+                            }}
+                          />
+                        ) : null}
                       </Form.Item>
                     ))}
                     <Form.Item>

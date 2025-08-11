@@ -1034,8 +1034,7 @@ export default function SimpleIndicator(props: any) {
                             className="pdb-select-group-by"
                           />
                         </Form.Item>
-                        <DeleteOutlined
-                          className="dynamic-delete-button"
+                        <Button icon={<DeleteOutlined />} type="text"
                           onClick={() => {
                             if (index === 0 && fields.length === 1) {
                               metricForm.setFieldsValue({
@@ -1045,7 +1044,6 @@ export default function SimpleIndicator(props: any) {
                               remove(field.name)
                             }
                           }}
-                          style={{ marginLeft: 8 }}
                         />
                       </Form.Item>
                     ))}
