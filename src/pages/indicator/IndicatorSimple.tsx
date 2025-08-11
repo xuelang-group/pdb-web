@@ -141,6 +141,7 @@ export default function SimpleIndicator(props: any) {
   const [dimension, setDimension] = useState<CsvHeaderState>(); // 指标度量
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
   const [originType, setOriginType] = useState<OriginType>(); // 选中的数据资产单数据
+  const [groupOptions, setGroupOptions] = useState<CsvHeaderState[]>([]); // GroupBy 的选项
 
   useEffect(() => {
     const pql = get(current, "pql_params.params.pql");
@@ -222,6 +223,7 @@ export default function SimpleIndicator(props: any) {
       const attrType = get(_dimension, "attrType", "");
       const funcs = get(funcOptionsObj, attrType, []);
       setfuncOptions(funcs);
+      setGroupOptions(filter(csvHeader, ({attrId}) => columns.includes(attrId)));
       const typeId = csvHeader[0].typeId;
       form.setFieldsValue({
         name,
@@ -381,7 +383,6 @@ export default function SimpleIndicator(props: any) {
       attrType: type,
       index: 0,
     }));
-    console.log('--- detail: ', detail)
     setOriginType({
       label: detail["x.type.label"],
       value: detail["x.type.name"],
@@ -391,6 +392,7 @@ export default function SimpleIndicator(props: any) {
       prevSearchTagType: "",
       csv,
     });
+    setGroupOptions([]);
     metricForm.setFieldsValue({
       dimension: '',
       func: '',
@@ -398,6 +400,12 @@ export default function SimpleIndicator(props: any) {
       groupBy: ['']
     })
   };
+
+  const handleColumnsChange = (values: string[]) => {
+    const cols = filter(originType?.csv, ({attrId}) => values.includes(attrId))
+    console.log('--- columns: ', cols)
+    setGroupOptions(cols)
+  }
 
   const handleFilterOptions = (filterOptions: any) => {
     let filterLabel = "",
@@ -990,6 +998,7 @@ export default function SimpleIndicator(props: any) {
                     {/* <Typography.Text type="secondary"> - {typeMap.type[opt.data.type]}</Typography.Text> */}
                   </Space>
                 )}
+                onChange={handleColumnsChange}
               />
             </Form.Item>
             <Form.Item
@@ -1012,13 +1021,14 @@ export default function SimpleIndicator(props: any) {
                         <Form.Item {...field} noStyle>
                           <Select
                             placeholder="请选择"
-                            options={map(originType?.csv, (item) => ({
-                              label: item.attrName,
-                              value: item.attrId,
-                              disabled: metricForm
-                                .getFieldValue("groupBy")
-                                ?.includes(item.attrId),
-                            }))}
+                            options={map(groupOptions, (item) => ({
+                                label: item.attrName,
+                                value: item.attrId,
+                                disabled: metricForm
+                                  .getFieldValue("groupBy")
+                                  ?.includes(item.attrId),
+                              })
+                            )}
                             onChange={(value) => {
                               metricForm.setFieldsValue({
                                 groupBy: metricForm

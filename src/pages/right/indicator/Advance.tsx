@@ -670,7 +670,13 @@ export default function Advance(props: any) {
         >
           <Row gutter={8}>
             <Col span={10}>
-              <Button block loading={calculating} type="primary" disabled={readonly} onClick={handleTryCompute}>
+              <Button
+                block
+                loading={calculating}
+                type="primary"
+                disabled={readonly || !isEmpty(column_config) && !!form.getFieldValue('func')}
+                onClick={handleTryCompute}
+              >
                 试计算
               </Button>
             </Col>
