@@ -156,7 +156,7 @@ export const updateData = (data: any[], metricParams: MetricParams, groupByResul
         })
       })
       const index = findLastIndex(records, (row: any) => {
-        const count = filter(keys, (gb) => row[gb] === record[gb])
+        const count = filter(keys, (gb) => row[gb] == record[gb])
         return count.length === keys.length
       })
       records.splice(index + 1, 0, record)
