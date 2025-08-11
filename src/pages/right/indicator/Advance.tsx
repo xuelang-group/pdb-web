@@ -66,9 +66,7 @@ export default function Advance(props: any) {
   const [form] = Form.useForm();
   const [columnForm] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
-  // const requestId = useSelector(
-  //   (state: StoreState) => state.indicator.requestId
-  // );
+  const func = Form.useWatch('func', form)
   const api = useSelector((state: StoreState) => state.query.api);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
@@ -116,12 +114,10 @@ export default function Advance(props: any) {
   const [alignLoading, setAlignLoading] = useState<boolean>(false)
 
   useEffect(() => {
-    const dimension = get(metric_params, 'dimension.name', '')
-    const func = get(metric_params, 'func', '')
     const groupBy = !isEmpty(metric_params?.group_by) ? map(get(metric_params, 'group_by', []), 'name') : ['']
     form.setFieldsValue({
-      dimension,
-      func,
+      dimension: get(metric_params, 'dimension.name', ''),
+      func: get(metric_params, 'func', ''),
       groupBy,
     })
   }, [metric_params])
@@ -674,7 +670,7 @@ export default function Advance(props: any) {
                 block
                 loading={calculating}
                 type="primary"
-                disabled={readonly || !isEmpty(column_config) && !!form.getFieldValue('func')}
+                disabled={readonly || !isEmpty(column_config) && !func}
                 onClick={handleTryCompute}
               >
                 试计算
