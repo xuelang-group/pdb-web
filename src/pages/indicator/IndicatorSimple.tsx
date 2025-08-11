@@ -837,7 +837,7 @@ export default function SimpleIndicator(props: any) {
           <Divider orientation="left" orientationMargin={16}>
             基础信息
           </Divider>
-          <Form name="simple" {...layout} form={form} disabled={readonly}>
+          <Form name="simple" {...layout} form={form} disabled={readonly} initialValues={{version: '1.0.0'}}>
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 label="中文名称"
@@ -872,7 +872,6 @@ export default function SimpleIndicator(props: any) {
                     validateTrigger: 'onBlur',
                     validator: async (_, value) =>
                     {
-                      console.log('--- version', value)
                       if (!value) return Promise.reject(new Error("请输入版本号"))
                       if(current?.id) {
                         const resD = await getMetricDetail2({id: current?.id})

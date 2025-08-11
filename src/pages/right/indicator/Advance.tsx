@@ -36,6 +36,7 @@ import {
   isEmpty,
   map,
   toNumber,
+  isArray,
 } from "lodash";
 import PdbPanel from "@/components/Panel";
 import { StoreState } from "@/store";
@@ -323,10 +324,6 @@ export default function Advance(props: any) {
       message.warning('画布内容空白！')
       return
     }
-    if (isEmpty(column_config)) {
-      message.warning('请先对进行 “维度对齐” ！')
-      return
-    }
     form.validateFields().then(values => {
       const metric_params = {
         dimension: { name: values.dimension, name_cn: values.dimension },
@@ -383,19 +380,30 @@ export default function Advance(props: any) {
         if (excess && limit > 0 ) {
           Object.assign(params, {limit})
         }
-        return getFuncResult(params, function(success: boolean, response: any) {
-          if (success) {
-            dispatch(setCalc(response))
-            setCalcModalOpen(true)
-          } else {
-            message.error(response.message || response.msg);
-          }
-          setCalculating(false)
-          formExcess.resetFields()
-        })
+        return getFuncResult(params, handleFuncCallback)
       },
     });
   };
+
+  const handleFuncCallback = (success: boolean, response: any) => {
+    if (success) {
+      if (response.csv.trim() && isArray(response.result)) {
+        dispatch(setCalc(response))
+        setCalcModalOpen(true)
+      } else {
+        dispatch(setCalc(''))
+        modal.info({
+          title: "计算结果",
+          okText: "确认",
+          content: (<Typography.Title level={4}>{response.result}</Typography.Title>)
+        })
+      }
+    } else {
+      message.error(response.message || response.msg);
+    }
+    setCalculating(false)
+    formExcess.resetFields()
+  }
 
   // 试计算
   const handleTryCompute = () => {
@@ -453,15 +461,7 @@ export default function Advance(props: any) {
             column_config,
             pql_params,
           }
-          total > 100 ? handleCalc(total, params) : getFuncResult(params, function(success: boolean, response: any) {
-            if (success) {
-              dispatch(setCalc(response))
-              setCalcModalOpen(true)
-            } else {
-              message.error(response.message || response.msg);
-            }
-            setCalculating(false)
-          })
+          total > 100 ? handleCalc(total, params) : getFuncResult(params, handleFuncCallback)
         } else {
           setCalculating(false)
           message.error(response.message || response.msg);
@@ -600,13 +600,13 @@ export default function Advance(props: any) {
               {(fields, { add, remove }, { errors }) => (
                 <>
                   {fields.map((field, index) => (
-                    <Form.Item
+                    <Form.Item className="pdb-group-by-item"
                       label={""}
                       required={false}
                       key={field.key}
                       style={{ marginBottom: 12 }}
                     >
-                      <Form.Item {...field} noStyle>
+                      <Form.Item {...field} noStyle >
                         <Select
                           placeholder="请选择"
                           options={map(filter(column_config, item => !!item.name), (item) => ({
@@ -631,7 +631,7 @@ export default function Advance(props: any) {
                           className="pdb-select-group-by"
                         />
                       </Form.Item>
-                      <DeleteOutlined
+                      <Button icon={<DeleteOutlined />} type="text"
                         className="dynamic-delete-button"
                         onClick={() => {
                           if (index === 0 && fields.length === 1) {
@@ -642,7 +642,6 @@ export default function Advance(props: any) {
                             remove(field.name)
                           }
                         }}
-                        style={{ marginLeft: 8 }}
                       />
                     </Form.Item>
                   ))}

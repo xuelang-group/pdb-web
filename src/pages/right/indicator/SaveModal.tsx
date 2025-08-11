@@ -81,6 +81,7 @@ export default function SaveModal(props: any) {
           form={infoForm}
           labelCol={{ span: 6 }}
           wrapperCol={{ span: 18 }}
+          initialValues={{version: '1.0.0'}}
         >
           <Form.Item label="中文名称" rules={[{ required: true, message: '请输入中文名称' }]} name={'name_cn'}>
             <Input placeholder="请输入中文名称" />

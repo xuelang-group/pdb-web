@@ -124,9 +124,6 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
                     <Button size="small" shape="circle" icon={<PlusOutlined />} type="dashed" onClick={() => handleAddColCfg(index)} />
                   </div>
                   )) }
-                <div className="td">
-                  {/* <Button size="small" shape="circle" icon={<PlusOutlined />} /> */}
-                </div>
               </div>
               {
                 keys(columnsMap).map((id: string, colIndex: number) => (

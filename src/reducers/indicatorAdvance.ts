@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import papa from "papaparse";
-import { isEmpty, map } from "lodash";
+import { isArray, isEmpty, map } from "lodash";
 import { ConditionState, ParamsState } from "./query";
 import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
 import { Col } from "@/pages/indicator/components/CONSTS";
@@ -41,7 +41,7 @@ interface IndicatorAdvanceState {
     groupBy: string[];
     value: string | number;
     dimension: string;
-  };
+  };  // 计算结果: 进行维度对齐后，计算结果有csv和result数组
   metric_params?: MetricParams;
   pql_params?: {
     api: string;
