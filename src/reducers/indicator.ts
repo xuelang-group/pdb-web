@@ -342,7 +342,6 @@ export const indicatorSlice = createSlice({
       state.funcOptions = updateFuncOptions(columns, dimension);
     },
     setFunc: (state, action: PayloadAction<any>) => {
-      console.log('setFunc: ', action.payload)
       state.func = action.payload;
       if (!action.payload) {
         state.groupByResult = [];
