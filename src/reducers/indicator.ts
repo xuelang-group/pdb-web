@@ -88,6 +88,16 @@ const initialState: IndicatorState = {
   nextShowConfiguration: null,
 }
 
+const getValue = (value: any, type: string) => {
+  if (type === 'float' || type === 'int') {
+    return Number(value);
+  }
+  if (type === 'boolean') {
+    return Boolean(value);
+  }
+  return value;
+}
+
 export const updateData = (data: any[], metricParams: MetricParams, groupByResult: Record[], groupByNameDict: Record, disabledField: string[] =[]) => {
   const cols: string[] = data[0];  // CSV的第一行：表头
   const types: string[] = data[1]; // CSV的第二行：数据类型
@@ -131,7 +141,7 @@ export const updateData = (data: any[], metricParams: MetricParams, groupByResul
   let records: Record[] = map(rows, (row) => {
     const item: Record = {}
     row.forEach((value: any, i: number) => {
-      item[`${cols[i]}`] = value;
+      item[`${cols[i]}`] = getValue(value, types[i]);
     })
     return item;
   });
@@ -159,7 +169,9 @@ export const updateData = (data: any[], metricParams: MetricParams, groupByResul
         const count = filter(keys, (gb) => row[gb] == record[gb])
         return count.length === keys.length
       })
-      records.splice(index + 1, 0, record)
+      if (index > -1) {
+        records.splice(index + 1, 0, record)        
+      }
     })
   }
 
@@ -333,7 +345,17 @@ export const indicatorSlice = createSlice({
       console.log('setFunc: ', action.payload)
       state.func = action.payload;
       if (!action.payload) {
+        state.groupByResult = [];
         state.result = [];
+        if (state.csv) {
+          const { func, groupBy, groupByResult, groupByNameDict, disabledField, dimension } = state;
+          const { columns, records, mergeCell } = updateData(state.csv, { dimension, func, groupBy }, groupByResult, groupByNameDict, disabledField);
+          
+          state.mergeCell = mergeCell;
+          state.records = records;
+          state.columns = columns;
+          state.funcOptions = updateFuncOptions(columns, dimension);
+        }
       }
     },
     setCheckId: (state, action: PayloadAction<any>) => {
