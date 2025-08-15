@@ -16,7 +16,7 @@ import Loading from "@/assets/images/loading-apng.png";
 import "./index.less";
 import { clearQuery } from "@/reducers/query";
 import { getImgHref } from "@/actions/minioOperate";
-import { compact, isEmpty, map } from "lodash";
+import { compact, isArray, isEmpty, map } from "lodash";
 
 export default function Right(props: any) {
   const navigate = useNavigate();
@@ -39,13 +39,36 @@ export default function Right(props: any) {
   const api = useSelector((state: StoreState) => state.query.api);
   const query = useSelector((state: StoreState) => state.query.params);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+  const [xTypeNames, setXTypeNames] = useState<any>([]);
   const dispatch = useDispatch();
 
   useEffect(() => {
     infoForm.setFieldValue('names', groupBy)
   }, [groupBy])
 
+  useEffect(() => {
+    if (modalVisible && !isEmpty(query.pql)) {
+      const strArr: string[] = []
+      query.pql.forEach((item: any) => {
+        if(isArray(item)) {
+          item.forEach((subItem: any) => {
+            if(subItem.id) {
+              strArr.push(subItem.id)
+            }
+          })
+        }
+      })
+      setXTypeNames(strArr)
+    }
+  }, [modalVisible])
+
+  /**
+   * 处理分组方式变更的回调函数
+   * 当用户更改分组方式时，获取表单中选中的字段名称
+   * 并通过dispatch action更新分组状态
+   */
   const onGroupByChange = () => {
+    // 获取表单中'names'字段的值，如果为空则使用空数组作为默认值
     dispatch(setGroupBy(infoForm.getFieldValue('names') || []));
   }
 
@@ -397,7 +420,7 @@ export default function Right(props: any) {
           </Button>
         </Space>
       </PdbPanel>
-      <SaveModal visible={modalVisible} editId={editId} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
+      <SaveModal visible={modalVisible} editId={editId} xTypeNames={xTypeNames} onCancel={() => { dispatch(setModalVisible(false)) }} onOk={onSave} modalLoading={modalLoading} />
       <UpdateModal visible={updateModalVisible} editId={editId} onCancel={() => { dispatch(setUpdateModalVisible(false)) }} onOk={onAddVersion} modalLoading={modalLoading} />
       {contextHolder}
     </div>

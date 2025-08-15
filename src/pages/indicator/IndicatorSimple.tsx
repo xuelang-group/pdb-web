@@ -60,6 +60,7 @@ import {
   ConditionState,
   CsvHeaderState,
   ParamsState,
+  PqlState,
 } from "@/reducers/query";
 import {
   functionSymbolMap,
@@ -143,19 +144,8 @@ export default function SimpleIndicator(props: any) {
   const [originType, setOriginType] = useState<OriginType>(); // 选中的数据资产单数据
   const [groupOptions, setGroupOptions] = useState<CsvHeaderState[]>([]); // GroupBy 的选项
 
-  useEffect(() => {
-    const pql = get(current, "pql_params.params.pql");
-    if (requestId && pql) {
-      const strArr: string[] = [];
-      pql.forEach((item: any) => {
-        if (isArray(item)) {
-          item.forEach((subItem: any) => {
-            if (subItem.id) {
-              strArr.push(subItem.id);
-            }
-          });
-        }
-      });
+  const updateBuzProcess = (strArr: string[]) => {
+    if (requestId) {
       getBuzProcess(
         { requestId: requestId, xTypeNames: strArr },
         (success: boolean, res: any) => {
@@ -171,6 +161,21 @@ export default function SimpleIndicator(props: any) {
         }
       );
     }
+  }
+
+  useEffect(() => {
+    const pql = get(current, "pql_params.params.pql");
+    const strArr: string[] = [];
+    pql?.forEach((item: any) => {
+      if (isArray(item)) {
+        item.forEach((subItem: any) => {
+          if (subItem.id) {
+            strArr.push(subItem.id);
+          }
+        });
+      }
+    });
+    updateBuzProcess(strArr);
   }, [requestId, current?.pql_params]);
 
   useEffect(() => {
@@ -399,6 +404,7 @@ export default function SimpleIndicator(props: any) {
       columns: [],
       groupBy: ['']
     })
+    updateBuzProcess([detail["x.type.name"]])
   };
 
   const handleColumnsChange = (values: string[]) => {

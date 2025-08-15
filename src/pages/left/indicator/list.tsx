@@ -16,7 +16,7 @@ import { getPdbIdList, getCurrentBuzProcess } from "@/actions/adapter";
 import './index.less';
 import { setQueryParams, setApi } from '@/reducers/query';
 import { setCurrent, setReadonly } from '@/reducers/indicatorSimple';
-import { inidcatorSymbolMap } from '@/utils/common';
+import { getHashParameterByName, inidcatorSymbolMap } from '@/utils/common';
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from '@/reducers/indicatorAdvance';
 
 export default function List(props: any) {
@@ -24,6 +24,7 @@ export default function List(props: any) {
   const routerParams = useParams();
   const location = useLocation();
   const [isIndSearched, setIndSearchedStatus] = useState(false);
+  const [pdbIds, setPdbIds] = useState<Array<string | number>>([]);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
   const indicatorLoading = useSelector((state: StoreState) => state.editor.indicatorLoading)
@@ -44,18 +45,13 @@ export default function List(props: any) {
   const { Search } = Input;
 
   useEffect(() => {
-    if (requestId) {
-      updateList()
+    const urlRequestId = getHashParameterByName('requestId'); // 获取requestId
+    if (requestId || urlRequestId) {
+      updateList(requestId || urlRequestId)
     } else {
       updateListWithoutRequestId()
     }
   }, [])
-
-  useEffect(() => {
-    if (requestId) {
-      updateList()
-    }
-  }, [requestId])
 
   useEffect(() => {
     // 高级指标，左侧指标列表可拖曳
@@ -63,7 +59,9 @@ export default function List(props: any) {
   }, [location.pathname])
 
   useEffect(() => {
-    setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
+    const data = JSON.parse(JSON.stringify(allIndicators))
+    const tempArr = isEmpty(pdbIds) ? data : data.filter((item: any) => pdbIds.includes(item.ori_id))
+    setIndicatorList(tempArr);
   }, [allIndicators]);
 
 
@@ -73,23 +71,16 @@ export default function List(props: any) {
     }
   }, [needCheckId, needEditId, allIndicators, needVersionId])
 
-  const updateList = () => {
-    dispatch(setIndicatorLoading(true));
-    getMetrics(function (response: any) {
-      if (response) {
-        dispatch(setMetrics(response || []));
-        getPdbIdList({ requestId: requestId }, (success: boolean, res: any) => {
-          if (success) {
-            const tempArr = response.filter((item: any) => (res?.data || []).includes(item.ori_id))
-            dispatch(setMetrics(tempArr || []));
-          } else {
-            dispatch(setMetrics(response || []));
-          }
-        })
-      } else {
-        message.error('获取列表数据失败：' + response.message || response.msg);
-      }
-      dispatch(setIndicatorLoading(false));
+  /**
+   * 更新列表数据的函数
+   * 该函数用于获取指标数据，并根据请求ID筛选数据后更新到状态中
+   */
+  const updateList = (id: string | null) => {    
+    getPdbIdList({ requestId: id }, (success: boolean, res: any) => {
+      if (success) {
+        setPdbIds(res?.data || [])
+      } 
+      updateListWithoutRequestId()
     })
   }
 
@@ -111,45 +102,31 @@ export default function List(props: any) {
     if (_needCheckId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needCheckId)
       if (tempObj) {
-        const dimensionStr = tempObj.metric_params.dimension.name_cn
-        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         dispatch(setCheckId(tempObj.id));
-        dispatch(setExtraColumns(tempObj.metric_params.extra_columns))
-        dispatch(setQueryParams(tempObj.pql_params.params));
-        dispatch(setApi(tempObj.pql_params.api));
         dispatch(setNeedCheckId(null));
-        dispatch(setNextShowConfiguration({
-          dimension: dimensionStr,
-          func: tempObj.metric_params.func,
-          groupBy: groupByArr
-        }))
+        
+        if (tempObj.type === 2) 
+          enterIndicatorAdvance(tempObj, true)
+        if (tempObj.type === 1) 
+          enterIndicatorSimple(tempObj, true)
+        if (!tempObj.type) enterIndicatorProfession(tempObj, true)
+
         setTimeout(() => {
-          // dispatch(setDimension(dimensionStr));
-          // dispatch(setFunc(tempObj.metric_params.func));
-          // dispatch(setGroupBy(groupByArr));
           dispatch(setcheckVersionList(null))
           dispatch(setNowCheckVersion(null))
         }, 500)
       } else {
         getMetricDetail({id: _needCheckId}, (success: boolean, res: any) => {
           if (success) {
-            const dimensionStr = res.metric_params.dimension.name_cn
-            const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
             dispatch(setCheckId(res.id));
-            dispatch(setExtraColumns(res.metric_params.extra_columns))
-            dispatch(setQueryParams(res.pql_params.params));
-            dispatch(setApi(res.pql_params.api));
-            dispatch(setNeedCheckId(null));
-            dispatch(setNextShowConfiguration({
-              dimension: dimensionStr,
-              func: tempObj.metric_params.func,
-              groupBy: groupByArr
-            }))
-            // setTimeout(() => {
-            //   dispatch(setDimension(dimensionStr));
-            //   dispatch(setFunc(res.metric_params.func));
-            //   dispatch(setGroupBy(groupByArr));
-            // }, 500)
+            dispatch(setNeedCheckId(null));            
+        
+            if (res.type === 2) 
+              enterIndicatorAdvance(res, true)
+            if (res.type === 1) 
+              enterIndicatorSimple(res, true)
+            if (!res.type) enterIndicatorProfession(res, true)
+
             metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
               if (success) {
                 dispatch(setcheckVersionList(resH))
@@ -162,26 +139,20 @@ export default function List(props: any) {
     } else if (_needEditId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needEditId)
       if(tempObj) {
-        const dimensionStr = tempObj.metric_params.dimension.name_cn
-        const groupByArr = (tempObj.metric_params.group_by || []).map((item: any) => item.name_cn)
         getCurrentBuzProcess({ requestId: requestId }, (success:boolean, res: any) => {
           dispatch(setEditId(tempObj.id));
           dispatch(setNeedEditId(null));
-          dispatch(setExtraColumns(tempObj.metric_params.extra_columns))
-          dispatch(setQueryParams(tempObj.pql_params.params));
-          dispatch(setApi(tempObj.pql_params.api));
+        
+          if (tempObj.type === 2) 
+            enterIndicatorAdvance(tempObj, false)
+          if (tempObj.type === 1) 
+            enterIndicatorSimple(tempObj, false)
+          if (!tempObj.type) enterIndicatorProfession(tempObj, false)
+          
           if (success) {
             dispatch(setCurrentBuzProcess(res.data))
           }
-          dispatch(setNextShowConfiguration({
-            dimension: dimensionStr,
-            func: tempObj.metric_params.func,
-            groupBy: groupByArr
-          }))
           setTimeout(() => {
-            // dispatch(setDimension(dimensionStr));
-            // dispatch(setFunc(tempObj.metric_params.func));
-            // dispatch(setGroupBy(groupByArr));
             dispatch(setcheckVersionList(null))
             dispatch(setNowCheckVersion(null))
           }, 500)
@@ -189,23 +160,15 @@ export default function List(props: any) {
       } else {
         getMetricDetail({id: _needEditId}, (success: boolean, res: any) => {
           if (success) {
-            const dimensionStr = res.metric_params.dimension.name_cn
-            const groupByArr = (res.metric_params.group_by || []).map((item: any) => item.name_cn)
             dispatch(setEditId(res.id));
-            dispatch(setExtraColumns(res.metric_params.extra_columns))
-            dispatch(setQueryParams(res.pql_params.params));
-            dispatch(setApi(res.pql_params.api));
             dispatch(setNeedEditId(null));
-            dispatch(setNextShowConfiguration({
-              dimension: dimensionStr,
-              func: tempObj.metric_params.func,
-              groupBy: groupByArr
-            }))
-            // setTimeout(() => {
-            //   dispatch(setDimension(dimensionStr));
-            //   dispatch(setFunc(res.metric_params.func));
-            //   dispatch(setGroupBy(groupByArr));
-            // }, 500)
+        
+            if (tempObj.type === 2) 
+              enterIndicatorAdvance(tempObj, false)
+            if (tempObj.type === 1) 
+              enterIndicatorSimple(tempObj, false)
+            if (!tempObj.type) enterIndicatorProfession(tempObj, false)
+
             metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
               if (success) {
                 dispatch(setcheckVersionList(resH))
@@ -260,25 +223,25 @@ export default function List(props: any) {
     setIndicatorList(indicators);
   }
 
-  const enterIndicatorAdvance = (item: any, key: 'check2' | 'edit') => {
+  const enterIndicatorAdvance = (item: any, isCheck: boolean) => {
     dispatch(setMetricInfo(item))
     dispatch(setGraphData(item.graph_data))
     dispatch(setMetricParams(item.metric_params || {}))
     dispatch(updateColumnConfig(item.column_config || []))
     dispatch(setPqlParams(item.pql_params))
-    dispatch(setAdvReadonly(key === 'check2'))
+    dispatch(setAdvReadonly(isCheck))
     if (!location.pathname.endsWith("/indicator/advance")) {
       navigate(`/${routerParams.id}/indicator/advance`)
     }
   }
 
-  const enterIndicatorSimple = (item: any, key: 'check2' | 'edit') => {
+  const enterIndicatorSimple = (item: any, isCheck: boolean) => {
     dispatch(setCurrent(item))
-    dispatch(setReadonly(key === 'check2'))
+    dispatch(setReadonly(isCheck))
     !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple`)
   }
 
-  const enterIndicatorProfession = (item: any, key: 'check2' | 'edit') => {
+  const enterIndicatorProfession = (item: any, isCheck: boolean) => {
     const dimensionStr = item.metric_params.dimension.name_cn
     const groupByArr = (item.metric_params.group_by || []).map((item: any) => item.name_cn)
     dispatch(resetData())
@@ -291,11 +254,6 @@ export default function List(props: any) {
       groupBy: groupByArr
     }))
     navigate(`/${routerParams.id}/indicator`)
-    // setTimeout(() => {
-    //   dispatch(setDimension(dimensionStr));
-    //   dispatch(setFunc(item.metric_params.func));
-    //   dispatch(setGroupBy(groupByArr));
-    // }, 500)
   }
 
   const handleClickMenu = (item: any, menu: any) => {
@@ -306,10 +264,10 @@ export default function List(props: any) {
     if (['edit', 'check2'].includes(menu.key)) {
       menu.key === 'check2' ? dispatch(setCheckId(item.id)) : dispatch(setEditId(item.id));
       if (item.type === 2) 
-        enterIndicatorAdvance(item, menu.key)
+        enterIndicatorAdvance(item, menu.key === 'check2')
       if (item.type === 1) 
-        enterIndicatorSimple(item, menu.key)
-      if (!item.type) enterIndicatorProfession(item, menu.key)
+        enterIndicatorSimple(item, menu.key === 'check2')
+      if (!item.type) enterIndicatorProfession(item, menu.key === 'check2')
     }
     if (menu.key ==='version') {
       setVersionVisible(true)

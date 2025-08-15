@@ -4,38 +4,27 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getBuzProcess } from "@/actions/adapter";
 import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
 import { useEffect, useState } from "react";
-import { isArray } from "lodash";
+import { isArray, isEmpty } from "lodash";
 
 export default function SaveModal(props: any) {
-  const { editId } = props
+  const { editId, xTypeNames } = props
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([])
   const [buzProcessArr, setBuzProcessArr] = useState([])
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
-  const query = useSelector((state: StoreState) => state.query.params);
 
   useEffect(() => {
-    if(requestId && query.pql?.length) {
-      const strArr: string[] = []
-      query.pql.forEach((item: any) => {
-        if(isArray(item)) {
-          item.forEach((subItem: any) => {
-            if(subItem.id) {
-              strArr.push(subItem.id)
-            }
-          })
-        }
-      })
-      getBuzProcess({ requestId: requestId, xTypeNames: strArr }, (success:boolean, res: any) => {
+    if(requestId && !isEmpty(xTypeNames)) {      
+      getBuzProcess({ requestId: requestId, xTypeNames }, (success:boolean, res: any) => {
         if (success) {
           setBuzProcessArr(res.data || [])
           setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
         }
       })
     }
-  }, [requestId, query])
+  }, [requestId, xTypeNames])
 
   useEffect(() => {
     if (editId) {

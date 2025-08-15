@@ -37,6 +37,7 @@ import {
   map,
   toNumber,
   isArray,
+  uniq,
 } from "lodash";
 import PdbPanel from "@/components/Panel";
 import { StoreState } from "@/store";
@@ -112,6 +113,7 @@ export default function Advance(props: any) {
   const [calcModalOpen, setCalcModalOpen] = useState<boolean>(false)
   const [calculating, setCalculating] = useState<boolean>(false)
   const [alignLoading, setAlignLoading] = useState<boolean>(false)
+  const [xTypeNames, setXTypeNames] = useState<any>([]);
 
   useEffect(() => {
     const groupBy = !isEmpty(metric_params?.group_by) ? map(get(metric_params, 'group_by', []), 'name') : ['']
@@ -312,6 +314,32 @@ export default function Advance(props: any) {
     })
   }
 
+  const updateXTypeNames = async (nodes: any[]) => {    
+    const indicatorNodes = nodes.filter(
+      (n: any) => n.type !== "symbol" && n.id !== "end"
+    );
+    if (indicatorNodes.length) {
+      const indicatorIds = uniq(compact(map(indicatorNodes, (n: any) => n.data.id)));
+      const strArr: string[] = []
+      for(let id of indicatorIds) {
+        const res = await getMetricDetail2({ id: id });
+        if (res.status === 200) {
+          const pql = get(res.data, "pql_params.params.pql", []);
+          pql.forEach((item: any) => {
+            if(isArray(item)) {
+              item.forEach((subItem: any) => {
+                if(subItem.id) {
+                  strArr.push(subItem.id)
+                }
+              })
+            }
+          })
+        }
+      }
+      setXTypeNames(strArr)
+    }
+  }
+
   // 保存指标
   const handleSave = () => {
     const graph = (window as any).INDICATOR_GRAPH;
@@ -342,7 +370,12 @@ export default function Advance(props: any) {
           },
         }
       }
-      basic_info?.id ? setUpdateModalVisible(true) : setModalVisible(true)
+      if (basic_info?.id) {
+        setUpdateModalVisible(true)
+      } else {
+        updateXTypeNames(nodes)
+        setModalVisible(true)
+      } 
       dispatch(setMetricParams(metric_params))
       dispatch(setPqlParams(pql_params))
     })
@@ -720,6 +753,7 @@ export default function Advance(props: any) {
         onCancel={() => setModalVisible(false)}
         onOk={onSave}
         modalLoading={modalLoading}
+        xTypeNames={xTypeNames}
       />
       <UpdateModal
         visible={updateModalVisible}
