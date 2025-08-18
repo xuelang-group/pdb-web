@@ -12,6 +12,7 @@ export default function Indicator(props: any) {
   const checkVersionList = useSelector(
     (state: StoreState) => state.indicator.checkVersionList
   );
+  const query = useSelector((state: StoreState) => state.query.params);
 
   const [width, setWidth] = useState(1000);
   const [height, setHeight] = useState(500);
@@ -33,6 +34,10 @@ export default function Indicator(props: any) {
       window.removeEventListener("resize", updateSize);
     };
   }, []);
+
+  useEffect(() => {
+    !loading && updateSize();
+  }, [loading]);
 
   return (
     <div className="pdb-indicator" ref={wrapRef}>

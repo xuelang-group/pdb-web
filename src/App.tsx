@@ -39,6 +39,7 @@ import './App.less';
 import { getTypeList } from './actions/type';
 import { getRelationByGraphId } from './actions/relation';
 import { RelationConfig, setRelations } from '@/reducers/relation';
+import { setQueryParams } from "@/reducers/query";
 import { setRelationMap, setTypeLoading, setTypeMap } from '@/reducers/editor';
 import { setRequestId, setNeedEditId, setNeedCheckId, setNeedVersionId } from '@/reducers/indicator';
 import { TypeConfig } from '@/reducers/type';
@@ -58,6 +59,10 @@ function App(props: PdbConfig) {
     systemInfo = useSelector((state: StoreState) => state.app.systemInfo),
     relations = useSelector((state: StoreState) => state.relation.data),
     types = useSelector((state: StoreState) => state.type.data);
+  const query = useSelector((state: StoreState) => state.query.params);
+  const checkId = useSelector((state: StoreState) => state.indicator.checkId);
+  const editId = useSelector((state: StoreState) => state.indicator.editId);
+  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
 
   const [selectedTab, setSelectedTab] = useState("");
   useEffect(() => {
@@ -208,6 +213,33 @@ function App(props: PdbConfig) {
     });
   }
 
+  const handleTabChange = (activeKey: string) => {
+    const { graphId } = systemInfo;
+    if (!graphId) return;
+    setSelectedTab(activeKey);
+    if (activeKey === "indicator") {
+      const id = checkId || editId;
+      const indicator = id && allIndicators.find((item: any) => item.id == id);
+      if (indicator) {
+        const type = indicator.type;
+        if (type === 2) {
+          navigate(`/${graphId}/indicator/advance`)
+        } else if (type === 1) {
+          navigate(`/${graphId}/indicator/simple`)
+        } else {
+          navigate(`/${graphId}/indicator`)
+          dispatch(setQueryParams(indicator.pql_params.params));
+        }
+      } else if (query && query.graphId) {
+        navigate(`/${graphId}/indicator`)
+      } else {
+        navigate(`/${graphId}/indicator/index`)
+      }
+    } else {
+      navigate(`/${graphId}`);
+    }
+  }
+
   const renderCenterContent = function () {
     return (
       <Routes>
@@ -263,16 +295,7 @@ function App(props: PdbConfig) {
                 children: renderIndicator(),
                 disabled: pageLoading || graphLoading
               }]}
-              onChange={(activeKey: string) => {
-                const { graphId } = systemInfo;
-                if (!graphId) return;
-                setSelectedTab(activeKey);
-                if (activeKey === "indicator") {
-                  navigate(`/${graphId}/indicator/index`);
-                } else {
-                  navigate(`/${graphId}`);
-                }
-              }}
+              onChange={handleTabChange}
               centered
             />
             <Routes>
