@@ -58,6 +58,10 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       id: `${Date.now()}`
     })
     setColumnConfig(cfg)
+    if (focusCell) {
+      const focusCol = focusCell[0]
+      setFocusCell([focusCol, index+1])
+    }
   }
 
   // 维度对齐- 删除一行
