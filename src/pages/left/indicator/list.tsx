@@ -193,7 +193,7 @@ export default function List(props: any) {
   const getIndicatorList = function (indList: Array<any>, keyWord: string): Array<any> {
     var arr = [];
     for (var i = 0; i < indList.length; i++) {
-      const item = indList[i], idKey = 'id', labelKey = 'name';
+      const item = indList[i], idKey = 'id', labelKey = 'name_cn';
       if (item[idKey] === keyWord || item[labelKey].toLowerCase().indexOf(keyWord.toLowerCase()) > -1) {
         const label: any = item[labelKey], _index = label.toLowerCase().indexOf(keyWord.toLowerCase());
         let title = (<span className='type-item-label'>{label}</span>);
@@ -309,7 +309,7 @@ export default function List(props: any) {
           {!indicatorLoading &&
             <div className='type-list'>
               {indList.map((item: any, index: number) => {
-                const label: any = item['name']
+                const label: any = item['name_cn']
                 const menus: any[] = [
                   {
                     label: '查看基础信息',
@@ -344,7 +344,7 @@ export default function List(props: any) {
                     <div
                       className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
                       draggable={draggable}
-                      onDragStart={event => handleDragStart(event, { label: item.name, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
+                      onDragStart={event => handleDragStart(event, { label: item.name_cn, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
                       <span className='item-name'>
                         {

@@ -292,8 +292,8 @@ export default function AdvanceCodeMode() {
                   const curr = item.id && selectedMetrics[item.id]
                   const ori = item.ori_id && selectedMetrics[item.ori_id]
                   return (
-                    <li key={item.id} className={curr || ori ? 'selected' : ''}
-                      onClick={() => handleClick('indicator', item.name, {id: item.id, name: item.name, name_cn: item.name_cn, type: item.type, ori_id: item.ori_id})}
+                    <li key={item.id} className={(curr || ori) ? 'item selected' : 'item'}
+                      onClick={() => handleClick('indicator', item.name_cn, {id: item.id, name: item.name, name_cn: item.name_cn, type: item.type, ori_id: item.ori_id})}
                     >
                       {
                         item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
@@ -302,8 +302,8 @@ export default function AdvanceCodeMode() {
                           </use>
                         </svg>
                       }
-                      <span className='item-label'>{item.name}</span>
-                      <span className='item-label2'>{item.name_cn}</span>
+                      <span className='item-label'>{item.name_cn}</span>
+                      <span className='item-label2'>{item.name}</span>
                       {/* {!curr && ori && <Tag style={{float: 'right'}}>历史版本</Tag>} */}
                     </li>
                   )
