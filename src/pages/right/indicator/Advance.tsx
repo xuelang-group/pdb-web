@@ -703,7 +703,7 @@ export default function Advance(props: any) {
                 block
                 loading={calculating}
                 type="primary"
-                disabled={readonly || !isEmpty(column_config) && !func}
+                disabled={readonly}
                 onClick={handleTryCompute}
               >
                 试计算
