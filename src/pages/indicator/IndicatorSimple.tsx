@@ -807,7 +807,7 @@ export default function SimpleIndicator(props: any) {
                 <span>的</span>
               </>)
             }
-            <span>“{dimension && dimension.name_cn}” 为</span>
+            <span className="func">“{dimension && dimension.name_cn}”</span><span>为</span>
           </Space>
         </Flex>
         <Flex align="flex-end" className="pdb-indicator-result">
