@@ -210,7 +210,7 @@ export default function Advance(props: any) {
                     </use>
                   </svg>
                 }
-                <span className='item-label'>{item.name}</span><span className="item-label2">{item.name_cn}</span>
+                <span className='item-label'>{item.name_cn}</span><span className="item-label2">{item.name}</span>
               </li>
             ))
             }</ul>
@@ -349,10 +349,12 @@ export default function Advance(props: any) {
       return
     }
     form.validateFields().then(values => {
+      const groupNames = filter(values.groupBy, item => !!item)
+      const groupBy =  isEmpty(groupNames) ? [] : column_config.filter(item => groupNames.includes(item.name))
       const metric_params = {
         dimension: { name: values.dimension, name_cn: values.dimension },
         func: values.func,
-        group_by: map(filter(values.groupBy, item => !!item), item => ({name: item, name_cn: item}))
+        group_by: map(groupBy, item => ({name: item.name, name_cn: item.name_cn}))
       }
       const pql_params = {
         api: api,
@@ -447,10 +449,12 @@ export default function Advance(props: any) {
         nodes: map(nodes, n => ({id: n.id, type: n.type, label: n.label, x: n.x, y: n.y, data: n.data})),
         edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
       }
+      const groupNames = filter(values.groupBy, item => !!item)
+      const groupBy = isEmpty(groupNames) ? [] : column_config.filter(cfg => groupNames.includes(cfg.name))
       const metric_params = {
         dimension: { name: values.dimension, name_cn: values.dimension },
         func: values.func,
-        group_by: map(values.groupBy, item => ({name: item, name_cn: item}))
+        group_by: map(groupBy, item => ({name: item.name, name_cn: item.name_cn}))
       }
       const pql_params = {
         api: api,
@@ -460,7 +464,7 @@ export default function Advance(props: any) {
           csv: {
             header: map(column_config, cfg => ({
               attrName: cfg.name,
-              attrType: cfg.type || compact(cfg.cols)[0].attrName,
+              attrType: cfg.type || compact(cfg.cols)[0].attrType,
               attrId: cfg.id,
               index: 0,
               typeId: ''
@@ -520,10 +524,10 @@ export default function Advance(props: any) {
   };
 
   const getColumnFormInitialValues = () => {
-    const values: {[id: string]: {name: string}} = {}
+    const values: {[id: string]: {name_cn: string}} = {}
     forEach(column_config, cfg => {
       values[cfg.id] = {
-        name: cfg.name,
+        name_cn: cfg.name_cn,
       }
     })
     return values
@@ -568,11 +572,11 @@ export default function Advance(props: any) {
                     <div className="pdb-indicator-advCol-title">
                       {item.cols[0].attrName}({item.cols[0].metric.name})
                     </div>
-                    <Form.Item noStyle name={[item.id, 'name']}>
+                    <Form.Item noStyle name={[item.id, 'name_cn']}>
                       <Input
                         addonBefore={typeMap.type[item.cols[0].attrType]}
                         placeholder="自定义维度名称"
-                        onBlur={(e) => e.target.value !== item.name && handleChangeCondition(item.id, 'name', e.target.value)}
+                        onBlur={(e) => e.target.value !== item.name_cn && handleChangeCondition(item.id, 'name_cn', e.target.value)}
                       />
                     </Form.Item>
                     <Flex
@@ -583,7 +587,7 @@ export default function Advance(props: any) {
                     >
                       <Space>
                         <Typography.Text>过滤:</Typography.Text>
-                        {renderCondition(item.conditions, item.name)}
+                        {renderCondition(item.conditions, item.name_cn)}
                         <Button
                           type="text"
                           size="small"
@@ -639,7 +643,7 @@ export default function Advance(props: any) {
                         <Select
                           placeholder="请选择"
                           options={map(filter(column_config, item => !!item.name), (item) => ({
-                            label: item.name,
+                            label: item.name_cn || item.name,
                             value: item.name,
                             disabled: form
                               .getFieldValue("groupBy")

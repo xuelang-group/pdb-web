@@ -5,7 +5,7 @@ import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { StoreState } from "@/store";
-import { isEmpty } from "lodash";
+import { isEmpty, isNumber } from "lodash";
 import { Col } from "./components/CONSTS";
 
 const getColumns = (cols: Col[]) => {
@@ -164,7 +164,7 @@ export default function AdvanceCalc(props: {open: boolean; onClose: Function;}) 
       width={800}
       open={props.open}
       onCancel={() => props.onClose()}
-      footer={<Flex justify="space-between" align="center">
+      footer={isEmpty(calc?.value) ? <Button type="primary" onClick={() => props.onClose()}>确定</Button> : <Flex justify="space-between" align="center">
         <Space>
           <Typography.Text strong>合计：</Typography.Text>
           <Typography.Title level={5} style={{margin: 0}}>{calc?.value}</Typography.Title>

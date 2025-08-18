@@ -24,7 +24,8 @@ export interface ColumnConfig {
   // 数据类型，等同 attrType
   type?: string;
   // 别名
-  name: string;
+  name: string;    // 默认为第一个col的 attrId
+  name_cn: string; // 默认为第一个col的 attrName
   id: string;
 }
 
@@ -121,7 +122,7 @@ export const indicatorAdvanceSlice = createSlice({
           mergeCell,
           groupBy,
           dimension: dimension.name,
-          value: first.value,
+          value: first?.value,
         };
       } else {
         state.calc = undefined;

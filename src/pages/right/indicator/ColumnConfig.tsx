@@ -42,6 +42,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
         cols: [],
         conditions: [],
         name: '',
+        name_cn: '',
         id: `${Date.now()}`
       }] : _cfg
       setColumnConfig(cfg)
@@ -55,6 +56,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       cols: [],
       conditions: [],
       name: '',
+      name_cn: '',
       id: `${Date.now()}`
     })
     setColumnConfig(cfg)
@@ -89,7 +91,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
     if(!isEmpty(columnsMap)) {
       const cfg = map(filter(columnConfig, item => !isEmpty(compact(item.cols))), item => {
         const firstCol = compact(item.cols)[0]
-        return {...item, type: firstCol.attrType, name: item.name || firstCol.attrName}
+        return {...item, type: firstCol.attrType, name: firstCol.attrId, name_cn: item.name_cn || firstCol.attrName}
       })
       dispatch(updateColumnConfig(cfg))
     }
@@ -101,6 +103,7 @@ export default function ColumnConfigModal({visible, columnsMap, onCancel}: CfgMo
       cols: [],
       conditions: [],
       name: '',
+      name_cn: '',
       id: `${Date.now()}`
     }])
     setFocusCell(undefined)
