@@ -674,7 +674,7 @@ export default function Advance(props: any) {
                       />
                     </Form.Item>
                   ))}
-                  <Form.Item>
+                  <Form.Item noStyle>
                     {form.getFieldValue("groupBy")?.[fields.length - 1] && (
                       <Button
                         block
@@ -694,7 +694,7 @@ export default function Advance(props: any) {
         </div>
         <Space
           direction="vertical"
-          style={{ margin: "auto 0 16px", padding: "0 17px" }}
+          style={{ margin: "auto 0 0", padding: "16px" }}
           size={16}
         >
           <Row gutter={8}>
