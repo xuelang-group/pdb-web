@@ -197,16 +197,19 @@ export default function Right(props: any) {
 
   const onAddVersion = async (values: any) => {
     const { data } = await getMetricReference(values.ori_id)
-    if (data.success && !isEmpty(data.data)) {
-      const names = map(data.data, 'name')
-      modal.confirm({
-        title: '提示',
-        content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
-        onOk: function() {
-          handleAdd(values)
-        }
-      })
-      return
+    if (data.success) {
+      if (!isEmpty(data.data)) {
+        const names = map(data.data, 'name')
+        modal.confirm({
+          title: '提示',
+          content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
+          onOk: function() {
+            handleAdd(values)
+          }
+        })
+      } else {
+        handleAdd(values)
+      }
     }
   }
 
@@ -265,7 +268,10 @@ export default function Right(props: any) {
     });
     timeout = setTimeout(() => {
       savingModal && savingModal.destroy();
-      navigate(`/${systemInfo.graphId}/indicator`);
+      dispatch(exit())
+      dispatch(resetData())
+      dispatch(clearQuery())
+      navigate(`/${systemInfo.graphId}/indicator/index`);
       savingModal = null;
       timeout = null;
     }, 3000);
