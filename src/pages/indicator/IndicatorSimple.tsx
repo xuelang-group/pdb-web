@@ -783,7 +783,7 @@ export default function SimpleIndicator(props: any) {
       <>
         <Flex align="flex-end">
           {!isEmpty(attrs) &&
-            attrs.slice(0, 3).map((item) => {
+            attrs.slice(0, 4).map((item) => {
               return conditionMap[item.attrId] &&
                 conditionMap[item.attrId].length == 1 ? (
                 renderColumnItem(conditionMap[item.attrId][0], item)
@@ -1115,6 +1115,7 @@ export default function SimpleIndicator(props: any) {
       <Modal
         open={open}
         title="计算结果"
+        width={560}
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       >
