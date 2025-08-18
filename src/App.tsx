@@ -266,12 +266,12 @@ function App(props: PdbConfig) {
               onChange={(activeKey: string) => {
                 const { graphId } = systemInfo;
                 if (!graphId) return;
+                setSelectedTab(activeKey);
                 if (activeKey === "indicator") {
                   navigate(`/${graphId}/indicator/index`);
                 } else {
                   navigate(`/${graphId}`);
                 }
-                setSelectedTab(activeKey);
               }}
               centered
             />

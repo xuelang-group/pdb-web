@@ -6,6 +6,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { isEmpty } from "lodash";
 import { StoreState } from "@/store";
 import { setShowSearch } from "@/reducers/editor";
+import { setQueryParams } from "@/reducers/query";
 import "./index.less";
 
 export default function Indicator(props: any) {
@@ -15,7 +16,28 @@ export default function Indicator(props: any) {
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
   const query = useSelector((state: StoreState) => state.query.params);
+  const checkId = useSelector((state: StoreState) => state.indicator.checkId);
+  const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+
+  useEffect(() => {
+    const graphId = routerParams.id;           
+    const id = checkId || editId;
+    const indicator = id && allIndicators.find((item: any) => item.id == id);
+    if (indicator) {
+      const type = indicator.type;
+      if (type === 2) {
+        navigate(`/${graphId}/indicator/advance`)
+      } else if (type === 1) {
+        navigate(`/${graphId}/indicator/simple`)
+      } else {
+        navigate(`/${graphId}/indicator`)
+        dispatch(setQueryParams(indicator.pql_params.params));
+      }
+    } else if (query && query.graphId) {
+      navigate(`/${graphId}/indicator`)
+    }
+  }, [])
   
   const onCreate = (mode: string) => {
     if (mode == 'indicator') {

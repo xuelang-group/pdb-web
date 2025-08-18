@@ -447,7 +447,7 @@ export default function VTable(props: {width: number, height: number}) {
   
   const showFoot = !isEmpty(result)
   return (
-    <div className='pdb-vtable' style={{ position: 'relative', height: height }}>
+    <div className='pdb-vtable' style={{ position: 'relative'}}>
       {
         isEmpty(columns) && (
           <div className="pdb-vtable-empty">

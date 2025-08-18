@@ -260,7 +260,7 @@ export default function AppExplore() {
       graph.render();
       graph.zoom(1);
     }
-  }, [indicatorCheckId, indicatorEditId, queryParams, typeMap]);
+  }, [indicatorCheckId, indicatorEditId, queryParams, typeMap, location.pathname]);
 
   useEffect(() => {
     handleSearch(currentSearchValue, currentFocusIndex);
