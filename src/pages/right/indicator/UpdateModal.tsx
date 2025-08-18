@@ -3,6 +3,7 @@ import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
 import { getMetricDetail2, getMetricDetail,checkVersion } from "@/actions/indicator";
+import { error } from "console";
 
 export default function UpdateModal(props: any) {
   const [infoForm] = Form.useForm()
@@ -13,6 +14,17 @@ export default function UpdateModal(props: any) {
     const metric = allIndicators.find((item: any) => item.id === props.editId)
     if(metric) {
       setInitVersion(metric.version)
+      checkVersion({new_version: metric.version, ori_id: metric.ori_id})
+        .then(({data}) => {
+          if(data.data) {
+            infoForm.setFieldsValue({
+              version: data.data
+            })
+          }
+        })
+        .catch(error => {
+          
+        })
     }
   }, [props.editId, allIndicators])
 
