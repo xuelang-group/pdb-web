@@ -24,7 +24,6 @@ export default function List(props: any) {
   const routerParams = useParams();
   const location = useLocation();
   const [isIndSearched, setIndSearchedStatus] = useState(false);
-  const [pdbIds, setPdbIds] = useState<Array<string | number>>([]);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
   const indicatorLoading = useSelector((state: StoreState) => state.editor.indicatorLoading)
@@ -45,12 +44,7 @@ export default function List(props: any) {
   const { Search } = Input;
 
   useEffect(() => {
-    const urlRequestId = getHashParameterByName('requestId'); // 获取requestId
-    if (requestId || urlRequestId) {
-      updateList(requestId || urlRequestId)
-    } else {
-      updateListWithoutRequestId()
-    }
+    updateListWithoutRequestId()
   }, [])
 
   useEffect(() => {
@@ -59,9 +53,12 @@ export default function List(props: any) {
   }, [location.pathname])
 
   useEffect(() => {
-    const data = JSON.parse(JSON.stringify(allIndicators))
-    const tempArr = isEmpty(pdbIds) ? data : data.filter((item: any) => pdbIds.includes(item.ori_id))
-    setIndicatorList(tempArr);
+    const urlRequestId = getHashParameterByName('requestId'); // 获取requestId
+    if (requestId || urlRequestId) {
+      updateList(requestId || urlRequestId)
+    } else {
+      setIndicatorList(JSON.parse(JSON.stringify(allIndicators)));
+    }
   }, [allIndicators]);
 
 
@@ -77,10 +74,10 @@ export default function List(props: any) {
    */
   const updateList = (id: string | null) => {    
     getPdbIdList({ requestId: id }, (success: boolean, res: any) => {
-      if (success) {
-        setPdbIds(res?.data || [])
-      } 
-      updateListWithoutRequestId()
+      const pdbIds = res?.data || [] 
+      const data = JSON.parse(JSON.stringify(allIndicators))
+      const tempArr = isEmpty(pdbIds) ? data : data.filter((item: any) => pdbIds.includes(item.ori_id))
+      setIndicatorList(tempArr);
     })
   }
 

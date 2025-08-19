@@ -70,6 +70,7 @@ export default function Advance(props: any) {
   const func = Form.useWatch('func', form)
   const api = useSelector((state: StoreState) => state.query.api);
   const systemInfo = useSelector((state: StoreState) => state.app.systemInfo);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const selected = useSelector(
     (state: StoreState) => state.indicatorAdvance.selected
@@ -287,7 +288,8 @@ export default function Advance(props: any) {
       graph_data,
       column_config,
       metric_params,
-      pql_params
+      pql_params,
+      requestId: requestId
     }, (success: boolean, res: any) => {
       if (success) {
         message.success(`${basic_info?.id ? '更新' : '保存'}指标成功`);
