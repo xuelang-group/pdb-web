@@ -409,7 +409,6 @@ export default function SimpleIndicator(props: any) {
 
   const handleColumnsChange = (values: string[]) => {
     const cols = filter(originType?.csv, ({attrId}) => values.includes(attrId))
-    console.log('--- columns: ', cols)
     setGroupOptions(cols)
   }
 
@@ -674,10 +673,11 @@ export default function SimpleIndicator(props: any) {
       message.warning("未找到相关的数据资产单");
       return;
     }
-    metricForm.validateFields().then((values) => {      
+    metricForm.validateFields().then((values) => {
       const metric_params = getMetricParams()
       const pql_params = getPqlParams()
-      dispatch(updateCurrent({metric_params, pql_params}))
+      const buzProcess = find(buzProcessArr, {id: form.getFieldValue('buzProcess')})
+      dispatch(updateCurrent({metric_params, pql_params, buzProcess}))
       getFuncResult({
         metric_params,
         pql_params,
@@ -1124,7 +1124,7 @@ export default function SimpleIndicator(props: any) {
             {form.getFieldValue("name_cn")}
           </h4>
           <h4 className="title">
-            业务域【{form.getFieldValue("buzProcess")}】
+            业务域【{current?.buzProcess?.name}】
           </h4>
         </Flex>
         {renderResultColumns()}

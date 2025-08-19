@@ -25,7 +25,7 @@ export interface MetricBasicInfo {
   online?: boolean;
   unit?: string;
   requestId?: string | null;
-  buzProcess?: string | null;
+  buzProcess?: {id: string; name: string};
   type: number; // 指标类型 1-初级指标 2-高级指标 xx-前端自定义
 }
 
