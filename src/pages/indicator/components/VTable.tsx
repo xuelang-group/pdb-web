@@ -316,7 +316,7 @@ export default function VTable(props: {width: number, height: number}) {
   }
 
   const onScrollVerticalEnd = (args: any) => {
-    if (!query.graphId || args.scrollTop < args.viewHeight || records.length < 100 || records.length % 100 > 0) return
+    if (!query.graphId || args.scrollTop < args.viewHeight || records.length < 100 || (records.length + mergeCell.row.length) % 100 > 0) return
     getCsv({
       "limit": 100,
       "offset": records.length,
