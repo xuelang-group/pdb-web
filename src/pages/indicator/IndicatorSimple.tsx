@@ -134,6 +134,7 @@ export default function SimpleIndicator(props: any) {
   );
   const types = useSelector((state: StoreState) => state.type.data);
   const api = useSelector((state: StoreState) => state.query.api);
+  const params = useSelector((state: StoreState) => state.query.params);
 
   const [open, setOpen] = useState(false);
   const [typeList, setTypeList] = useState<TypeConfig[]>([]); // 数据资产单选项
@@ -250,6 +251,12 @@ export default function SimpleIndicator(props: any) {
       form.resetFields();
       metricForm.resetFields();
       setDimension(undefined);
+      const pql: PqlState = params.pql[0][0]
+      if (pql) {
+        reverseParsing(params);
+        const typeId = pql.id;
+        metricForm.setFieldValue("typeName", typeId);
+      }
     }
   }, [current?.id]);
 

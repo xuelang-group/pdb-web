@@ -231,7 +231,8 @@ function App(props: PdbConfig) {
           dispatch(setQueryParams(indicator.pql_params.params));
         }
       } else if (query && query.graphId) {
-        navigate(`/${graphId}/indicator`)
+        const pql = query.pql[0];
+        pql.length > 1 ? navigate(`/${graphId}/indicator`) : navigate(`/${graphId}/indicator/index`)
       } else {
         navigate(`/${graphId}/indicator/index`)
       }
