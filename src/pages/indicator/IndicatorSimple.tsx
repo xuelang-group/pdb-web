@@ -849,7 +849,7 @@ export default function SimpleIndicator(props: any) {
             icon={<LeftOutlined />}
             onClick={handleBack}
           />
-          <Typography.Text>初级指标{current ? "编辑" : "创建"}</Typography.Text>
+          <Typography.Text>初级指标{current?.id ? "编辑" : "创建"}</Typography.Text>
         </div> :
         <div style={{padding: '12px 24px 0', borderBottom: 'solid 1px var(--border-color2)'}}><VersionHeader /></div>
       }
@@ -1114,7 +1114,7 @@ export default function SimpleIndicator(props: any) {
                 dispatch(setReadonly(false))
                 dispatch(setEditId(checkId))
               }}>编辑指标</Button>
-              : <Button type="primary" disabled={readonly} onClick={onSubmit}>{ current ? '更新指标' : '保存指标'}</Button>
+              : <Button type="primary" disabled={readonly} onClick={onSubmit}>{ current?.id ? '更新指标' : '保存指标'}</Button>
             }
           </Space>
         </div>

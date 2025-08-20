@@ -19,6 +19,7 @@ import { useState, useEffect, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import {
+  CheckCircleFilled,
   CodeOutlined,
   DeleteOutlined,
   EditOutlined,
@@ -58,6 +59,8 @@ import { exit, setEditId, setMetrics } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
 import AdvanceCodeMode from "./AdvanceCodeMode";
 import AdvanceCalc from "@/pages/indicator/AdvanceCalc";
+import { getImgHref } from "@/actions/minioOperate";
+import Loading from "@/assets/images/loading-apng.png";
 
 
 export default function Advance(props: any) {
@@ -256,6 +259,45 @@ export default function Advance(props: any) {
     });
   };
 
+  const handleCancel = () => {
+    dispatch(exit())
+    dispatch(clearQuery())
+    dispatch(exitAdv())
+    navigate(`/${systemInfo.graphId}/indicator/index`);
+  }
+
+  const updateSaveModal = function () {
+    let timeout: any = null;
+    savingModal && savingModal.update({
+      className: "pdb-indicator-save-success",
+      icon: (<CheckCircleFilled />),
+      width: 470,
+      type: "confirm",
+      title: "指标保存成功",
+      content: "将在3s后退出指标设计...",
+      okText: "立即退出",
+      cancelText: "留在此页",
+      onOk: function () {
+        savingModal = null;
+        timeout && clearTimeout(timeout);
+        handleCancel()
+      },
+      onCancel: function () {
+        savingModal = null;
+        timeout && clearTimeout(timeout);
+      }
+    });
+    timeout = setTimeout(() => {
+      savingModal && savingModal.destroy();
+      savingModal = null;
+      timeout = null;
+      handleCancel()
+    }, 3000);
+  }
+
+
+  // 新建指标保存中及保存成功弹窗
+  let savingModal: any = null;
   const onSave = (values: any) => {
     const graph = (window as any).INDICATOR_GRAPH;
     const { nodes, edges } = graph.save();
@@ -282,6 +324,12 @@ export default function Advance(props: any) {
     //     message.error("编辑指标失败：" + res.message || res.msg);
     //   }
     // }) : 
+    savingModal = modal.confirm({
+      className: "pdb-indicator-save-loading",
+      width: 164,
+      icon: (<img src={getImgHref(Loading)} />),
+      title: `指标${basic_info?.id ? '版本' : ''}保存中...`
+    });
     addMetric({
       ...values,
       type: 2,
@@ -292,14 +340,15 @@ export default function Advance(props: any) {
       requestId: requestId
     }, (success: boolean, res: any) => {
       if (success) {
-        message.success(`${basic_info?.id ? '更新' : '保存'}指标成功`);
         updateList();
         dispatch(setMetricInfo(values))
         dispatch(setGraphData(graph_data))
         dispatch(setEditId(res))
         basic_info?.id ? setUpdateModalVisible(false) : setModalVisible(false)
+        updateSaveModal()
       } else {
         message.error(`${basic_info?.id ? '更新' : '保存'}指标失败：${res.message || res.msg}`);
+        savingModal && savingModal.destroy();
       }
       setModalLoading(false)
     });
@@ -730,12 +779,7 @@ export default function Advance(props: any) {
           </Row>
           <Button
             block
-            onClick={() => {
-              dispatch(exit())
-              dispatch(clearQuery())
-              dispatch(exitAdv())
-              navigate(`/${systemInfo.graphId}/indicator/index`);
-            }}
+            onClick={handleCancel}
           >
             退出
           </Button>

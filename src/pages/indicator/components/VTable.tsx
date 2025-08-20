@@ -1,16 +1,19 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from 'react'
-import { message, Space, Empty, Typography, Modal, Form, Input } from "antd";
+import { message, Space, Empty, Typography, Modal, Form, Input, Radio } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
-import { isEmpty, compact, isString, findIndex, keys, values } from "lodash"
+import { isEmpty, compact, isString, findIndex, keys, values, toNumber } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns, addRecords } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
+
+const { confirm } = Modal;
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props
@@ -381,24 +384,44 @@ export default function VTable(props: {width: number, height: number}) {
   }, [columns])
 
   useEffect(() => {
-    func && getFuncResult({
-      metric_params: {
+    if (func) {
+      const metric_params = {
         dimension: getDimensionObj(dimension),
         func,
         group_by: getGroupByObj(compact(groupBy)),
         extraColumns
-      },
-      pql_params: {
+      }
+      const pql_params = {
         api: api,
         params: query
       }
-    }, function(success: boolean, response: any) {
-      if (success) {
-        dispatch(setFuncResult(response));
-      } else {
-        message.error(response.message || response.msg);
-      }
-    })
+      getFuncResult({
+        metric_params,
+        pql_params,
+        cal_type: 2,
+      }, function(success: boolean, response: any) {
+        if (success) {
+          const total = toNumber(response.total)
+          const params = {
+            metric_params,
+            pql_params,
+            cal_type: 1,
+          }
+          if (total > 100) {            
+            message.info('因数据量过大，仅显示部分数据，但计算结果基于全部数据');
+          }
+          getFuncResult(params, function(success: boolean, response: any) {
+            if (success) {
+              dispatch(setFuncResult(response));
+            } else {
+              message.error(response.message || response.msg);
+            }
+          })
+        } else {
+          message.error(response.message || response.msg);
+        }
+      })    
+    }
   }, [func, dimension, groupBy])
 
   useEffect(() => {
