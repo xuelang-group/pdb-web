@@ -306,7 +306,11 @@ export default function Right(props: any) {
               <Form.Item label={''} >
                 <Select
                   placeholder='请选择指标度量'
-                  options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field }))}
+                  options={(columnsOptions || []).map((item) => ({
+                    label: item.field,
+                    value: item.field,
+                    disabled: infoForm.getFieldValue('names')?.includes(item.field)
+                  }))}
                   onChange={(value) => { dispatch(setDimension(value)) }}
                   value={dimension}
                   disabled={!!checkId}
@@ -351,7 +355,11 @@ export default function Right(props: any) {
                         >
                           <Select
                             placeholder='请选择'
-                            options={(columnsOptions || []).map((item) => ({ label: item.field, value: item.field, disabled: infoForm.getFieldValue('names')?.includes(item.field) }))}
+                            options={(columnsOptions || []).map((item) => ({
+                              label: item.field,
+                              value: item.field,
+                              disabled: infoForm.getFieldValue('names')?.includes(item.field) || item.field === dimension
+                            }))}
                             onChange={(value) => {
                               infoForm.setFieldsValue({
                                 names: infoForm.getFieldValue('names').map((item: any, i: number) => {
