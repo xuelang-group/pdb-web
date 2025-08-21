@@ -107,7 +107,7 @@ export const indicatorAdvanceSlice = createSlice({
       if (action.payload) {
         const { csv, result, dimension, group_by_name_dict } = action.payload;
         const { data } = papa.parse<any[]>(csv.trim());
-        const groupBy = map(state.metric_params?.group_by, 'name');
+        const groupBy = map(state.metric_params?.group_by, 'name_cn');
         const [first, ...group_by_result] = result;
         const { columns, records, mergeCell } = updateData(
           data,
