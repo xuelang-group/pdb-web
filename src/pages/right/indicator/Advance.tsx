@@ -414,7 +414,7 @@ export default function Advance(props: any) {
           pql: [[]],
           csv: {
             header: map(column_config, cfg => ({
-              attrName: cfg.name,
+              attrName: cfg.name_cn,
               attrType: cfg.type || compact(cfg.cols)[0].attrName,
               attrId: cfg.id,
               index: 0,
@@ -514,7 +514,7 @@ export default function Advance(props: any) {
           pql: [[]],
           csv: {
             header: map(column_config, cfg => ({
-              attrName: cfg.name,
+              attrName: cfg.name_cn,
               attrType: cfg.type || compact(cfg.cols)[0].attrType,
               attrId: cfg.id,
               index: 0,

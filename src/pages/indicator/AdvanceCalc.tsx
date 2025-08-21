@@ -164,8 +164,8 @@ export default function AdvanceCalc(props: {open: boolean; onClose: Function;}) 
       width={800}
       open={props.open}
       onCancel={() => props.onClose()}
-      footer={<Flex justify={isEmpty(calc?.value) ? "flex-end" : "space-between"} align="center">
-        {!isEmpty(calc?.value) && <Space>
+      footer={<Flex justify={calc?.value === undefined ? "flex-end" : "space-between"} align="center">
+        {calc?.value !== undefined && <Space>
           <Typography.Text strong>合计：</Typography.Text>
           <Typography.Title level={5} style={{margin: 0}}>{calc?.value}</Typography.Title>
         </Space>}
