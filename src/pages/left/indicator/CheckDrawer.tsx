@@ -45,18 +45,16 @@ export default function SaveModal(props: any) {
       console.log(postObj)
       updateMetric(postObj, (success: boolean, res: any) => {
         if (success) {
-          message.success("编辑成功");
-          if (props.data.name !== values.name || props.data.name_cn !== values.name_cn) {    
-            dispatch(setIndicatorLoading(true));        
-            getMetrics(function (response: any) {
-              if (response) {
-                dispatch(setMetrics(response || []));
-              } else {
-                message.error('获取列表数据失败：' + response.message || response.msg);
-              }
-              dispatch(setIndicatorLoading(false));
-            })
-          }
+          message.success("编辑成功");  
+          dispatch(setIndicatorLoading(true));        
+          getMetrics(function (response: any) {
+            if (response) {
+              dispatch(setMetrics(response || []));
+            } else {
+              message.error('获取列表数据失败：' + response.message || response.msg);
+            }
+            dispatch(setIndicatorLoading(false));
+          })
           onCancel()
         } else {
           message.error('编辑指标失败：' + res.message || res.msg);
