@@ -6,6 +6,7 @@ import { getMetrics, updateMetric } from "@/actions/indicator";
 import './index.less';
 import { setMetrics } from "@/reducers/indicator";
 import { setIndicatorLoading } from "@/reducers/editor";
+import moment from "moment";
 
 export default function SaveModal(props: any) {
   const dispatch = useDispatch();
@@ -16,10 +17,10 @@ export default function SaveModal(props: any) {
   useEffect(() => {
     if (props.data) {
       infoForm.setFieldsValue({
-        name: props.data.name,
-        name_cn: props.data.name_cn,
-        unit: props.data.unit,
-        desc: props.data.desc,
+        name: props.data?.name,
+        name_cn: props.data?.name_cn,
+        unit: props.data?.unit,
+        desc: props.data?.desc,
       })
     }
   }, [props.data])
@@ -66,7 +67,7 @@ export default function SaveModal(props: any) {
 
   return (
     <Drawer 
-      title={`基本信息${props.data?.name ? `- ${props.data.name}` : ''}${isEdit? " - 编辑" : ""}`}
+      title={`基本信息${props.data?.name ? `- ${props.data?.name}` : ''}${isEdit? " - 编辑" : ""}`}
       onClose={onCancel} 
       open={props.isOpen}
       footer={(
@@ -100,14 +101,14 @@ export default function SaveModal(props: any) {
           )
         }
         <Form.Item label="版本号">{props.data?.version || "--"}</Form.Item>
-        <Form.Item label="创建人">--</Form.Item>
-        <Form.Item label="所属业务过程">{currentBuzProcess?.name || "--"}</Form.Item>
+        <Form.Item label="创建人">{ props.data?.creatorId || "--"}</Form.Item>
+        <Form.Item label="所属业务过程">{props.data?.buzProcess?.name || "--"}</Form.Item>
         <Form.Item label="相关业务过程">--</Form.Item>
-        <Form.Item label="创建时间">--</Form.Item>
-        <Form.Item label="更新时间">--</Form.Item>
+        <Form.Item label="创建时间">{props.data?.created_at ? moment(props.data?.created_at).format("YYYY-MM-DD HH:mm:ss") : "--"}</Form.Item>
+        <Form.Item label="更新时间">{props.data?.updated_at ? moment(props.data?.updated_at).format("YYYY-MM-DD HH:mm:ss") : "--"}</Form.Item>
         <Form.Item label="引用数据资产">--</Form.Item>
         <Form.Item label="数据安全保护等级">--</Form.Item>
-        <Form.Item label="指标类型">--</Form.Item>
+        <Form.Item label="指标类型">{props.data?.type === 2 ? "高级指标" : "初级指标"}</Form.Item>
       </Form>
     </Drawer>
   )
