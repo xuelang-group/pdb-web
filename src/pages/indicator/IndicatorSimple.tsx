@@ -417,6 +417,11 @@ export default function SimpleIndicator(props: any) {
   const handleColumnsChange = (values: string[]) => {
     const cols = filter(originType?.csv, ({attrId}) => values.includes(attrId))
     setGroupOptions(cols)
+    if (isEmpty(values)) {
+      metricForm.setFieldsValue({
+        groupBy: [''],
+      })
+    }
   }
 
   const handleFilterOptions = (filterOptions: any) => {
