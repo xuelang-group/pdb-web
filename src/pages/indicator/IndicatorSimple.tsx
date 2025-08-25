@@ -30,6 +30,7 @@ import {
   compact,
   filter,
   find,
+  findIndex,
   get,
   isArray,
   isEmpty,
@@ -135,6 +136,7 @@ export default function SimpleIndicator(props: any) {
   const types = useSelector((state: StoreState) => state.type.data);
   const api = useSelector((state: StoreState) => state.query.api);
   const params = useSelector((state: StoreState) => state.query.params);
+  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
 
   const [open, setOpen] = useState(false);
   const [typeList, setTypeList] = useState<TypeConfig[]>([]); // 数据资产单选项
@@ -373,11 +375,16 @@ export default function SimpleIndicator(props: any) {
 
   // 指标度量选择
   const handleDimensionChange = (value: string) => {
-    const dimension = find(originType?.csv, { attrId: value });
-    const attrType = get(dimension, "attrType", "");
-    const funcs = get(funcOptionsObj, attrType, []);
-    setfuncOptions(funcs);
-    setDimension(dimension);
+    const _dimension = find(originType?.csv, { attrId: value });
+    const attrType = get(_dimension, "attrType", "");
+    if (attrType !== dimension?.attrType) {
+      const funcs = get(funcOptionsObj, attrType, []);
+      setfuncOptions(funcs);
+      metricForm.setFieldsValue({
+        func: '',
+      })
+    }
+    setDimension(_dimension);
   };
 
   // 数据资产单选择后，根据选中的x.type.name，设置query
@@ -810,20 +817,20 @@ export default function SimpleIndicator(props: any) {
             })}
           <Space>
             {
-              !isEmpty(attrs) && (<>
+              !isEmpty(attrs) && (
                 <Popover
                   content={renderPopColumns(attrs, conditionMap)}
                 >
                   <Button type="text" size="small" icon={<SmallDashOutlined />} />
                 </Popover>
-                <span>的</span>
-              </>)
+              )
             }
-            <span className="func">“{dimension && dimension.name_cn}”</span><span>为</span>
+            <span className="func">“{dimension && dimension.name_cn}”</span>
+            <span>的{current?.metric_params?.func}为</span>
           </Space>
         </Flex>
         <Flex align="flex-end" className="pdb-indicator-result">
-          <h4 className="result">{result?.value}</h4>
+          <h4 className="result">{result?.value || '--'}</h4>
           <span className="unit">{current?.unit}</span>
         </Flex>
         {!isEmpty(conditions) && <div className="pdb-indicator-result-filter">
@@ -867,14 +874,26 @@ export default function SimpleIndicator(props: any) {
             <Flex wrap className="pdb-indicator-flex">
               <Form.Item
                 label="中文名称"
-                rules={[{ required: true, message: "请输入中文名称" }]}
+                rules={[{ required: true, message: "请输入中文名称" }, { validator(rule, value, callback) {
+                  if (value && findIndex(allIndicators, item => item.name_cn === value && item.id !== current?.id) > -1) {
+                    callback("不能重名")
+                  } else {
+                    callback()
+                  }
+                },}]}
                 name={"name_cn"}
               >
                 <Input placeholder="请输入中文名称" />
               </Form.Item>
               <Form.Item
                 label="英文名称"
-                rules={[{ required: true, message: "请输入英文名称" }]}
+                rules={[{ required: true, message: "请输入英文名称" }, { validator(rule, value, callback) {
+                  if (value && findIndex(allIndicators, item => item.name === value && item.id !== current?.id) > -1) {
+                    callback("不能重名")
+                  } else {
+                    callback()
+                  }
+                }}]}
                 name={"name"}
               >
                 <Input placeholder="请输入英文名称" />
@@ -1127,7 +1146,7 @@ export default function SimpleIndicator(props: any) {
       <Modal
         open={open}
         title="计算结果"
-        width={560}
+        width={600}
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       >

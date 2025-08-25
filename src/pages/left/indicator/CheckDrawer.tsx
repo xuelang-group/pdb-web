@@ -7,11 +7,13 @@ import './index.less';
 import { setMetrics } from "@/reducers/indicator";
 import { setIndicatorLoading } from "@/reducers/editor";
 import moment from "moment";
+import { findIndex } from "lodash";
 
 export default function SaveModal(props: any) {
   const dispatch = useDispatch();
   const [infoForm] = Form.useForm();
   const [isEdit, setIsEdit] = useState(false);
+  const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
 
   useEffect(() => {
@@ -84,8 +86,23 @@ export default function SaveModal(props: any) {
         {
           isEdit ? (
             <>
-              <Form.Item label="中文名称" name='name_cn'><Input placeholder="请输入中文名称" /></Form.Item>
-              <Form.Item label="英文名称" name='name'><Input placeholder="请输入英文名称" /></Form.Item>
+              <Form.Item label="中文名称" name='name_cn'
+                rules={[{ required: true, message: '请输入中文名称' }, { validator(rule, value, callback) {
+                  if (value && findIndex(allIndicators, item => item.name_cn === value && item.id !== props.data?.id) > -1) {
+                    callback("不能重名")
+                  } else {
+                    callback()
+                  }
+                },}]}
+              ><Input placeholder="请输入中文名称" /></Form.Item>
+              <Form.Item label="英文名称" name='name'
+                rules={[{ required: true, message: '请输入中文名称' }, { validator(rule, value, callback) {
+                  if (value && findIndex(allIndicators, item => item.name === value && item.id !== props.data?.id) > -1) {
+                    callback("不能重名")
+                  } else {
+                    callback()
+                  }
+                },}]}><Input placeholder="请输入英文名称" /></Form.Item>
               <Form.Item label="单位" name='unit'><Input placeholder="请输入单位" /></Form.Item>
               <Form.Item label="描述" name='desc'><Input.TextArea placeholder="请输入指标描述" rows={3} /></Form.Item>
             </>

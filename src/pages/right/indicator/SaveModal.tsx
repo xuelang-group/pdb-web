@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getBuzProcess } from "@/actions/adapter";
 import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
 import { useEffect, useState } from "react";
-import { isArray, isEmpty } from "lodash";
+import { findIndex, isArray, isEmpty } from "lodash";
 
 export default function SaveModal(props: any) {
   const { editId, xTypeNames } = props
@@ -72,10 +72,28 @@ export default function SaveModal(props: any) {
           wrapperCol={{ span: 18 }}
           initialValues={{version: '1.0.0'}}
         >
-          <Form.Item label="中文名称" rules={[{ required: true, message: '请输入中文名称' }]} name={'name_cn'}>
+          <Form.Item
+            label="中文名称"
+            rules={[{ required: true, message: '请输入中文名称' }, { validator(rule, value, callback) {
+              if (value && findIndex(allIndicators, item => item.name_cn === value && item.id !== editId) > -1) {
+                callback("不能重名")
+              } else {
+                callback()
+              }
+            },}]}
+            name={'name_cn'}>
             <Input placeholder="请输入中文名称" />
           </Form.Item>
-          <Form.Item label="英文名称" rules={[{ required: true, message: '请输入英文名称' }]} name={'name'}>
+          <Form.Item
+            label="英文名称"
+            rules={[{ required: true, message: '请输入英文名称' }, { validator(rule, value, callback) {
+              if (value && findIndex(allIndicators, item => item.name === value && item.id !== editId) > -1) {
+                callback("不能重名")
+              } else {
+                callback()
+              }
+            },}]}
+            name={'name'}>
             <Input placeholder="请输入英文名称" />
           </Form.Item>
           <Form.Item label="单位" name={'unit'}>
