@@ -178,6 +178,8 @@ export default function List(props: any) {
     } else if (_needVersionId) {
       const tempObj = arr.find((item: any) => (item.id).toString() === _needVersionId)
       if(tempObj) {
+        setVersionId(tempObj.ori_id)
+        setVersionVisible(true)
       }else {
         getMetricDetail({id: _needVersionId}, (success: boolean, res: any) => {
           setVersionId(res.ori_id)
