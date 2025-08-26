@@ -173,10 +173,10 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
           {index > 0 && condition.connectives &&
             <Tag className="connectives" color="volcano">{operators[condition.connectives]}</Tag>
           }
-          <Card  key={index}
+          <Card key={index}
             size="small"
             extra={activePanelKey === index ? null : getExtra(index, condition)}
-            title={getConditionRaw(condition, get(column, 'name', ''))}
+            title={getConditionRaw(condition, get(column, 'name_cn', ''))}
             className={activePanelKey !== index ? "no-body-card" : ""}
           >
             {activePanelKey === index ? renderPanelChildren() : null}
@@ -198,7 +198,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
       { conditions.length == activePanelKey && (
         <Card
           size="small"
-          title={`新建${column?.name || '属性'}条件`}
+          title={`新建${column?.name_cn || '属性'}条件`}
           style={conditions.length === 0 ? {} : { marginTop: "1rem" }}
         >
           {renderPanelChildren()}
