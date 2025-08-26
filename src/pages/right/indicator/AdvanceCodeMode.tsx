@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Button, Card, Col, message, Modal, Row, Space } from "antd";
 import { find, findLast, forEach, isArray, map } from "lodash";
 import { INode } from "@antv/g6";
-import { setCodeMode, setGraphData } from "@/reducers/indicatorAdvance";
+import { setCodeMode, setGraphData, setMetricParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { StoreState } from "@/store";
 import { inidcatorSymbolMap } from "@/utils/common";
 import { MetricItem } from "@/reducers/indicatorSimple";
@@ -175,10 +175,15 @@ export default function AdvanceCodeMode() {
     }
     const arr = parseCode2Source()
     const { nodes, edges } = parseSource2GraphData(arr)
-    nodes.push({id: 'end', label: '计算结果'})
-    const lastSymbol = findLast(arr, {type: 'symbol'})
-    if (lastSymbol) {
-      edges.push({source: lastSymbol.id, target: 'end'})
+    if (nodes.length) {
+      nodes.push({id: 'end', label: '计算结果'})
+      const lastSymbol = findLast(arr, {type: 'symbol'})
+      if (lastSymbol) {
+        edges.push({source: lastSymbol.id, target: 'end'})
+      }
+    } else {
+      dispatch(updateColumnConfig([]))
+      dispatch(setMetricParams())
     }
     dispatch(setGraphData({nodes, edges}))
     handleCancel()
@@ -276,7 +281,7 @@ export default function AdvanceCodeMode() {
           onKeyDown={handleKeydown}
           onMouseUp={handleInsert}
           suppressContentEditableWarning={true}
-          // dangerouslySetInnerHTML={{ __html: value }}
+          // dangerouslySetInnerHTML={{ __html: `${content.join('')}` }}
         >
           { map(code, (item, index) => (
             <span key={item.id} className={item.type} data-index={item.key} contentEditable={false}>{item.type === 'symbol' ? inidcatorSymbolMap[item.name] : item.name}</span>

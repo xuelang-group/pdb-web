@@ -134,8 +134,15 @@ export const indicatorAdvanceSlice = createSlice({
     setMetricInfo: (state, action: PayloadAction<MetricBasicInfo>) => {
       state.basic_info = action.payload;
     },
-    setMetricParams: (state, action: PayloadAction<MetricParams>) => {
-      state.metric_params = action.payload;
+    setMetricParams: (state, action: PayloadAction<MetricParams | undefined>) => {
+      state.metric_params = action.payload || {
+        dimension: {
+          name: "",
+          name_cn: "",
+        },
+        func: "",
+        group_by: [{ name: "", name_cn: "" }],
+      };
     },
     setGraphData: (state, action: PayloadAction<any>) => {
       state.graph_data = isEmpty(action.payload)
