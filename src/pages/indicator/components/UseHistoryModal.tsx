@@ -2,8 +2,9 @@ import { Modal, Form, Input, Radio, Spin, Alert, message } from "antd";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
-import { rollbackMetric, addMetric } from "@/actions/indicator";
+import { rollbackMetric, addMetric, getMetricDetail } from "@/actions/indicator";
 import { getMetricDetail2, checkVersion } from "@/actions/indicator";
+import { setNowCheckVersion } from "@/reducers/indicator";
 
 export default function UseHistoryModal(props: any) {
   const [infoForm] = Form.useForm()
@@ -11,36 +12,33 @@ export default function UseHistoryModal(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const checkVersionList = useSelector((state: StoreState) => state.indicator.checkVersionList);
   const nowCheckVersion = useSelector((state: StoreState) => state.indicator.nowCheckVersion);
-  const list = useSelector((state: StoreState) => state.indicator.list);
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
+      setModalLoading(true)
+      const version = (checkVersionList || []).find((item: any) => item.version === nowCheckVersion)
       if (values.type === 1) {
-        setModalLoading(true)
-        const version = (checkVersionList || []).find((item: any) => item.version === nowCheckVersion)
-        const metric = list.find((item: any) => item.ori_id === version.ori_id)
-        if(metric) {
+        getMetricDetail({id: version.id}, (success: boolean, res: any) => {
+          delete res.id;
           addMetric({
-            ...metric,
+            ...res,
             ori_id: version.ori_id, 
             version: values.version,
           }, (success: boolean, res: any) => {
+            setModalLoading(false)
             if (success) {
               message.success('新增成功')
-              setModalLoading(false)
               onCancel()
               props.onSuccess && props.onSuccess()
             }
           })
-        }
+        })
       } else if (values.type === 2) {
-        setModalLoading(true)
-        const version = (checkVersionList || []).find((item: any) => item.version === nowCheckVersion)
-        if(version) {
+        if (version) {
           rollbackMetric({id: version.id}, (success: boolean, res: any) => {
+            setModalLoading(false)
             if (success) {
               message.success('回滚成功')
-              setModalLoading(false)
               onCancel()
               props.onSuccess && props.onSuccess()
             }

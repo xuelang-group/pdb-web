@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Dropdown } from "antd";
+import { Button, Dropdown, message } from "antd";
 import type { MenuProps } from "antd";
 import { StoreState } from "@/store";
 import {
@@ -17,13 +17,15 @@ import {
   resetData,
   setNextShowConfiguration,
   setExtraColumns,
+  setMetrics,
 } from "@/reducers/indicator";
 import { setQueryParams, setApi } from "@/reducers/query";
 import { clearQuery } from "@/reducers/query";
 import UseHistoryModal from "./UseHistoryModal";
-import { getMetricDetail } from "@/actions/indicator";
+import { getMetricDetail, getMetrics } from "@/actions/indicator";
 import { setCurrent, setReadonly } from "@/reducers/indicatorSimple";
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import { setIndicatorLoading } from "@/reducers/editor";
 
 export default function Indicator(props: any) {
   const navigate = useNavigate();
@@ -129,6 +131,20 @@ export default function Indicator(props: any) {
     }
   };
 
+  const onSuccess = () => {
+    dispatch(setcheckVersionList(null));
+    dispatch(setNowCheckVersion(null));
+    dispatch(setIndicatorLoading(true));
+    getMetrics(function (response: any) {
+      if (response) {
+        dispatch(setMetrics(response || []));
+      } else {
+        message.error('获取列表数据失败：' + response.message || response.msg);
+      }
+      dispatch(setIndicatorLoading(false));
+    })
+  }
+
   const renderHistoryHeader = () => (
     <div className="pdb-indicator-header">
       <span>
@@ -175,7 +191,7 @@ export default function Indicator(props: any) {
       <UseHistoryModal
         visible={modalVisible}
         onCancel={() => setModalVisible(false)}
-        onSuccess={onBack}
+        onSuccess={onSuccess}
       />
     </>
   )

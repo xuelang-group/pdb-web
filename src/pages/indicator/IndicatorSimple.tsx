@@ -1146,7 +1146,7 @@ export default function SimpleIndicator(props: any) {
       <Modal
         open={open}
         title="计算结果"
-        width={600}
+        width={600} className="pdb-indicator-simple-result-modal"
         onOk={() => setOpen(false)}
         onCancel={() => setOpen(false)}
       >
