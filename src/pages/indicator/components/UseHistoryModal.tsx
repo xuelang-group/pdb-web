@@ -21,12 +21,9 @@ export default function UseHistoryModal(props: any) {
         const metric = list.find((item: any) => item.ori_id === version.ori_id)
         if(metric) {
           addMetric({
+            ...metric,
             ori_id: version.ori_id, 
             version: values.version,
-            name: metric.name,
-            name_cn: metric.name_cn,
-            metric_params: metric.metric_params,
-            pql_params: metric.pql_params,
           }, (success: boolean, res: any) => {
             if (success) {
               message.success('新增成功')
