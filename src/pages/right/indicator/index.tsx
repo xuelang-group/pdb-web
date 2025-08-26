@@ -33,6 +33,7 @@ export default function Right(props: any) {
   const modalVisible = useSelector((state: StoreState) => state.indicator.modalVisible);
   const updateModalVisible = useSelector((state: StoreState) => state.indicator.updateModalVisible);
   const extraColumns = useSelector((state: StoreState) => state.indicator.extraColumns);
+  const records = useSelector((state: StoreState) => state.indicator.records);
 
   const func = useSelector((state: StoreState) => state.indicator.func || undefined);
   const groupBy = useSelector((state: StoreState) => (state.indicator.groupBy?.length ? state.indicator.groupBy : ['']));
@@ -413,7 +414,7 @@ export default function Right(props: any) {
         </Form>
         <Space direction="vertical" style={{margin: 'auto 0 16px', padding: '0 17px'}} size={16}>
           <Button block
-            type="primary"
+            type="primary" disabled={!dimension || isEmpty(records)}
             onClick={() => {
               checkId && dispatch(setEditId(checkId));
               editId && dispatch(setUpdateModalVisible(true))
