@@ -102,14 +102,15 @@ export default function AdvanceCodeMode() {
   const parseCode2Source = () => {
     const arr: any[] = []
     let parent = arr
-    let parentKeys = []
+    let parentKeys = []  // 记录当前层级
     for (let i=0; i < code.length; i++) {
       const item = code[i]
       if (item.type === 'kuo') {
         if (item.name === '(') {
+          const len = parent.length
           parent.push([])
-          parent = parent[parent.length - 1]
-          parentKeys.push(0)
+          parent = parent[len]
+          parentKeys.push(len)
         } else if (item.name === ')') {
           parentKeys.pop()
           parent = arr
@@ -177,7 +178,7 @@ export default function AdvanceCodeMode() {
     const { nodes, edges } = parseSource2GraphData(arr)
     if (nodes.length) {
       nodes.push({id: 'end', label: '计算结果'})
-      const lastSymbol = findLast(arr, {type: 'symbol'})
+      const lastSymbol = findLast(arr, {type: 'symbol'}) || findLast(nodes, {type: 'symbol'})
       if (lastSymbol) {
         edges.push({source: lastSymbol.id, target: 'end'})
       }
