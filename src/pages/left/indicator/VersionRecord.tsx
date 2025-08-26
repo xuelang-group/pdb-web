@@ -7,6 +7,7 @@ import { setQueryParams, setApi } from '@/reducers/query';
 import { setCheckId, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
 import { setCurrent, setReadonly } from "@/reducers/indicatorSimple";
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
+import moment from "moment";
 
 
 export default function VersionRecord(props: any) {
@@ -101,6 +102,7 @@ export default function VersionRecord(props: any) {
             title: '创建时间',
             dataIndex: 'created_at',
             key: 'created_at',
+            render: (text: any) => moment(text).format("YYYY-MM-DD HH:mm:ss")
           },
           {
             title: '操作',
