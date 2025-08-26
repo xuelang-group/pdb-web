@@ -78,8 +78,8 @@ export default function AdvanceCodeMode() {
     if (!graph) return
     const endNode = graph.findById('end')
     if (endNode) {
-      const symbol = endNode.getNeighbors('source')[0]
-      const data = getSource(symbol)
+      const symbol = endNode.getNeighbors('source')[0]        
+      const data = symbol ? getSource(symbol) : []
       const _code = getCode(data)
       const metrics: {[id: string | number]: string | number} = {}
       forEach(_code, item => {
