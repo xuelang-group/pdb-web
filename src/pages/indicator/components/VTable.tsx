@@ -5,13 +5,14 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
-import { isEmpty, compact, isString, findIndex, keys, values, toNumber } from "lodash"
+import { isEmpty, compact, isString, findIndex, keys, values, toNumber, forEach, map } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns, addRecords } from "@/reducers/indicator";
 import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
+import { CsvHeaderState, PqlState } from "@/reducers/query";
 
 const { confirm } = Modal;
 
@@ -318,6 +319,26 @@ export default function VTable(props: {width: number, height: number}) {
     }
   }
 
+  const getParams = () => {
+    const _pql: PqlState[] = query.pql[0]
+    const typeLabel = _pql[0].name
+    let header: CsvHeaderState[] = query.csv.header
+    const _attrName = header[0].attrName
+    if (_pql.length === 1 && typeLabel && _attrName && _attrName.indexOf(typeLabel) > -1) {
+      header = map(header, (item: CsvHeaderState) => ({
+        ...item,
+        attrName: item.attrName.replace(`_${typeLabel}`, '')
+      }))
+    }
+    return {
+      csv: {
+        header,
+      },
+      graphId: query.graphId,
+      pql: query.pql
+    }
+  }
+
   const onScrollVerticalEnd = (args: any) => {
     if (!query.graphId || args.scrollTop < args.viewHeight || records.length < 100 || (records.length + mergeCell.row.length) % 100 > 0) return
     getCsv({
@@ -325,7 +346,7 @@ export default function VTable(props: {width: number, height: number}) {
       "offset": records.length,
       "pql_params": {
         "api": api,
-        "params": query
+        "params": getParams()
       },
       "extra_columns": extraColumns || []
     }, function (success: boolean, response: any) {
@@ -345,7 +366,7 @@ export default function VTable(props: {width: number, height: number}) {
         "offset": 0,
         "pql_params": {
           "api": api,
-          "params": query
+          "params": getParams()
         },
         "extra_columns": extraColumns || []
       }, function (success: boolean, response: any) {
