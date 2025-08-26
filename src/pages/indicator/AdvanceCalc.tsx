@@ -20,6 +20,7 @@ const getColumns = (cols: Col[]) => {
 export default function AdvanceCalc(props: {open: boolean; onClose: Function;}) {
   const vtable = useRef<any>(null);
   const calc = useSelector((state: StoreState) => state.indicatorAdvance.calc);
+  const metric_params = useSelector((state: StoreState) => state.indicatorAdvance.metric_params);
 
   const option: IOption = {
     widthMode: 'autoWidth',
@@ -166,7 +167,7 @@ export default function AdvanceCalc(props: {open: boolean; onClose: Function;}) 
       onCancel={() => props.onClose()}
       footer={<Flex justify={calc?.value === undefined ? "flex-end" : "space-between"} align="center">
         {calc?.value !== undefined && <Space>
-          <Typography.Text strong>合计：</Typography.Text>
+          <Typography.Text strong>合计{metric_params?.func ? ` | ${metric_params?.func}` : ''}：</Typography.Text>
           <Typography.Title level={5} style={{margin: 0}}>{calc?.value}</Typography.Title>
         </Space>}
         <Button type="primary" onClick={() => props.onClose()}>确定</Button>
