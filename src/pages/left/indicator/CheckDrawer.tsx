@@ -44,7 +44,6 @@ export default function SaveModal(props: any) {
         metric_params: props.data?.metric_params,
         pql_params:  props.data?.pql_params,
       }
-      console.log(postObj)
       updateMetric(postObj, (success: boolean, res: any) => {
         if (success) {
           message.success("编辑成功");  
@@ -70,6 +69,7 @@ export default function SaveModal(props: any) {
       title={`基本信息${props.data?.name ? `- ${props.data?.name}` : ''}${isEdit? " - 编辑" : ""}`}
       onClose={onCancel} 
       open={props.isOpen}
+      className="check-info-drawer"
       footer={(
         <div className="check-info-drawer-footer">
           <Button onClick={onCancel}>关闭</Button>
