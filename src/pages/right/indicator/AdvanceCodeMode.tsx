@@ -1,6 +1,7 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Card, Col, message, Modal, Row, Space } from "antd";
+import { Button, Card, Col, Flex, message, Modal, Row, Space, Typography } from "antd";
+import { ExclamationCircleFilled, ExclamationCircleOutlined } from "@ant-design/icons";
 import { find, findLast, forEach, isArray, map } from "lodash";
 import { INode } from "@antv/g6";
 import { setCodeMode, setGraphData, setMetricParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
@@ -19,6 +20,7 @@ export default function AdvanceCodeMode() {
 
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState<CodeItem[]>([])
+  const [content, setContent] = useState<string>('')
   const [insertIndex, setInsertIndex] = useState(-1)
   const [source, setSource] = useState<Array<any>>([])
   const [selectedMetrics, setSelectedMetrics] = useState<{[id: string | number]: string | number}>({})
@@ -29,6 +31,27 @@ export default function AdvanceCodeMode() {
       parseGraph2Code()
     }
   }, [codeMode]) 
+
+  useEffect(() => {
+    const contents = map(code, (item, index) => `<span class="${item.type}" data-index="${item.key}" contenteditable="${false}">${item.type === "symbol" ? inidcatorSymbolMap[item.name] : item.name}</span>`).join('').trim();
+
+    setContent(contents)
+  }, [code])
+
+  useLayoutEffect(() => {
+    const _range = window.getSelection()?.getRangeAt(0)
+    if (codeRef.current && insertIndex > -1 && insertIndex !== _range?.startOffset) {
+      const range = document.createRange()
+      const sel = window.getSelection()
+      if (sel) {
+        range.selectNodeContents(codeRef.current)
+        range.setStart(codeRef.current, insertIndex)
+        range.collapse(true)
+        sel.removeAllRanges()
+        sel.addRange(range)
+      }
+    }
+  }, [content])
 
   // 根据嵌套的数组source数据获得展开的数组code数据
   const getCode = (data: Array<any>, parentKey?: string) => {
@@ -191,8 +214,7 @@ export default function AdvanceCodeMode() {
   }
 
   const handleClick = (type: string, name: string, data?: {[key: string]: any}) => {
-    const children = codeRef.current?.childNodes
-    const len = children?.length ? children?.length : 0
+    const len = code.length || 0
     const index = (insertIndex < 0 || insertIndex > len) ? len : insertIndex
     const _code = JSON.parse(JSON.stringify(code))
     let id = `${Date.now()}`
@@ -228,49 +250,66 @@ export default function AdvanceCodeMode() {
   }
 
   const handleInsert = () => {
-    const range = window.getSelection()?.getRangeAt(0)
-    range && setInsertIndex(range?.startOffset)
+    if (content === codeRef.current?.innerHTML) {
+      const range = window.getSelection()?.getRangeAt(0)
+      range && setInsertIndex(range?.startOffset)
+    }
   }
   
   const handleKeydown = (e: any) => {
-    if ((e.key === "Backspace" || e.key === "Delete") && !!code.length) {
-      e.preventDefault()
-      const _code = JSON.parse(JSON.stringify(code))
-      const index = e.key === "Backspace" ? insertIndex - 1 : insertIndex
-      const [removedItem] = _code.splice(index, 1)
-      setCode(_code)
-      setInsertIndex(index)
-      if (removedItem.type === 'indicator') {
-        const { id } = removedItem.data
-        const selected = JSON.parse(JSON.stringify(selectedMetrics))
-        delete selected[id]
-        setSelectedMetrics(selected)
+    if ((e.key === "Backspace" || e.key === "Delete")) {
+      if (!!code.length && content === codeRef.current?.innerHTML) {
+        e.preventDefault() 
+        const _code = JSON.parse(JSON.stringify(code))
+        const index = e.key === "Backspace" ? insertIndex - 1 : insertIndex
+        const [removedItem] = _code.splice(index, 1)
+        setCode(_code)
+        setInsertIndex(index)
+        if (removedItem.type === 'indicator') {
+          const { id } = removedItem.data
+          const selected = JSON.parse(JSON.stringify(selectedMetrics))
+          delete selected[id]
+          setSelectedMetrics(selected)
+        }
       }
     } else if (["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(e.key)) {
       handleInsert()
     } else {
       e.preventDefault()
+      console.log('--- key down: ', e.key)
       message.warning('请从下面列表中点选指标和运算符')
     }
-
   }
+  console.log('insertIndex: ', insertIndex)
   
   return (
     <Modal
-      className="pdb-indicator-modal"
-      title="编辑公式" forceRender
-      open={open} width={800}
+      title="编辑公式"
+      forceRender
+      open={open}
+      width={800}
       onCancel={handleCancel}
       onOk={handleOk}
     >
       <Card
-        title="计算结果 ="
+        title={
+          <React.Fragment>
+            <ExclamationCircleFilled />
+            <span>
+              请在下面的列表中点击选择“指标”和“运算符”及括号，不要直接输入！
+            </span>
+          </React.Fragment>
+        }
         size="small"
         className="pdb-indicator-codemode"
         extra={
           <Space>
-            <Button size="small" onClick={handleReset}>重置</Button>
-            <Button size="small" onClick={handleClear}>清理</Button>
+            <Button size="small" onClick={handleReset}>
+              重置
+            </Button>
+            <Button size="small" onClick={handleClear}>
+              清理
+            </Button>
           </Space>
         }
       >
@@ -282,67 +321,94 @@ export default function AdvanceCodeMode() {
           onKeyDown={handleKeydown}
           onMouseUp={handleInsert}
           suppressContentEditableWarning={true}
-          // dangerouslySetInnerHTML={{ __html: `${content.join('')}` }}
+          dangerouslySetInnerHTML={{ __html: content }}
         >
-          { map(code, (item, index) => (
-            <span key={item.id} className={item.type} data-index={item.key} contentEditable={false}>{item.type === 'symbol' ? inidcatorSymbolMap[item.name] : item.name}</span>
-          )) }
+          {/* {map(code, (item, index) => (
+            <span
+              key={item.id}
+              className={item.type}
+              data-index={item.key}
+              contentEditable={false}
+            >
+              {item.type === "symbol"
+                ? inidcatorSymbolMap[item.name]
+                : item.name}
+            </span>
+          ))} */}
         </div>
       </Card>
-      <Row gutter={8} style={{marginTop: 8}}>
+      <Row gutter={8} style={{ marginTop: 8 }}>
         <Col span={16}>
-          <Card title="选择指标" size="small" className="pdb-indicator-codemode">
+          <Card
+            title="选择指标"
+            size="small"
+            className="pdb-indicator-codemode"
+          >
             <ul className="list list-indicator">
-              {
-                map(allIndicators, (item: MetricItem) => {
-                  const curr = item.id && selectedMetrics[item.id]
-                  const ori = item.ori_id && selectedMetrics[item.ori_id]
-                  return (
-                    <li key={item.id} className={(curr || ori) ? 'item selected' : 'item'}
-                      onClick={() => handleClick('indicator', item.name_cn, {id: item.id, name: item.name, name_cn: item.name_cn, type: item.type, ori_id: item.ori_id})}
-                    >
-                      {
-                        item.type !== 2 ? <i className="item-icon iconfont icon-zhibiao"></i> :
-                        <svg className="svg-icon" aria-hidden="true">
-                          <use xlinkHref="#icon-gaojizhibiao">
-                          </use>
-                        </svg>
-                      }
-                      <span className='item-label'>{item.name_cn}</span>
-                      <span className='item-label2'>{item.name}</span>
-                      {/* {!curr && ori && <Tag style={{float: 'right'}}>历史版本</Tag>} */}
-                    </li>
-                  )
-                })
-              }
+              {map(allIndicators, (item: MetricItem) => {
+                const curr = item.id && selectedMetrics[item.id];
+                const ori = item.ori_id && selectedMetrics[item.ori_id];
+                return (
+                  <li
+                    key={item.id}
+                    className={curr || ori ? "item selected" : "item"}
+                    onClick={() =>
+                      handleClick("indicator", item.name_cn, {
+                        id: item.id,
+                        name: item.name,
+                        name_cn: item.name_cn,
+                        type: item.type,
+                        ori_id: item.ori_id,
+                      })
+                    }
+                  >
+                    {item.type !== 2 ? (
+                      <i className="item-icon iconfont icon-zhibiao"></i>
+                    ) : (
+                      <svg className="svg-icon" aria-hidden="true">
+                        <use xlinkHref="#icon-gaojizhibiao"></use>
+                      </svg>
+                    )}
+                    <span className="item-label">{item.name_cn}</span>
+                    <span className="item-label2">{item.name}</span>
+                    {/* {!curr && ori && <Tag style={{float: 'right'}}>历史版本</Tag>} */}
+                  </li>
+                );
+              })}
             </ul>
           </Card>
         </Col>
         <Col span={8}>
-          <Row gutter={8} style={{marginBottom: 8}}>
+          <Row gutter={8} style={{ marginBottom: 8 }}>
             <Col span={12}>
-              <Button block onClick={() => handleClick('kuo', '(')}>（</Button>
+              <Button block onClick={() => handleClick("kuo", "(")}>
+                （
+              </Button>
             </Col>
             <Col span={12}>
-              <Button block onClick={() => handleClick('kuo', ')')}>）</Button>
+              <Button block onClick={() => handleClick("kuo", ")")}>
+                ）
+              </Button>
             </Col>
           </Row>
           <Card title="运算符" size="small" className="pdb-indicator-codemode">
             <ul className="list list-symbol">
-            {
-              Object.keys(inidcatorSymbolMap).map(item => (
-                <li className="item" key={item}
-                  onClick={() => handleClick('symbol', item)}
+              {Object.keys(inidcatorSymbolMap).map((item) => (
+                <li
+                  className="item"
+                  key={item}
+                  onClick={() => handleClick("symbol", item)}
                 >
-                  <i className={'item-icon iconfont icon-yunsuanfu'}></i>
-                  <span className='item-label'>运算符[ {inidcatorSymbolMap[item]} ]</span>
-                </li>)
-              )
-            }
+                  <i className={"item-icon iconfont icon-yunsuanfu"}></i>
+                  <span className="item-label">
+                    运算符[ {inidcatorSymbolMap[item]} ]
+                  </span>
+                </li>
+              ))}
             </ul>
           </Card>
         </Col>
       </Row>
     </Modal>
-  )
+  );
 }
