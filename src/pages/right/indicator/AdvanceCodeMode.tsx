@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Card, Col, Flex, message, Modal, Row, Space, Typography } from "antd";
 import { ExclamationCircleFilled, ExclamationCircleOutlined } from "@ant-design/icons";
-import { find, findLast, forEach, isArray, map } from "lodash";
+import { find, findLast, forEach, isArray, isEmpty, map } from "lodash";
 import { INode } from "@antv/g6";
 import { setCodeMode, setGraphData, setMetricParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import { StoreState } from "@/store";
@@ -40,7 +40,7 @@ export default function AdvanceCodeMode() {
 
   useLayoutEffect(() => {
     const _range = window.getSelection()?.getRangeAt(0)
-    if (codeRef.current && insertIndex > -1 && insertIndex !== _range?.startOffset) {
+    if (codeRef.current && !isEmpty(content) && insertIndex > -1 && insertIndex !== _range?.startOffset) {
       const range = document.createRange()
       const sel = window.getSelection()
       if (sel) {
@@ -276,11 +276,9 @@ export default function AdvanceCodeMode() {
       handleInsert()
     } else {
       e.preventDefault()
-      console.log('--- key down: ', e.key)
       message.warning('请从下面列表中点选指标和运算符')
     }
   }
-  console.log('insertIndex: ', insertIndex)
   
   return (
     <Modal
