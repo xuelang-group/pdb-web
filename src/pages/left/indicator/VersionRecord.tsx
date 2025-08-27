@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Tag, Table } from "antd";
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
-import { setCheckId, setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
+import { setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
 import { setCurrent, setReadonly } from "@/reducers/indicatorSimple";
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import moment from "moment";

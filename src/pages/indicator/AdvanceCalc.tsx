@@ -5,7 +5,7 @@ import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
 import { StoreState } from "@/store";
-import { isEmpty, isNumber } from "lodash";
+import { isEmpty } from "lodash";
 import { Col } from "./components/CONSTS";
 
 const getColumns = (cols: Col[]) => {

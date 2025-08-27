@@ -1,11 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from 'react'
-import { message, Space, Empty, Typography, Modal, Form, Input, Radio } from "antd";
-import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { message, Space, Empty, Typography, Modal, Form, Input } from "antd";
 import { ListTable } from '@visactor/react-vtable'
 import { CustomLayout } from '@visactor/vtable'
 import { IOption } from "@visactor/react-vtable/es/tables/base-table";
-import { isEmpty, compact, isString, findIndex, keys, values, toNumber, forEach, map } from "lodash"
+import { isEmpty, compact, isString, findIndex, keys, values, toNumber, map } from "lodash"
 import { getColumns } from './CONSTS'
 import { StoreState } from "@/store";
 import { setLoading, setTableData, updateDisabledField, setFuncResult,setDimension, setGroupBy, setFunc, setNextShowConfiguration, updateSelectedColumns, updateExtraColumns, addRecords } from "@/reducers/indicator";
@@ -13,8 +12,6 @@ import { getCsv, getFuncResult } from "@/actions/indicator";
 import EmptyImage from "@/assets/images/vtable_empty.svg";
 import { getImgHref } from "@/actions/minioOperate";
 import { CsvHeaderState, PqlState } from "@/reducers/query";
-
-const { confirm } = Modal;
 
 export default function VTable(props: {width: number, height: number}) {
   const {width, height} = props

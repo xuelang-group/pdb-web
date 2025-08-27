@@ -1,10 +1,10 @@
 import { Modal, Form, Input, Select, Spin } from "antd";
 import { StoreState } from '@/store';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { getBuzProcess } from "@/actions/adapter";
 import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
 import { useEffect, useState } from "react";
-import { findIndex, isArray, isEmpty } from "lodash";
+import { findIndex, isEmpty } from "lodash";
 
 export default function SaveModal(props: any) {
   const { editId, xTypeNames } = props

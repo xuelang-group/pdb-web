@@ -164,7 +164,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
   }
   
   const renderConditionsConfig = () => {
-    if (activePanelKey == -1 && isEmpty(conditions)) {
+    if (activePanelKey === -1 && isEmpty(conditions)) {
       return <Empty />
     }
     return map(conditions, (condition: ConditionState, index: number) => {
@@ -195,7 +195,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
       onOk={handleOk}
     >
       { renderConditionsConfig() }
-      { conditions.length == activePanelKey && (
+      { conditions.length === activePanelKey && (
         <Card
           size="small"
           title={`新建${column?.name_cn || '属性'}条件`}
@@ -204,7 +204,7 @@ export default function ConditionsConfigModal({visible, column, onCancel, onSave
           {renderPanelChildren()}
         </Card>
       )}
-      {activePanelKey == -1 && <div className={"pdb-explore-filter-add"}>
+      {activePanelKey === -1 && <div className={"pdb-explore-filter-add"}>
         <Button
           icon={<i className="spicon icon-add"></i>}
           onClick={add}

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import papa from "papaparse";
-import { isArray, isEmpty, map } from "lodash";
+import { isEmpty, map } from "lodash";
 import { ConditionState, ParamsState } from "./query";
 import { MetricBasicInfo, MetricParams } from "./indicatorSimple";
 import { Col } from "@/pages/indicator/components/CONSTS";

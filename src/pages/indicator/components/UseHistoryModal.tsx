@@ -1,10 +1,9 @@
 import { Modal, Form, Input, Radio, Spin, Alert, message } from "antd";
 import { StoreState } from '@/store';
-import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useState } from "react";
+import { useSelector } from 'react-redux';
+import { useState } from "react";
 import { rollbackMetric, addMetric, getMetricDetail } from "@/actions/indicator";
 import { getMetricDetail2, checkVersion } from "@/actions/indicator";
-import { setNowCheckVersion } from "@/reducers/indicator";
 
 export default function UseHistoryModal(props: any) {
   const [infoForm] = Form.useForm()
