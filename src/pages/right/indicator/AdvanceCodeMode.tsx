@@ -39,8 +39,9 @@ export default function AdvanceCodeMode() {
   }, [code])
 
   useLayoutEffect(() => {
-    const _range = window.getSelection()?.getRangeAt(0)
-    if (codeRef.current && !isEmpty(content) && insertIndex > -1 && insertIndex !== _range?.startOffset) {
+    if (codeRef.current && !isEmpty(content) && insertIndex > -1) {
+      const _range = window.getSelection()?.getRangeAt(0)
+      if (insertIndex !== _range?.startOffset) {
       const range = document.createRange()
       const sel = window.getSelection()
       if (sel) {
@@ -49,6 +50,7 @@ export default function AdvanceCodeMode() {
         range.collapse(true)
         sel.removeAllRanges()
         sel.addRange(range)
+      }
       }
     }
   }, [content])
