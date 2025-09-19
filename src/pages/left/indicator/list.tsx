@@ -75,8 +75,11 @@ export default function List(props: any) {
   const updateList = (id: string | null) => {    
     getPdbIdList({ requestId: id }, (success: boolean, res: any) => {
       const pdbIds = res?.data || [] 
-      const data = JSON.parse(JSON.stringify(allIndicators))
-      const tempArr = isEmpty(pdbIds) ? data : data.filter((item: any) => pdbIds.includes(item.ori_id))
+      let tempArr = []
+      if (!isEmpty(pdbIds)) {
+        const data = JSON.parse(JSON.stringify(allIndicators))
+        tempArr = data.filter((item: any) => pdbIds.includes(item.ori_id))
+      }
       setIndicatorList(tempArr);
     })
   }
