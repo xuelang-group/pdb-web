@@ -31,7 +31,7 @@ module.exports = {
           miniCssExtractPlugin.options.chunkFilename = 'static/css/[name].chunk.css';
         }
 
-        webpackConfig.output.publicPath = "/";
+        webpackConfig.output.publicPath = "./";
         console.log(webpackConfig.output.assetModuleFilename)
         webpackConfig.output.assetModuleFilename = pathData => {
           if ((/\.(woff2?|woff|ttf|svg)(\?.*)?$/.test(pathData.filename)) && pathData.filename.includes("iconfont")) {
