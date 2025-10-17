@@ -1121,6 +1121,7 @@ export default function SimpleIndicator(props: any) {
                 visible={true}
                 onRef={childRef}
                 originType={originType}
+                enableCsv={map(groupOptions, 'attrId')}
                 // onSave={onFilterSave}
               />
             </Col>

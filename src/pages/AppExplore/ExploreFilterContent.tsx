@@ -1,7 +1,7 @@
 import { Button, Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Select, Switch, Tag } from "antd";
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
-import _ from "lodash";
+import _, { filter, isEmpty } from "lodash";
 import { Fragment, useEffect, useImperativeHandle, useState } from "react";
 
 import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
@@ -13,6 +13,7 @@ interface ExploreFilterProps {
   onSave?: Function
   visible: boolean
   readOnly?: boolean
+  enableCsv?: string[]
 }
 
 const operators: any = {
@@ -23,8 +24,7 @@ const operators: any = {
 export default function ExploreFilterContent(props: ExploreFilterProps) {
   const [configForm] = Form.useForm();
 
-  const { originType, onSave, visible, readOnly } = props;
-
+  const { originType, onSave, visible, readOnly, enableCsv } = props;
   const [filterOptions, setFilterOption] = useState<any>(_.get(originType, 'config.options', [])),
     [activePanelKey, setActivePanelKey] = useState<any[] | any>([]),
     [editCondition, setEditCondition] = useState<any>(null),
@@ -138,6 +138,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             options={attrs.map((attr: any) => ({
               value: attr.name,
               label: attr.display,
+              disabled: enableCsv && !enableCsv?.includes(attr.name),
               data: attr
             }))}
             style={{ width: '100%' }}
@@ -359,7 +360,7 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
           <Button
             icon={<i className="spicon icon-add"></i>}
             onClick={add}
-          // disabled={isNew || editConditionIndex > -1}
+            disabled={isEmpty(attrs)}
           >添加条件</Button>
         </div>
       }
