@@ -17,6 +17,7 @@ import {
   Select,
   Space,
   Tag,
+  TreeSelect,
   Typography,
 } from "antd";
 import {
@@ -32,7 +33,6 @@ import {
   find,
   findIndex,
   get,
-  isArray,
   isEmpty,
   map,
   toNumber,
@@ -45,6 +45,7 @@ import {
   getAdapterTypeHistory,
   getAdapterTypeList,
   getBuzProcess,
+  getProcessTree,
 } from "@/actions/adapter";
 import {
   addMetric,
@@ -141,45 +142,46 @@ export default function SimpleIndicator(props: any) {
   const [open, setOpen] = useState(false);
   const [typeList, setTypeList] = useState<TypeConfig[]>([]); // 数据资产单选项
   const [processOptions, setProcessOptions] = useState([]);
-  const [buzProcessArr, setBuzProcessArr] = useState([]);
+  const [selectedProcess, setSelectedProcess] = useState<{id: string | number; name: string;}>()
+  // const [buzProcessArr, setBuzProcessArr] = useState([]);
   const [dimension, setDimension] = useState<CsvHeaderState>(); // 指标度量
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
   const [originType, setOriginType] = useState<OriginType>(); // 选中的数据资产单数据
   const [groupOptions, setGroupOptions] = useState<CsvHeaderState[]>([]); // GroupBy 的选项
 
-  const updateBuzProcess = (strArr: string[]) => {
-    if (requestId) {
-      getBuzProcess(
-        { requestId: requestId, xTypeNames: strArr },
-        (success: boolean, res: any) => {
-          if (success) {
-            setBuzProcessArr(res.data || []);
-            setProcessOptions(
-              (res.data || []).map((item: any) => ({
-                label: item?.name || item,
-                value: item?.id || item,
-              }))
-            );
-          }
-        }
-      );
-    }
-  }
+  // const updateBuzProcess = (strArr: string[]) => {
+  //   if (requestId) { 
+  //     getBuzProcess(
+  //       { requestId: requestId, xTypeNames: strArr },
+  //       (success: boolean, res: any) => {
+  //         if (success) {
+  //           setBuzProcessArr(res.data || []);
+  //           setProcessOptions(
+  //             (res.data || []).map((item: any) => ({
+  //               label: item?.name || item,
+  //               value: item?.id || item,
+  //             }))
+  //           );
+  //         }
+  //       }
+  //     );
+  //   }
+  // }
 
-  useEffect(() => {
-    const pql = get(current, "pql_params.params.pql");
-    const strArr: string[] = [];
-    pql?.forEach((item: any) => {
-      if (isArray(item)) {
-        item.forEach((subItem: any) => {
-          if (subItem.id) {
-            strArr.push(subItem.id);
-          }
-        });
-      }
-    });
-    updateBuzProcess(strArr);
-  }, [requestId, current?.pql_params]);
+  // useEffect(() => {
+  //   const pql = get(current, "pql_params.params.pql");
+  //   const strArr: string[] = [];
+  //   pql?.forEach((item: any) => {
+  //     if (isArray(item)) {
+  //       item.forEach((subItem: any) => {
+  //         if (subItem.id) {
+  //           strArr.push(subItem.id);
+  //         }
+  //       });
+  //     }
+  //   });
+  //   updateBuzProcess(strArr);
+  // }, [requestId, current?.pql_params]);
 
   useEffect(() => {
     if (requestId) {
@@ -214,7 +216,14 @@ export default function SimpleIndicator(props: any) {
     }
   }, [requestId]);
 
-  useEffect(() => {
+  useEffect(() => {    
+    getProcessTree().then(({data}) => {
+      if (!data.code) {
+        setProcessOptions(data.data)
+      }
+    }).catch(err => {
+      message.error(err.message)
+    })
     if (current) {
       // 编辑初级指标
       const { name, name_cn, unit, desc, version, metric_params, pql_params } = current;
@@ -233,13 +242,14 @@ export default function SimpleIndicator(props: any) {
       setfuncOptions(funcs);
       setGroupOptions(filter(csvHeader, ({attrId}) => columns.includes(attrId)));
       const typeId = csvHeader[0].typeId;
+      const buzProcess = current.buzProcess || currentBuzProcess
       form.setFieldsValue({
         name,
         name_cn,
         unit,
         desc,
         version,
-        buzProcess: currentBuzProcess?.id,
+        buzProcess: buzProcess?.id,
       });
       metricForm.setFieldsValue({
         dimension,
@@ -248,6 +258,7 @@ export default function SimpleIndicator(props: any) {
         columns,
         typeName: typeId,
       });
+      setSelectedProcess(buzProcess)
     } else {
       // 创建初级指标
       form.resetFields();
@@ -418,7 +429,7 @@ export default function SimpleIndicator(props: any) {
       columns: [],
       groupBy: ['']
     })
-    updateBuzProcess([detail["x.type.name"]])
+    // updateBuzProcess([detail["x.type.name"]])
   };
 
   const handleColumnsChange = (values: string[]) => {
@@ -572,10 +583,11 @@ export default function SimpleIndicator(props: any) {
       title: "指标保存中...",
     });
     if(values.buzProcess) {
-      const buzProcess = buzProcessArr.find((item: any) => item.id === values.buzProcess)
-      if(buzProcess) {
-        values.buzProcess = buzProcess
-      }
+      values.buzProcess = selectedProcess
+      // const buzProcess = buzProcessArr.find((item: any) => item.id === values.buzProcess)
+      // if(buzProcess) {
+      //   values.buzProcess = buzProcess
+      // }
     }
     const params: MetricItem = {
       name_cn: values.name_cn,
@@ -695,8 +707,8 @@ export default function SimpleIndicator(props: any) {
     metricForm.validateFields().then((values) => {
       const metric_params = getMetricParams()
       const pql_params = getPqlParams()
-      const buzProcess = find(buzProcessArr, {id: form.getFieldValue('buzProcess')})
-      dispatch(updateCurrent({metric_params, pql_params, buzProcess}))
+      // const buzProcess = find(buzProcessArr, {id: form.getFieldValue('buzProcess')})
+      dispatch(updateCurrent({metric_params, pql_params, buzProcess: selectedProcess}))
       getFuncResult({
         metric_params,
         pql_params,
@@ -899,9 +911,14 @@ export default function SimpleIndicator(props: any) {
                 <Input placeholder="请输入英文名称" />
               </Form.Item>
               <Form.Item label="所属业务过程" name={"buzProcess"}>
-                <Select
+                <TreeSelect
                   placeholder="请选择所属业务过程"
-                  options={processOptions}
+                  treeData={processOptions}
+                  fieldNames={{ label: 'tagNmZh', value: 'id', children: 'children' }}
+                  onSelect={(value, node) => {
+                    console.log('select: ', node)
+                    setSelectedProcess({ id: value, name: get(node, 'tagNmZh', '') })
+                  }}
                 />
               </Form.Item>
               <Form.Item label="相关业务过程">---</Form.Item>

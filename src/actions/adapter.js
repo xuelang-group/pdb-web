@@ -55,3 +55,8 @@ export const getAdapterTypeHistory = (params, callback) => {
     callback && callback(false, err);
   }); 
 };
+
+
+export const getProcessTree = (level=2) => {
+  return axios.get(`/udop/da/process/processtree`, {level: level})
+}
