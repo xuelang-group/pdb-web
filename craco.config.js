@@ -71,7 +71,7 @@ module.exports = {
         target: "http://10.88.40.85:8088",
         changeOrigin: true,
       },
-      '/da': {
+      '/udop': {
         target: "http://10.88.36.131:8081/systemlinkapi/9",
         changeOrigin: true,
       }

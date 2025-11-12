@@ -804,6 +804,7 @@ export default function Advance(props: any) {
         onOk={onSave}
         modalLoading={modalLoading}
         xTypeNames={xTypeNames}
+        advance={true}
       />
       <UpdateModal
         visible={updateModalVisible}

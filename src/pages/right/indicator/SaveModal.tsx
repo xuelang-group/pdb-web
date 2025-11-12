@@ -1,34 +1,34 @@
-import { Modal, Form, Input, Spin, message, TreeSelect } from "antd";
+import { Modal, Form, Input, Spin, message, TreeSelect, Select } from "antd";
 import { StoreState } from '@/store';
 import { useSelector } from 'react-redux';
 import { getProcessTree, getBuzProcess } from "@/actions/adapter";
 import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
 import { useEffect, useState } from "react";
-import { findIndex, get } from "lodash";
+import { findIndex, get, isEmpty } from "lodash";
 
 export default function SaveModal(props: any) {
-  const { editId, xTypeNames } = props
+  const { editId, xTypeNames, advance=false } = props
   const [infoForm] = Form.useForm()
   const [processOptions, setProcessOptions] = useState([])
   const [selectedProcess, setSelectedProcess] = useState<{id: string | number; name: string;}>()
-  // const [buzProcessArr, setBuzProcessArr] = useState([])
+  const [buzProcessArr, setBuzProcessArr] = useState([])
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
 
-  // useEffect(() => {
-  //   if(requestId && !isEmpty(xTypeNames)) {      
-  //     getBuzProcess({ requestId: requestId, xTypeNames }, (success:boolean, res: any) => {
-  //       if (success) {
-  //         setBuzProcessArr(res.data || [])
-  //         setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
-  //       }
-  //     })
-  //   }
-  // }, [requestId, xTypeNames])
+  useEffect(() => {
+    if(!advance && requestId && !isEmpty(xTypeNames)) {      
+      getBuzProcess({ requestId: requestId, xTypeNames }, (success:boolean, res: any) => {
+        if (success) {
+          setBuzProcessArr(res.data || [])
+          setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
+        }
+      })
+    }
+  }, [requestId, xTypeNames])
 
   useEffect(() => {
-    getProcessTree().then(({data}) => {
+    advance && getProcessTree().then(({data}) => {
       if (!data.code) {
         setProcessOptions(data.data)
       }
@@ -38,16 +38,28 @@ export default function SaveModal(props: any) {
     if (editId) {
       const indicator = allIndicators.find((item: any) => item.id === editId) || {}
       const { name, name_cn, unit, desc } = indicator
-      const buzProcess = indicator.buzProcess || currentBuzProcess
-      infoForm.setFieldsValue({ name, name_cn, unit, desc, buzProcess: buzProcess.id })
-      setSelectedProcess(buzProcess)
+      infoForm.setFieldsValue({ name, name_cn, unit, desc })
+      if(!advance) {
+        currentBuzProcess && infoForm.setFieldValue('buzProcess', currentBuzProcess.id)
+      } else {
+        const buzProcess = indicator.buzProcess || currentBuzProcess
+        infoForm.setFieldValue('buzProcess', buzProcess.id )
+        setSelectedProcess(buzProcess)
+      }
     }
   }, [editId])
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
       if(values.buzProcess) {
-        values.buzProcess = selectedProcess
+        if (!advance) {
+          const buzProcess = buzProcessArr.find((item: any) => item.id === values.buzProcess)
+          if(buzProcess) {
+            values.buzProcess = buzProcess
+          }
+        } else {
+          values.buzProcess = selectedProcess
+        }
       }
       props.onOk(values)
     }).catch(err => { })
@@ -149,16 +161,17 @@ export default function SaveModal(props: any) {
             <Input addonBefore="V" placeholder="仅允许数字以.为分隔符，例:1.0.0" />
           </Form.Item>
           <Form.Item label="所属业务过程" name={'buzProcess'}>
-            <TreeSelect
-              placeholder="请选择所属业务过程"
-              treeData={processOptions}
-              fieldNames={{ label: 'tagNmZh', value: 'id', children: 'children' }}
-              onSelect={(value, node) => {
-                console.log('select: ', node)
-                setSelectedProcess({ id: value, name: get(node, 'tagNmZh', '') })
-              }}
-              disabled={!!editId}
-            />
+            { advance ? <TreeSelect
+                placeholder="请选择所属业务过程"
+                treeData={processOptions}
+                fieldNames={{ label: 'tagNmZh', value: 'id', children: 'children' }}
+                onSelect={(value, node) => {
+                  console.log('select: ', node)
+                  setSelectedProcess({ id: value, name: get(node, 'tagNmZh', '') })
+                }}
+                disabled={!!editId}
+              /> : <Select placeholder="请选择所属业务过程" options={processOptions} disabled={!!editId}/>
+            }
           </Form.Item>
           <Form.Item label="相关业务过程">
             ---
