@@ -146,7 +146,7 @@ export default function Right(props: any) {
   const getGroupByObj = (groupBy: string[]) => {
     const header = query.csv.header
     const groupByObj = groupBy.map((item: any) => {
-      const groupByItem = header.find((headerItem: any) => headerItem.attrName === item) || {attrId: '', attrName: ''}
+      const groupByItem = header.find((headerItem: any) => headerItem.attrName === item || headerItem.attrId === item) || {attrId: '', attrName: ''}
       return {
         name: groupByItem.attrId,
         name_cn: groupByItem.attrName,

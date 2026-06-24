@@ -160,7 +160,7 @@ export default function ExploreFilter(props: ExploreFilterProps) {
       });
     }
 
-    const csv: { typeId: any; attrId: string; attrName: string; attrType: string; index: number }[] = [];
+    const csv: { typeId: any; typeLabel: string; attrId: string; attrName: string; attrType: string; index: number }[] = [];
     if (checkedList.length > 0) {
       const tagType: string = _.get(originType, 'type', ''),
         tagTypeData = _.get(originType, 'data', {}),
@@ -171,8 +171,9 @@ export default function ExploreFilter(props: ExploreFilterProps) {
         const valArr = value.split("|");
         csv.push({
           typeId: tagTypeId,
+          typeLabel: tagTypeLabel,
           attrId: valArr[0],
-          attrName: valArr[1] + "_" + tagTypeLabel,
+          attrName: valArr[1],
           attrType: valArr[2],
           index: tagIndex,
         })
