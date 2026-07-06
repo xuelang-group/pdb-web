@@ -259,7 +259,7 @@ export default function Right(props: any) {
         dispatch(exit())
         dispatch(resetData())
         dispatch(clearQuery())
-        navigate(`/${systemInfo.graphId}/indicator/index`);
+        navigate(`/${systemInfo.graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`);
         savingModal = null;
         timeout && clearTimeout(timeout);
       },
@@ -273,7 +273,7 @@ export default function Right(props: any) {
       dispatch(exit())
       dispatch(resetData())
       dispatch(clearQuery())
-      navigate(`/${systemInfo.graphId}/indicator/index`);
+      navigate(`/${systemInfo.graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`);
       savingModal = null;
       timeout = null;
     }, 3000);
@@ -429,7 +429,7 @@ export default function Right(props: any) {
               dispatch(exit())
               dispatch(resetData())
               dispatch(clearQuery())
-              navigate(`/${systemInfo.graphId}/indicator/index`);
+              navigate(`/${systemInfo.graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`);
             }}
           >
             退出

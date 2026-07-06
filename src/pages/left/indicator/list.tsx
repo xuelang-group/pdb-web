@@ -26,6 +26,7 @@ export default function List(props: any) {
   const [isIndSearched, setIndSearchedStatus] = useState(false);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
   const [indicatorList, setIndicatorList] = useState(allIndicators);
+  const [pdbIds, setPbdIds] = useState<number[]>([])
   const indicatorLoading = useSelector((state: StoreState) => state.editor.indicatorLoading)
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
@@ -74,12 +75,13 @@ export default function List(props: any) {
    */
   const updateList = (id: string | null) => {    
     getPdbIdList({ requestId: id }, (success: boolean, res: any) => {
-      const pdbIds = res?.data || [] 
+      const ids = res?.data || [] 
       let tempArr = []
-      if (!isEmpty(pdbIds)) {
+      if (!isEmpty(ids)) {
         const data = JSON.parse(JSON.stringify(allIndicators))
-        tempArr = data.filter((item: any) => pdbIds.includes(item.ori_id))
+        tempArr = data.filter((item: any) => ids.includes(item.ori_id))
       }
+      setPbdIds(ids)
       setIndicatorList(tempArr);
     })
   }
@@ -222,6 +224,9 @@ export default function List(props: any) {
 
   const handleIndSearch = function (value: string) {
     let indicators = JSON.parse(JSON.stringify(allIndicators));
+    if (!isEmpty(pdbIds)) {
+      indicators = indicators.filter((item: any) => pdbIds.includes(item.ori_id))
+    }
     if (value) {
       indicators = getIndicatorList(indicators, value);
     }
@@ -236,14 +241,14 @@ export default function List(props: any) {
     dispatch(setPqlParams(item.pql_params))
     dispatch(setAdvReadonly(isCheck))
     if (!location.pathname.endsWith("/indicator/advance")) {
-      navigate(`/${routerParams.id}/indicator/advance`)
+      navigate(`/${routerParams.id}/indicator/advance${requestId ? ('?requestId=' + requestId) : ''}`)
     }
   }
 
   const enterIndicatorSimple = (item: any, isCheck: boolean) => {
     dispatch(setCurrent(item))
     dispatch(setReadonly(isCheck))
-    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple`)
+    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple${requestId ? ('?requestId=' + requestId) : ''}`)
   }
 
   const enterIndicatorProfession = (item: any, isCheck: boolean) => {
@@ -258,7 +263,7 @@ export default function List(props: any) {
       func: item.metric_params.func || '',
       groupBy: groupByArr
     }))
-    navigate(`/${routerParams.id}/indicator`)
+    navigate(`/${routerParams.id}/indicator${requestId ? ('?requestId=' + requestId) : ''}`)
   }
 
   const handleClickMenu = (item: any, menu: any) => {
@@ -312,7 +317,7 @@ export default function List(props: any) {
         </div>
         <div className='list-content'>
           {!indicatorLoading &&
-            <div className='type-list'>
+            <div className={`type-list${draggable ? ' draggable' : ''}`}>
               {indList.map((item: any, index: number) => {
                 const label: any = item['name_cn']
                 const menus: any[] = [
@@ -374,7 +379,7 @@ export default function List(props: any) {
           }
           {
             draggable && !isEmpty(indList) && (
-              <>
+              <div className='type-operator'>
                 {Object.keys(inidcatorSymbolMap).map(item => (<div key={item}
                   className={`type-item indicator-item`}
                   draggable={draggable}
@@ -395,7 +400,7 @@ export default function List(props: any) {
                     <span className='type-item-label'>计算结果</span>
                   </span>
                 </div>
-              </>
+              </div>
             )
           }
           {indList.length === 0 && !indicatorLoading && (

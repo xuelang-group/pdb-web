@@ -1,7 +1,7 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { isEmpty, compact } from "lodash";
+import _, { isEmpty, compact, map } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -93,10 +93,28 @@ export default function AppExplore() {
         if (success) {
           const typeList = _.get(response, "data", []);
           if (!isEmpty(typeList)) {
-            setTypeList(compact(typeList));
+            const list: TypeConfig[] = compact(typeList)
+            setTypeList(map(list, item => {
+              if (item['x.type.metadata']) {
+                return {
+                  ...item,
+                  ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+                }
+              }
+              return item
+            }));
           } else {
             getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
-              setTypeList(_.get(response, "data", []));
+              const list = _.get(response, "data", [])
+              setTypeList(map(list, item => {
+                if (item['x.type.metadata']) {
+                  return {
+                    ...item,
+                    ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+                  }
+                }
+                return item
+              }));
               if (!success) {
                 notification.error({
                   message: '获取对象类型列表失败',
@@ -113,7 +131,15 @@ export default function AppExplore() {
         }
       });
     } else {
-      setTypeList(types);
+      setTypeList(map(types, item => {
+        if (item['x.type.metadata']) {
+          return {
+            ...item,
+            ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+          }
+        }
+        return item
+      }));
     }
   }, [requestId]);
 
@@ -461,7 +487,11 @@ export default function AppExplore() {
       prevSearchTag = _.get(searchTagMap[index], currentTags[currentTags.length - 1]);
       prevSearchTagType = _.get(prevSearchTag, 'type', "");
     }
-    const searchTypes = value ? typeList.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : typeList;
+    const searchTypes = value ? typeList.filter(val => {
+      const _value = value.toLowerCase()
+      const _label = _.get(val['x.type.metadata'], 'dispaly', val['x.type.label'])
+      return _label.toLowerCase().indexOf(_value) > -1
+    }) : typeList;
     const optionMap = {};
     let typeOptions: any[] = [], relationOptions: any[] = [];
     // const enterOption = {
@@ -492,7 +522,7 @@ export default function AppExplore() {
           }
         }
         typeOptions = typeOptions.concat(_types.map(val => ({
-          label: val['x.type.label'],
+          label: _.get(val['x.type.metadata'], 'dispaly', val['x.type.label']),
           value: val['x.type.name'] + `-${currentTagLen}`,
           key: val['x.type.name'],
           type: 'type',
@@ -504,9 +534,13 @@ export default function AppExplore() {
       } else if (_.isEmpty(prevSearchTagType) || prevSearchTagType === 'type') {
         // 当前tag为第一个或者前一个tag为对象类型，当前下拉框包含对象类型列表和关系类型列表typeOptions + relationOptions
         // typeOptions为全量对象类型列表
-        const searchTypes = value ? typeList.filter(val => val['x.type.label'].toLowerCase().indexOf(value.toLowerCase()) > -1) : typeList;
+        const searchTypes = value ? typeList.filter(val => {
+          const _value = value.toLowerCase()
+          const _label = _.get(val['x.type.metadata'], 'dispaly', val['x.type.label'])
+          return _label.toLowerCase().indexOf(_value) > -1
+        }) : typeList;
         typeOptions = searchTypes.map(val => ({
-          label: val['x.type.label'],
+          label: _.get(val['x.type.metadata'], 'dispaly', val['x.type.label']),
           value: val['x.type.name'] + `-${currentTagLen}`,
           key: val['x.type.name'],
           type: 'type',

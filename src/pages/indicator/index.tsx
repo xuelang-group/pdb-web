@@ -15,13 +15,14 @@ export default function Indicator(props: any) {
   const [form] = Form.useForm();
   const [open, setOpen] = useState(false);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const params = useSelector((state: StoreState) => state.query.params);
   
   const onCreate = (mode: string) => {
     if (mode == 'indicator' && isEmpty(params.pql[0])) {
       dispatch(setShowSearch(true));
     }
-    navigate(`/${routerParams.id}/${mode}`)
+    navigate(`/${routerParams.id}/${mode}${requestId ? ('?requestId=' + requestId) : ''}`)
     setOpen(false)
   }
 

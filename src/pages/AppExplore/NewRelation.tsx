@@ -2,7 +2,7 @@ import { AttrConfig } from "@/reducers/type";
 import { StoreState } from "@/store";
 import { Button, Checkbox, Divider, Flex, Form, Input, Radio, Select } from "antd";
 import 'dayjs/locale/zh-cn';
-import _ from "lodash";
+import _, { get, map } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { joinTypes } from "./ExploreFilter";
@@ -120,6 +120,13 @@ export default function NewRelation(props: ExploreFilterProps) {
 
   // 数据连接
   const renderGroupSetting = function () {
+    const typeOptions = map(types, item => {
+      const label = item['x.type.metadata'] ? get(JSON.parse(item['x.type.metadata']), 'display') : item['x.type.label']
+      return {
+        label,
+        value: item['x.type.name']
+      }
+    })
     return (
       <Form
         form={form}
@@ -163,17 +170,13 @@ export default function NewRelation(props: ExploreFilterProps) {
                 rules={[{ required: true, message: "目标对象不能为空" }]}
               >
                 <Select
-                  options={types}
-                  fieldNames={{
-                    label: "x.type.label",
-                    value: "x.type.name"
-                  }}
+                  options={typeOptions}
                   disabled={!_.isEmpty(targetTag) || readOnly}
                   onChange={(value, option: any) => {
                     setCurrTargetTag({
-                      label: option['x.type.label'],
-                      value: option['x.type.name'] + `-${tagsLen + 1}`,
-                      key: option['x.type.name'],
+                      label: option['label'],
+                      value: option['value'] + `-${tagsLen + 1}`,
+                      key: option['value'],
                       type: 'type',
                       data: option,
                       prevSearchTagType: "relation"

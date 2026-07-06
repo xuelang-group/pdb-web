@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Modal, Tag, Table } from "antd";
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
@@ -8,6 +8,7 @@ import { setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setE
 import { setCurrent, setReadonly } from "@/reducers/indicatorSimple";
 import { setAdvReadonly, setGraphData, setMetricInfo, setMetricParams, setPqlParams, updateColumnConfig } from "@/reducers/indicatorAdvance";
 import moment from "moment";
+import { StoreState } from "@/store";
 
 
 export default function VersionRecord(props: any) {
@@ -15,6 +16,7 @@ export default function VersionRecord(props: any) {
   const location = useLocation();
   const routerParams = useParams();
   const dispatch = useDispatch();
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
   const [verData, setVerData] = useState([])
 
   useEffect(() => {
@@ -39,14 +41,14 @@ export default function VersionRecord(props: any) {
     dispatch(updateColumnConfig(item.column_config || []))
     dispatch(setPqlParams(item.pql_params))
     if (!location.pathname.endsWith("/indicator/advance")) {
-      navigate(`/${routerParams.id}/indicator/advance`)
+      navigate(`/${routerParams.id}/indicator/advance${requestId ? ('?requestId=' + requestId) : ''}`)
     }
   }
 
   const enterIndicatorSimple = (item: any) => {
     dispatch(setCurrent(item))
     dispatch(setReadonly(true))
-    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple`)
+    !location.pathname.endsWith("/indicator/simple") && navigate(`/${routerParams.id}/indicator/simple${requestId ? ('?requestId=' + requestId) : ''}`)
   }
 
   const enterIndicatorProfession = (item: any) => {
@@ -60,7 +62,7 @@ export default function VersionRecord(props: any) {
       func: item.metric_params.func,
       groupBy: groupByArr
     }))
-    !location.pathname.endsWith("/indicator") && navigate(`/${routerParams.id}/indicator`)
+    !location.pathname.endsWith("/indicator") && navigate(`/${routerParams.id}/indicator${requestId ? ('?requestId=' + requestId) : ''}`)
   }
 
   const onCheck = (record: any) => {

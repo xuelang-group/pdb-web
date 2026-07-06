@@ -190,12 +190,30 @@ export default function SimpleIndicator(props: any) {
         if (success) {
           const typeList = get(response, "data", []);
           if (!isEmpty(typeList)) {
-            setTypeList(compact(typeList));
+            const list: TypeConfig[] = compact(typeList)
+            setTypeList(map(list, (item: TypeConfig) => {
+              if (item['x.type.metadata']) {
+                return {
+                  ...item,
+                  ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+                }
+              }
+              return item
+            }));
           } else {
             getAdapterTypeHistory(
               { requestId },
               (success: boolean, response: any) => {
-                setTypeList(get(response, "data", []));
+                const list: TypeConfig[] = get(response, "data", [])
+                setTypeList(map(list, (item: TypeConfig) => {
+                  if (item['x.type.metadata']) {
+                    return {
+                      ...item,
+                      ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+                    }
+                  }
+                  return item
+                }));
                 if (!success) {
                   notification.error({
                     message: "获取对象类型列表失败",
@@ -213,7 +231,15 @@ export default function SimpleIndicator(props: any) {
         }
       });
     } else {
-      setTypeList(types);
+      setTypeList(map(types, item => {
+        if (item['x.type.metadata']) {
+          return {
+            ...item,
+            ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+          }
+        }
+        return item
+      }));
     }
   }, [requestId]);
 
@@ -276,7 +302,15 @@ export default function SimpleIndicator(props: any) {
 
   useEffect(() => {
     if (!requestId) {
-      setTypeList(types);
+      setTypeList(map(types, item => {
+        if (item['x.type.metadata']) {
+          return {
+            ...item,
+            ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+          }
+        }
+        return item
+      }));
     }
     if (current && !isEmpty(types)) {
       reverseParsing(current.pql_params.params);
@@ -289,7 +323,7 @@ export default function SimpleIndicator(props: any) {
     dispatch(exitSimple())
     form.resetFields();
     metricForm.resetFields();
-    navigate(`/${routerParams.id}/indicator/index`);
+    navigate(`/${routerParams.id}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`);
   };
 
   const reverseParsing = (queryParams: ParamsState) => {
@@ -911,7 +945,7 @@ export default function SimpleIndicator(props: any) {
               >
                 <Input placeholder="请输入英文名称" />
               </Form.Item>
-              <Form.Item label="所属业务过程" name={"buzProcess"}>
+              <Form.Item label="所属业务过程" name={"buzProcess"} rules={[{ required: true, message: "请选择所属业务过程" }]}>
                 <Select
                   placeholder="请选择所属业务过程"
                   options={processOptions}
@@ -983,7 +1017,7 @@ export default function SimpleIndicator(props: any) {
                 <Select
                   placeholder="数据资产单"
                   options={map(typeList, (val) => ({
-                    label: val["x.type.label"],
+                    label: get(val["x.type.metadata"], 'display') || val["x.type.label"],
                     value: val["x.type.name"],
                   }))}
                   onChange={handleTypeNameChange}

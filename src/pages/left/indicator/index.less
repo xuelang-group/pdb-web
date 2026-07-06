@@ -34,13 +34,30 @@
   }
 
   .list-content {
-    overflow: auto;
     flex: 1;
+    height: calc(100% - 58px);
+    .type-operator {
+      padding: 8px 0;
+      box-shadow: 0 0 5px fade(#000, 10%);
+    }
+
+    .type-list.draggable {
+      height: calc(100% - 196px);
+      overflow: auto;
+    }
 
     .indicator-item {
+      width: 100%;
+      flex: 0 0 3.6rem;
       display: flex;
       justify-content: space-between;
-      align-items: center;   
+      align-items: center;
+      .item-name {
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-wrap: nowrap;
+      }
     }
     .type-item-label {
       flex: 1;

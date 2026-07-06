@@ -263,7 +263,7 @@ export default function Advance(props: any) {
     dispatch(exit())
     dispatch(clearQuery())
     dispatch(exitAdv())
-    navigate(`/${systemInfo.graphId}/indicator/index`);
+    navigate(`/${systemInfo.graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`);
   }
 
   const updateSaveModal = function () {
@@ -457,6 +457,10 @@ export default function Advance(props: any) {
           </Form>}
         </>
       ),
+      onCancel() {        
+        formExcess.resetFields()
+        setCalculating(false)
+      },
       onOk() {
         const limit = formExcess.getFieldValue('limit')
         if (excess && limit > 0 ) {

@@ -160,7 +160,7 @@ export default function SaveModal(props: any) {
           >
             <Input addonBefore="V" placeholder="仅允许数字以.为分隔符，例:1.0.0" />
           </Form.Item>
-          <Form.Item label="所属业务过程" name={'buzProcess'}>
+          <Form.Item label="所属业务过程" name={'buzProcess'} rules={[{ required: true, message: "请选择所属业务过程" }]}>
             { advance ? <TreeSelect
                 placeholder="请选择所属业务过程"
                 treeData={processOptions}

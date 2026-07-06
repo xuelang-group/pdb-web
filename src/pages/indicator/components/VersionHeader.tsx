@@ -33,6 +33,9 @@ export default function Indicator(props: any) {
   const dispatch = useDispatch();
   const [items, setItems] = useState<MenuProps["items"]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const requestId = useSelector(
+    (state: StoreState) => state.indicator.requestId
+  );
   const checkVersionList = useSelector(
     (state: StoreState) => state.indicator.checkVersionList
   );
@@ -127,7 +130,7 @@ export default function Indicator(props: any) {
       dispatch(setNowCheckVersion(null));
       dispatch(exit());
       dispatch(clearQuery());
-      navigate(`/${routerParams.id}/indicator`);
+      navigate(`/${routerParams.id}/indicator${requestId ? ('?requestId=' + requestId) : ''}`);
     }
   };
 
