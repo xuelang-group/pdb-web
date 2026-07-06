@@ -276,7 +276,7 @@ export default function SimpleIndicator(props: any) {
         unit,
         desc,
         version,
-        buzProcess: currentBuzProcess?.id,
+        buzProcess: current.buzProcess?.id,
       });
       metricForm.setFieldsValue({
         dimension,
@@ -302,15 +302,7 @@ export default function SimpleIndicator(props: any) {
 
   useEffect(() => {
     if (!requestId) {
-      setTypeList(map(types, item => {
-        if (item['x.type.metadata']) {
-          return {
-            ...item,
-            ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
-          }
-        }
-        return item
-      }));
+      setTypeList(types);
     }
     if (current && !isEmpty(types)) {
       reverseParsing(current.pql_params.params);
@@ -332,6 +324,7 @@ export default function SimpleIndicator(props: any) {
     const detail = find(types, { ["x.type.name"]: typeId });
     if (!detail) {
       message.warning("未找到相关的数据资产单");
+      setOriginType(undefined);
       return;
     }
     const originTypes = map(
@@ -547,9 +540,21 @@ export default function SimpleIndicator(props: any) {
   // }
 
   const getPqlParams = () => {
+    const detail = originType?.data;
+    if (!detail) {
+      return current?.pql_params || {
+        api: api,
+        params: {
+          graphId: routerParams.id || "",
+          pql: [[]],
+          csv: {
+            header: [],
+          },
+        }
+      }
+    }
     const columns = metricForm.getFieldValue("columns");
     const config = getFilterConfig();
-    const detail = originType?.data;
     const pql = [
       [
         {

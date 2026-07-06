@@ -9,6 +9,7 @@ export default function UpdateModal(props: any) {
   const [infoForm] = Form.useForm()
   const [initVersion, setInitVersion] = useState('')
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
 
   useEffect(() => {
     const metric = allIndicators.find((item: any) => item.id === props.editId)
@@ -33,7 +34,8 @@ export default function UpdateModal(props: any) {
       getMetricDetail({id: props.editId}, (success: boolean, res: any) => {
         if (success) {
           const newValues = {
-           ...res,
+            ...res,
+            requestId,
             version: values.version
           }
           props.onOk(newValues)
