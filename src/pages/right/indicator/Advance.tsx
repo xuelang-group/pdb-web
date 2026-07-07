@@ -330,15 +330,15 @@ export default function Advance(props: any) {
       icon: (<img src={getImgHref(Loading)} />),
       title: `指标${basic_info?.id ? '版本' : ''}保存中...`
     });
-    addMetric({
+    const params = {
       ...values,
       type: 2,
       graph_data,
       column_config,
       metric_params,
       pql_params,
-      requestId: requestId
-    }, (success: boolean, res: any) => {
+    }
+    addMetric(params, (success: boolean, res: any) => {
       if (success) {
         updateList();
         dispatch(setMetricInfo(values))

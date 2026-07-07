@@ -77,11 +77,7 @@ export default function Right(props: any) {
   let savingModal: any = null;
   const onSave = (values: any) => {
     const postObj: any = {
-      name_cn: values.name_cn,
-      name: values.name,
-      unit: values.unit || '',
-      desc: values.desc || '',
-      version: values.version,
+      ...values,
       metric_params: {
         dimension: getDimensionObj(dimension),
         func: func,
@@ -109,8 +105,8 @@ export default function Right(props: any) {
         setModalLoading(false)
       })
     } else {
-      postObj.requestId = requestId
-      postObj.buzProcess = values.buzProcess || undefined
+      // postObj.requestId = requestId
+      // postObj.buzProcess = values.buzProcess || undefined
       dispatch(setModalVisible(false));
       setModalLoading(false);
       savingModal = modal.confirm({
@@ -157,13 +153,7 @@ export default function Right(props: any) {
 
   const handleAdd = (values: any) => {
     const postObj: any = {
-      name_cn: values.name_cn,
-      name: values.name,
-      unit: values.unit || '',
-      desc: values.desc || '',
-      ori_id: values.ori_id,
-      version: values.version,
-      requestId: requestId,
+      ...values,
       metric_params: {
         dimension: getDimensionObj(dimension),
         func: func,

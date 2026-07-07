@@ -61,6 +61,9 @@ export default function SaveModal(props: any) {
           values.buzProcess = selectedProcess
         }
       }
+      if (requestId) {
+        values.requestId = requestId
+      }
       props.onOk(values)
     }).catch(err => { })
   }

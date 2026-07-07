@@ -273,7 +273,6 @@ export default function SimpleIndicator(props: any) {
       form.setFieldsValue({
         name,
         name_cn,
-        unit,
         desc,
         version,
         buzProcess: current.buzProcess?.id,
@@ -284,6 +283,7 @@ export default function SimpleIndicator(props: any) {
         groupBy: !isEmpty(metric_params.group_by) ? map(metric_params.group_by, "name") : [''],
         columns,
         typeName: typeId,
+        unit,
       });
       // setSelectedProcess(buzProcess)
     } else {
@@ -635,13 +635,15 @@ export default function SimpleIndicator(props: any) {
       unit: values.unit || "",
       desc: values.desc || "",
       version: values.version,
-      requestId: requestId,
       buzProcess: values.buzProcess,
       type: 1,
       ori_id: current?.ori_id,
       metric_params: getMetricParams(),
       pql_params: getPqlParams(),
     };
+    if (!current?.id) {
+      params.requestId = requestId
+    }
     addMetric(params, (success: boolean, res: any) => {
       savingModal && savingModal.destroy();
       if (success) {
