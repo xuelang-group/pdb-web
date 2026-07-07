@@ -63,6 +63,7 @@ function App(props: PdbConfig) {
   const checkId = useSelector((state: StoreState) => state.indicator.checkId);
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
 
   const [selectedTab, setSelectedTab] = useState("");
   useEffect(() => {
@@ -234,7 +235,7 @@ function App(props: PdbConfig) {
         const pql = query.pql[0];
         pql.length > 1 ? navigate(`/${graphId}/indicator`) : navigate(`/${graphId}/indicator/index`)
       } else {
-        navigate(`/${graphId}/indicator/index`)
+        navigate(`/${graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`)
       }
     } else {
       navigate(`/${graphId}`);
