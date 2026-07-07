@@ -153,7 +153,13 @@ export default function Right(props: any) {
 
   const handleAdd = (values: any) => {
     const postObj: any = {
-      ...values,
+      // ...values,      
+      name_cn: values.name_cn,
+      name: values.name,
+      unit: values.unit || '',
+      desc: values.desc || '',
+      ori_id: values.ori_id,
+      version: values.version,
       metric_params: {
         dimension: getDimensionObj(dimension),
         func: func,

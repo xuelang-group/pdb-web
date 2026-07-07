@@ -306,24 +306,6 @@ export default function Advance(props: any) {
       edges: map(edges, edg => ({id: edg.id, source: edg.source, target: edg.target, end: edg.end}))
     }
     setModalLoading(true)
-    // editId ? updateMetric({
-    //   ...values,
-    //   id: editId,
-    //   type: 2,
-    //   graph_data,
-    //   column_config,
-    //   metric_params,
-    //   pql_params
-    // }, (success: boolean, res: any) => {
-    //   if (success) {
-    //     message.success("编辑指标成功");
-    //     updateList();
-    //     dispatch(setMetricInfo(values))
-    //     setModalVisible(false)
-    //   } else {
-    //     message.error("编辑指标失败：" + res.message || res.msg);
-    //   }
-    // }) : 
     savingModal = modal.confirm({
       className: "pdb-indicator-save-loading",
       width: 164,
