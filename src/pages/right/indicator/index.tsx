@@ -160,6 +160,7 @@ export default function Right(props: any) {
       desc: values.desc || '',
       ori_id: values.ori_id,
       version: values.version,
+      buzProcess: values.buzProcess,
       metric_params: {
         dimension: getDimensionObj(dimension),
         func: func,

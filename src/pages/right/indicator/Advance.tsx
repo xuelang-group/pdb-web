@@ -336,7 +336,7 @@ export default function Advance(props: any) {
     });
   }
 
-  const onAddVersion = ({version, ori_id}: any) => {
+  const onAddVersion = ({version, ori_id, buzProcess}: any) => {
     onSave({
       name_cn: basic_info?.name_cn,
       name: basic_info?.name,
@@ -344,6 +344,7 @@ export default function Advance(props: any) {
       desc: basic_info?.desc || '',
       ori_id: ori_id,
       version: version,
+      buzProcess: buzProcess,
     })
   }
 
