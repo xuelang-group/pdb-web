@@ -11,6 +11,7 @@ export default function UseHistoryModal(props: any) {
   const editId = useSelector((state: StoreState) => state.indicator.editId);
   const checkVersionList = useSelector((state: StoreState) => state.indicator.checkVersionList);
   const nowCheckVersion = useSelector((state: StoreState) => state.indicator.nowCheckVersion);
+  const requestId = useSelector((state: StoreState) => state.indicator.requestId);
 
   const onOk = () => {
     infoForm.validateFields().then(values => {
@@ -23,6 +24,7 @@ export default function UseHistoryModal(props: any) {
             ...res,
             ori_id: version.ori_id, 
             version: values.version,
+            requestId
           }, (success: boolean, res: any) => {
             setModalLoading(false)
             if (success) {
