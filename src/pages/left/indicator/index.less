@@ -41,9 +41,12 @@
       box-shadow: 0 0 5px fade(#000, 10%);
     }
 
-    .type-list.draggable {
-      height: calc(100% - 196px);
+    .type-list {
+      height: 100%;
       overflow: auto;
+      &.draggable {
+        height: calc(100% - 196px);
+      }
     }
 
     .indicator-item {
