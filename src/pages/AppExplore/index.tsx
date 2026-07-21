@@ -540,14 +540,14 @@ export default function AppExplore() {
           return _label.toLowerCase().indexOf(_value) > -1
         }) : typeList;
         typeOptions = searchTypes.map(val => ({
-          label: _.get(val['x.type.metadata'], 'dispaly', val['x.type.label']),
+          label: _.get(val['x.type.metadata'], 'display', val['x.type.label']),
           value: val['x.type.name'] + `-${currentTagLen}`,
           key: val['x.type.name'],
           type: 'type',
           data: val,
           prevSearchTagType
         }));
-
+        
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
           const prevTypeKey = prevSearchTag['key'];
