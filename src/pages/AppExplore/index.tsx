@@ -876,7 +876,7 @@ export default function AppExplore() {
         let pqlItem: any[] = [], csvItem: any[] = [], csvDisplayMap: any = {};
         item.forEach(val => {
           const detail = _searchTagMap[index][val];
-          let name = _.get(detail, 'label', '');
+          let name = detail.type === 'type' ? detail.data['x.type.label'] : _.get(detail, 'label', '');
           if (detail.isReverse) {
             name = name.slice(1);
           }
