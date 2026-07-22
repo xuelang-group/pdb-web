@@ -164,6 +164,7 @@ export default function SaveModal(props: any) {
                       // console.log('select: ', node)
                       setSelectedProcess({ id: value, name: get(node, 'tagNmZh', '') })
                     }}
+                    dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
                   /> : <Select placeholder="请选择所属业务过程" options={processOptions} />
                 }
               </Form.Item>
