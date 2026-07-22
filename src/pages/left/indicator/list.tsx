@@ -356,7 +356,7 @@ export default function List(props: any) {
                       draggable={draggable}
                       onDragStart={event => handleDragStart(event, { label: item.name_cn, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
-                      <span className='item-name'>
+                      <span className='item-name' title={label}>
                         {
                           item.type !== 2 ? <i className={`iconfont icon-zhibiao`} style={{ color: '#265CFF' }}></i> :
                           <svg className="svg-icon" aria-hidden="true">
