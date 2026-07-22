@@ -124,7 +124,8 @@ export default function NewRelation(props: ExploreFilterProps) {
       const label = item['x.type.metadata'] ? get(JSON.parse(item['x.type.metadata']), 'display') : item['x.type.label']
       return {
         label,
-        value: item['x.type.name']
+        value: item['x.type.name'],
+        type: item
       }
     })
     return (
@@ -178,7 +179,7 @@ export default function NewRelation(props: ExploreFilterProps) {
                       value: option['value'] + `-${tagsLen + 1}`,
                       key: option['value'],
                       type: 'type',
-                      data: option,
+                      data: option['type'],
                       prevSearchTagType: "relation"
                     });
                     // form.setFieldValue(["r.type.constraints", "r.binds", "target.attr"], "");
