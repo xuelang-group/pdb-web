@@ -9,13 +9,14 @@ import { setIndicatorLoading } from "@/reducers/editor";
 import moment from "moment";
 import { findIndex, get, isArray, isEmpty } from "lodash";
 import { getBuzProcess, getProcessTree } from "@/actions/adapter";
+import { getTreeData } from "@/utils/common";
 
 export default function SaveModal(props: any) {
   const dispatch = useDispatch();
   const [infoForm] = Form.useForm();
   const [isEdit, setIsEdit] = useState(false);
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
-  const [processOptions, setProcessOptions] = useState([])
+  const [processOptions, setProcessOptions] = useState<any[]>([])
   const [selectedProcess, setSelectedProcess] = useState<{id: string | number; name: string;}>()
   const [buzProcessArr, setBuzProcessArr] = useState([])
   const currentBuzProcess = useSelector((state: StoreState) => state.indicator.currentBuzProcess);
@@ -38,14 +39,15 @@ export default function SaveModal(props: any) {
         getBuzProcess({ requestId: requestId, xTypeNames }, (success:boolean, res: any) => {
           if (success) {
             setBuzProcessArr(res.data || [])
-            setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
+            setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item?.id || item, value: item?.id || item })))
           }
         })
       }
     } else {
       getProcessTree().then(({data}) => {
         if (!data.code) {
-          setProcessOptions(data.data)
+          const treeData = getTreeData(data.data)
+          setProcessOptions(treeData)
         }
       }).catch(err => {
         message.error(err.message)

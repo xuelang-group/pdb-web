@@ -449,3 +449,33 @@ export function getConditionRaw(item: ConditionState, label: string) {
     return `${item.not ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
   }
 }
+
+export interface ProcessTreeNode {
+  id: string;
+  domainName: string;
+  domainType: string;
+  tagNmZh: string;
+  tagType: string;
+  onlyCode: string;
+  validFlg: string;
+  level: number;
+  children?: null | ProcessTreeNode[]
+  [key: string]: any;
+}
+
+export type ProcessTreeDataNode = ProcessTreeNode & {
+  selectable: boolean;
+  children: null | ProcessTreeDataNode[];
+}
+
+export const getTreeData = (data?: ProcessTreeNode[] | null): ProcessTreeDataNode[] => {
+  if (!Array.isArray(data)) return []
+
+  return data.map((item) => ({
+    ...item,
+    selectable: item.level > 1,
+    children: Array.isArray(item.children) && item.children.length > 0
+      ? getTreeData(item.children)
+      : null
+  }))
+}

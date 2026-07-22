@@ -5,11 +5,12 @@ import { getProcessTree, getBuzProcess } from "@/actions/adapter";
 import { checkVersion, getMetricDetail2 } from "@/actions/indicator";
 import { useEffect, useState } from "react";
 import { findIndex, get, isEmpty } from "lodash";
+import { getTreeData } from "@/utils/common";
 
 export default function SaveModal(props: any) {
   const { editId, xTypeNames, advance=false } = props
   const [infoForm] = Form.useForm()
-  const [processOptions, setProcessOptions] = useState([])
+  const [processOptions, setProcessOptions] = useState<any[]>([])
   const [selectedProcess, setSelectedProcess] = useState<{id: string | number; name: string;}>()
   const [buzProcessArr, setBuzProcessArr] = useState([])
   const allIndicators = useSelector((state: StoreState) => state.indicator.list);
@@ -21,7 +22,7 @@ export default function SaveModal(props: any) {
       getBuzProcess({ requestId: requestId, xTypeNames }, (success:boolean, res: any) => {
         if (success) {
           setBuzProcessArr(res.data || [])
-          setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item, value: item?.id || item })))
+          setProcessOptions((res.data || []).map((item: any) => ({ label: item?.name || item?.id || item, value: item?.id || item })))
         }
       })
     }
@@ -30,7 +31,8 @@ export default function SaveModal(props: any) {
   useEffect(() => {
     advance && getProcessTree().then(({data}) => {
       if (!data.code) {
-        setProcessOptions(data.data)
+        const treeData = getTreeData(data.data)
+        setProcessOptions(treeData)
       }
     }).catch(err => {
       message.error(err.message)

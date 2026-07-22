@@ -159,7 +159,7 @@ export default function SimpleIndicator(props: any) {
             setBuzProcessArr(res.data || []);
             setProcessOptions(
               (res.data || []).map((item: any) => ({
-                label: item?.name || item,
+                label: item?.name || item?.id || item,
                 value: item?.id || item,
               }))
             );
