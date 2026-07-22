@@ -175,6 +175,22 @@ function registerIndicator() {
     },
   });
 }
+const tooltip = new G6.Tooltip({
+  offsetX: 10,
+  offsetY: 20,
+  shouldBegin(e) {
+    // 只有当 label 包含 '...' 时才触发提示
+    // console.log("shoudBegin: ", e?.item)
+    return e?.item?.getOriginStyle()['node-text']?.text?.includes('...')
+    // return e?.item?.get('model')?.label?.includes('...');
+  },
+  getContent(e) {
+    const outDiv = document.createElement('div');
+    outDiv.innerHTML = `${e?.item?.getModel().label}`; // 这里可以返回完整的原始文本
+    return outDiv;
+  },
+  itemTypes: ['node']
+});
 
 let graph: any;
 export default function IndicatorAdvance() {
@@ -307,6 +323,7 @@ export default function IndicatorAdvance() {
           lineDash: [5, 3]
         },
       },
+      plugins: [tooltip],
     });
     const data = !isEmpty(graph_data) ? JSON.parse(graph_data) : {nodes: [], edges: []}
     graph.data(data);
