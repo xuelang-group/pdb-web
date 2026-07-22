@@ -1,6 +1,6 @@
 import { Alert, Button, Checkbox, Flex, Segmented } from "antd";
 import 'dayjs/locale/zh-cn';
-import _ from "lodash";
+import _, { isArray } from "lodash";
 import React, { useEffect, useState } from "react";
 
 import { optionLabelMap, optionSymbolMap } from "@/utils/common";
@@ -123,9 +123,18 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           attrValue = _.get(opt, 'attr.value');
         let keyword = _.get(opt, 'keyword', ""),
           keywordValue = keyword;
-        if (typeof keyword === "object") {
-          keyword = keyword.format(_.get(opt, 'attr.data.datetimeFormat', "YYYY-MM-DD"));
-          keywordValue = new Date(keyword);
+        
+        if (isArray(keyword)) {
+          const keywords = keyword.map(item => {
+            if (typeof item === 'object') return item.format("YYYY-MM-DD HH:mm:ss");
+            return item
+          })
+          keywordValue = keywords
+        } else if (typeof keyword === "object") {
+          // const formatVal = _.get(opt, 'attr.data.datetimeFormat', "YYYY-MM-DD")
+          // console.log("formatVal: ", formatVal)
+          keywordValue = keyword.format("YYYY-MM-DD HH:mm:ss");
+          // console.log("keywordValue: ", keywordValue)
         }
         let conditionDetail = {};
         if (index > 0) {
@@ -141,8 +150,8 @@ export default function ExploreFilter(props: ExploreFilterProps) {
           raw += `HAS ${attrValue}`;
         } else {
           const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
-          filterLabel += `${opt.isNot ? "NOT " : ""}${attrLabel} ${conditionLabel} ${keyword}`;
-          raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${typeof _.get(opt, 'keyword', "") === "string" ? `'${keywordValue}'` : keywordValue}`;
+          filterLabel += `${opt.isNot ? "NOT " : ""}${attrLabel} ${conditionLabel} ${keywordValue}`;
+          raw += `${opt.isNot ? "NOT " : ""}${attrValue} ${optionSymbolMap[condition] || ""} ${keywordValue}`;
         }
         Object.assign(conditionDetail, {
           // raw,

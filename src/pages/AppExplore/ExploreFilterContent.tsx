@@ -1,7 +1,7 @@
 import { Button, Card, DatePicker, Empty, Form, Input, InputNumber, Radio, Select, Switch, Tag } from "antd";
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import 'dayjs/locale/zh-cn';
-import _, { filter, isEmpty } from "lodash";
+import _, { filter, isArray, isEmpty } from "lodash";
 import { Fragment, useEffect, useImperativeHandle, useState } from "react";
 
 import { conditionOptionMap, optionLabelMap, optionSymbolMap } from "@/utils/common";
@@ -145,10 +145,8 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             onChange={(_, option) => setEditCondition({ ...editCondition, attr: option })}
             onClick={event => event.stopPropagation()}
             onKeyDown={event => event.stopPropagation()}
-            filterOption={(input, option: any) =>
-            ((option?.children ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
-              (option?.value ?? '').toString() === input)
-            }
+            filterOption={(input, option: any) => ((option?.children ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+              (option?.value ?? '').toString().toLowerCase().indexOf(input.toLowerCase()) > -1 || (option?.label ?? '').toString().toLowerCase().indexOf(input.toLowerCase()) > -1)}
             disabled={readOnly}
           >
           </Select>
@@ -187,6 +185,17 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             );
 
             const renderConditionInput = function () {
+              if (condition === 'between' && attrType !== 'datetime') {
+                return (
+                  <Input
+                    className="pdb-explore-filter-config-condition"
+                    onClick={event => event.stopPropagation()}
+                    onMouseDown={event => event.stopPropagation()}
+                    onKeyDown={event => event.stopPropagation()}
+                    disabled={readOnly}
+                  />
+                )
+              }
               let input = null;
               switch (attrType) {
                 case "int":
@@ -233,8 +242,15 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
                   if (typeof getFieldValue("keyword") !== "object") {
                     setFieldValue("keyword", null);
                   }
-                  input = (
-                    <DatePicker className="pdb-explore-filter-config-condition" locale={locale} disabled={readOnly} />
+                  input = condition === 'between' ? (
+                    <DatePicker.RangePicker locale={locale} disabled={readOnly} showTime format="YYYY-MM-DD HH:mm:ss" />
+                  ) : (
+                    <DatePicker
+                      className="pdb-explore-filter-config-condition"
+                      locale={locale} disabled={readOnly}
+                      showTime
+                      format="YYYY-MM-DD HH:mm:ss"
+                    />
                   );
                   break;
                 default:
@@ -312,8 +328,15 @@ export default function ExploreFilterContent(props: ExploreFilterProps) {
             title = `${opt.isNot ? "NOT " : ""}存在属性 ${label}`
           } else {
             let keyword = _.get(opt, 'keyword', "");
-            if (typeof keyword === "object") {
-              keyword = keyword.format("YYYY-MM-DD");
+            if (isArray(keyword)) {
+              const keywords = keyword.map(item => {
+                if (typeof item === 'object') return item.format("YYYY-MM-DD HH:mm:ss");
+                return item
+              })
+              keyword = keywords
+            }
+            else if (typeof keyword === "object") {
+              keyword = keyword.format("YYYY-MM-DD HH:mm:ss");
             }
             const conditionLabel = (condition === "anyofterms" || condition === "allofterms" ? optionLabelMap[condition] : optionSymbolMap[condition]) || ""
             title = `${opt.isNot ? "NOT " : ""}${label} ${conditionLabel} ${keyword}`;
