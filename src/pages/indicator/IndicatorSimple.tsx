@@ -362,8 +362,14 @@ export default function SimpleIndicator(props: any) {
             let keyword = val.value,
               keywordLabel = val.value;
             if (attrData.type === "datetime") {
-              keywordLabel = moment(keyword).format(attrData.datetimeFormat);
-              keyword = dayjs(keywordLabel, attrData.datetimeFormat);
+              // const formatVal = attrData.datetimeFormat
+              if (isArray(keyword)) {
+                // keywordLabel =  moment(keyword).format('YYYY-MM-DD HH:mm:ss');
+                keyword = keyword.map(item => dayjs(item, 'YYYY-MM-DD HH:mm:ss'));
+              } else {
+                keywordLabel = moment(keyword).format('YYYY-MM-DD HH:mm:ss');
+                keyword = dayjs(keywordLabel, 'YYYY-MM-DD HH:mm:ss');
+              }
             }
 
             conditionOptions.push({

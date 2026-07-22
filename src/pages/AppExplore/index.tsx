@@ -1,7 +1,7 @@
 import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { isEmpty, compact, map } from "lodash";
+import _, { isEmpty, compact, map, isArray } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -202,8 +202,15 @@ export default function AppExplore() {
 
           let keyword = val.value, keywordLabel = val.value;
           if (attrData.type === "datetime") {
-            keywordLabel = moment(keyword).format(attrData.datetimeFormat);
-            keyword = dayjs(keywordLabel, attrData.datetimeFormat);
+            // const formatVal = attrData.datetimeFormat
+            // console.log('keyword: ', keyword)
+            if (isArray(keyword)) {
+              // keywordLabel =  moment(keyword).format('YYYY-MM-DD HH:mm:ss');
+              keyword = keyword.map(item => dayjs(item, 'YYYY-MM-DD HH:mm:ss'));
+            } else {
+              keywordLabel = moment(keyword).format('YYYY-MM-DD HH:mm:ss');
+              keyword = dayjs(keywordLabel, 'YYYY-MM-DD HH:mm:ss');
+            }
           }
 
           conditionOptions.push({
