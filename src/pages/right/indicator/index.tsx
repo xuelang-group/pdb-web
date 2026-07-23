@@ -198,7 +198,7 @@ export default function Right(props: any) {
     const { data } = await getMetricReference(values.ori_id)
     if (data.success) {
       if (!isEmpty(data.data)) {
-        const names = map(data.data, 'name')
+        const names = map(data.data, 'name_cn')
         modal.confirm({
           title: '提示',
           content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
