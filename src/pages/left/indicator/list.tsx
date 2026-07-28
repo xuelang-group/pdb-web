@@ -278,6 +278,8 @@ export default function List(props: any) {
       if (item.type === 1) 
         enterIndicatorSimple(item, menu.key === 'check2')
       if (!item.type) enterIndicatorProfession(item, menu.key === 'check2')
+      dispatch(setcheckVersionList(null));
+      dispatch(setNowCheckVersion(null));
     }
     if (menu.key ==='version') {
       setVersionVisible(true)
@@ -352,7 +354,7 @@ export default function List(props: any) {
                     trigger={['contextMenu']}
                   >
                     <div
-                      className={`type-item indicator-item ${(checkId === item.id || editId === item.id) ? 'indicator-item-selected' : ''}`}
+                      className={`type-item indicator-item ${(checkId === item.id || editId === item.id || checkId === item.ori_id || editId === item.ori_id) ? 'indicator-item-selected' : ''}`}
                       draggable={draggable}
                       onDragStart={event => handleDragStart(event, { label: item.name_cn, data: {id: item.id, ori_id: item.ori_id, name: item.name, name_cn: item.name_cn, type: item.type}})}
                     >
