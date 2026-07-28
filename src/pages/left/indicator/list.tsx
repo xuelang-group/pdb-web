@@ -165,11 +165,11 @@ export default function List(props: any) {
             dispatch(setEditId(res.id));
             dispatch(setNeedEditId(null));
         
-            if (tempObj.type === 2) 
-              enterIndicatorAdvance(tempObj, false)
-            if (tempObj.type === 1) 
-              enterIndicatorSimple(tempObj, false)
-            if (!tempObj.type) enterIndicatorProfession(tempObj, false)
+            if (res.type === 2) 
+              enterIndicatorAdvance(res, false)
+            if (res.type === 1) 
+              enterIndicatorSimple(res, false)
+            if (!res.type) enterIndicatorProfession(res, false)
 
             metricHistory({ori_id: res.ori_id}, (success: boolean, resH: any) => {
               if (success) {

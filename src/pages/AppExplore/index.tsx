@@ -1,7 +1,6 @@
-import { ComboConfig, EdgeConfig } from "@antv/g6";
 import { EnterOutlined } from '@ant-design/icons';
 import { Alert, Button, Divider, Empty, message, Modal, notification, Popover, Segmented, Select, Tabs, Tag, Tooltip } from "antd";
-import _, { isEmpty, compact, map, isArray } from "lodash";
+import _, { isEmpty, map, isArray } from "lodash";
 import React from "react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,10 +8,10 @@ import { useNavigate, useParams } from "react-router";
 
 import { RelationConfig } from "@/reducers/relation";
 import { AttrConfig, TypeConfig } from "@/reducers/type";
-import { NodeItemData, setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
-import { getQueryChildren, getQueryResult, runPql } from "@/actions/query";
+import { setCurrentEditModel, setCurrentGraphTab, setGraphDataMap, setGraphLoading, setToolbarConfig } from "@/reducers/editor";
+import { getQueryChildren, runPql } from "@/actions/query";
 import { StoreState } from "@/store";
-import { convertResultData, covertToGraphData } from "@/utils/objectGraph";
+import { covertToGraphData } from "@/utils/objectGraph";
 import ExploreFilter from "./ExploreFilter";
 import NewRelation from "./NewRelation";
 
@@ -216,13 +215,15 @@ export default function AppExplore() {
           }
         });
       }
+      const metadata = JSON.parse(typeMap[typeId]['x.type.metadata'] || '{}')
+      const label = _.get(metadata, 'display', name)
       Object.assign(_tagsMap, {
         [_id]: {
           key: typeId,
           value: _id,
           type: type === "object" ? "type" : type,
           prevSearchTagType: index === 0 ? "" : (type === "object" ? "relation" : "type"),
-          label: name,
+          label,
           distinct: !!other.distinct,
           config: {
             conditions,
@@ -655,7 +656,7 @@ export default function AppExplore() {
             });
           }
         }
-
+        
         if (currentTags.length === 0) {
           setSearchTabs('type');
           setSelectDropdownTab('type');
@@ -1089,7 +1090,6 @@ export default function AppExplore() {
   }
 
   const optionRender = function (option: any, info: { index: number }) {
-    console.log('---- option: ', option)
     if (option.value === "__ENTER__") {
       return (
         <span className="pdb-explore-dropdown-enter">
