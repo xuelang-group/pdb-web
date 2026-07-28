@@ -94,6 +94,8 @@ function App(props: PdbConfig) {
       const needVersionId = getHashParameterByName('versionId'); // 获取需要编辑的id
       if(requestId) {
         dispatch(setRequestId(requestId))
+      } else {
+        navigate(`/error`)
       }
       if(needCheckId) {
         dispatch(setNeedCheckId(needCheckId))
@@ -221,21 +223,22 @@ function App(props: PdbConfig) {
     if (activeKey === "indicator") {
       const id = checkId || editId;
       const indicator = id && allIndicators.find((item: any) => item.id == id);
+      const suffix = requestId ? ('?requestId=' + requestId) : ''
       if (indicator) {
         const type = indicator.type;
         if (type === 2) {
-          navigate(`/${graphId}/indicator/advance`)
+          navigate(`/${graphId}/indicator/advance${suffix}`)
         } else if (type === 1) {
-          navigate(`/${graphId}/indicator/simple`)
+          navigate(`/${graphId}/indicator/simple${suffix}`)
         } else {
-          navigate(`/${graphId}/indicator`)
+          navigate(`/${graphId}/indicator${suffix}`)
           dispatch(setQueryParams(indicator.pql_params.params));
         }
       } else if (query && query.graphId) {
         const pql = query.pql[0];
-        pql.length > 1 ? navigate(`/${graphId}/indicator`) : navigate(`/${graphId}/indicator/index`)
+        pql.length > 1 ? navigate(`/${graphId}/indicator${suffix}`) : navigate(`/${graphId}/indicator/index${suffix}`)
       } else {
-        navigate(`/${graphId}/indicator/index${requestId ? ('?requestId=' + requestId) : ''}`)
+        navigate(`/${graphId}/indicator/index${suffix}`)
       }
     } else {
       navigate(`/${graphId}`);

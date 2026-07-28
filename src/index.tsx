@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client';
 import { message, notification, Modal, ConfigProvider } from 'antd';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { IntlProvider } from 'react-intl';
 import _ from 'lodash';
@@ -11,6 +11,7 @@ import { legacyLogicalPropertiesTransformer, StyleProvider } from '@ant-design/c
 
 import store from './store';
 import App from './App';
+import ErrorPage from '@/pages/error';
 
 import '@/assets/iconfont/index';
 import '@/assets/less/index.less';
@@ -60,7 +61,10 @@ export function init(rootContainer: Element, config: PdbConfig = { locale: 'zh',
         >
           <Router basename={_.get(window, 'pdbConfig.basePath', '') + '/web'}>
             <StyleProvider hashPriority="high" transformers={[legacyLogicalPropertiesTransformer]}>
-              <App {...config} />
+              <Routes>
+                <Route path="/error" element={<ErrorPage />} />
+                <Route path="/*" element={<App {...config} />} />
+              </Routes>
             </StyleProvider>
           </Router>
         </ConfigProvider>
