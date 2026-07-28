@@ -149,6 +149,7 @@ export default function SimpleIndicator(props: any) {
   const [funcOptions, setfuncOptions] = useState<string[]>(); // 统计算法选项
   const [originType, setOriginType] = useState<OriginType>(); // 选中的数据资产单数据
   const [groupOptions, setGroupOptions] = useState<CsvHeaderState[]>([]); // GroupBy 的选项
+  const [requestTypes, setRequestTypes] = useState<string[]>([]);
 
   const updateBuzProcess = (strArr: string[]) => {
     if (requestId) { 
@@ -189,40 +190,29 @@ export default function SimpleIndicator(props: any) {
       getAdapterTypeList({ requestId }, (success: boolean, response: any) => {
         if (success) {
           const typeList = get(response, "data", []);
-          if (!isEmpty(typeList)) {
-            const list: TypeConfig[] = compact(typeList)
-            setTypeList(map(list, (item: TypeConfig) => {
-              if (item['x.type.metadata']) {
-                return {
-                  ...item,
-                  ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
-                }
-              }
-              return item
-            }));
-          } else {
-            getAdapterTypeHistory(
-              { requestId },
-              (success: boolean, response: any) => {
-                const list: TypeConfig[] = get(response, "data", [])
-                setTypeList(map(list, (item: TypeConfig) => {
-                  if (item['x.type.metadata']) {
-                    return {
-                      ...item,
-                      ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
-                    }
+          const highlightArray = !isEmpty(typeList) ? typeList.map((item: TypeConfig) => item['x.type.name']) : []
+          setRequestTypes(highlightArray)
+          getAdapterTypeHistory(
+            { requestId },
+            (success: boolean, response: any) => {
+              const list: TypeConfig[] = get(response, "data", [])
+              setTypeList(map(list, (item: TypeConfig) => {
+                if (item['x.type.metadata']) {
+                  return {
+                    ...item,
+                    ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
                   }
-                  return item
-                }));
-                if (!success) {
-                  notification.error({
-                    message: "获取对象类型列表失败",
-                    description: response.message || response.msg,
-                  });
                 }
+                return item
+              }));
+              if (!success) {
+                notification.error({
+                  message: "获取对象类型列表失败",
+                  description: response.message || response.msg,
+                });
               }
-            );
-          }
+            }
+          );
         } else {
           notification.error({
             message: "获取对象类型列表失败",
@@ -910,6 +900,29 @@ export default function SimpleIndicator(props: any) {
   };
 
   const isVersion = !isEmpty(checkVersionList)
+  const typeOptions = [
+    {
+      label: <span>当前</span>,
+      title: 'requestId',
+      options: map(
+        filter(typeList, item => requestTypes.includes(item['x.type.name'])),
+        (val) => ({
+          label: get(val["x.type.metadata"], 'display') || val["x.type.label"],
+          value: val["x.type.name"],
+        })
+      )
+    }, {
+      label: <span>历史</span>,
+      title: 'history',
+      options: map(
+        filter(typeList, item => !requestTypes.includes(item['x.type.name'])),
+        (val) => ({
+          label: get(val["x.type.metadata"], 'display') || val["x.type.label"],
+          value: val["x.type.name"],
+        })
+      )
+    }
+  ]
   return (
     <>
       { !isVersion ?
@@ -1029,10 +1042,7 @@ export default function SimpleIndicator(props: any) {
               >
                 <Select
                   placeholder="数据资产单"
-                  options={map(typeList, (val) => ({
-                    label: get(val["x.type.metadata"], 'display') || val["x.type.label"],
-                    value: val["x.type.name"],
-                  }))}
+                  options={typeOptions}
                   onChange={handleTypeNameChange}
                 />
               </Form.Item>

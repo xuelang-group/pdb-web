@@ -73,6 +73,7 @@ export default function AppExplore() {
     [currentSelectDropdownTab, setSelectDropdownTab] = useState('type'),
     [saveConfirmModal, setSaveConfirmModal] = useState(""),
     [typeList, setTypeList] = useState<TypeConfig[]>([]);
+  const [requestTypes, setRequestTypes] = useState<string[]>([]);
 
   useEffect(() => {
     document.addEventListener('keydown', onFocusSearch);
@@ -86,43 +87,33 @@ export default function AppExplore() {
    * 原先逻辑：对象类型列表同类型管理的对象类型数据 getTypeList接口获取来的
    * 更改逻辑：当访问地址中存在requestId时，需要根据requestId来获取对象类型列表。
    *  先通过getAdapterTypeList接口获取数据，若返回的数据为空时，再调用getAdapterTypeHistory接口。（墨尘提出，商飞）
+   * 更改逻辑：当访问地址中存在requestId时，
    */
   useEffect(() => {
     if (requestId) {
       getAdapterTypeList({ requestId }, (success: boolean, response: any) => {
         if (success) {
           const typeList = _.get(response, "data", []);
-          if (!isEmpty(typeList)) {
-            const list: TypeConfig[] = compact(typeList)
+          const highlightArray = !isEmpty(typeList) ? typeList.map((item: TypeConfig) => item['x.type.name']) : []
+          setRequestTypes(highlightArray)
+          getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
+            const list = _.get(response, "data", []);
             setTypeList(map(list, item => {
               if (item['x.type.metadata']) {
                 return {
                   ...item,
-                  ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
+                  ['x.type.metadata']: JSON.parse(item['x.type.metadata']),
                 }
               }
               return item
             }));
-          } else {
-            getAdapterTypeHistory({ requestId }, (success: boolean, response: any) => {
-              const list = _.get(response, "data", [])
-              setTypeList(map(list, item => {
-                if (item['x.type.metadata']) {
-                  return {
-                    ...item,
-                    ['x.type.metadata']: JSON.parse(item['x.type.metadata'])
-                  }
-                }
-                return item
-              }));
-              if (!success) {
-                notification.error({
-                  message: '获取对象类型列表失败',
-                  description: response.message || response.msg
-                });
-              }
-            });
-          }
+            if (!success) {
+              notification.error({
+                message: '获取对象类型列表失败',
+                description: response.message || response.msg
+              });
+            }
+          });
         } else {
           notification.error({
             message: '获取对象类型列表失败',
@@ -546,14 +537,33 @@ export default function AppExplore() {
           const _label = _.get(val['x.type.metadata'], 'dispaly', val['x.type.label'])
           return _label.toLowerCase().indexOf(_value) > -1
         }) : typeList;
-        typeOptions = searchTypes.map(val => ({
-          label: _.get(val['x.type.metadata'], 'display', val['x.type.label']),
-          value: val['x.type.name'] + `-${currentTagLen}`,
-          key: val['x.type.name'],
-          type: 'type',
-          data: val,
-          prevSearchTagType
-        }));
+        const requestTypeOptions = _.filter(searchTypes, item => requestTypes.includes(item['x.type.name']))
+        const historyTypeOptions = _.filter(searchTypes, item => !requestTypes.includes(item['x.type.name']))
+        typeOptions = [{
+          label: <span>当前</span>,
+          title: 'requestId',
+          options: requestTypeOptions.map(val => ({
+            label: _.get(val['x.type.metadata'], 'display', val['x.type.label']),
+            value: val['x.type.name'] + `-${currentTagLen}`,
+            key: val['x.type.name'],
+            type: 'type',
+            data: val,
+            highlight: requestTypes.includes(val['x.type.name']),
+            prevSearchTagType
+          }))
+        }, {
+          label: <span>历史</span>,
+          title: 'history',
+          options: historyTypeOptions.map(val => ({
+            label: _.get(val['x.type.metadata'], 'display', val['x.type.label']),
+            value: val['x.type.name'] + `-${currentTagLen}`,
+            key: val['x.type.name'],
+            type: 'type',
+            data: val,
+            highlight: requestTypes.includes(val['x.type.name']),
+            prevSearchTagType
+          }))
+        }]
         
         // relationOptions根据前一个tag对象类型进行关系正向反向过滤
         if (!_.isEmpty(prevSearchTagType)) {
@@ -1079,6 +1089,7 @@ export default function AppExplore() {
   }
 
   const optionRender = function (option: any, info: { index: number }) {
+    console.log('---- option: ', option)
     if (option.value === "__ENTER__") {
       return (
         <span className="pdb-explore-dropdown-enter">
