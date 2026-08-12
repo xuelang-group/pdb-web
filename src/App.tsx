@@ -70,25 +70,9 @@ function App(props: PdbConfig) {
     prevPathname = location.pathname;
     dispatch(setPageLoading(true));
     setSelectedTab(location.pathname.indexOf("/indicator") > -1 ? "indicator" : "pdb");
-    getSystemInfo((success: boolean, response: any) => {
-      if (success) {
-        const { userId, graphId } = response;
-        getAppFolderList(userId);
-        graphId && getCommonData(graphId);
-        dispatch(setSystemInfo(response));
-        if (!_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/${graphId}`) && location.pathname.indexOf(`/${graphId}/`) === -1) {
-          navigate(`/${graphId}`);
-        }
-      } else {
-        notification.error({
-          message: '获取系统信息失败：',
-          description: response.message || response.msg
-        });
-      }
-      dispatch(setPageLoading(false));
-    });
+    let requestId: string | null = null
     const getRequestId = function() {
-      const requestId = getHashParameterByName('requestId'); // 获取requestId
+      requestId = getHashParameterByName('requestId'); // 获取requestId
       const needCheckId = getHashParameterByName('checkId'); // 获取需要查看的id
       const needEditId = getHashParameterByName('editId'); // 获取需要编辑的id
       const needVersionId = getHashParameterByName('versionId'); // 获取需要编辑的id
@@ -108,6 +92,23 @@ function App(props: PdbConfig) {
       }
     }
     getRequestId()
+    getSystemInfo((success: boolean, response: any) => {
+      if (success) {
+        const { userId, graphId } = response;
+        getAppFolderList(userId);
+        graphId && getCommonData(graphId);
+        dispatch(setSystemInfo(response));
+        if (requestId && !location.pathname.endsWith(`/error`) && !_.get(window, 'pdbConfig.showAppList', false) && graphId && !location.pathname.endsWith(`/${graphId}`) && location.pathname.indexOf(`/${graphId}/`) === -1) {
+          navigate(`/${graphId}`);
+        }
+      } else {
+        notification.error({
+          message: '获取系统信息失败：',
+          description: response.message || response.msg
+        });
+      }
+      dispatch(setPageLoading(false));
+    });
     window.addEventListener('hashchange', getRequestId);
     return () => {
       dispatch(Editor.reset());
