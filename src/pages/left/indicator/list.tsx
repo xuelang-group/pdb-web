@@ -135,6 +135,8 @@ export default function List(props: any) {
                 dispatch(setNowCheckVersion(res.version))
               }
             })
+          } else {
+            console.log('--- getMetricDetail err: ', res)
           }
         })
       }
@@ -177,6 +179,8 @@ export default function List(props: any) {
                 dispatch(setNowCheckVersion(res.version))
               }
             })
+          } else {
+            message.error(res.message)
           }
         })
       }

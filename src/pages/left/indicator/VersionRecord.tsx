@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Modal, Tag, Table } from "antd";
+import { Modal, Tag, Table, message } from "antd";
 import { metricHistory, getMetricDetail } from "@/actions/indicator";
 import { setQueryParams, setApi } from '@/reducers/query';
 import { setcheckVersionList, setNowCheckVersion, setNextShowConfiguration, setExtraColumns } from "@/reducers/indicator";
@@ -78,6 +78,8 @@ export default function VersionRecord(props: any) {
         dispatch(setcheckVersionList(verData))
         dispatch(setNowCheckVersion(record.version))
         onCancel()
+      } else {
+        message.error(res.message)
       }
     })
   }

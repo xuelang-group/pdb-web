@@ -80,7 +80,9 @@ export const metricHistory = (params, callback) => {
 // 获取metric详情
 export const getMetricDetail = (params, callback) => {
   return axios.get(`${api['getMetricDetail']}`, params).then(({ data }) => {
-    callback && callback(true, data);
+    if (callback) {
+      data ? callback(true, data) : callback(false, new Error(`没有查询到指标id为 ${params.id} 的数据`));
+    }
   }, (err) => {
     callback && callback(false, err);
   });

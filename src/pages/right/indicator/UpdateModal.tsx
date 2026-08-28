@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Select, Spin } from "antd";
+import { Modal, Form, Input, Select, Spin, message } from "antd";
 import { StoreState } from '@/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from "react";
@@ -37,6 +37,8 @@ export default function UpdateModal(props: any) {
             version: values.version
           }
           props.onOk(newValues)
+        } else {
+          message.error(res.message)
         }
       })
     }).catch(err => { })
