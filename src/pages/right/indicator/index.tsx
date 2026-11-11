@@ -9,7 +9,7 @@ import SaveModal from "./SaveModal";
 import UpdateModal from "./UpdateModal";
 import { setIndicatorLoading } from '@/reducers/editor';
 import { getMetricReference, getMetrics } from "@/actions/indicator";
-import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible, resetData } from "@/reducers/indicator";
+import { setGroupBy, setDimension, setFunc, exit, setEditId, setMetrics, setModalVisible, setUpdateModalVisible, resetData, setcheckVersionList, setNowCheckVersion } from "@/reducers/indicator";
 import { addMetric, updateMetric } from "@/actions/indicator";
 import { CheckCircleFilled } from '@ant-design/icons';
 import Loading from "@/assets/images/loading-apng.png";
@@ -423,6 +423,8 @@ export default function Right(props: any) {
           </Button>
           <Button block
             onClick={() => {
+              dispatch(setcheckVersionList(null));
+              dispatch(setNowCheckVersion(null));
               dispatch(exit())
               dispatch(resetData())
               dispatch(clearQuery())

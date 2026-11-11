@@ -55,7 +55,7 @@ import ColumnConfigModal from "./ColumnConfig";
 import ConditionsConfigModal from "./ConditionsConfig";
 import { addMetric, getFuncResult, getMetricDetail2, getMetrics } from "@/actions/indicator";
 import SaveModal from "./SaveModal";
-import { exit, setEditId, setMetrics } from "@/reducers/indicator";
+import { exit, setcheckVersionList, setEditId, setMetrics, setNowCheckVersion } from "@/reducers/indicator";
 import UpdateModal from "./UpdateModal";
 import AdvanceCodeMode from "./AdvanceCodeMode";
 import AdvanceCalc from "@/pages/indicator/AdvanceCalc";
@@ -260,6 +260,8 @@ export default function Advance(props: any) {
   };
 
   const handleCancel = () => {
+    dispatch(setcheckVersionList(null));
+    dispatch(setNowCheckVersion(null));
     dispatch(exit())
     dispatch(clearQuery())
     dispatch(exitAdv())
