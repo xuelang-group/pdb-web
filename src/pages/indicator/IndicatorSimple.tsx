@@ -668,7 +668,7 @@ export default function SimpleIndicator(props: any) {
   // 保存
   const onSubmit = () => {
     form.validateFields().then((values) => {
-      metricForm.validateFields().then(async() => {
+      metricForm.validateFields().then(async(val) => {
         if (current?.ori_id) {
           const { data } = await getMetricReference(current?.ori_id)
           if (data.success && !isEmpty(data.data)) {
@@ -677,13 +677,13 @@ export default function SimpleIndicator(props: any) {
               title: '提示',
               content: `本指标被 ${names.join('、')} 指标引用，是否确定要继续保存？`,
               onOk: function() {
-                handleAdd(values)
+                handleAdd({...values, ...val})
               }
             })
             return
           }
         }
-        handleAdd(values)
+        handleAdd({...values, ...val})
       })
       .catch(err => {
         console.log('--- err: ', err)
