@@ -52,6 +52,7 @@ interface IndicatorState {
   currentBuzProcess: any;
   checkVersionList: any[] | null;
   nowCheckVersion: any | null;
+  currentVersion: any | null;
   nextShowConfiguration: any | null;
 }
 
@@ -85,6 +86,7 @@ const initialState: IndicatorState = {
   currentBuzProcess: {},
   checkVersionList: null,
   nowCheckVersion: null,
+  currentVersion: null,
   nextShowConfiguration: null,
 }
 
@@ -392,8 +394,14 @@ export const indicatorSlice = createSlice({
     },
     setcheckVersionList: (state, action: PayloadAction<any>) => {
       state.checkVersionList = action.payload;
+      state.nowCheckVersion = null;
+      state.currentVersion = null;
     },
     setNowCheckVersion: (state, action: PayloadAction<any>) => {
+      if (!state.currentVersion || !action.payload) {
+        console.log('--- currentVersion：', action.payload)
+        state.currentVersion = action.payload
+      }
       state.nowCheckVersion = action.payload;
     },
     setNextShowConfiguration: (state, action: PayloadAction<any>) => {

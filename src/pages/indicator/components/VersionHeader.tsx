@@ -42,6 +42,9 @@ export default function Indicator(props: any) {
   const nowCheckVersion = useSelector(
     (state: StoreState) => state.indicator.nowCheckVersion
   );
+  const currentVersion = useSelector(
+    (state: StoreState) => state.indicator.currentVersion
+  );
 
   useEffect(() => {
     if (checkVersionList && checkVersionList.length > 0) {
@@ -172,10 +175,11 @@ export default function Indicator(props: any) {
       <span>
         <Button style={{ marginRight: "12px" }} onClick={onBack}>
           <RollbackOutlined />
-          回到最新版本
+          退出版本查看
         </Button>
         <Button
           type="primary"
+          disabled={nowCheckVersion == currentVersion}
           onClick={() => {
             setModalVisible(true);
           }}
