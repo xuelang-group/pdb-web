@@ -37,7 +37,7 @@ export default function UseHistoryModal(props: any) {
           rollbackMetric({id: version.id}, (success: boolean, res: any) => {
             setModalLoading(false)
             if (success) {
-              message.success('回滚成功')
+              message.success('回退成功')
               onCancel()
               props.onSuccess && props.onSuccess()
             }
